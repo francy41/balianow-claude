@@ -1,0 +1,264 @@
+# INSTRUCCIONES COMPLETAS — BACHASALSEROS PLATFORM
+## Para: Antigravity AI Studio / Go High Level (GHL)
+## Versión: 1.0 — Mayo 2026
+
+---
+
+## ¿QUÉ ES ESTE PROYECTO?
+
+BachaSalseros es un **ecosistema completo de entretenimiento latino** que combina:
+
+- **Upwork + Fiverr** → Marketplace de servicios de artistas
+- **Ticketmaster + Eventbrite** → Sistema de tickets y eventos
+- **Yelp + Google Maps** → Descubrimiento geolocalizado de venues
+- **Airbnb Experiences** → Experiencias de entretenimiento
+- **Twitch Live** → Streaming en vivo de DJs, bailarines, artistas
+- **TikTok Discovery** → Feed social de contenido latino
+
+**Enfocado en:** Salsa, Bachata, DJ Latinos, Bailarines, Músicos, Venues y Eventos.
+
+---
+
+## REGLA #1 — MÁS IMPORTANTE
+
+**NO DESTRUYAS LO EXISTENTE.**
+
+- No rediseñes la plataforma.
+- No cambies el branding.
+- No elimines módulos existentes.
+- No cambies la identidad visual.
+- Solo repara, conecta, optimiza y completa.
+
+---
+
+## STACK TÉCNICO DEL PROYECTO
+
+Frontend:   React 18 + TypeScript + Vite 5
+Estilos:    Tailwind CSS 3 (dark theme custom)
+Estado:     Zustand
+Router:     React Router v6
+Animaciones: Framer Motion
+Iconos:     Lucide React
+Fuentes:    Inter + Montserrat (Google Fonts)
+
+**Tema visual:**
+- Fondo: #050507 (negro casi puro)
+- Acento 1: Purple #7C3AED
+- Acento 2: Pink #EC4899
+- Acento 3: Gold #F59E0B
+- Estética: Glassmorphism + Neon borders + Dark luxury
+
+---
+
+## ESTRUCTURA DE ARCHIVOS
+
+src/
+├── main.tsx                    ← Entry point
+├── App.tsx                     ← Router principal con lazy loading
+├── index.css                   ← Tailwind + custom CSS
+├── data/
+│   └── mockData.ts             ← Datos mock: Artists, Events, Venues, Services
+├── store/
+│   └── appStore.ts             ← Zustand: Auth, UI, Chat stores
+├── components/
+│   ├── ui/index.tsx            ← Componentes UI reutilizables
+│   └── layout/
+│       ├── Navbar.tsx          ← Navbar superior
+│       └── BottomNav.tsx       ← Navegación inferior mobile
+└── pages/
+    ├── HomePage.tsx            ← Home con todas las secciones
+    ├── ExplorePage.tsx         ← Búsqueda global
+    ├── ArtistsPage.tsx         ← Lista de artistas con filtros
+    ├── ArtistProfilePage.tsx   ← Perfil completo de artista
+    ├── EventsPage.tsx          ← Lista de eventos
+    ├── MarketplacePage.tsx     ← Marketplace estilo Fiverr
+    ├── ServiceDetailPage.tsx   ← Detalle de servicio con checkout
+    ├── LiveNowPage.tsx         ← Live streaming
+    ├── VenuesPage.tsx          ← Venues + detalle
+    ├── ChatPage.tsx            ← Chat interno
+    ├── DashboardPage.tsx       ← Dashboard usuario/artista
+    ├── WalletPage.tsx          ← Wallet + transacciones
+    ├── SubscriptionsPage.tsx   ← Planes premium
+    ├── MapPage.tsx             ← Mapa geolocalizado
+    └── AuthPage.tsx            ← Login + Registro
+
+---
+
+## RUTAS CONFIGURADAS
+
+/                   → HomePage
+/explorar           → ExplorePage (búsqueda global)
+/artistas           → ArtistsPage
+/artistas/:id       → ArtistProfilePage
+/eventos            → EventsPage
+/eventos/:id        → EventDetail
+/marketplace        → MarketplacePage
+/marketplace/:id    → ServiceDetailPage
+/live               → LiveNowPage
+/live/:id           → StreamViewer
+/venues             → VenuesPage
+/venues/:id         → VenueDetail
+/mapa               → MapPage
+/chat               → ChatPage
+/dashboard          → DashboardPage
+/wallet             → WalletPage
+/subscripciones     → SubscriptionsPage
+/auth               → AuthPage
+/admin              → AdminPanel
+
+---
+
+## MÓDULOS IMPLEMENTADOS
+
+### 1. AUTENTICACIÓN
+- Login / Registro completo
+- Roles: user, artist, dj, dancer, venue, admin
+- JWT ready (implementar en backend)
+- Demo mode funcional
+- Selección de rol en registro
+
+### 2. MARKETPLACE (Fiverr/Upwork style)
+- Listado de servicios con filtros
+- Detalle de servicio con checkout
+- Sistema de precios + comisión 15% automática
+- Escrow simulado
+- Reviews y ratings
+
+### 3. ARTISTAS / DJs / BAILARINES
+- Perfiles completos tipo "website profesional"
+- Portfolio, galería, videos, redes sociales
+- Sistema de booking con formulario
+- Calendario de disponibilidad
+- Reviews + ratings
+- Chat interno para negociación
+
+### 4. LIVE STREAMING
+- Lista de streams en vivo con contador de viewers
+- Viewer de stream con chat en tiempo real
+- Viewers counter dinámico
+- Sistema de reacciones y compartir
+
+### 5. VENUES
+- Lista con filtros por tipo, ciudad, estado
+- Detalle completo: info, eventos, fotos
+- Sistema de reserva de espacio
+- Solo venues ABIERTOS visibles
+
+### 6. EVENTOS Y TICKETS
+- Lista con filtros: próximos, destacados, online
+- Compra de tickets con validación de capacidad
+- Barra de capacidad visual
+- Eventos agotados bloqueados
+
+### 7. CHAT INTERNO
+- Conversaciones entre usuarios/artistas
+- SIN emails ni teléfonos públicos externos
+- Todo el contacto es interno y cifrado
+
+### 8. WALLET
+- Saldo del usuario
+- Historial de transacciones
+- Sistema de recarga (Stripe ready)
+- Escrow para pagos pendientes
+
+### 9. SUSCRIPCIONES PREMIUM
+- Plan Básico: €9/mes
+- Plan Estándar: €20/mes (4 flyers)
+- Plan Pro: €50/mes (8 flyers + 4 vídeos)
+- Plan Elite: €150/mes (filming + campañas)
+- Descuento anual del 20%
+
+### 10. MAPA GEOLOCALIZADO
+- Vista de mapa con pins de venues y eventos
+- Integración preparada para Google Maps API
+
+---
+
+## REGLAS DE NEGOCIO CRÍTICAS
+
+Comisión = 15% de CADA transacción — automática en checkout
+NO se muestran emails públicos ni teléfonos en perfiles
+TODO el contacto va por el chat interno de la plataforma
+El dinero no se libera hasta que el servicio se confirma completado
+
+---
+
+## INTEGRACIONES A CONECTAR EN PRODUCCIÓN
+
+STRIPE_SECRET_KEY=sk_live_...
+STRIPE_CONNECT_CLIENT_ID=ca_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+PAYPAL_CLIENT_ID=...
+VITE_GOOGLE_MAPS_KEY=AIza...
+SENDGRID_API_KEY=SG...
+VITE_AGORA_APP_ID=...
+VITE_SUPABASE_URL=https://xxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
+DATABASE_URL=postgresql://...
+
+---
+
+## VARIABLES DE ENTORNO (.env)
+
+VITE_APP_NAME=BachaSalseros
+VITE_API_URL=https://api.bachasalseros.com
+VITE_GOOGLE_MAPS_KEY=tu_key_aqui
+VITE_STRIPE_PUBLIC_KEY=pk_live_...
+VITE_SUPABASE_URL=https://xxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
+VITE_AGORA_APP_ID=tu_agora_id
+
+---
+
+## COMANDOS
+
+npm run dev        ← Desarrollo (puerto 3000)
+npm run build      ← Build producción
+npm run preview    ← Preview del build
+npx tsc --noEmit   ← Type check
+
+---
+
+## IDENTIDAD DE MARCA
+
+- Nombre: BachaSalseros
+- Claim: "El ecosistema de entretenimiento latino #1"
+- Colores: Púrpura #7C3AED + Rosa #EC4899 + Dorado #F59E0B
+- Tipografía: Montserrat (display) + Inter (body)
+- Estética: Dark luxury, glassmorphism, neon accents
+- Tono: Vibrante, nocturno, premium, latino, social
+
+---
+
+## 10 REGLAS PARA EL AI DE GHL (ANTIGRAVITY)
+
+1. LEE PRIMERO src/data/mockData.ts para entender la estructura de datos
+2. LEE src/store/appStore.ts para entender el estado global
+3. LEE src/App.tsx para entender el sistema de rutas
+4. PRESERVA la identidad visual: colores, fuentes, estilos glassmorphism
+5. NO ELIMINES ningún módulo existente — solo añade o mejora
+6. MANTÉN la comisión del 15% en todas las transacciones
+7. MANTÉN el sistema de chat interno (sin emails/teléfonos públicos)
+8. AÑADE error boundaries en cualquier componente nuevo
+9. USA los componentes UI de src/components/ui/index.tsx
+10. SIGUE el patrón de TypeScript estricto del proyecto
+
+---
+
+## PRÓXIMOS PASOS PARA PRODUCCIÓN
+
+1. Backend API — Conectar endpoints reales (Supabase/Node.js)
+2. Stripe Connect — Pagos reales con escrow
+3. Google Maps — API key real para mapa interactivo
+4. Agora.io — Live streaming real
+5. Push Notifications — Firebase Cloud Messaging
+6. Email Verification — Verificación de cuenta en registro
+7. CI/CD — Deploy en Vercel/Netlify
+8. Admin Panel — Dashboard completo de administración
+9. Analytics — Integrar Mixpanel o Amplitude
+10. SEO — Meta tags dinámicos, sitemap, robots.txt
+
+---
+Proyecto: BachaSalseros — Ecosistema Latino
+Ruta local: F:\BACHASALSEROS APP WEB\PROYEC LATINO CLAUDE\
+Generado: 15 de Mayo 2026
