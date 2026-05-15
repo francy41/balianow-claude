@@ -1,0 +1,117 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background-color: #f5f5f5;
+    color: #111111;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: #f1f1f1; }
+  ::-webkit-scrollbar-thumb { background: #F97316; border-radius: 2px; }
+  ::selection { background: rgba(249,115,22,0.2); color: #111; }
+}
+
+@layer components {
+  /* ── LAYOUT ── */
+  .sidebar-width { width: 240px; }
+
+  /* ── GLASS / CARD ── */
+  .card-white {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  /* ── ORANGE BUTTONS ── */
+  .btn-orange {
+    @apply bg-brand-orange text-white font-bold rounded-lg px-5 py-2.5 transition-all duration-150 hover:bg-brand-orange-dark active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed select-none;
+  }
+  .btn-outline {
+    @apply border-2 border-brand-orange text-brand-orange font-bold rounded-lg px-5 py-2.5 transition-all duration-150 hover:bg-brand-orange hover:text-white active:scale-95 select-none;
+  }
+  .btn-dark {
+    @apply bg-gray-800 text-white font-bold rounded-lg px-5 py-2.5 transition-all duration-150 hover:bg-gray-900 active:scale-95 select-none;
+  }
+  .btn-ghost {
+    @apply text-gray-500 font-medium px-4 py-2 rounded-lg transition-all duration-150 hover:bg-gray-100 hover:text-gray-800 active:scale-95;
+  }
+
+  /* ── TAGS / BADGES ── */
+  .tag-orange { @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-brand-orange text-white uppercase tracking-wide; }
+  .tag-green  { @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-700; }
+  .tag-red    { @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-600; }
+  .tag-gray   { @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-500; }
+  .tag-live   { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-600 text-white; }
+
+  /* ── NAV LINK ── */
+  .nav-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-300 text-sm font-medium transition-all duration-150 hover:bg-white/10 hover:text-white;
+  }
+  .nav-link.active {
+    @apply bg-brand-orange text-white;
+  }
+  .nav-section {
+    @apply text-gray-500 text-[10px] font-bold uppercase tracking-widest px-3 pt-5 pb-1;
+  }
+
+  /* ── INPUT ── */
+  .input-field {
+    @apply w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 transition-all;
+  }
+
+  /* ── HORIZONTAL SCROLL ── */
+  .scroll-x {
+    @apply flex gap-3 overflow-x-auto pb-2;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scroll-x::-webkit-scrollbar { display: none; }
+
+  /* ── STAT CARD (admin) ── */
+  .stat-card {
+    @apply card-white p-5 flex items-center gap-4;
+  }
+
+  /* ── TABLE ── */
+  .admin-table { @apply w-full text-sm; }
+  .admin-table th { @apply text-left text-xs font-bold text-gray-400 uppercase tracking-wide py-3 px-4 border-b border-gray-100; }
+  .admin-table td { @apply py-3 px-4 border-b border-gray-50 text-gray-700; }
+  .admin-table tr:hover td { @apply bg-gray-50; }
+
+  /* ── SECTION HEADER ── */
+  .section-head {
+    @apply flex items-center justify-between mb-4;
+  }
+  .section-title {
+    @apply text-lg font-display font-bold text-gray-900;
+  }
+  .section-link {
+    @apply text-brand-orange text-sm font-semibold hover:underline;
+  }
+
+  /* ── SKELETON ── */
+  @keyframes shimmer {
+    0%   { background-position: -600px 0; }
+    100% { background-position: 600px 0; }
+  }
+  .skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 600px 100%;
+    animation: shimmer 1.5s infinite linear;
+    border-radius: 6px;
+  }
+
+  /* Safe area for mobile */
+  .pb-nav { padding-bottom: 72px; }
+}
