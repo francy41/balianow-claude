@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { ARTISTS, LIVE_STREAMS, SOCIAL_NETWORK_URLS } from '../data/mockData';
 import type { Artist, MediaItem, OfferPackage } from '../data/mockData';
-import { useAuthStore, useUIStore } from '../store/appStore';
+import { useAuthStore, useUIStore, getYouTubeId } from '../store/appStore';
 import { Avatar, Modal, Button } from '../components/ui';
 import BookingModal from '../components/BookingModal';
 
@@ -309,6 +309,8 @@ const AboutTab: React.FC<{ artist: Artist }> = ({ artist }) => (
           </div>
         </div>
       )}
+
+      <FeaturedVideoCard artist={artist} />
     </div>
 
     {/* Sidebar */}
@@ -343,22 +345,79 @@ const SOCIAL_COLORS: Record<string, string> = {
   twitch:     'from-purple-600 to-purple-800',
 };
 
+// ── FEATURED VIDEO CARD ────────────────────────────────────────────────────
+const FeaturedVideoCard: React.FC<{ artist: Artist }> = ({ artist }) => {
+  if (!artist.featuredVideo) return null;
+  const ytId = getYouTubeId(artist.featuredVideo);
+  return (
+    <div className="card-white rounded-2xl overflow-hidden">
+      <div className="p-5 pb-3 flex items-center justify-between">
+        <h3 className="font-display font-bold text-gray-900 flex items-center gap-2">
+          🎬 Vídeo destacado
+        </h3>
+        {ytId && (
+          <a href={artist.featuredVideo} target="_blank" rel="noreferrer"
+            className="text-[10px] text-red-500 font-bold hover:underline flex items-center gap-1">
+            Ver en YouTube ↗
+          </a>
+        )}
+      </div>
+      <div className="bg-black aspect-video">
+        {ytId ? (
+          <iframe
+            src={`https://www.youtube.com/embed/${ytId}?modestbranding=1&rel=0`}
+            title={artist.featuredVideoTitle || artist.name}
+            className="w-full h-full"
+            allow="encrypted-media; picture-in-picture"
+            allowFullScreen
+          />
+        ) : (
+          <video src={artist.featuredVideo} controls className="w-full h-full object-cover" />
+        )}
+      </div>
+      {artist.featuredVideoTitle && (
+        <div className="px-5 py-3 border-t border-gray-100">
+          <p className="text-sm font-semibold text-gray-900">{artist.featuredVideoTitle}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const formatFollowers = (n?: number) => {
+  if (!n) return null;
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace('.0', '')}M`;
+  if (n >= 1_000)     return `${(n / 1_000).toFixed(1).replace('.0', '')}K`;
+  return n.toLocaleString();
+};
+
 const SocialLinksCard: React.FC<{ artist: Artist }> = ({ artist }) => {
   const entries = Object.entries(artist.social).filter(([, v]) => !!v);
   if (entries.length === 0) return null;
+  const followers = artist.socialFollowers || {};
+  const totalFollowers = Object.values(followers).reduce((s, v) => s + (v || 0), 0);
   return (
     <div className="card-white rounded-2xl p-5">
-      <h3 className="font-display font-bold text-gray-900 mb-3">🌐 Redes sociales</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-display font-bold text-gray-900">🌐 Redes sociales</h3>
+        {totalFollowers > 0 && (
+          <span className="text-[10px] text-gray-400">Total <span className="font-black text-brand-orange">{formatFollowers(totalFollowers)}</span></span>
+        )}
+      </div>
       <div className="grid grid-cols-3 gap-2">
-        {entries.map(([key, handle]) => (
-          <a key={key}
-            href={`${SOCIAL_NETWORK_URLS[key as keyof typeof SOCIAL_NETWORK_URLS] || '#'}${handle}`}
-            target="_blank" rel="noreferrer"
-            className={`bg-gradient-to-br ${SOCIAL_COLORS[key] || 'from-gray-400 to-gray-600'} text-white aspect-square rounded-xl flex flex-col items-center justify-center gap-1 hover:scale-105 transition-transform`}>
-            <SocialIcon kind={key} />
-            <span className="text-[9px] font-bold uppercase tracking-wider">{key}</span>
-          </a>
-        ))}
+        {entries.map(([key, handle]) => {
+          const f = followers[key as keyof typeof followers];
+          return (
+            <a key={key}
+              href={`${SOCIAL_NETWORK_URLS[key as keyof typeof SOCIAL_NETWORK_URLS] || '#'}${handle}`}
+              target="_blank" rel="noreferrer"
+              className={`bg-gradient-to-br ${SOCIAL_COLORS[key] || 'from-gray-400 to-gray-600'} text-white aspect-square rounded-xl flex flex-col items-center justify-center gap-0.5 hover:scale-105 transition-transform p-2`}>
+              <SocialIcon kind={key} />
+              <span className="text-[9px] font-bold uppercase tracking-wider">{key}</span>
+              {f && <span className="text-[11px] font-black mt-0.5">{formatFollowers(f)}</span>}
+            </a>
+          );
+        })}
       </div>
     </div>
   );
