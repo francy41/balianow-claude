@@ -186,7 +186,11 @@ export const useAuthStore = create<AuthState>()(
   updateUser: (updates) =>
     set(state => ({ user: state.user ? { ...state.user, ...updates } : null })),
     }),
-    { name: 'ritmolatino-auth', partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }) }
+    {
+      name: 'ritmolatino-auth',
+      version: 2,
+      partialize: (state) => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
+    }
   )
 );
 
@@ -238,7 +242,11 @@ export const useSiteConfigStore = create<SiteConfigState>()(
       resetCommissions: () =>
         set({ commissions: DEFAULT_COMMISSIONS }),
     }),
-    { name: 'ritmolatino-site-config' }
+    {
+      name: 'ritmolatino-site-config',
+      version: 2,
+      migrate: () => undefined as any,
+    }
   )
 );
 
@@ -483,7 +491,10 @@ export const useAdminOverridesStore = create<AdminOverridesState>()(
         return patch ? ({ ...item, ...patch } as any) : item;
       },
     }),
-    { name: 'ritmolatino-admin-overrides' }
+    {
+      name: 'ritmolatino-admin-overrides',
+      version: 1,
+    }
   )
 );
 
@@ -983,6 +994,10 @@ export const usePerformerStore = create<PerformerState>()(
         };
       },
     }),
-    { name: 'ritmolatino-performer' }
+    {
+      name: 'ritmolatino-performer',
+      version: 3,
+      migrate: () => undefined as any,
+    }
   )
 );
