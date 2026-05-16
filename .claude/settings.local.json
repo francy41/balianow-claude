@@ -21,7 +21,12 @@
       "Bash(findstr DashboardPage)",
       "Bash(git push *)",
       "Bash(findstr LISTENING)",
-      "Bash(curl -s -o nul -w \"HTTP %{http_code} | size %{size_download}\\\\n\" http://localhost:3000/)"
+      "Bash(curl -s -o nul -w \"HTTP %{http_code} | size %{size_download}\\\\n\" http://localhost:3000/)",
+      "Bash(curl -s http://localhost:3000/src/pages/AdminPage.tsx)",
+      "Bash(curl -s -o nul -w \"HTTP %{http_code}\\\\n\" http://localhost:3000/src/components/DevRoleSwitcher.tsx)",
+      "Bash(curl -s http://localhost:3000/src/components/DevRoleSwitcher.tsx)",
+      "Bash(curl -s -o nul -w \"HTTP %{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(curl -s http://localhost:3000/src/components/PaymentMethodsPanel.tsx)"
     ]
   }
 }

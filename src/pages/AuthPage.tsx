@@ -114,7 +114,12 @@ const AuthPage: React.FC = () => {
                   ⚡ Acceso rápido
                 </p>
                 <button
-                  onClick={() => { setLoginEmail('solfamende41@gmail.com'); setLoginPassword('Solfa11111111@'); }}
+                  onClick={async () => {
+                    setLoginEmail('solfamende41@gmail.com');
+                    setLoginPassword('Solfa11111111@');
+                    const ok = await login('solfamende41@gmail.com', 'Solfa11111111@');
+                    if (ok) { addToast({ message: '¡Bienvenida, Super Admin!', type: 'success' }); navigate('/admin'); }
+                  }}
                   className="w-full flex items-center gap-3 px-4 py-3 hover:bg-orange-50 transition-colors border-b border-gray-50"
                 >
                   <div className="w-8 h-8 rounded-full bg-brand-orange flex items-center justify-center flex-shrink-0">
@@ -122,7 +127,7 @@ const AuthPage: React.FC = () => {
                   </div>
                   <div className="text-left flex-1">
                     <p className="text-gray-800 text-xs font-bold">Solfa Mende — Super Admin</p>
-                    <p className="text-gray-400 text-[10px]">solfamende41@gmail.com</p>
+                    <p className="text-gray-400 text-[10px]">Click aquí para entrar directo al panel admin</p>
                   </div>
                   <span className="text-[10px] bg-brand-orange text-white px-2 py-0.5 rounded-full font-bold">ADMIN</span>
                 </button>

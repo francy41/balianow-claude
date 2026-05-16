@@ -19,9 +19,11 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 }) => {
   const { user, isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
-  const { recordTransaction } = usePerformerStore();
+  const { recordTransaction, paymentMethods } = usePerformerStore();
   const { commissions } = useSiteConfigStore();
   const navigate = useNavigate();
+  const userPaymentMethods = user ? paymentMethods.filter(p => p.userId === user.id) : [];
+  const defaultPM = userPaymentMethods.find(p => p.isDefault) || userPaymentMethods[0];
   const [concept, setConcept] = useState(defaultConcept);
   const [price, setPrice] = useState(String(defaultPrice));
   const [date, setDate] = useState('');
@@ -105,6 +107,29 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           </div>
 
           {helperText && <p className="text-xs text-gray-400">{helperText}</p>}
+
+          {/* Payment method picker */}
+          <div className="bg-white border border-gray-200 rounded-2xl p-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-bold text-gray-600 uppercase tracking-wide">Pagar con</span>
+              <button onClick={() => { onClose(); navigate('/dashboard'); }} className="text-[10px] text-brand-orange font-bold hover:underline">
+                + Añadir método
+              </button>
+            </div>
+            {defaultPM ? (
+              <div className="flex items-center gap-2 text-sm">
+                {defaultPM.type === 'card' ? (
+                  <span className="bg-blue-600 text-white text-[10px] font-black px-2 py-1 rounded">{(defaultPM.brand || 'VISA').toUpperCase()}</span>
+                ) : <span className="text-xl">{defaultPM.type === 'paypal' ? '🅿️' : '⚡'}</span>}
+                <span className="font-mono text-gray-700">
+                  {defaultPM.type === 'card' ? `•••• ${defaultPM.last4}` : defaultPM.account}
+                </span>
+                <span className="text-xs text-gray-400 ml-auto">Default</span>
+              </div>
+            ) : (
+              <p className="text-xs text-yellow-700">⚠ No tienes método de pago. Se te pedirá al confirmar.</p>
+            )}
+          </div>
 
           {/* Breakdown */}
           <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 space-y-1.5">

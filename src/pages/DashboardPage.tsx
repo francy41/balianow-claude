@@ -11,13 +11,15 @@ import {
   type Course, type OfferRequest, type Withdrawal, type PayoutMethod
 } from '../store/appStore';
 import { Avatar, Badge, Button } from '../components/ui';
+import PaymentMethodsPanel from '../components/PaymentMethodsPanel';
 
-type TabId = 'overview' | 'earnings' | 'payouts' | 'courses' | 'calendar' | 'classes' | 'offers';
+type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers';
 
 const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'overview', label: 'Resumen',       icon: <LayoutDashboard className="w-4 h-4" /> },
   { id: 'earnings', label: 'Ganancias',     icon: <Wallet className="w-4 h-4" /> },
-  { id: 'payouts',  label: 'Payouts',       icon: <CreditCard className="w-4 h-4" /> },
+  { id: 'payouts',  label: 'Cobrar',        icon: <DollarSign className="w-4 h-4" /> },
+  { id: 'payments', label: 'Pagar',         icon: <CreditCard className="w-4 h-4" /> },
   { id: 'courses',  label: 'Cursos',        icon: <BookOpen className="w-4 h-4" /> },
   { id: 'calendar', label: 'Calendario',    icon: <CalIcon className="w-4 h-4" /> },
   { id: 'classes',  label: 'Clases Online', icon: <Video className="w-4 h-4" /> },
@@ -97,13 +99,21 @@ const DashboardPage: React.FC = () => {
             {tab === 'overview' && <OverviewTab performerId={performerId} onNavigate={setTab} />}
             {tab === 'earnings' && <EarningsTab performerId={performerId} performerName={user.name} />}
             {tab === 'payouts'  && <PayoutsTab  performerId={performerId} performerName={user.name} />}
+            {tab === 'payments' && (
+              <PaymentMethodsPanel
+                userId={user.id}
+                holderDefault={user.name}
+                title="Mis métodos de pago"
+                subtitle="Tarjetas y cuentas que usarás para reservar servicios, clases y eventos."
+              />
+            )}
             {tab === 'courses'  && <CoursesTab  performerId={performerId} />}
             {tab === 'calendar' && <CalendarTab performerId={performerId} />}
             {tab === 'classes'  && <ClassesTab  performerId={performerId} />}
             {tab === 'offers'   && <OffersTab   performerId={performerId} />}
           </>
         ) : (
-          <FanDashboard userId={user.id} />
+          <FanDashboard userId={user.id} userName={user.name} />
         )}
       </div>
     </div>
@@ -863,12 +873,14 @@ const OffersTab: React.FC<{ performerId: string }> = ({ performerId }) => {
 };
 
 // ── FAN / BUYER DASHBOARD ─────────────────────────────────────────────────
-const FanDashboard: React.FC<{ userId: string }> = ({ userId }) => {
+const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, userName }) => {
   const { transactions, confirmServiceOK } = usePerformerStore();
   const { addToast } = useUIStore();
+  const [fanTab, setFanTab] = useState<'orders' | 'payments'>('orders');
   const myOrders = transactions
     .filter(t => t.clientId === userId)
     .sort((a, b) => +new Date(b.date) - +new Date(a.date));
+  const pendingCount = myOrders.filter(t => t.status === 'pending').length;
 
   const confirm = (id: string, concept: string) => {
     confirmServiceOK(id);
@@ -877,6 +889,28 @@ const FanDashboard: React.FC<{ userId: string }> = ({ userId }) => {
 
   return (
     <div className="space-y-4">
+      <div className="card-white rounded-2xl p-1.5 flex gap-1">
+        <button onClick={() => setFanTab('orders')}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+            fanTab === 'orders' ? 'bg-brand-orange text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'
+          }`}>
+          <Briefcase className="w-4 h-4" /> Mis pedidos
+          {pendingCount > 0 && <span className="bg-white text-brand-orange text-[10px] font-black px-1.5 py-0.5 rounded-full">{pendingCount}</span>}
+        </button>
+        <button onClick={() => setFanTab('payments')}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+            fanTab === 'payments' ? 'bg-brand-orange text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'
+          }`}>
+          <CreditCard className="w-4 h-4" /> Métodos de pago
+        </button>
+      </div>
+
+      {fanTab === 'payments' && (
+        <PaymentMethodsPanel userId={userId} holderDefault={userName} />
+      )}
+
+      {fanTab === 'orders' && (
+      <>
       <div className="card-white p-5">
         <h2 className="font-display font-black text-xl text-gray-900 mb-1">Mis pedidos</h2>
         <p className="text-gray-400 text-sm">Confirma que recibiste el servicio correctamente para liberar el pago al creador (escrow).</p>
@@ -915,6 +949,8 @@ const FanDashboard: React.FC<{ userId: string }> = ({ userId }) => {
           </div>
         ))}
       </div>
+      </>
+      )}
     </div>
   );
 };
