@@ -10,6 +10,7 @@ import {
   Wifi, Globe, Bell, Database, Server, FileText
 } from 'lucide-react';
 import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, PLATFORM_COMMISSION_RATE, type HeroMediaType, type CommissionSource } from '../store/appStore';
+import AdminCMS from '../components/AdminCMS';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
 import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS } from '../data/mockData';
 
@@ -18,10 +19,11 @@ type AdminSection =
   | 'overview' | 'categorias' | 'radio' | 'usuarios' | 'localidades'
   | 'suscripciones' | 'artistas' | 'bailarinas' | 'eventos' | 'mercado'
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
-  | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones';
+  | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
+  { id: 'cms',            label: 'CMS · Constructor',       icon: <Palette className="w-4 h-4" />, badge: 'NEW' },
   { id: 'categorias',     label: 'Categorías',              icon: <Tag className="w-4 h-4" /> },
   { id: 'radio',          label: 'Radio Online',            icon: <Radio className="w-4 h-4" />, badge: '2 live' },
   { id: 'usuarios',       label: 'Usuarios',                icon: <Users className="w-4 h-4" /> },
@@ -126,6 +128,7 @@ const AdminPage: React.FC = () => {
         {active === 'creators'       && <CreatorsSection />}
         {active === 'retiros'        && <RetirosSection addToast={addToast} />}
         {active === 'comisiones'     && <ComisionesSection addToast={addToast} />}
+        {active === 'cms'            && <AdminCMS />}
         {active === 'diseno'         && <DisenoSection addToast={addToast} />}
         {active === 'configuracion'  && <ConfiguracionSection addToast={addToast} />}
         {active === 'roles'          && <RolesSection addToast={addToast} />}

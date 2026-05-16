@@ -6,6 +6,7 @@ import {
   LayoutDashboard, User, ChevronDown, ChevronRight,
   Ticket, Video, Gift
 } from 'lucide-react';
+import { useCMSStore } from '../../store/cmsStore';
 
 interface NavItem {
   label: string;
@@ -67,6 +68,8 @@ interface SidebarProps { open: boolean; onClose?: () => void; }
 
 const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const location = useLocation();
+  const cmsMenu = useCMSStore(s => s.menu);
+  const dynamicMenuItems = [...cmsMenu].filter(m => m.isVisible).sort((a, b) => a.order - b.order);
 
   return (
     <>
@@ -85,7 +88,27 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-3 px-3" style={{ scrollbarWidth: 'none' }}>
-          {NAV.map(group => (
+          {/* CMS-managed menu (top section) */}
+          {dynamicMenuItems.length > 0 && (
+            <div>
+              <p className="nav-section">NAVEGACIÓN</p>
+              {dynamicMenuItems.map(item => (
+                <NavLink
+                  key={item.id}
+                  to={item.to}
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    `nav-link mb-0.5 ${isActive && item.to !== '/' ? 'active' : ''}`
+                  }
+                >
+                  <span className="w-4 h-4 flex items-center justify-center text-sm">{item.icon}</span>
+                  <span className="truncate">{item.label}</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
+
+          {NAV.filter(g => g.section !== 'EXPLORADOR' && g.section !== 'CATEGORÍAS').map(group => (
             <div key={group.section}>
               <p className="nav-section">{group.section}</p>
               {group.items.map(item => (

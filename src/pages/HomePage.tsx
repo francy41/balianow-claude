@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp } from 'lucide-react';
 import { ARTISTS, EVENTS, VENUES } from '../data/mockData';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, PLATFORM_COMMISSION_RATE } from '../store/appStore';
+import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
 import { Avatar, StarRating, SearchBar } from '../components/ui';
 
 // ── COMMUNITY POSTS (Ruta de Hoy) ────────────────────────────────────────
@@ -67,6 +68,11 @@ const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
   const { heroMedia } = useSiteConfigStore();
+  const cmsModules = useCMSStore(s => s.modules);
+  const cmsCategories = useCMSStore(s => s.categories);
+  const enabled = visibleHomeModules(cmsModules);
+  const isModuleOn = (type: string) => enabled.some(m => m.type === type);
+  const dynamicCats = activeCategories(cmsCategories);
   const { balanceFor, offers, classes, transactions, withdrawals, platformTotals } = usePerformerStore();
   const PERFORMER_ROLES = ['artist', 'dj', 'dancer', 'venue'];
   const isAdmin = !!user && user.role === 'admin';
@@ -169,7 +175,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* ── PANEL SUPERADMIN ── */}
-      {isAdmin && adminStats && (
+      {isAdmin && adminStats && isModuleOn('admin-panel') && (
         <section className="mx-4 mt-4 bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-3xl p-5 sm:p-6 text-white shadow-card relative overflow-hidden">
           <div className="absolute -top-12 -right-12 w-40 h-40 bg-brand-orange/20 rounded-full blur-3xl" />
           <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl" />
@@ -233,7 +239,7 @@ const HomePage: React.FC = () => {
       )}
 
       {/* ── MI PANEL (logged-in user) ── */}
-      {isPerformer && myBalance && (
+      {isPerformer && myBalance && isModuleOn('creator-panel') && (
         <section className="mx-4 mt-4 bg-gradient-to-r from-brand-orange to-orange-500 rounded-3xl p-5 sm:p-6 text-white shadow-card">
           <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
             <div>
@@ -273,7 +279,7 @@ const HomePage: React.FC = () => {
         </section>
       )}
 
-      {isBuyer && myPendingOrders.length > 0 && (
+      {isBuyer && myPendingOrders.length > 0 && isModuleOn('buyer-alert') && (
         <section className="mx-4 mt-4 bg-yellow-50 border border-yellow-200 rounded-3xl p-5 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
@@ -289,6 +295,7 @@ const HomePage: React.FC = () => {
       )}
 
       {/* ── RADIO BAR ── */}
+      {isModuleOn('radio') && (
       <section className="mx-4 mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
         {RADIO_STATIONS.map((station, i) => (
           <div key={i} className="card-white flex items-center gap-4 p-4 rounded-2xl">
@@ -315,8 +322,10 @@ const HomePage: React.FC = () => {
           </div>
         ))}
       </section>
+      )}
 
       {/* ── RUTA DE HOY ── */}
+      {isModuleOn('ruta') && (
       <section className="mx-4 mt-6">
         <div className="section-head">
           <div className="flex items-center gap-2">
@@ -357,6 +366,7 @@ const HomePage: React.FC = () => {
           ))}
         </div>
       </section>
+      )}
 
       {/* ── SEARCH ── */}
       <section className="mx-4 mt-6">
@@ -368,7 +378,8 @@ const HomePage: React.FC = () => {
         />
       </section>
 
-      {/* ── CATEGORÍAS ── */}
+      {/* ── CATEGORÍAS (CMS-driven) ── */}
+      {isModuleOn('categories') && (
       <section className="mx-4 mt-10">
         <div className="text-center mb-6">
           <h2 className="font-display font-bold text-2xl text-gray-900">Categorías</h2>
@@ -400,9 +411,25 @@ const HomePage: React.FC = () => {
             </button>
           ))}
         </div>
+
+        {/* CMS dynamic categories (chips) — admin-managed extras */}
+        {dynamicCats.length > 0 && (
+          <div className="mt-6 flex flex-wrap gap-2 justify-center">
+            {dynamicCats.map(c => (
+              <button key={c.id}
+                onClick={() => navigate(`/eventos?cat=${c.slug}`)}
+                className="text-xs font-bold px-3 py-1.5 rounded-full border transition-all hover:scale-105"
+                style={{ backgroundColor: c.color + '15', color: c.color, borderColor: c.color + '40' }}>
+                <span className="mr-1">{c.icon}</span>{c.name}
+              </button>
+            ))}
+          </div>
+        )}
       </section>
+      )}
 
       {/* ── DONDE SALIR A BAILAR EN LA CIUDAD ── */}
+      {isModuleOn('cities') && (
       <section className="mx-4 mt-10">
         <div className="section-head mb-4">
           <div>
@@ -465,8 +492,10 @@ const HomePage: React.FC = () => {
           </button>
         </div>
       </section>
+      )}
 
       {/* ── ARTISTAS Y BAILARINES ── */}
+      {isModuleOn('artists') && (
       <section className="mx-4 mt-10">
         <div className="section-head mb-4">
           <h2 className="font-display font-black text-lg text-gray-900 uppercase tracking-wide">
@@ -482,8 +511,10 @@ const HomePage: React.FC = () => {
           ))}
         </div>
       </section>
+      )}
 
-      {/* ── PRÓXIMOS EVENTOS ── */}
+      {/* ── PRÓXIMOS EVENTOS (CTA module) ── */}
+      {isModuleOn('cta') && (
       <section className="mx-4 mt-10 mb-12">
         <div className="section-head mb-4">
           <h2 className="font-display font-black text-lg text-gray-900 uppercase tracking-wide">
@@ -499,6 +530,7 @@ const HomePage: React.FC = () => {
           ))}
         </div>
       </section>
+      )}
     </div>
   );
 };
