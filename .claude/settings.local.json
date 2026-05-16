@@ -29,7 +29,9 @@
       "Bash(curl -s http://localhost:3000/src/components/PaymentMethodsPanel.tsx)",
       "Bash(curl -s http://localhost:3000/src/store/cmsStore.ts)",
       "Bash(npm run *)",
-      "Bash(git commit -m 'fix: Modal usa isOpen \\(no open\\) — corrige error de compilación Vercel *)"
+      "Bash(git commit -m 'fix: Modal usa isOpen \\(no open\\) — corrige error de compilación Vercel *)",
+      "Bash(echo \"---EXIT $?---\")",
+      "Bash(git commit *)"
     ]
   }
 }

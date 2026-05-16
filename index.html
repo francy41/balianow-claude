@@ -2,13 +2,64 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes" />
+    <meta name="theme-color" content="#F97316" />
+    <meta name="color-scheme" content="light" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <!-- Icons -->
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="BachaSalseros - El ecosistema de entretenimiento latino #1. Artistas, DJs, Eventos, Venues, Live Streaming y más." />
-    <title>BachaSalseros — Entretenimiento Latino</title>
+    <link rel="apple-touch-icon" href="/icon-192.svg" />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="RitmoLatino" />
+    <meta name="application-name" content="RitmoLatino" />
+
+    <!-- SEO -->
+    <title>¡Ritmo Latino! — Entretenimiento Latino · DJs · Eventos · Venues</title>
+    <meta name="description" content="El ecosistema latino #1: contrata DJs, artistas, bailarines y venues. Vive eventos, livestreams y marketplace 100% latino." />
+    <meta name="keywords" content="bachata, salsa, kizomba, DJ latino, eventos latinos, latin nightlife, marketplace artistas" />
+    <meta name="author" content="Ritmo Latino" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="¡Ritmo Latino! — Entretenimiento Latino" />
+    <meta property="og:description" content="El ecosistema latino #1: DJs, artistas, venues, eventos y livestreams." />
+    <meta property="og:image" content="/icon-512.svg" />
+    <meta property="og:locale" content="es_ES" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="¡Ritmo Latino!" />
+    <meta name="twitter:description" content="Marketplace + livestreams 100% latino." />
+
+    <!-- Preconnect / fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+    <style>
+      html, body { margin: 0; padding: 0; background: #F5F5F5; -webkit-tap-highlight-color: transparent; }
+      body { font-family: Inter, system-ui, sans-serif; overscroll-behavior-y: none; }
+      /* Splash mientras carga el bundle JS */
+      #root:empty::before {
+        content: '🎵';
+        position: fixed; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 80px;
+        animation: rl-pulse 1.2s ease-in-out infinite;
+      }
+      @keyframes rl-pulse {
+        0%, 100% { transform: scale(1); opacity: 0.6; }
+        50% { transform: scale(1.15); opacity: 1; }
+      }
+      .safe-area-pt { padding-top: env(safe-area-inset-top); }
+      .safe-area-pb { padding-bottom: env(safe-area-inset-bottom); }
+    </style>
   </head>
   <body>
     <div id="root"></div>
