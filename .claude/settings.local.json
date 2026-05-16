@@ -27,7 +27,9 @@
       "Bash(curl -s http://localhost:3000/src/components/DevRoleSwitcher.tsx)",
       "Bash(curl -s -o nul -w \"HTTP %{http_code}\\\\n\" http://localhost:3000/)",
       "Bash(curl -s http://localhost:3000/src/components/PaymentMethodsPanel.tsx)",
-      "Bash(curl -s http://localhost:3000/src/store/cmsStore.ts)"
+      "Bash(curl -s http://localhost:3000/src/store/cmsStore.ts)",
+      "Bash(npm run *)",
+      "Bash(git commit -m 'fix: Modal usa isOpen \\(no open\\) — corrige error de compilación Vercel *)"
     ]
   }
 }

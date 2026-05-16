@@ -204,7 +204,7 @@ const ArtistProfilePage: React.FC = () => {
       </div>
 
       {/* ── Media viewer modal ── */}
-      <Modal open={!!selectedMedia} onClose={() => setSelectedMedia(null)} title={selectedMedia?.title || 'Media'}>
+      <Modal isOpen={!!selectedMedia} onClose={() => setSelectedMedia(null)} title={selectedMedia?.title || 'Media'}>
         {selectedMedia && (
           <div className="space-y-3">
             <div className="aspect-video bg-black rounded-xl overflow-hidden">
@@ -221,7 +221,7 @@ const ArtistProfilePage: React.FC = () => {
       </Modal>
 
       {/* ── Custom Offer Modal (Fiverr-style) ── */}
-      <Modal open={showCustomOffer} onClose={() => setShowCustomOffer(false)} title="📨 Enviar oferta personalizada">
+      <Modal isOpen={showCustomOffer} onClose={() => setShowCustomOffer(false)} title="📨 Enviar oferta personalizada">
         <div className="space-y-3">
           <p className="text-gray-500 text-sm">
             Negocia directamente con {artist.name} por chat interno. La plataforma protege tu pago con sistema escrow (15% comisión).
