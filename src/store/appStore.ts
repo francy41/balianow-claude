@@ -454,6 +454,39 @@ export const useChatStore = create<ChatState>((set) => ({
     })),
 }));
 
+// ── ADMIN OVERRIDES (parches editables sobre datos mock) ──────────────────
+type EntityKind = 'artist' | 'event' | 'venue' | 'service' | 'user' | 'category' | 'course' | 'subscription';
+
+interface AdminOverridesState {
+  patches: Record<string, Record<string, any>>;  // key = `${entity}:${id}`
+  setPatch: (entity: EntityKind, id: string, data: Record<string, any>) => void;
+  removePatch: (entity: EntityKind, id: string) => void;
+  getMerged: <T extends { id: string }>(entity: EntityKind, item: T) => T;
+}
+
+export const useAdminOverridesStore = create<AdminOverridesState>()(
+  persist(
+    (set, get) => ({
+      patches: {},
+      setPatch: (entity, id, data) =>
+        set(state => ({
+          patches: { ...state.patches, [`${entity}:${id}`]: { ...(state.patches[`${entity}:${id}`] || {}), ...data } }
+        })),
+      removePatch: (entity, id) =>
+        set(state => {
+          const cp = { ...state.patches };
+          delete cp[`${entity}:${id}`];
+          return { patches: cp };
+        }),
+      getMerged: (entity, item) => {
+        const patch = get().patches[`${entity}:${item.id}`];
+        return patch ? ({ ...item, ...patch } as any) : item;
+      },
+    }),
+    { name: 'ritmolatino-admin-overrides' }
+  )
+);
+
 // ── PERFORMER STORE (ganancias + cursos + calendario + clases + ofertas) ──
 export interface Transaction {
   id: string;

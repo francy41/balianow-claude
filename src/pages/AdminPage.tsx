@@ -9,8 +9,9 @@ import {
   ChevronRight, ArrowUpRight, ArrowDownRight, Clock,
   Wifi, Globe, Bell, Database, Server, FileText
 } from 'lucide-react';
-import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, PLATFORM_COMMISSION_RATE, type HeroMediaType, type CommissionSource } from '../store/appStore';
+import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useAdminOverridesStore, PLATFORM_COMMISSION_RATE, type HeroMediaType, type CommissionSource } from '../store/appStore';
 import AdminCMS from '../components/AdminCMS';
+import AdminEditModal, { type EditField } from '../components/AdminEditModal';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
 import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS } from '../data/mockData';
 
@@ -56,11 +57,118 @@ const STATS = [
   { label: 'Disputas abiertas',   value: '5',      change: '-2',   up: false, icon: <AlertTriangle className="w-6 h-6 text-red-500" />, color: 'bg-red-50' },
 ];
 
+// ── EDIT CONTEXT (modal compartido por todas las secciones) ──────────────
+interface EditRequest {
+  entity: 'artist' | 'event' | 'venue' | 'service' | 'user' | 'category' | 'course' | 'subscription';
+  title: string;
+  item: Record<string, any> & { id: string };
+  fields: EditField[];
+}
+const EditContext = React.createContext<{
+  openEdit: (req: EditRequest) => void;
+}>({ openEdit: () => {} });
+
+export const useAdminEdit = () => React.useContext(EditContext);
+
+// Field configs por entidad
+export const FIELDS_ARTIST: EditField[] = [
+  { key: 'name',  label: 'Nombre',    type: 'text',     required: true },
+  { key: 'type',  label: 'Tipo',      type: 'select',   options: [
+      { value: 'dj', label: 'DJ' }, { value: 'dancer', label: 'Bailarín/a' },
+      { value: 'singer', label: 'Cantante' }, { value: 'band', label: 'Banda' },
+      { value: 'instructor', label: 'Instructor/a' }
+    ] },
+  { key: 'city',  label: 'Ciudad',    type: 'text' },
+  { key: 'country', label: 'País',    type: 'text' },
+  { key: 'priceFrom', label: 'Precio desde (€)', type: 'number' },
+  { key: 'rating', label: 'Rating',   type: 'number' },
+  { key: 'bio',   label: 'Biografía', type: 'textarea' },
+  { key: 'tags',  label: 'Tags',      type: 'tags', helper: 'Separadas por comas' },
+  { key: 'genre', label: 'Géneros',   type: 'tags', helper: 'Separados por comas' },
+  { key: 'isPremium',  label: 'Premium',  type: 'checkbox', placeholder: 'Mostrar como PRO' },
+  { key: 'isVerified', label: 'Verificado', type: 'checkbox', placeholder: 'Mostrar tick azul' },
+];
+
+export const FIELDS_EVENT: EditField[] = [
+  { key: 'title', label: 'Título', type: 'text', required: true },
+  { key: 'date',  label: 'Fecha',  type: 'date' },
+  { key: 'time',  label: 'Hora',   type: 'text', placeholder: '20:00' },
+  { key: 'city',  label: 'Ciudad', type: 'text' },
+  { key: 'price', label: 'Precio (€)', type: 'number' },
+  { key: 'capacity', label: 'Aforo', type: 'number' },
+  { key: 'category', label: 'Categoría', type: 'text' },
+  { key: 'description', label: 'Descripción', type: 'textarea' },
+  { key: 'isFeatured', label: 'Destacado', type: 'checkbox' },
+];
+
+export const FIELDS_VENUE: EditField[] = [
+  { key: 'name', label: 'Nombre', type: 'text', required: true },
+  { key: 'type', label: 'Tipo',   type: 'select', options: [
+      { value: 'club', label: 'Club' }, { value: 'bar', label: 'Bar' },
+      { value: 'studio', label: 'Studio' }, { value: 'rooftop', label: 'Rooftop' },
+      { value: 'lounge', label: 'Lounge' }, { value: 'restaurante', label: 'Restaurante' }
+    ] },
+  { key: 'city', label: 'Ciudad', type: 'text' },
+  { key: 'address', label: 'Dirección', type: 'text', cols: 2 },
+  { key: 'capacity', label: 'Aforo', type: 'number' },
+  { key: 'priceRange', label: 'Rango precio (1-4)', type: 'number' },
+  { key: 'openHours', label: 'Horario', type: 'text', cols: 2 },
+  { key: 'description', label: 'Descripción', type: 'textarea' },
+  { key: 'isOpen', label: 'Abierto ahora', type: 'checkbox' },
+  { key: 'isPremium', label: 'Premium', type: 'checkbox' },
+];
+
+export const FIELDS_USER: EditField[] = [
+  { key: 'name', label: 'Nombre', type: 'text', required: true },
+  { key: 'email', label: 'Email', type: 'email' },
+  { key: 'role', label: 'Rol', type: 'select', options: [
+    { value: 'user', label: 'Usuario' }, { value: 'dj', label: 'DJ' },
+    { value: 'artist', label: 'Artista' }, { value: 'dancer', label: 'Bailarín/a' },
+    { value: 'venue', label: 'Venue' }, { value: 'admin', label: 'Admin' }
+  ]},
+  { key: 'city', label: 'Ciudad', type: 'text' },
+  { key: 'isVerified', label: 'Verificado', type: 'checkbox' },
+  { key: 'isPremium', label: 'Premium', type: 'checkbox' },
+];
+
+export const FIELDS_SERVICE: EditField[] = [
+  { key: 'title', label: 'Título del servicio', type: 'text', required: true },
+  { key: 'category', label: 'Categoría', type: 'text' },
+  { key: 'price', label: 'Precio (€)', type: 'number' },
+  { key: 'deliveryDays', label: 'Plazo (días)', type: 'number' },
+  { key: 'description', label: 'Descripción', type: 'textarea' },
+];
+
+export const FIELDS_COURSE: EditField[] = [
+  { key: 'title', label: 'Título', type: 'text', required: true },
+  { key: 'price', label: 'Precio (€)', type: 'number' },
+  { key: 'durationMin', label: 'Duración (min)', type: 'number' },
+  { key: 'level', label: 'Nivel', type: 'select', options: [
+    { value: 'beginner', label: 'Principiante' }, { value: 'intermediate', label: 'Intermedio' }, { value: 'advanced', label: 'Avanzado' }
+  ]},
+  { key: 'description', label: 'Descripción', type: 'textarea' },
+  { key: 'isPublished', label: 'Publicado', type: 'checkbox' },
+];
+
+export const FIELDS_SUBSCRIPTION: EditField[] = [
+  { key: 'name',  label: 'Nombre del plan', type: 'text', required: true },
+  { key: 'price', label: 'Precio (€)', type: 'number' },
+  { key: 'period', label: 'Periodo', type: 'select', options: [
+    { value: 'monthly', label: 'Mensual' }, { value: 'yearly', label: 'Anual' }
+  ]},
+  { key: 'description', label: 'Descripción', type: 'textarea' },
+];
+
+export const FIELDS_CATEGORY: EditField[] = [
+  { key: 'name', label: 'Nombre', type: 'text', required: true },
+];
+
 const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
   const [active, setActive] = useState<AdminSection>('overview');
+  const [editReq, setEditReq] = useState<EditRequest | null>(null);
 
   if (!isAuthenticated || user?.role !== 'admin') {
     return (
@@ -77,6 +185,7 @@ const AdminPage: React.FC = () => {
   }
 
   return (
+    <EditContext.Provider value={{ openEdit: setEditReq }}>
     <div className="min-h-screen bg-gray-50 flex">
       {/* ── ADMIN SIDEBAR ── */}
       <aside className="w-60 bg-white border-r border-gray-100 flex-shrink-0 fixed top-14 bottom-0 overflow-y-auto z-20" style={{ scrollbarWidth: 'none' }}>
@@ -136,7 +245,20 @@ const AdminPage: React.FC = () => {
         {active === 'seguridad'      && <SeguridadSection />}
         {active === 'resenas'        && <ResenasSection addToast={addToast} />}
       </main>
+
+      {/* Modal de edición global */}
+      {editReq && (
+        <AdminEditModal
+          open={true}
+          onClose={() => setEditReq(null)}
+          title={editReq.title}
+          entity={editReq.entity}
+          item={editReq.item}
+          fields={editReq.fields}
+        />
+      )}
     </div>
+    </EditContext.Provider>
   );
 };
 
@@ -235,6 +357,7 @@ const OverviewSection: React.FC<{ addToast: Function }> = ({ addToast }) => (
 
 // ── 2. CATEGORÍAS ──────────────────────────────────────────────────────────
 const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const { openEdit } = useAdminEdit();
   const cats = ['Conciertos y Música en Vivo', 'Festivales y Congresos', 'Noches de club', 'Talleres y clases magistrales', 'Clases y Academia', 'Eventos Sociales', 'Competiciones', 'Bachata', 'Salsa', 'Kizomba'];
   return (
     <div>
@@ -250,7 +373,7 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           <span>{Math.floor(Math.random() * 30) + 2}</span>,
           <Badge variant="green">Activa</Badge>,
           <div className="flex gap-2">
-            <button onClick={() => addToast({ message: `Editando: ${cat}`, type: 'info' })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-700"><Edit className="w-4 h-4" /></button>
+            <button onClick={() => openEdit({ entity: 'category', title: cat, item: { id: `legacy-cat-${i}`, name: cat }, fields: FIELDS_CATEGORY })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-700"><Edit className="w-4 h-4" /></button>
             <button onClick={() => addToast({ message: 'Categoría eliminada', type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
           </div>
         ])}
@@ -261,10 +384,11 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 
 // ── 3. RADIO ──────────────────────────────────────────────────────────────
 const RadioSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const { openEdit } = useAdminEdit();
   const stations = [
-    { name: 'Radio Bachata', status: 'live', listeners: 342, bitrate: '128kbps' },
-    { name: 'Radio Latina Variada', status: 'live', listeners: 218, bitrate: '128kbps' },
-    { name: 'Radio Salsa Clásica', status: 'offline', listeners: 0, bitrate: '96kbps' },
+    { id: 'rad-1', name: 'Radio Bachata', status: 'live', listeners: 342, bitrate: '128kbps' },
+    { id: 'rad-2', name: 'Radio Latina Variada', status: 'live', listeners: 218, bitrate: '128kbps' },
+    { id: 'rad-3', name: 'Radio Salsa Clásica', status: 'offline', listeners: 0, bitrate: '96kbps' },
   ];
   return (
     <div>
@@ -285,7 +409,11 @@ const RadioSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           <span>{s.bitrate}</span>,
           <span className="text-gray-400 text-xs font-mono">rtmp://stream.ritmolatino.com/live</span>,
           <div className="flex gap-2">
-            <button onClick={() => addToast({ message: `Editando: ${s.name}`, type: 'info' })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
+            <button onClick={() => openEdit({ entity: 'category', title: s.name, item: s, fields: [
+              { key: 'name', label: 'Nombre', type: 'text', required: true },
+              { key: 'bitrate', label: 'Bitrate', type: 'text' },
+              { key: 'status', label: 'Estado', type: 'select', options: [{ value: 'live', label: 'En directo' }, { value: 'offline', label: 'Offline' }] },
+            ] })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
             <button onClick={() => addToast({ message: `${s.name} ${s.status === 'live' ? 'detenida' : 'iniciada'}`, type: s.status === 'live' ? 'error' : 'success' })}
               className={`p-1.5 rounded-lg ${s.status === 'live' ? 'hover:bg-red-50 text-red-400' : 'hover:bg-green-50 text-green-500'}`}>
               {s.status === 'live' ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
@@ -301,14 +429,16 @@ const RadioSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 const UsuariosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('todos');
+  const { openEdit } = useAdminEdit();
+  const { getMerged } = useAdminOverridesStore();
   const users = [
-    { name: 'Carlos Rodríguez', email: 'carlos@email.com', role: 'user',   status: 'active',   joined: '15 May 2026', revenue: '€0' },
-    { name: 'DJ Mambo King',    email: 'dj@email.com',     role: 'dj',     status: 'active',   joined: '10 May 2026', revenue: '€1,620' },
-    { name: 'La Reina',         email: 'reina@email.com',  role: 'dancer', status: 'active',   joined: '8 May 2026',  revenue: '€890' },
-    { name: 'Club Tropicana',   email: 'club@email.com',   role: 'venue',  status: 'pending',  joined: '12 May 2026', revenue: '€0' },
-    { name: 'Admin User',       email: 'admin@email.com',  role: 'admin',  status: 'active',   joined: '1 Jan 2026',  revenue: '—' },
-    { name: 'Spam User',        email: 'spam@email.com',   role: 'user',   status: 'banned',   joined: '14 May 2026', revenue: '€0' },
-  ];
+    { id: 'usr-1', name: 'Carlos Rodríguez', email: 'carlos@email.com', role: 'user',   status: 'active',   joined: '15 May 2026', revenue: '€0', city: 'Madrid' },
+    { id: 'usr-2', name: 'DJ Mambo King',    email: 'dj@email.com',     role: 'dj',     status: 'active',   joined: '10 May 2026', revenue: '€1,620', city: 'Madrid' },
+    { id: 'usr-3', name: 'La Reina',         email: 'reina@email.com',  role: 'dancer', status: 'active',   joined: '8 May 2026',  revenue: '€890', city: 'Barcelona' },
+    { id: 'usr-4', name: 'Club Tropicana',   email: 'club@email.com',   role: 'venue',  status: 'pending',  joined: '12 May 2026', revenue: '€0', city: 'Madrid' },
+    { id: 'usr-5', name: 'Admin User',       email: 'admin@email.com',  role: 'admin',  status: 'active',   joined: '1 Jan 2026',  revenue: '—', city: 'Madrid' },
+    { id: 'usr-6', name: 'Spam User',        email: 'spam@email.com',   role: 'user',   status: 'banned',   joined: '14 May 2026', revenue: '€0', city: 'Madrid' },
+  ].map(u => getMerged('user', u));
   return (
     <div>
       <PageHeader title="Usuarios" subtitle={`${users.length} usuarios registrados`} action={
@@ -338,7 +468,7 @@ const UsuariosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           <span className="font-semibold text-gray-800">{u.revenue}</span>,
           <div className="flex gap-1">
             <button onClick={() => addToast({ message: `Viendo perfil de ${u.name}`, type: 'info' })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
-            <button onClick={() => addToast({ message: `Editando ${u.name}`, type: 'info' })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
+            <button onClick={() => openEdit({ entity: 'user', title: u.name, item: u, fields: FIELDS_USER })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
             <button onClick={() => addToast({ message: `${u.name} baneado`, type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500"><XCircle className="w-4 h-4" /></button>
           </div>
         ])}
@@ -348,7 +478,10 @@ const UsuariosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 };
 
 // ── 5. LOCALIDADES ────────────────────────────────────────────────────────
-const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => (
+const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const { openEdit } = useAdminEdit();
+  const { getMerged } = useAdminOverridesStore();
+  return (
   <div>
     <PageHeader title="Localidades" subtitle="Gestiona los venues y locales de la plataforma" action={
       <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => addToast({ message: 'Nueva localidad añadida', type: 'success' })}>Añadir localidad</Button>
@@ -360,7 +493,7 @@ const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => (
     </div>
     <AdminTable
       headers={['Nombre', 'Ciudad', 'Tipo', 'Estado', 'Eventos', 'Suscripción', 'Acciones']}
-      rows={VENUES.map(v => [
+      rows={VENUES.map(orig => getMerged('venue', orig)).map(v => [
         <span className="font-semibold">{v.name}</span>,
         <span>{v.city}</span>,
         <Badge variant="gray" className="capitalize">{v.type}</Badge>,
@@ -368,20 +501,24 @@ const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => (
         <span>3</span>,
         v.isPremium ? <Badge variant="orange">Premium</Badge> : <Badge variant="gray">Básico</Badge>,
         <div className="flex gap-1">
-          <button onClick={() => addToast({ message: `Editando ${v.name}`, type: 'info' })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
+          <button onClick={() => openEdit({ entity: 'venue', title: v.name, item: v, fields: FIELDS_VENUE })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
           <button onClick={() => addToast({ message: `${v.name} eliminado`, type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
         </div>
       ])}
     />
   </div>
-);
+  );
+};
 
 // ── 6. SUSCRIPCIONES ─────────────────────────────────────────────────────
-const SuscripcionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => (
+const SuscripcionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const { openEdit } = useAdminEdit();
+  const { getMerged } = useAdminOverridesStore();
+  return (
   <div>
     <PageHeader title="Suscripciones Premium" subtitle="Gestiona planes y suscriptores activos" />
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      {SUBSCRIPTION_PLANS.map(plan => (
+      {SUBSCRIPTION_PLANS.map(orig => getMerged('subscription', orig)).map(plan => (
         <div key={plan.id} className="card-white p-5 text-center">
           <div className={`w-10 h-10 bg-gradient-to-r ${plan.color} rounded-xl mx-auto mb-3 flex items-center justify-center`}>
             <Crown className="w-5 h-5 text-white" />
@@ -389,7 +526,7 @@ const SuscripcionesSection: React.FC<{ addToast: Function }> = ({ addToast }) =>
           <p className="font-display font-black text-gray-900">{plan.name}</p>
           <p className="text-brand-orange font-black text-2xl mt-1">€{plan.price}<span className="text-sm text-gray-400 font-normal">/mes</span></p>
           <p className="text-gray-400 text-xs mt-1">{Math.floor(Math.random() * 80) + 10} activos</p>
-          <button onClick={() => addToast({ message: `Editando plan ${plan.name}`, type: 'info' })} className="mt-3 text-brand-orange text-xs font-semibold hover:underline">Editar plan →</button>
+          <button onClick={() => openEdit({ entity: 'subscription', title: plan.name, item: plan, fields: FIELDS_SUBSCRIPTION })} className="mt-3 text-brand-orange text-xs font-semibold hover:underline">Editar plan →</button>
         </div>
       ))}
     </div>
@@ -402,22 +539,26 @@ const SuscripcionesSection: React.FC<{ addToast: Function }> = ({ addToast }) =>
         ['Club Tropicana', <Badge variant="gray">Básico €9</Badge>, '10 May 2026', '10 Jun 2026', <Badge variant="green">Activa</Badge>],
         ['Orquesta Fuego', <Badge variant="orange">Estándar €20</Badge>, '1 Apr 2026', '—', <Badge variant="red">Cancelada</Badge>],
       ].map(row => [...row, <div className="flex gap-1">
-        <button onClick={() => addToast({ message: 'Suscripción editada', type: 'info' })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
+        <button onClick={() => openEdit({ entity: 'subscription', title: 'Suscripción', item: { id: 'sub-row-' + Math.random(), name: 'Suscripción', period: 'monthly' }, fields: FIELDS_SUBSCRIPTION })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
         <button onClick={() => addToast({ message: 'Suscripción cancelada', type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><XCircle className="w-4 h-4" /></button>
       </div>])}
     />
   </div>
-);
+  );
+};
 
 // ── 7. ARTISTAS ───────────────────────────────────────────────────────────
-const ArtistasSection: React.FC<{ addToast: Function; navigate: Function }> = ({ addToast, navigate }) => (
+const ArtistasSection: React.FC<{ addToast: Function; navigate: Function }> = ({ addToast, navigate }) => {
+  const { openEdit } = useAdminEdit();
+  const { getMerged } = useAdminOverridesStore();
+  return (
   <div>
     <PageHeader title="Artistas" subtitle={`${ARTISTS.length} artistas registrados`} action={
       <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => addToast({ message: 'Redirigiendo a formulario de artista', type: 'info' })}>Añadir artista</Button>
     } />
     <AdminTable
       headers={['Artista', 'Tipo', 'Ciudad', 'Rating', 'Bookings', 'Premium', 'Acciones']}
-      rows={ARTISTS.map(a => [
+      rows={ARTISTS.map(orig => getMerged('artist', orig)).map(a => [
         <div className="flex items-center gap-2">
           <img src={a.avatar} alt={a.name} className="w-8 h-8 rounded-full" />
           <div>
@@ -432,16 +573,18 @@ const ArtistasSection: React.FC<{ addToast: Function; navigate: Function }> = ({
         a.isPremium ? <Badge variant="orange">PRO</Badge> : <Badge variant="gray">Básico</Badge>,
         <div className="flex gap-1">
           <button onClick={() => navigate(`/artistas/${a.id}`)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
-          <button onClick={() => addToast({ message: `Editando ${a.name}`, type: 'info' })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
+          <button onClick={() => openEdit({ entity: 'artist', title: a.name, item: a, fields: FIELDS_ARTIST })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
           <button onClick={() => addToast({ message: `${a.name} suspendido`, type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><XCircle className="w-4 h-4" /></button>
         </div>
       ])}
     />
   </div>
-);
+  );
+};
 
 // ── 8. BAILARINAS ─────────────────────────────────────────────────────────
 const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const { openEdit } = useAdminEdit();
   const dancers = ARTISTS.filter(a => a.type === 'dancer' || a.type === 'instructor');
   return (
     <div>
@@ -458,7 +601,7 @@ const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
               <span className="text-brand-orange text-xs">⭐</span><span className="text-xs font-semibold">{a.rating}</span>
             </div>
             <div className="flex gap-1 mt-3">
-              <button onClick={() => addToast({ message: `Editando ${a.name}`, type: 'info' })} className="flex-1 text-xs py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50">Editar</button>
+              <button onClick={() => openEdit({ entity: 'artist', title: a.name, item: a, fields: FIELDS_ARTIST })} className="flex-1 text-xs py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50">Editar</button>
               <button onClick={() => addToast({ message: `${a.name} suspendido`, type: 'error' })} className="flex-1 text-xs py-1 rounded-lg border border-red-100 text-red-400 hover:bg-red-50">Suspender</button>
             </div>
           </div>
@@ -469,14 +612,17 @@ const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 };
 
 // ── 9. EVENTOS ────────────────────────────────────────────────────────────
-const EventosSection: React.FC<{ addToast: Function; navigate: Function }> = ({ addToast, navigate }) => (
+const EventosSection: React.FC<{ addToast: Function; navigate: Function }> = ({ addToast, navigate }) => {
+  const { openEdit } = useAdminEdit();
+  const { getMerged } = useAdminOverridesStore();
+  return (
   <div>
     <PageHeader title="Eventos" subtitle={`${EVENTS.length} eventos en la plataforma`} action={
       <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => addToast({ message: 'Redirigiendo a crear evento', type: 'info' })}>Crear evento</Button>
     } />
     <AdminTable
       headers={['Evento', 'Ciudad', 'Fecha', 'Precio', 'Capacidad', 'Estado', 'Acciones']}
-      rows={EVENTS.map(e => [
+      rows={EVENTS.map(orig => getMerged('event', orig)).map(e => [
         <div className="flex items-center gap-2">
           <img src={e.cover} alt="" className="w-10 h-8 rounded-lg object-cover" />
           <p className="font-semibold text-sm line-clamp-1 max-w-[180px]">{e.title}</p>
@@ -491,13 +637,14 @@ const EventosSection: React.FC<{ addToast: Function; navigate: Function }> = ({ 
         <Badge variant={e.isFeatured ? 'orange' : 'green'}>{e.isFeatured ? 'Destacado' : 'Activo'}</Badge>,
         <div className="flex gap-1">
           <button onClick={() => navigate(`/eventos/${e.id}`)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
-          <button onClick={() => addToast({ message: `Editando: ${e.title}`, type: 'info' })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
+          <button onClick={() => openEdit({ entity: 'event', title: e.title, item: e, fields: FIELDS_EVENT })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
           <button onClick={() => addToast({ message: 'Evento eliminado', type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
         </div>
       ])}
     />
   </div>
-);
+  );
+};
 
 // ── 10. MERCADO Y ESCROW ─────────────────────────────────────────────────
 const MercadoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
@@ -543,19 +690,22 @@ const MercadoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 };
 
 // ── 11. CURSOS ────────────────────────────────────────────────────────────
-const CursosSection: React.FC<{ addToast: Function }> = ({ addToast }) => (
+const CursosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const { openEdit } = useAdminEdit();
+  const { getMerged } = useAdminOverridesStore();
+  return (
   <div>
     <PageHeader title="Cursos y Academia" subtitle="Gestiona los cursos de la plataforma" action={
       <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => addToast({ message: 'Nuevo curso creado', type: 'success' })}>Nuevo curso</Button>
     } />
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {[
-        { title: 'Bachata Sensual — Nivel Principiante', instructor: 'DJ Bacha Flow', students: 234, price: 49, status: 'active' },
-        { title: 'Salsa On2 — Curso Completo',           instructor: 'La Reina del Ritmo', students: 567, price: 89, status: 'active' },
-        { title: 'Kizomba Fusion',                        instructor: 'Instructora Celia', students: 123, price: 39, status: 'draft' },
-        { title: 'DJ Latinity — Producción Musical',      instructor: 'DJ Mambo King', students: 89, price: 149, status: 'active' },
-        { title: 'Técnicas de Improvisación en Salsa',    instructor: 'Marcos & Elena', students: 45, price: 59, status: 'active' },
-      ].map(course => (
+        { id: 'crs-1', title: 'Bachata Sensual — Nivel Principiante', instructor: 'DJ Bacha Flow', students: 234, price: 49, status: 'active', level: 'beginner', durationMin: 180 },
+        { id: 'crs-2', title: 'Salsa On2 — Curso Completo',           instructor: 'La Reina del Ritmo', students: 567, price: 89, status: 'active', level: 'intermediate', durationMin: 360 },
+        { id: 'crs-3', title: 'Kizomba Fusion',                        instructor: 'Instructora Celia', students: 123, price: 39, status: 'draft', level: 'beginner', durationMin: 120 },
+        { id: 'crs-4', title: 'DJ Latinity — Producción Musical',      instructor: 'DJ Mambo King', students: 89, price: 149, status: 'active', level: 'advanced', durationMin: 480 },
+        { id: 'crs-5', title: 'Técnicas de Improvisación en Salsa',    instructor: 'Marcos & Elena', students: 45, price: 59, status: 'active', level: 'intermediate', durationMin: 240 },
+      ].map(orig => getMerged('course', orig)).map(course => (
         <div key={course.title} className="card-white p-5 hover:shadow-card-hover transition-shadow">
           <div className="flex items-start justify-between mb-3">
             <Badge variant={course.status === 'active' ? 'green' : 'gray'}>{course.status === 'active' ? 'Publicado' : 'Borrador'}</Badge>
@@ -566,7 +716,7 @@ const CursosSection: React.FC<{ addToast: Function }> = ({ addToast }) => (
           <div className="flex items-center justify-between">
             <span className="text-gray-500 text-xs">👥 {course.students} estudiantes</span>
             <div className="flex gap-1">
-              <button onClick={() => addToast({ message: `Editando: ${course.title}`, type: 'info' })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
+              <button onClick={() => openEdit({ entity: 'course', title: course.title, item: course, fields: FIELDS_COURSE })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
               <button onClick={() => addToast({ message: 'Curso eliminado', type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
             </div>
           </div>
@@ -574,7 +724,8 @@ const CursosSection: React.FC<{ addToast: Function }> = ({ addToast }) => (
       ))}
     </div>
   </div>
-);
+  );
+};
 
 // ── 12. FINANZAS ──────────────────────────────────────────────────────────
 // ── ADMIN: COMISIONES DINÁMICAS ───────────────────────────────────────────
