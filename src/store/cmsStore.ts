@@ -299,20 +299,20 @@ export const useCMSStore = create<CMSState>()(
           slice === 'menu'       ? state.menu :
           slice === 'modules'    ? state.modules :
                                    state.media;
-        set(s => ({
+        set((s: CMSState) => ({
           history: [
             {
               id: `snap_${Date.now()}`,
               slice, data: JSON.parse(JSON.stringify(data)),
               description, timestamp: new Date(),
             },
-            ...s.history,
-          ].slice(0, 30)  // máx 30 snapshots
+            ...(s.history || []),
+          ].slice(0, 30)
         }));
       },
 
-      rollback: (snapshotId) => {
-        const snap = get().history.find(h => h.id === snapshotId);
+      rollback: (snapshotId: string) => {
+        const snap = get().history.find((h: HistorySnapshot) => h.id === snapshotId);
         if (!snap) return;
         if (snap.slice === 'categories') set({ categories: snap.data });
         if (snap.slice === 'menu')       set({ menu: snap.data });
@@ -325,13 +325,18 @@ export const useCMSStore = create<CMSState>()(
       resetCategories: () => set({ categories: DEFAULT_CATEGORIES }),
       resetMenu:       () => set({ menu: DEFAULT_MENU }),
     }),
-    { name: 'ritmolatino-cms' }
+    {
+      name: 'ritmolatino-cms',
+      version: 1,
+      // Si cambias DEFAULT_*, sube la versión y los datos viejos se descartan
+      migrate: () => undefined as any,
+    }
   )
 );
 
-// Helpers
-export const visibleHomeModules = (mods: HomeModule[]) =>
-  mods.filter(m => m.enabled).sort((a, b) => a.order - b.order);
+// Helpers — defensivos frente a arrays undefined
+export const visibleHomeModules = (mods?: HomeModule[]) =>
+  (mods || []).filter(m => m.enabled).sort((a, b) => a.order - b.order);
 
-export const activeCategories = (cats: CMSCategory[]) =>
-  cats.filter(c => !c.isDeleted && c.isActive).sort((a, b) => a.order - b.order);
+export const activeCategories = (cats?: CMSCategory[]) =>
+  (cats || []).filter(c => !c.isDeleted && c.isActive).sort((a, b) => a.order - b.order);
