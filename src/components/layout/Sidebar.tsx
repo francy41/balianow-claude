@@ -73,12 +73,12 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       {/* Mobile overlay */}
       {open && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={onClose} />}
 
-      <aside className={`fixed top-0 left-0 h-full w-60 bg-sidebar z-40 flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed top-0 left-0 h-full w-60 bg-white border-r border-gray-100 z-40 flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Logo */}
-        <div className="flex items-center gap-2 px-5 h-14 border-b border-white/10 flex-shrink-0">
+        <div className="flex items-center gap-2 px-5 h-14 border-b border-gray-100 flex-shrink-0">
           <span className="text-2xl">🎵</span>
           <span className="font-display font-black text-lg">
-            <span className="text-white">¡Ritmo </span>
+            <span className="text-gray-900">¡Ritmo </span>
             <span className="text-brand-orange">Latino!</span>
           </span>
         </div>
@@ -107,7 +107,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
 
         {/* Radio live indicator */}
         <div className="px-3 pb-4">
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 text-white/60 text-xs">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-50 border border-gray-100 text-gray-500 text-xs">
             <Radio className="w-4 h-4 text-brand-orange flex-shrink-0" />
             <span className="truncate">Radio Latino — En directo</span>
             <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
