@@ -5,6 +5,7 @@ import { VENUES } from '../data/mockData';
 import type { Venue } from '../data/mockData';
 import { Badge, StarRating, SearchBar, FilterChips, EmptyState, Button } from '../components/ui';
 import { useAuthStore, useUIStore } from '../store/appStore';
+import BookingModal from '../components/BookingModal';
 
 const TYPES = ['Todos', 'Club', 'Bar', 'Studio', 'Rooftop', 'Lounge', 'Restaurante'];
 const CITIES = ['Todas', 'Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'Milano'];
@@ -102,10 +103,11 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
   const { addToast } = useUIStore();
   const venue = VENUES.find(v => v.id === venueId) || VENUES[0];
   const [activeTab, setActiveTab] = useState<'info' | 'events' | 'photos'>('info');
+  const [bookingOpen, setBookingOpen] = useState(false);
 
   const handleReserve = () => {
     if (!isAuthenticated) { navigate('/auth'); return; }
-    addToast({ message: 'Solicitud de reserva enviada. Te contactaremos pronto.', type: 'success' });
+    setBookingOpen(true);
   };
 
   return (
@@ -205,6 +207,17 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
           </div>
         )}
       </div>
+
+      <BookingModal
+        open={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        providerId={venue.id}
+        providerName={venue.name}
+        source="booking"
+        defaultConcept={`Reserva del espacio ${venue.name}`}
+        defaultPrice={venue.priceRange * 100}
+        helperText={`${venue.type} en ${venue.city} · Capacidad ${venue.capacity}`}
+      />
     </div>
   );
 };
