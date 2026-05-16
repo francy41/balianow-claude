@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Bell, Globe, ChevronDown, Menu, LogOut, LayoutDashboard, User, Shield } from 'lucide-react';
+import { Search, Bell, Globe, ChevronDown, Menu, LogOut, LayoutDashboard, User, Shield, Edit3 } from 'lucide-react';
+import ProfileEditModal from '../ProfileEditModal';
 import { useAuthStore, useUIStore } from '../../store/appStore';
 import { Avatar } from '../ui';
 
@@ -22,6 +23,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
   const [lang, setLang] = useState<'ES' | 'EN'>('ES');
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [showEdit, setShowEdit] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -140,9 +142,9 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                   <Link to="/dashboard" className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-600 text-sm transition-colors">
                     <LayoutDashboard className="w-4 h-4" /> Mi Dashboard
                   </Link>
-                  <Link to="/perfil" className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-600 text-sm transition-colors">
-                    <User className="w-4 h-4" /> Mi Perfil
-                  </Link>
+                  <button onClick={() => setShowEdit(true)} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-600 text-sm transition-colors text-left">
+                    <Edit3 className="w-4 h-4" /> Editar mi perfil
+                  </button>
                   <Link to="/wallet" className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-600 text-sm transition-colors">
                     💳 Wallet — €{user.wallet.toFixed(0)}
                   </Link>
@@ -183,6 +185,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
           </div>
         )}
       </div>
+      <ProfileEditModal open={showEdit} onClose={() => setShowEdit(false)} />
     </header>
   );
 };
