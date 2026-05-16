@@ -442,7 +442,7 @@ const UsuariosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   return (
     <div>
       <PageHeader title="Usuarios" subtitle={`${users.length} usuarios registrados`} action={
-        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => addToast({ message: 'Función próximamente', type: 'info' })}>Nuevo usuario</Button>
+        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => openEdit({ entity: 'user', title: 'Nuevo usuario', item: { id: `usr-new-${Date.now()}`, name: '', email: '', role: 'user', city: '' }, fields: FIELDS_USER })}>Nuevo usuario</Button>
       } />
       <div className="flex gap-3 mb-4">
         <SearchBar placeholder="Buscar usuarios..." value={search} onChange={setSearch} className="max-w-xs" />
@@ -589,7 +589,7 @@ const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   return (
     <div>
       <PageHeader title="Bailarines & Instructores" subtitle={`${dancers.length} perfiles activos`} action={
-        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => addToast({ message: 'Función próximamente', type: 'info' })}>Añadir bailarín/a</Button>
+        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => openEdit({ entity: 'artist', title: 'Nuevo bailarín/a', item: { id: `art-new-${Date.now()}`, name: '', type: 'dancer', city: '', country: 'España' }, fields: FIELDS_ARTIST })}>Añadir bailarín/a</Button>
       } />
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {[...dancers, ...ARTISTS.slice(0, 4)].map(a => (
