@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Shield, Calendar as CalIcon, Lock, Briefcase } from 'lucide-react';
-import { useAuthStore, useUIStore, usePerformerStore, splitAmount, PLATFORM_COMMISSION_RATE, type Transaction } from '../store/appStore';
+import { useAuthStore, useUIStore, usePerformerStore, useSiteConfigStore, splitAmount, computeCommissionRate, type Transaction } from '../store/appStore';
 import { useNavigate } from 'react-router-dom';
 
 export interface BookingModalProps {
@@ -20,6 +20,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const { user, isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
   const { recordTransaction } = usePerformerStore();
+  const { commissions } = useSiteConfigStore();
   const navigate = useNavigate();
   const [concept, setConcept] = useState(defaultConcept);
   const [price, setPrice] = useState(String(defaultPrice));
@@ -29,7 +30,8 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   if (!open) return null;
 
   const gross = parseFloat(price) || 0;
-  const { commission, net } = splitAmount(gross);
+  const rate = computeCommissionRate(commissions, source as any, false);
+  const { commission, net } = splitAmount(gross, rate);
 
   const handleSubmit = () => {
     if (!isAuthenticated || !user) {
@@ -111,7 +113,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <span className="font-bold text-gray-900">€{gross.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Comisión plataforma {(PLATFORM_COMMISSION_RATE * 100).toFixed(0)}%</span>
+              <span className="text-gray-500">Comisión plataforma {(rate * 100).toFixed(1)}%</span>
               <span className="text-brand-orange font-semibold">€{commission.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-sm pt-1 border-t border-gray-200">

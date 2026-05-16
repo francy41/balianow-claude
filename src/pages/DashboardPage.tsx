@@ -3,20 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Wallet, BookOpen, Calendar as CalIcon, Video, Briefcase,
   Plus, Trash2, Edit3, CheckCircle, X, Check, ExternalLink, Clock,
-  TrendingUp, Users, Star, DollarSign, Eye, Play, AlertCircle
+  TrendingUp, Users, Star, DollarSign, Eye, Play, AlertCircle, CreditCard, Shield
 } from 'lucide-react';
 import {
-  useAuthStore, useUIStore, usePerformerStore,
-  PLATFORM_COMMISSION_RATE, splitAmount,
-  type Course, type OfferRequest, type Withdrawal
+  useAuthStore, useUIStore, usePerformerStore, useSiteConfigStore,
+  PLATFORM_COMMISSION_RATE, splitAmount, computeCommissionRate,
+  type Course, type OfferRequest, type Withdrawal, type PayoutMethod
 } from '../store/appStore';
 import { Avatar, Badge, Button } from '../components/ui';
 
-type TabId = 'overview' | 'earnings' | 'courses' | 'calendar' | 'classes' | 'offers';
+type TabId = 'overview' | 'earnings' | 'payouts' | 'courses' | 'calendar' | 'classes' | 'offers';
 
 const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'overview', label: 'Resumen',       icon: <LayoutDashboard className="w-4 h-4" /> },
   { id: 'earnings', label: 'Ganancias',     icon: <Wallet className="w-4 h-4" /> },
+  { id: 'payouts',  label: 'Payouts',       icon: <CreditCard className="w-4 h-4" /> },
   { id: 'courses',  label: 'Cursos',        icon: <BookOpen className="w-4 h-4" /> },
   { id: 'calendar', label: 'Calendario',    icon: <CalIcon className="w-4 h-4" /> },
   { id: 'classes',  label: 'Clases Online', icon: <Video className="w-4 h-4" /> },
@@ -95,6 +96,7 @@ const DashboardPage: React.FC = () => {
 
             {tab === 'overview' && <OverviewTab performerId={performerId} onNavigate={setTab} />}
             {tab === 'earnings' && <EarningsTab performerId={performerId} performerName={user.name} />}
+            {tab === 'payouts'  && <PayoutsTab  performerId={performerId} performerName={user.name} />}
             {tab === 'courses'  && <CoursesTab  performerId={performerId} />}
             {tab === 'calendar' && <CalendarTab performerId={performerId} />}
             {tab === 'classes'  && <ClassesTab  performerId={performerId} />}
@@ -195,9 +197,116 @@ const StatCard: React.FC<{ label: string; value: string; sub?: string; icon: Rea
   );
 };
 
+// ── PAYOUTS TAB (Stripe Connect / PayPal / Bank) ──────────────────────────
+const PayoutsTab: React.FC<{ performerId: string; performerName: string }> = ({ performerId, performerName }) => {
+  const { payoutMethods, addPayoutMethod, removePayoutMethod, verifyPayoutMethod, setDefaultPayoutMethod } = usePerformerStore();
+  const { addToast } = useUIStore();
+  const mine = payoutMethods.filter(p => p.performerId === performerId);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ type: 'paypal' as PayoutMethod['type'], account: '', holderName: performerName });
+
+  const submit = () => {
+    if (!form.account.trim()) { addToast({ message: 'Introduce la cuenta', type: 'error' }); return; }
+    addPayoutMethod({
+      performerId, type: form.type,
+      account: form.account.trim(),
+      holderName: form.holderName.trim() || performerName,
+      isDefault: mine.length === 0,
+    });
+    addToast({ message: 'Método de pago añadido. Verificación pendiente.', type: 'success' });
+    setShowForm(false);
+    setForm({ type: 'paypal', account: '', holderName: performerName });
+  };
+
+  const TYPE_INFO: Record<PayoutMethod['type'], { icon: string; label: string; placeholder: string }> = {
+    stripe: { icon: '💳', label: 'Stripe Connect',         placeholder: 'acct_xxxxx (ID Stripe Connect)' },
+    paypal: { icon: '🅿️', label: 'PayPal',                 placeholder: 'tu-email@paypal.com' },
+    bank:   { icon: '🏦', label: 'Transferencia bancaria', placeholder: 'IBAN ESxx xxxx xxxx xxxx' },
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h2 className="font-display font-black text-xl text-gray-900">Métodos de payout</h2>
+          <p className="text-gray-400 text-sm">Configura dónde quieres recibir tus ganancias. Necesitarás un método verificado para retirar.</p>
+        </div>
+        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => setShowForm(v => !v)}>
+          {showForm ? 'Cancelar' : 'Añadir método'}
+        </Button>
+      </div>
+
+      {showForm && (
+        <div className="card-white p-5 space-y-3">
+          <div className="grid grid-cols-3 gap-2">
+            {(['stripe', 'paypal', 'bank'] as const).map(t => (
+              <button key={t} onClick={() => setForm({ ...form, type: t })}
+                className={`p-3 rounded-xl border text-center transition-all ${
+                  form.type === t ? 'border-brand-orange bg-orange-50' : 'border-gray-200 bg-white hover:border-brand-orange/50'
+                }`}>
+                <div className="text-2xl mb-1">{TYPE_INFO[t].icon}</div>
+                <p className="text-sm font-bold text-gray-900">{TYPE_INFO[t].label}</p>
+              </button>
+            ))}
+          </div>
+          <input value={form.holderName} onChange={e => setForm({ ...form, holderName: e.target.value })}
+            placeholder="Titular de la cuenta" className="input-field" />
+          <input value={form.account} onChange={e => setForm({ ...form, account: e.target.value })}
+            placeholder={TYPE_INFO[form.type].placeholder} className="input-field" />
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-xs text-gray-700 flex items-start gap-2">
+            <Shield className="w-4 h-4 text-yellow-700 flex-shrink-0 mt-0.5" />
+            Tu identidad será verificada por la plataforma antes de habilitar retiros (KYC).
+          </div>
+          <Button variant="orange" className="w-full" onClick={submit}>Guardar método</Button>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {mine.length === 0 && (
+          <div className="card-white p-12 text-center text-gray-400">
+            <CreditCard className="w-10 h-10 mx-auto mb-2 opacity-30" />
+            <p className="text-sm">Aún no tienes métodos de payout configurados.</p>
+          </div>
+        )}
+        {mine.map(m => (
+          <div key={m.id} className="card-white p-5 flex flex-col md:flex-row md:items-center gap-3">
+            <div className="text-3xl">{TYPE_INFO[m.type].icon}</div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-bold text-gray-900">{TYPE_INFO[m.type].label}</p>
+                {m.isDefault && <span className="text-[10px] bg-brand-orange text-white px-2 py-0.5 rounded-full font-bold uppercase">Default</span>}
+                {m.verified
+                  ? <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase">✓ Verificado</span>
+                  : <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-bold uppercase">Pendiente KYC</span>
+                }
+              </div>
+              <p className="text-sm text-gray-500 mt-0.5">{m.holderName}</p>
+              <p className="text-xs text-gray-400 font-mono">{m.account}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {!m.verified && (
+                <button onClick={() => { verifyPayoutMethod(m.id); addToast({ message: 'Método verificado (mock KYC)', type: 'success' }); }}
+                  className="text-xs bg-green-100 hover:bg-green-200 text-green-700 font-bold px-3 py-1.5 rounded-lg">Verificar</button>
+              )}
+              {!m.isDefault && (
+                <button onClick={() => setDefaultPayoutMethod(performerId, m.id)}
+                  className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-3 py-1.5 rounded-lg">Hacer default</button>
+              )}
+              <button onClick={() => { removePayoutMethod(m.id); addToast({ message: 'Método eliminado', type: 'info' }); }}
+                className="text-xs bg-red-50 hover:bg-red-100 text-red-500 font-bold p-1.5 rounded-lg">
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // ── EARNINGS ──────────────────────────────────────────────────────────────
 const EarningsTab: React.FC<{ performerId: string; performerName: string }> = ({ performerId, performerName }) => {
-  const { transactions, withdrawals, totalsFor, balanceFor, requestWithdrawal } = usePerformerStore();
+  const { transactions, withdrawals, totalsFor, balanceFor, requestWithdrawal, monthlyRevenue } = usePerformerStore();
   const { addToast } = useUIStore();
   const tx = transactions.filter(t => t.performerId === performerId).sort((a, b) => +new Date(b.date) - +new Date(a.date));
   const totals = totalsFor(performerId);
@@ -236,8 +345,33 @@ const EarningsTab: React.FC<{ performerId: string; performerName: string }> = ({
         <StatCard label="En escrow"        value={`€${balance.inEscrow}`}  sub="Esperando confirmación del comprador" icon={<Clock className="w-5 h-5" />} color="orange" />
         <StatCard label="Disponible"       value={`€${balance.available}`} sub="Listo para retirar"                   icon={<Wallet className="w-5 h-5" />} color="green" />
         <StatCard label="Retirado"         value={`€${balance.withdrawn}`} sub="Histórico"                            icon={<DollarSign className="w-5 h-5" />} color="purple" />
-        <StatCard label="Comisión 15%"     value={`€${totals.commissionThisMonth}`} sub="Plataforma (mes actual)"     icon={<TrendingUp className="w-5 h-5" />} color="pink" />
+        <StatCard label="Comisión mes"     value={`€${totals.commissionThisMonth}`} sub="Plataforma (mes actual)"     icon={<TrendingUp className="w-5 h-5" />} color="pink" />
       </div>
+
+      {/* Monthly chart */}
+      {(() => {
+        const data = monthlyRevenue(performerId, 6);
+        const max = Math.max(...data.map(d => d.gross), 1);
+        return (
+          <div className="card-white p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-bold text-gray-900">Ingresos mensuales</h3>
+              <span className="text-xs text-gray-400">Últimos 6 meses</span>
+            </div>
+            <div className="flex items-end gap-2 h-32">
+              {data.map(d => (
+                <div key={d.month} className="flex-1 flex flex-col items-center gap-1">
+                  <div className="w-full bg-gray-100 rounded-t-lg flex-1 flex items-end overflow-hidden">
+                    <div className="w-full bg-gradient-to-t from-brand-orange to-orange-300 rounded-t-lg" style={{ height: `${(d.gross / max) * 100}%`, minHeight: d.gross > 0 ? 4 : 0 }} />
+                  </div>
+                  <span className="text-[10px] text-gray-500 font-bold">{d.month}</span>
+                  <span className="text-[10px] text-gray-400">€{Math.round(d.net)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Retiro */}
       <div className="card-white p-5">
@@ -561,7 +695,7 @@ const ClassesTab: React.FC<{ performerId: string }> = ({ performerId }) => {
     const tx = recordTransaction({
       performerId: c.performerId, clientName: c.clientName,
       concept: `Clase online: ${c.topic}`, gross: c.price,
-      status: 'completed', source: 'class'
+      status: 'released', source: 'class'
     });
     addToast({ message: `Clase completada. +€${tx.net} (comisión €${tx.commission})`, type: 'success' });
   };

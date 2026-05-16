@@ -2,11 +2,43 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 // ── PLATFORM COMMISSION ────────────────────────────────────────────────────
-export const PLATFORM_COMMISSION_RATE = 0.15; // 15% para superadmin en TODAS las transacciones
-export const splitAmount = (gross: number) => {
-  const commission = Math.round(gross * PLATFORM_COMMISSION_RATE * 100) / 100;
+// Tasa por defecto (fallback). El valor REAL se lee dinámicamente desde useSiteConfigStore.
+export const PLATFORM_COMMISSION_RATE = 0.15;
+
+export const splitAmount = (gross: number, rate: number = PLATFORM_COMMISSION_RATE) => {
+  const commission = Math.round(gross * rate * 100) / 100;
   const net = Math.round((gross - commission) * 100) / 100;
-  return { gross, commission, net };
+  return { gross, commission, net, rate };
+};
+
+export type CommissionSource = 'booking' | 'course' | 'offer' | 'class' | 'tip';
+
+export interface CommissionConfig {
+  default: number;
+  bySource: Record<CommissionSource, number>;
+  premiumDiscount: number; // ej 0.07 → premium paga (default - 0.07)
+}
+
+export const DEFAULT_COMMISSIONS: CommissionConfig = {
+  default: 0.15,
+  bySource: {
+    booking: 0.15,
+    course:  0.20,
+    class:   0.15,
+    offer:   0.15,
+    tip:     0.10,
+  },
+  premiumDiscount: 0.07, // premium: 15% - 7% = 8%
+};
+
+export const computeCommissionRate = (
+  cfg: CommissionConfig,
+  source: CommissionSource,
+  isPremiumSeller = false
+): number => {
+  const base = cfg.bySource[source] ?? cfg.default;
+  const final = isPremiumSeller ? Math.max(0, base - cfg.premiumDiscount) : base;
+  return Math.round(final * 1000) / 1000;
 };
 
 export type UserRole = 'user' | 'artist' | 'dj' | 'dancer' | 'venue' | 'admin';
@@ -155,7 +187,12 @@ export interface HeroMedia {
 
 interface SiteConfigState {
   heroMedia: HeroMedia;
+  commissions: CommissionConfig;
   setHeroMedia: (media: Partial<HeroMedia>) => void;
+  setCommission: (source: CommissionSource, rate: number) => void;
+  setDefaultCommission: (rate: number) => void;
+  setPremiumDiscount: (rate: number) => void;
+  resetCommissions: () => void;
 }
 
 export const useSiteConfigStore = create<SiteConfigState>()(
@@ -168,8 +205,22 @@ export const useSiteConfigStore = create<SiteConfigState>()(
         muted: true,
         loop: true,
       },
+      commissions: DEFAULT_COMMISSIONS,
       setHeroMedia: (media) =>
         set((state) => ({ heroMedia: { ...state.heroMedia, ...media } })),
+      setCommission: (source, rate) =>
+        set((state) => ({
+          commissions: {
+            ...state.commissions,
+            bySource: { ...state.commissions.bySource, [source]: rate }
+          }
+        })),
+      setDefaultCommission: (rate) =>
+        set((state) => ({ commissions: { ...state.commissions, default: rate } })),
+      setPremiumDiscount: (rate) =>
+        set((state) => ({ commissions: { ...state.commissions, premiumDiscount: rate } })),
+      resetCommissions: () =>
+        set({ commissions: DEFAULT_COMMISSIONS }),
     }),
     { name: 'ritmolatino-site-config' }
   )
@@ -420,6 +471,17 @@ export interface Withdrawal {
   txIds: string[];
 }
 
+export interface PayoutMethod {
+  id: string;
+  performerId: string;
+  type: 'stripe' | 'paypal' | 'bank';
+  account: string;          // ej: email PayPal, nº cuenta (truncado), id Stripe Connect
+  holderName: string;
+  verified: boolean;
+  isDefault: boolean;
+  createdAt: Date;
+}
+
 export interface Course {
   id: string;
   performerId: string;
@@ -474,16 +536,23 @@ export interface OfferRequest {
 interface PerformerState {
   transactions: Transaction[];
   withdrawals: Withdrawal[];
+  payoutMethods: PayoutMethod[];
   courses: Course[];
   slots: AvailabilitySlot[];
   classes: OnlineClass[];
   offers: OfferRequest[];
 
   confirmServiceOK: (txId: string) => void;
+  refundTransaction: (txId: string, reason?: string) => void;
   requestWithdrawal: (performerId: string, performerName: string, amount: number, method: Withdrawal['method']) => boolean;
   approveWithdrawal: (id: string) => void;
   rejectWithdrawal: (id: string) => void;
+  addPayoutMethod: (m: Omit<PayoutMethod, 'id' | 'createdAt' | 'verified'>) => void;
+  removePayoutMethod: (id: string) => void;
+  verifyPayoutMethod: (id: string) => void;
+  setDefaultPayoutMethod: (performerId: string, methodId: string) => void;
   balanceFor: (performerId: string) => { inEscrow: number; available: number; withdrawn: number; lifetime: number };
+  monthlyRevenue: (performerId: string, months?: number) => { month: string; gross: number; net: number }[];
 
   recordTransaction: (t: Omit<Transaction, 'id' | 'commission' | 'net' | 'date'> & { date?: Date }) => Transaction;
   addCourse: (c: Omit<Course, 'id' | 'enrolledCount' | 'createdAt'>) => void;
@@ -538,6 +607,13 @@ export const usePerformerStore = create<PerformerState>()(
           status: 'paid', paidAt: daysAgo(5), txIds: []
         },
       ],
+      payoutMethods: [
+        {
+          id: 'pm1', performerId: 'a1', type: 'paypal',
+          account: 'dj@bachasalseros.com', holderName: 'DJ Mambo King',
+          verified: true, isDefault: true, createdAt: daysAgo(30)
+        },
+      ],
       courses: [
         {
           id: 'c1', performerId: 'a1', title: 'Fundamentos del DJing Latino',
@@ -589,6 +665,65 @@ export const usePerformerStore = create<PerformerState>()(
               : t
           )
         })),
+
+      refundTransaction: (txId) =>
+        set(state => ({
+          transactions: state.transactions.map(t =>
+            t.id === txId && (t.status === 'pending' || t.status === 'released')
+              ? { ...t, status: 'refunded' }
+              : t
+          )
+        })),
+
+      addPayoutMethod: (m) =>
+        set(state => {
+          const isFirst = state.payoutMethods.filter(p => p.performerId === m.performerId).length === 0;
+          return {
+            payoutMethods: [...state.payoutMethods, {
+              ...m,
+              id: `pm_${Date.now()}`,
+              verified: false,
+              isDefault: m.isDefault || isFirst,
+              createdAt: new Date(),
+            }]
+          };
+        }),
+
+      removePayoutMethod: (id) =>
+        set(state => ({ payoutMethods: state.payoutMethods.filter(p => p.id !== id) })),
+
+      verifyPayoutMethod: (id) =>
+        set(state => ({
+          payoutMethods: state.payoutMethods.map(p => p.id === id ? { ...p, verified: true } : p)
+        })),
+
+      setDefaultPayoutMethod: (performerId, methodId) =>
+        set(state => ({
+          payoutMethods: state.payoutMethods.map(p =>
+            p.performerId === performerId ? { ...p, isDefault: p.id === methodId } : p
+          )
+        })),
+
+      monthlyRevenue: (performerId, months = 6) => {
+        const txs = get().transactions.filter(t =>
+          t.performerId === performerId && (t.status === 'released' || t.status === 'withdrawn')
+        );
+        const now = new Date();
+        const out: { month: string; gross: number; net: number }[] = [];
+        for (let i = months - 1; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const monthTx = txs.filter(t => {
+            const dt = new Date(t.date);
+            return dt.getMonth() === d.getMonth() && dt.getFullYear() === d.getFullYear();
+          });
+          out.push({
+            month: d.toLocaleDateString('es-ES', { month: 'short', year: '2-digit' }),
+            gross: Math.round(monthTx.reduce((s, t) => s + t.gross, 0) * 100) / 100,
+            net:   Math.round(monthTx.reduce((s, t) => s + t.net,   0) * 100) / 100,
+          });
+        }
+        return out;
+      },
 
       requestWithdrawal: (performerId, performerName, amount, method) => {
         const state = get();
@@ -650,7 +785,10 @@ export const usePerformerStore = create<PerformerState>()(
       },
 
       recordTransaction: (input) => {
-        const { commission, net } = splitAmount(input.gross);
+        // Lee la tasa dinámica según source desde el site config
+        const cfg = useSiteConfigStore.getState().commissions;
+        const rate = computeCommissionRate(cfg, (input.source as CommissionSource), false);
+        const { commission, net } = splitAmount(input.gross, rate);
         const tx: Transaction = {
           id: `tx_${Date.now()}`,
           commission, net,
