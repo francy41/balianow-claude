@@ -9,7 +9,7 @@ import {
   ChevronRight, ArrowUpRight, ArrowDownRight, Clock,
   Wifi, Globe, Bell, Database, Server, FileText
 } from 'lucide-react';
-import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, PLATFORM_COMMISSION_RATE, type HeroMediaType } from '../store/appStore';
+import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, PLATFORM_COMMISSION_RATE, type HeroMediaType, type CommissionSource } from '../store/appStore';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
 import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS } from '../data/mockData';
 
@@ -18,7 +18,7 @@ type AdminSection =
   | 'overview' | 'categorias' | 'radio' | 'usuarios' | 'localidades'
   | 'suscripciones' | 'artistas' | 'bailarinas' | 'eventos' | 'mercado'
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
-  | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros';
+  | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -33,6 +33,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'mercado',        label: 'Mercado y Escrow',        icon: <ShoppingBag className="w-4 h-4" />, badge: '3 pend.' },
   { id: 'cursos',         label: 'Cursos',                  icon: <BookOpen className="w-4 h-4" /> },
   { id: 'finanzas',       label: 'Finanzas',                icon: <DollarSign className="w-4 h-4" /> },
+  { id: 'comisiones',     label: 'Comisiones',              icon: <DollarSign className="w-4 h-4" /> },
   { id: 'creators',       label: 'Dashboards Creators',     icon: <LayoutDashboard className="w-4 h-4" /> },
   { id: 'retiros',        label: 'Retiros pendientes',      icon: <DollarSign className="w-4 h-4" />, badge: 'esc.' },
   { id: 'diseno',         label: 'Diseño Web',              icon: <Palette className="w-4 h-4" /> },
@@ -124,6 +125,7 @@ const AdminPage: React.FC = () => {
         {active === 'finanzas'       && <FinanzasSection />}
         {active === 'creators'       && <CreatorsSection />}
         {active === 'retiros'        && <RetirosSection addToast={addToast} />}
+        {active === 'comisiones'     && <ComisionesSection addToast={addToast} />}
         {active === 'diseno'         && <DisenoSection addToast={addToast} />}
         {active === 'configuracion'  && <ConfiguracionSection addToast={addToast} />}
         {active === 'roles'          && <RolesSection addToast={addToast} />}
@@ -572,6 +574,102 @@ const CursosSection: React.FC<{ addToast: Function }> = ({ addToast }) => (
 );
 
 // ── 12. FINANZAS ──────────────────────────────────────────────────────────
+// ── ADMIN: COMISIONES DINÁMICAS ───────────────────────────────────────────
+const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const { commissions, setCommission, setDefaultCommission, setPremiumDiscount, resetCommissions } = useSiteConfigStore();
+
+  const sources: { id: CommissionSource; label: string; icon: string; desc: string }[] = [
+    { id: 'booking', label: 'Reservas (DJs, artistas, venues)', icon: '📅', desc: 'Bookings de eventos privados y públicos' },
+    { id: 'course',  label: 'Cursos digitales',                 icon: '🎓', desc: 'Cursos en vídeo y materiales descargables' },
+    { id: 'class',   label: 'Clases online 1:1',                icon: '🎥', desc: 'Sesiones individuales en directo' },
+    { id: 'offer',   label: 'Ofertas personalizadas',           icon: '💼', desc: 'Propuestas custom enviadas por chat' },
+    { id: 'tip',     label: 'Propinas y donaciones',            icon: '💝', desc: 'Tips en streams y perfiles' },
+  ];
+
+  return (
+    <div>
+      <PageHeader
+        title="Comisiones dinámicas"
+        subtitle="Configura el % que la plataforma cobra en cada tipo de transacción. Los cambios afectan a TODAS las contrataciones nuevas."
+        action={
+          <button onClick={() => { resetCommissions(); addToast({ message: 'Comisiones restauradas al valor por defecto', type: 'info' }); }}
+            className="text-sm text-gray-500 hover:text-gray-800 font-semibold">↺ Restaurar valores por defecto</button>
+        }
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+        <div className="card-white p-5">
+          <p className="text-xs text-gray-400 font-semibold uppercase">Comisión default</p>
+          <div className="flex items-center gap-2 mt-2">
+            <input type="number" step="0.5" min="0" max="100"
+              value={(commissions.default * 100).toFixed(1)}
+              onChange={e => setDefaultCommission((parseFloat(e.target.value) || 0) / 100)}
+              className="input-field text-3xl font-black text-brand-orange w-32" />
+            <span className="text-3xl font-black text-brand-orange">%</span>
+          </div>
+          <p className="text-xs text-gray-400 mt-2">Tasa aplicada si no hay override por categoría</p>
+        </div>
+
+        <div className="card-white p-5">
+          <p className="text-xs text-gray-400 font-semibold uppercase">Descuento sellers premium</p>
+          <div className="flex items-center gap-2 mt-2">
+            <input type="number" step="0.5" min="0" max="100"
+              value={(commissions.premiumDiscount * 100).toFixed(1)}
+              onChange={e => setPremiumDiscount((parseFloat(e.target.value) || 0) / 100)}
+              className="input-field text-3xl font-black text-purple-600 w-32" />
+            <span className="text-3xl font-black text-purple-600">%</span>
+          </div>
+          <p className="text-xs text-gray-400 mt-2">
+            Sellers 👑 PRO pagan {((commissions.default - commissions.premiumDiscount) * 100).toFixed(1)}% en lugar de {(commissions.default * 100).toFixed(1)}%
+          </p>
+        </div>
+
+        <div className="card-white p-5">
+          <p className="text-xs text-gray-400 font-semibold uppercase">Vista rápida</p>
+          <div className="mt-2 space-y-1.5 text-sm">
+            <div className="flex justify-between"><span className="text-gray-600">Default:</span><span className="font-black text-brand-orange">{(commissions.default * 100).toFixed(1)}%</span></div>
+            <div className="flex justify-between"><span className="text-gray-600">Premium:</span><span className="font-black text-purple-600">{((commissions.default - commissions.premiumDiscount) * 100).toFixed(1)}%</span></div>
+            <div className="flex justify-between text-xs text-gray-400 pt-1 border-t border-gray-100"><span>Diferencia</span><span>-{(commissions.premiumDiscount * 100).toFixed(1)} pp</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card-white overflow-hidden">
+        <div className="p-5 border-b border-gray-100">
+          <h3 className="font-bold text-gray-900">Comisión por tipo de transacción</h3>
+          <p className="text-xs text-gray-400 mt-0.5">Override que se aplica antes que el valor default</p>
+        </div>
+        <div className="divide-y divide-gray-50">
+          {sources.map(s => {
+            const rate = commissions.bySource[s.id];
+            const premiumRate = Math.max(0, rate - commissions.premiumDiscount);
+            return (
+              <div key={s.id} className="px-5 py-4 flex items-center gap-4">
+                <span className="text-2xl">{s.icon}</span>
+                <div className="flex-1">
+                  <p className="font-bold text-gray-900 text-sm">{s.label}</p>
+                  <p className="text-xs text-gray-400">{s.desc}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="number" step="0.5" min="0" max="100"
+                    value={(rate * 100).toFixed(1)}
+                    onChange={e => setCommission(s.id, (parseFloat(e.target.value) || 0) / 100)}
+                    className="input-field w-24 text-center font-bold text-brand-orange" />
+                  <span className="font-bold text-gray-700">%</span>
+                  <div className="ml-3 text-right hidden sm:block">
+                    <p className="text-[10px] text-purple-600 font-bold">Premium {(premiumRate * 100).toFixed(1)}%</p>
+                    <p className="text-[10px] text-gray-400">€100 → recibe €{(100 - 100 * rate).toFixed(0)}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ── ADMIN: DASHBOARDS DE CREATORS (vista global) ──────────────────────────
 const CreatorsSection: React.FC = () => {
   const { transactions, balanceFor, totalsFor } = usePerformerStore();
@@ -608,7 +706,7 @@ const CreatorsSection: React.FC = () => {
           return (
             <div key={p.id} className="card-white p-5">
               <div className="flex items-center gap-3 mb-3">
-                <Avatar name={p.name} size="md" />
+                <Avatar src={`https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=F97316&color=fff`} name={p.name} size="md" />
                 <div className="flex-1">
                   <h4 className="font-bold text-gray-900">{p.name}</h4>
                   <p className="text-xs text-gray-400 font-mono">{p.id} · {p.txCount} transacciones</p>
@@ -710,18 +808,54 @@ const RetirosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 };
 
 const FinanzasSection: React.FC = () => {
-  const { platformTotals, transactions } = usePerformerStore();
+  const { platformTotals, transactions, refundTransaction } = usePerformerStore();
+  const { commissions } = useSiteConfigStore();
+  const { addToast } = useUIStore();
   const totals = platformTotals();
   const pendingTx = transactions.filter(t => t.status === 'pending');
+  const refundedCount = transactions.filter(t => t.status === 'refunded').length;
+
+  // GMV mensual (gross released + withdrawn)
+  const billable = transactions.filter(t => t.status === 'released' || t.status === 'withdrawn');
+  const now = new Date();
+  const monthly = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+    const monthTx = billable.filter(t => {
+      const dt = new Date(t.date);
+      return dt.getMonth() === d.getMonth() && dt.getFullYear() === d.getFullYear();
+    });
+    return {
+      label: d.toLocaleDateString('es-ES', { month: 'short' }),
+      gross: monthTx.reduce((s, t) => s + t.gross, 0),
+      commission: monthTx.reduce((s, t) => s + t.commission, 0),
+    };
+  });
+  const maxGross = Math.max(...monthly.map(m => m.gross), 1);
+
+  // Top creators
+  const byCreator = new Map<string, { name: string; gross: number; commission: number; tx: number }>();
+  billable.forEach(t => {
+    const key = t.performerId;
+    const cur = byCreator.get(key) || { name: t.performerName || key, gross: 0, commission: 0, tx: 0 };
+    cur.gross += t.gross; cur.commission += t.commission; cur.tx++;
+    byCreator.set(key, cur);
+  });
+  const topCreators = Array.from(byCreator.values()).sort((a, b) => b.gross - a.gross).slice(0, 5);
+
+  const handleRefund = (txId: string, concept: string) => {
+    refundTransaction(txId);
+    addToast({ message: `Reembolso emitido · "${concept}"`, type: 'success' });
+  };
+
   const stats = [
-    { label: 'Bruto total (real)',     value: `€${totals.totalGross.toLocaleString()}`, sub: `${totals.totalTransactions} transacciones`, color: 'text-green-600' },
-    { label: `Comisiones (${(PLATFORM_COMMISSION_RATE * 100).toFixed(0)}%)`, value: `€${totals.totalCommission.toLocaleString()}`, sub: 'Acumulado plataforma', color: 'text-brand-orange' },
-    { label: 'Suscripciones',          value: '€6,240', sub: '312 activas', color: 'text-purple-600' },
-    { label: 'Pendiente pago',         value: `€${pendingTx.reduce((s, t) => s + t.net, 0).toFixed(0)}`, sub: 'En escrow', color: 'text-yellow-600' },
+    { label: 'GMV total',     value: `€${totals.totalGross.toLocaleString()}`, sub: `${totals.totalTransactions} transacciones`, color: 'text-green-600' },
+    { label: 'Comisiones',    value: `€${totals.totalCommission.toLocaleString()}`, sub: `Default ${(commissions.default * 100).toFixed(1)}%`, color: 'text-brand-orange' },
+    { label: 'En escrow',     value: `€${pendingTx.reduce((s, t) => s + t.gross, 0).toFixed(0)}`, sub: `${pendingTx.length} sin confirmar`, color: 'text-yellow-600' },
+    { label: 'Reembolsos',    value: String(refundedCount), sub: 'Histórico', color: 'text-red-600' },
   ];
   return (
   <div>
-    <PageHeader title="Finanzas" subtitle={`Control financiero — comisión plataforma ${(PLATFORM_COMMISSION_RATE * 100).toFixed(0)}% sobre TODAS las transacciones`} />
+    <PageHeader title="Finanzas" subtitle="GMV, comisiones, escrow y reembolsos — todo en tiempo real" />
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       {stats.map(s => (
         <div key={s.label} className="card-white p-5">
@@ -733,39 +867,94 @@ const FinanzasSection: React.FC = () => {
     </div>
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div className="card-white p-5">
-        <h3 className="font-bold text-gray-900 mb-4">Revenue mensual</h3>
-        {[
-          { month: 'May 2026', val: 48200, pct: 100 },
-          { month: 'Abr 2026', val: 39400, pct: 82 },
-          { month: 'Mar 2026', val: 35100, pct: 73 },
-          { month: 'Feb 2026', val: 28600, pct: 59 },
-          { month: 'Ene 2026', val: 24300, pct: 50 },
-        ].map(r => (
-          <div key={r.month} className="mb-3">
-            <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-600">{r.month}</span>
-              <span className="font-bold">€{r.val.toLocaleString()}</span>
-            </div>
-            <div className="h-2 bg-gray-100 rounded-full"><div className="h-full bg-brand-orange rounded-full" style={{ width: `${r.pct}%` }} /></div>
-          </div>
-        ))}
-      </div>
-      <div className="card-white p-5">
-        <h3 className="font-bold text-gray-900 mb-4">Transacciones recientes (todas las fuentes)</h3>
-        <div className="space-y-2 max-h-80 overflow-y-auto">
-          {transactions.slice(0, 12).map(t => (
-            <div key={t.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-              <div className="min-w-0 flex-1">
-                <p className="font-semibold text-sm text-gray-800 truncate">{t.concept}</p>
-                <p className="text-gray-400 text-xs">{t.clientName} · {new Date(t.date).toLocaleDateString('es-ES')} · {t.source}</p>
+        <h3 className="font-bold text-gray-900 mb-4">GMV mensual (últimos 6 meses)</h3>
+        <div className="flex items-end gap-2 h-40 mb-2">
+          {monthly.map(m => (
+            <div key={m.label} className="flex-1 flex flex-col items-center gap-1 group">
+              <div className="w-full bg-gray-100 rounded-t-lg flex-1 flex items-end overflow-hidden">
+                <div className="w-full bg-gradient-to-t from-brand-orange to-orange-300 rounded-t-lg transition-all"
+                  style={{ height: `${(m.gross / maxGross) * 100}%`, minHeight: m.gross > 0 ? 4 : 0 }} />
               </div>
-              <div className="text-right ml-2">
-                <p className="font-black text-gray-900 text-sm">€{t.gross}</p>
-                <p className="text-[10px] text-brand-orange font-bold">+€{t.commission} comisión</p>
-              </div>
+              <span className="text-[10px] text-gray-500 font-bold uppercase">{m.label}</span>
+              <span className="text-[10px] text-gray-400">€{Math.round(m.gross)}</span>
             </div>
           ))}
         </div>
+        <div className="pt-3 border-t border-gray-100 flex justify-between text-xs">
+          <span className="text-gray-500">Total 6m: <span className="font-bold text-gray-900">€{monthly.reduce((s, m) => s + m.gross, 0).toFixed(0)}</span></span>
+          <span className="text-brand-orange font-bold">Comisión: €{monthly.reduce((s, m) => s + m.commission, 0).toFixed(0)}</span>
+        </div>
+      </div>
+
+      <div className="card-white p-5">
+        <h3 className="font-bold text-gray-900 mb-4">Top creators por facturación</h3>
+        {topCreators.length === 0 && <p className="text-sm text-gray-400">Sin datos aún.</p>}
+        {topCreators.map((c, i) => {
+          const pct = (c.gross / topCreators[0].gross) * 100;
+          return (
+            <div key={c.name} className="mb-3">
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-gray-700"><span className="font-black text-brand-orange mr-2">#{i + 1}</span>{c.name}</span>
+                <span className="font-bold">€{c.gross.toFixed(0)} <span className="text-gray-400 text-xs font-normal">({c.tx} tx)</span></span>
+              </div>
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-brand-orange to-pink-500 rounded-full" style={{ width: `${pct}%` }} />
+              </div>
+              <p className="text-[10px] text-brand-orange mt-0.5">€{c.commission.toFixed(0)} comisión generada</p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+
+    <div className="card-white mt-6 overflow-hidden">
+      <div className="p-5 border-b border-gray-100">
+        <h3 className="font-bold text-gray-900">Transacciones — vista superadmin</h3>
+        <p className="text-xs text-gray-400">Puedes reembolsar transacciones en escrow o ya liberadas</p>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
+            <tr>
+              <th className="text-left px-4 py-3">Fecha</th>
+              <th className="text-left px-4 py-3">Concepto</th>
+              <th className="text-left px-4 py-3">Creator</th>
+              <th className="text-left px-4 py-3">Cliente</th>
+              <th className="text-left px-4 py-3">Estado</th>
+              <th className="text-right px-4 py-3">Bruto</th>
+              <th className="text-right px-4 py-3">Comisión</th>
+              <th className="text-right px-4 py-3">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {transactions.slice(0, 20).map(t => (
+              <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50">
+                <td className="px-4 py-3 text-gray-500 text-xs">{new Date(t.date).toLocaleDateString('es-ES')}</td>
+                <td className="px-4 py-3 text-gray-900 font-medium truncate max-w-[200px]">{t.concept}</td>
+                <td className="px-4 py-3 text-gray-700">{t.performerName || t.performerId}</td>
+                <td className="px-4 py-3 text-gray-500">{t.clientName}</td>
+                <td className="px-4 py-3">
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
+                    t.status === 'pending'   ? 'bg-yellow-50 text-yellow-700' :
+                    t.status === 'released'  ? 'bg-green-50 text-green-700' :
+                    t.status === 'withdrawn' ? 'bg-gray-100 text-gray-600' :
+                                               'bg-red-50 text-red-600'
+                  }`}>{t.status}</span>
+                </td>
+                <td className="px-4 py-3 text-right">€{t.gross}</td>
+                <td className="px-4 py-3 text-right text-brand-orange font-bold">€{t.commission}</td>
+                <td className="px-4 py-3 text-right">
+                  {(t.status === 'pending' || t.status === 'released') ? (
+                    <button onClick={() => handleRefund(t.id, t.concept)}
+                      className="bg-red-50 hover:bg-red-100 text-red-600 text-[10px] font-bold px-2 py-1 rounded">
+                      Reembolsar
+                    </button>
+                  ) : <span className="text-gray-300 text-xs">—</span>}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
