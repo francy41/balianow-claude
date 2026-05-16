@@ -48,6 +48,16 @@ export interface SocialLinks {
   twitch?: string;
 }
 
+export interface SocialFollowers {
+  instagram?: number;
+  tiktok?: number;
+  youtube?: number;
+  facebook?: number;
+  spotify?: number;
+  soundcloud?: number;
+  twitch?: number;
+}
+
 export interface Artist {
   id: string;
   name: string;
@@ -80,6 +90,10 @@ export interface Artist {
   responseTime?: string;
   totalStreams?: number;
   totalStreamHours?: number;
+  // ── REDES & VIDEO DESTACADO ──
+  socialFollowers?: SocialFollowers;
+  featuredVideo?: string;       // URL de YouTube / Vimeo / mp4
+  featuredVideoTitle?: string;
 }
 
 export interface Event {
@@ -257,6 +271,9 @@ export const ARTISTS: Artist[] = [
     bio: 'DJ con más de 15 años de experiencia en la escena latina internacional. Residente en Madrid, he actuado en más de 20 países mezclando salsa, bachata y ritmos tropicales.',
     tags: ['Salsa', 'Bachata', 'Eventos', 'Bodas', 'Clubs'],
     social: { instagram: 'djmamboking', tiktok: 'djmamboking', youtube: 'djmamboking', spotify: 'djmamboking', facebook: 'djmamboking', soundcloud: 'djmamboking' },
+    socialFollowers: { instagram: 154000, tiktok: 89000, youtube: 67500, spotify: 42000, facebook: 23000, soundcloud: 18500 },
+    featuredVideo: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    featuredVideoTitle: 'DJ Mambo King — Set en directo Latin Vibes Madrid',
     availability: ['Viernes', 'Sábado', 'Domingo'], completedBookings: 389,
     performanceStyle: 'Sets enérgicos con fusión moderna de ritmos clásicos',
     languages: ['Español', 'Inglés', 'Portugués'],
@@ -272,6 +289,9 @@ export const ARTISTS: Artist[] = [
     bio: 'Bailaora profesional de salsa on2 y son cubano. Campeona del Campeonato Latinoamericano de Salsa 2022. Clases, shows y coreografías para eventos.',
     tags: ['Salsa On2', 'Son Cubano', 'Clases', 'Shows', 'Coreografías'],
     social: { instagram: 'lareina_ritmo', tiktok: 'lareinadelritmo', youtube: 'lareinadelritmo', facebook: 'lareinadelritmo' },
+    socialFollowers: { instagram: 89400, tiktok: 215000, youtube: 34200, facebook: 12500 },
+    featuredVideo: 'https://www.youtube.com/watch?v=ZyhrYis509A',
+    featuredVideoTitle: 'La Reina — Bachata Sensual Workshop Barcelona',
     availability: ['Lunes', 'Miércoles', 'Viernes', 'Sábado'], completedBookings: 234,
     performanceStyle: 'Salsa elegante y técnica con un toque sensual',
     languages: ['Español', 'Inglés', 'Italiano'],
@@ -287,6 +307,9 @@ export const ARTISTS: Artist[] = [
     bio: 'Orquesta de 12 músicos con repertorio tropical completo. Bodas, eventos corporativos, festivales. Más de 500 shows en toda Europa.',
     tags: ['Orquesta', 'Salsa', 'Cumbia', 'Bodas', 'Festivales'],
     social: { instagram: 'orquestatfuego', youtube: 'orquestatropicalfuego', facebook: 'orquestatropicalfuego', spotify: 'tropicalfuego' },
+    socialFollowers: { instagram: 47800, youtube: 28600, facebook: 19200, spotify: 35400 },
+    featuredVideo: 'https://www.youtube.com/watch?v=jM8dCGIm6yc',
+    featuredVideoTitle: 'Orquesta Tropical Fuego — Concierto Valencia',
     availability: ['Viernes', 'Sábado'], completedBookings: 512,
     performanceStyle: 'Música tropical en vivo con energía contagiosa',
     languages: ['Español', 'Inglés', 'Francés'],
@@ -302,6 +325,9 @@ export const ARTISTS: Artist[] = [
     bio: 'Especialista en bachata sensual y urban latin. Residencias en los mejores clubs de Sevilla. DJ de boda certificado.',
     tags: ['Bachata Sensual', 'Urban Latin', 'Clubs', 'DJ Boda'],
     social: { instagram: 'djbachaflow', tiktok: 'djbachaflow', soundcloud: 'djbachaflow' },
+    socialFollowers: { instagram: 26300, tiktok: 41700, soundcloud: 8900 },
+    featuredVideo: 'https://www.youtube.com/watch?v=kOkQ4T5WO9E',
+    featuredVideoTitle: 'DJ Bacha Flow — Mix urban latin 2026',
     availability: ['Jueves', 'Viernes', 'Sábado'], completedBookings: 178,
     performanceStyle: 'Bachata sensual fusionada con urban latin moderno',
     languages: ['Español', 'Inglés'],
@@ -317,6 +343,9 @@ export const ARTISTS: Artist[] = [
     bio: 'Pareja profesional de baile con especialización en tango argentino y bailes latinos. Shows y clases para todos los niveles.',
     tags: ['Pareja', 'Tango', 'Salsa', 'Shows', 'Clases'],
     social: { instagram: 'marcosyelena_dance', youtube: 'marcosyelena', facebook: 'marcosyelena' },
+    socialFollowers: { instagram: 56200, youtube: 41300, facebook: 8800 },
+    featuredVideo: 'https://www.youtube.com/watch?v=YbJOTdZBX1g',
+    featuredVideoTitle: 'Marcos & Elena — Tutorial Bachata Sensual',
     availability: ['Martes', 'Jueves', 'Sábado', 'Domingo'], completedBookings: 145,
     performanceStyle: 'Coreografías cinematográficas y técnica precisa',
     languages: ['Español', 'Inglés'],
@@ -332,6 +361,9 @@ export const ARTISTS: Artist[] = [
     bio: 'DJ afro-latina fusionando ritmos africanos con sonidos latinoamericanos. Residente en Milano. Tours por Europa.',
     tags: ['Afrobeats', 'Fusión', 'Clubs', 'Festivales'],
     social: { instagram: 'djkumbe', tiktok: 'djkumbe', soundcloud: 'djkumbe' },
+    socialFollowers: { instagram: 18900, tiktok: 33500, soundcloud: 12200 },
+    featuredVideo: 'https://www.youtube.com/watch?v=qbiAYjcF1Tg',
+    featuredVideoTitle: 'DJ Kumbé — Cumbia Sessions',
     availability: ['Viernes', 'Sábado', 'Domingo'], completedBookings: 92,
     performanceStyle: 'Fusión afro-latina con énfasis en percusión orgánica',
     languages: ['Español', 'Italiano', 'Inglés'],
@@ -347,6 +379,9 @@ export const ARTISTS: Artist[] = [
     bio: 'Instructora certificada con 10 años de experiencia. Clases online y presenciales. Especialista en salsa, zumba y bachata para principiantes y avanzados.',
     tags: ['Clases', 'Online', 'Principiantes', 'Zumba', 'Grupos'],
     social: { instagram: 'celia_instructor', tiktok: 'celiadance', youtube: 'celiadance', facebook: 'celiadance' },
+    socialFollowers: { instagram: 73400, tiktok: 128000, youtube: 52100, facebook: 14300 },
+    featuredVideo: 'https://www.youtube.com/watch?v=PFKKQuKpFQg',
+    featuredVideoTitle: 'Instructora Celia — Clase de salsa para principiantes',
     availability: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'], completedBookings: 890,
     performanceStyle: 'Enseñanza paciente, paso a paso, adaptada a cada nivel',
     languages: ['Español', 'Inglés', 'Catalán'],
@@ -362,6 +397,9 @@ export const ARTISTS: Artist[] = [
     bio: 'Colectivo de 8 músicos especializados en son cubano, timba y jazz latino. Actuaciones en festivales internacionales y eventos privados de lujo.',
     tags: ['Son Cubano', 'Timba', 'Jazz Latino', 'Festivales', 'Lujo'],
     social: { instagram: 'latinguoovecollective', spotify: 'latingroove', youtube: 'latingroove', facebook: 'latingroove' },
+    socialFollowers: { instagram: 38700, spotify: 24500, youtube: 19800, facebook: 6400 },
+    featuredVideo: 'https://www.youtube.com/watch?v=l482T0yNkeo',
+    featuredVideoTitle: 'Latin Groove — Live session 2026',
     availability: ['Viernes', 'Sábado'], completedBookings: 267,
     performanceStyle: 'Jazz latino sofisticado con improvisación virtuosa',
     languages: ['Español', 'Francés', 'Inglés'],
