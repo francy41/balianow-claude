@@ -482,6 +482,21 @@ export interface PayoutMethod {
   createdAt: Date;
 }
 
+// Métodos de pago (para PAGAR — compradores y creators usan los mismos)
+export interface PaymentMethod {
+  id: string;
+  userId: string;
+  type: 'card' | 'paypal' | 'stripe';
+  brand?: 'visa' | 'mastercard' | 'amex' | 'discover';
+  last4?: string;
+  expMonth?: number;
+  expYear?: number;
+  account?: string;      // PayPal email / Stripe customer id
+  holderName: string;
+  isDefault: boolean;
+  createdAt: Date;
+}
+
 export interface Course {
   id: string;
   performerId: string;
@@ -537,6 +552,7 @@ interface PerformerState {
   transactions: Transaction[];
   withdrawals: Withdrawal[];
   payoutMethods: PayoutMethod[];
+  paymentMethods: PaymentMethod[];
   courses: Course[];
   slots: AvailabilitySlot[];
   classes: OnlineClass[];
@@ -551,6 +567,9 @@ interface PerformerState {
   removePayoutMethod: (id: string) => void;
   verifyPayoutMethod: (id: string) => void;
   setDefaultPayoutMethod: (performerId: string, methodId: string) => void;
+  addPaymentMethod: (m: Omit<PaymentMethod, 'id' | 'createdAt'>) => void;
+  removePaymentMethod: (id: string) => void;
+  setDefaultPaymentMethod: (userId: string, methodId: string) => void;
   balanceFor: (performerId: string) => { inEscrow: number; available: number; withdrawn: number; lifetime: number };
   monthlyRevenue: (performerId: string, months?: number) => { month: string; gross: number; net: number }[];
 
@@ -612,6 +631,13 @@ export const usePerformerStore = create<PerformerState>()(
           id: 'pm1', performerId: 'a1', type: 'paypal',
           account: 'dj@bachasalseros.com', holderName: 'DJ Mambo King',
           verified: true, isDefault: true, createdAt: daysAgo(30)
+        },
+      ],
+      paymentMethods: [
+        {
+          id: 'pay1', userId: 'u1', type: 'card', brand: 'visa', last4: '4242',
+          expMonth: 12, expYear: 2027, holderName: 'Carlos Rodríguez',
+          isDefault: true, createdAt: daysAgo(20)
         },
       ],
       courses: [
@@ -701,6 +727,29 @@ export const usePerformerStore = create<PerformerState>()(
         set(state => ({
           payoutMethods: state.payoutMethods.map(p =>
             p.performerId === performerId ? { ...p, isDefault: p.id === methodId } : p
+          )
+        })),
+
+      addPaymentMethod: (m) =>
+        set(state => {
+          const isFirst = state.paymentMethods.filter(p => p.userId === m.userId).length === 0;
+          return {
+            paymentMethods: [...state.paymentMethods, {
+              ...m,
+              id: `pay_${Date.now()}`,
+              isDefault: m.isDefault || isFirst,
+              createdAt: new Date(),
+            }]
+          };
+        }),
+
+      removePaymentMethod: (id) =>
+        set(state => ({ paymentMethods: state.paymentMethods.filter(p => p.id !== id) })),
+
+      setDefaultPaymentMethod: (userId, methodId) =>
+        set(state => ({
+          paymentMethods: state.paymentMethods.map(p =>
+            p.userId === userId ? { ...p, isDefault: p.id === methodId } : p
           )
         })),
 

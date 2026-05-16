@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Sidebar from './components/layout/Sidebar';
 import BottomNav from './components/layout/BottomNav';
+import DevRoleSwitcher from './components/DevRoleSwitcher';
 import { ToastContainer, FullPageLoader } from './components/ui';
 
 // Lazy load pages
@@ -103,6 +104,7 @@ const App: React.FC = () => {
           {/* Mobile bottom nav */}
           <BottomNav />
           <ToastContainer />
+          <DevRoleSwitcher />
         </div>
       </ErrorBoundary>
     </BrowserRouter>
