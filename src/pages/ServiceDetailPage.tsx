@@ -4,6 +4,7 @@ import { Clock, ShoppingBag, CheckCircle, Shield, MessageSquare } from 'lucide-r
 import { SERVICES } from '../data/mockData';
 import { Avatar, StarRating, Badge, Button } from '../components/ui';
 import { useAuthStore, useUIStore } from '../store/appStore';
+import BookingModal from '../components/BookingModal';
 
 const ServiceDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,16 +13,13 @@ const ServiceDetailPage: React.FC = () => {
   const { addToast } = useUIStore();
   const service = SERVICES.find(s => s.id === id) || SERVICES[0];
   const [ordering, setOrdering] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
 
   const platform = Math.round(service.price * 0.15);
 
-  const handleOrder = async () => {
+  const handleOrder = () => {
     if (!isAuthenticated) { navigate('/auth'); return; }
-    setOrdering(true);
-    await new Promise(r => setTimeout(r, 1500));
-    setOrdering(false);
-    addToast({ message: 'Pedido creado. El artista ha sido notificado.', type: 'success' });
-    navigate('/dashboard');
+    setBookingOpen(true);
   };
 
   return (
@@ -131,6 +129,17 @@ const ServiceDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      <BookingModal
+        open={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        providerId={service.artistId}
+        providerName={service.artistName}
+        source="offer"
+        defaultConcept={service.title}
+        defaultPrice={service.price}
+        helperText={`Servicio: ${service.category}`}
+      />
     </div>
   );
 };

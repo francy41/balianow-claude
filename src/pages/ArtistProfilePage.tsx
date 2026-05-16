@@ -10,6 +10,7 @@ import { ARTISTS, LIVE_STREAMS, SOCIAL_NETWORK_URLS } from '../data/mockData';
 import type { Artist, MediaItem, OfferPackage } from '../data/mockData';
 import { useAuthStore, useUIStore } from '../store/appStore';
 import { Avatar, Modal, Button } from '../components/ui';
+import BookingModal from '../components/BookingModal';
 
 type TabId = 'about' | 'live' | 'gallery' | 'offers' | 'reviews' | 'availability';
 
@@ -48,6 +49,12 @@ const ArtistProfilePage: React.FC = () => {
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [showCustomOffer, setShowCustomOffer] = useState(false);
   const [customOfferTitle, setCustomOfferTitle] = useState('');
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [bookingPreset, setBookingPreset] = useState<{ concept: string; price: number }>({ concept: '', price: 0 });
+  const openBooking = (concept: string, price: number) => {
+    setBookingPreset({ concept, price });
+    setBookingOpen(true);
+  };
   const [customOfferPrice, setCustomOfferPrice] = useState('');
   const [customOfferDesc, setCustomOfferDesc] = useState('');
 
@@ -59,8 +66,7 @@ const ArtistProfilePage: React.FC = () => {
 
   const handleBookPackage = (pkg: OfferPackage) => {
     if (!isAuthenticated) { navigate('/auth'); return; }
-    addToast({ message: `Solicitud enviada por chat: ${pkg.name}`, type: 'success' });
-    navigate('/chat');
+    openBooking(`${pkg.name} (${pkg.tier})`, pkg.price);
   };
 
   const handleSendCustomOffer = () => {
@@ -136,7 +142,7 @@ const ArtistProfilePage: React.FC = () => {
             className="btn-orange text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
             <MessageSquare className="w-4 h-4" /> Chat interno
           </button>
-          <button onClick={() => setActiveTab('offers')}
+          <button onClick={() => openBooking(`Servicio con ${artist.name}`, artist.packages?.[0]?.price || 150)}
             className="btn-outline text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
             <Award className="w-4 h-4" /> Reservar
           </button>
@@ -248,6 +254,17 @@ const ArtistProfilePage: React.FC = () => {
           </Button>
         </div>
       </Modal>
+
+      <BookingModal
+        open={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        providerId={artist.id}
+        providerName={artist.name}
+        source="booking"
+        defaultConcept={bookingPreset.concept}
+        defaultPrice={bookingPreset.price}
+        helperText={`Reservando con ${artist.name}. Comunicación 100% por chat interno.`}
+      />
     </div>
   );
 };

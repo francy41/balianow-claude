@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight } from 'lucide-react';
+import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp } from 'lucide-react';
 import { ARTISTS, EVENTS, VENUES } from '../data/mockData';
-import { useAuthStore, useSiteConfigStore, getYouTubeId } from '../store/appStore';
+import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, PLATFORM_COMMISSION_RATE } from '../store/appStore';
 import { Avatar, StarRating, SearchBar } from '../components/ui';
 
 // ── COMMUNITY POSTS (Ruta de Hoy) ────────────────────────────────────────
@@ -65,8 +65,22 @@ const RADIO_STATIONS = [
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const { heroMedia } = useSiteConfigStore();
+  const { balanceFor, offers, classes, transactions, withdrawals, platformTotals } = usePerformerStore();
+  const PERFORMER_ROLES = ['artist', 'dj', 'dancer', 'venue'];
+  const isAdmin = !!user && user.role === 'admin';
+  const isPerformer = !!user && PERFORMER_ROLES.includes(user.role);
+  const isBuyer = !!user && user.role === 'user';
+  const adminStats = isAdmin ? platformTotals() : null;
+  const totalEscrow = isAdmin ? transactions.filter(t => t.status === 'pending').reduce((s, t) => s + t.gross, 0) : 0;
+  const pendingWithdrawals = isAdmin ? withdrawals.filter(w => w.status === 'pending') : [];
+  const creatorCount = isAdmin ? new Set(transactions.map(t => t.performerId)).size : 0;
+  const performerId = isPerformer ? 'a1' : '';
+  const myBalance = isPerformer ? balanceFor(performerId) : null;
+  const pendingOffersCount = isPerformer ? offers.filter(o => o.performerId === performerId && o.status === 'pending').length : 0;
+  const upcomingClassesCount = isPerformer ? classes.filter(c => c.performerId === performerId && c.status === 'scheduled').length : 0;
+  const myPendingOrders = isBuyer ? transactions.filter(t => t.clientId === user.id && t.status === 'pending') : [];
   const [search, setSearch] = useState('');
   const [playing, setPlaying] = useState<number | null>(null);
 
@@ -153,6 +167,126 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* ── PANEL SUPERADMIN ── */}
+      {isAdmin && adminStats && (
+        <section className="mx-4 mt-4 bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-3xl p-5 sm:p-6 text-white shadow-card relative overflow-hidden">
+          <div className="absolute -top-12 -right-12 w-40 h-40 bg-brand-orange/20 rounded-full blur-3xl" />
+          <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl" />
+          <div className="relative">
+            <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-brand-orange flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-brand-orange text-[10px] font-black uppercase tracking-widest">Superadministrador</p>
+                  <h2 className="font-display font-black text-xl sm:text-2xl">Visión global de la plataforma</h2>
+                </div>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <button onClick={() => navigate('/admin')} className="bg-brand-orange hover:bg-brand-orange-dark text-white font-bold text-sm px-4 py-2.5 rounded-xl flex items-center gap-2">
+                  <LayoutDashboard className="w-4 h-4" /> Panel Admin
+                </button>
+                {pendingWithdrawals.length > 0 && (
+                  <button onClick={() => navigate('/admin')} className="bg-yellow-500 text-gray-900 font-bold text-xs px-3 py-2.5 rounded-xl flex items-center gap-1.5">
+                    🔔 {pendingWithdrawals.length} retiro(s) por aprobar
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+              <button onClick={() => navigate('/admin')} className="bg-white/10 hover:bg-white/20 rounded-2xl p-3 text-left transition-all border border-white/10">
+                <DollarSign className="w-4 h-4 text-brand-orange mb-1" />
+                <p className="text-[10px] text-white/60 uppercase font-bold">Comisión 15%</p>
+                <p className="text-xl font-black text-brand-orange">€{adminStats.totalCommission}</p>
+                <p className="text-[10px] text-white/50 mt-0.5">Ingresos plataforma</p>
+              </button>
+              <button onClick={() => navigate('/admin')} className="bg-white/10 hover:bg-white/20 rounded-2xl p-3 text-left transition-all border border-white/10">
+                <TrendingUp className="w-4 h-4 text-green-400 mb-1" />
+                <p className="text-[10px] text-white/60 uppercase font-bold">Bruto total</p>
+                <p className="text-xl font-black">€{adminStats.totalGross}</p>
+                <p className="text-[10px] text-white/50 mt-0.5">{adminStats.totalTransactions} tx</p>
+              </button>
+              <button onClick={() => navigate('/admin')} className="bg-white/10 hover:bg-white/20 rounded-2xl p-3 text-left transition-all border border-white/10">
+                <Clock className="w-4 h-4 text-yellow-400 mb-1" />
+                <p className="text-[10px] text-white/60 uppercase font-bold">En escrow</p>
+                <p className="text-xl font-black">€{Math.round(totalEscrow)}</p>
+                <p className="text-[10px] text-white/50 mt-0.5">Sin confirmar</p>
+              </button>
+              <button onClick={() => navigate('/admin')} className="bg-white/10 hover:bg-white/20 rounded-2xl p-3 text-left transition-all border border-white/10">
+                <Users className="w-4 h-4 text-purple-400 mb-1" />
+                <p className="text-[10px] text-white/60 uppercase font-bold">Creators activos</p>
+                <p className="text-xl font-black">{creatorCount}</p>
+                <p className="text-[10px] text-white/50 mt-0.5">Con transacciones</p>
+              </button>
+              <button onClick={() => navigate('/admin')} className="bg-white/10 hover:bg-white/20 rounded-2xl p-3 text-left transition-all border border-white/10">
+                <Wallet className="w-4 h-4 text-pink-400 mb-1" />
+                <p className="text-[10px] text-white/60 uppercase font-bold">Retiros pendientes</p>
+                <p className="text-xl font-black">{pendingWithdrawals.length}</p>
+                <p className="text-[10px] text-white/50 mt-0.5">€{pendingWithdrawals.reduce((s, w) => s + w.amount, 0)}</p>
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── MI PANEL (logged-in user) ── */}
+      {isPerformer && myBalance && (
+        <section className="mx-4 mt-4 bg-gradient-to-r from-brand-orange to-orange-500 rounded-3xl p-5 sm:p-6 text-white shadow-card">
+          <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+            <div>
+              <p className="text-white/70 text-xs font-semibold uppercase tracking-wider">Mi Panel Creator</p>
+              <h2 className="font-display font-black text-xl sm:text-2xl">Hola, {user!.name.split(' ')[0]} 👋</h2>
+              <p className="text-white/80 text-xs mt-0.5">Comisión plataforma: {(PLATFORM_COMMISSION_RATE * 100).toFixed(0)}%</p>
+            </div>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="bg-white text-brand-orange font-bold text-sm px-5 py-2.5 rounded-xl hover:bg-gray-50 flex items-center gap-2 shadow-sm"
+            >
+              <LayoutDashboard className="w-4 h-4" /> Abrir Dashboard
+            </button>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <button onClick={() => navigate('/dashboard')} className="bg-white/15 hover:bg-white/25 rounded-2xl p-3 text-left transition-all">
+              <Clock className="w-4 h-4 text-white/80 mb-1" />
+              <p className="text-[10px] text-white/70 uppercase font-bold">En escrow</p>
+              <p className="text-xl font-black">€{myBalance.inEscrow}</p>
+            </button>
+            <button onClick={() => navigate('/dashboard')} className="bg-white/15 hover:bg-white/25 rounded-2xl p-3 text-left transition-all">
+              <Wallet className="w-4 h-4 text-white/80 mb-1" />
+              <p className="text-[10px] text-white/70 uppercase font-bold">Disponible</p>
+              <p className="text-xl font-black">€{myBalance.available}</p>
+            </button>
+            <button onClick={() => navigate('/dashboard')} className="bg-white/15 hover:bg-white/25 rounded-2xl p-3 text-left transition-all">
+              <Briefcase className="w-4 h-4 text-white/80 mb-1" />
+              <p className="text-[10px] text-white/70 uppercase font-bold">Ofertas pendientes</p>
+              <p className="text-xl font-black">{pendingOffersCount}</p>
+            </button>
+            <button onClick={() => navigate('/dashboard')} className="bg-white/15 hover:bg-white/25 rounded-2xl p-3 text-left transition-all">
+              <Star className="w-4 h-4 text-white/80 mb-1" />
+              <p className="text-[10px] text-white/70 uppercase font-bold">Próximas clases</p>
+              <p className="text-xl font-black">{upcomingClassesCount}</p>
+            </button>
+          </div>
+        </section>
+      )}
+
+      {isBuyer && myPendingOrders.length > 0 && (
+        <section className="mx-4 mt-4 bg-yellow-50 border border-yellow-200 rounded-3xl p-5 flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
+              <Clock className="w-5 h-5 text-yellow-700" />
+            </div>
+            <div>
+              <p className="font-bold text-gray-900 text-sm">Tienes {myPendingOrders.length} pedido(s) por confirmar</p>
+              <p className="text-xs text-gray-500">Confirma el servicio para liberar el pago al creador.</p>
+            </div>
+          </div>
+          <button onClick={() => navigate('/dashboard')} className="btn-orange text-sm">Ver mis pedidos</button>
+        </section>
+      )}
 
       {/* ── RADIO BAR ── */}
       <section className="mx-4 mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">

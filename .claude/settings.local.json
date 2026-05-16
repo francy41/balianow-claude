@@ -18,7 +18,8 @@
       "Bash(findstr :3000)",
       "Bash(curl -s -o nul -w \"HTTP %{http_code} | time %{time_total}s | size %{size_download}\\\\n\" http://localhost:3000/)",
       "Bash(curl -s http://localhost:3000/)",
-      "Bash(findstr DashboardPage)"
+      "Bash(findstr DashboardPage)",
+      "Bash(git push *)"
     ]
   }
 }
