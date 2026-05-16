@@ -134,6 +134,55 @@ export const useAuthStore = create<AuthState>()(
   )
 );
 
+// ── SITE CONFIG STORE (hero banner, etc.) ─────────────────────────────────
+export type HeroMediaType = 'image' | 'youtube' | 'video';
+
+export interface HeroMedia {
+  type: HeroMediaType;
+  url: string;
+  autoplay: boolean;
+  muted: boolean;
+  loop: boolean;
+}
+
+interface SiteConfigState {
+  heroMedia: HeroMedia;
+  setHeroMedia: (media: Partial<HeroMedia>) => void;
+}
+
+export const useSiteConfigStore = create<SiteConfigState>()(
+  persist(
+    (set) => ({
+      heroMedia: {
+        type: 'image',
+        url: 'https://picsum.photos/seed/latinodance2024/1200/600',
+        autoplay: true,
+        muted: true,
+        loop: true,
+      },
+      setHeroMedia: (media) =>
+        set((state) => ({ heroMedia: { ...state.heroMedia, ...media } })),
+    }),
+    { name: 'ritmolatino-site-config' }
+  )
+);
+
+// Extracts a YouTube video ID from any common URL format.
+export function getYouTubeId(url: string): string | null {
+  if (!url) return null;
+  const patterns = [
+    /youtu\.be\/([^?&/]+)/,
+    /youtube\.com\/watch\?v=([^?&]+)/,
+    /youtube\.com\/embed\/([^?&/]+)/,
+    /youtube\.com\/shorts\/([^?&/]+)/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return /^[A-Za-z0-9_-]{11}$/.test(url) ? url : null;
+}
+
 // ── UI STORE ───────────────────────────────────────────────────────────────
 interface UIState {
   activeModal: string | null;
@@ -171,6 +220,16 @@ export const useUIStore = create<UIState>((set) => ({
 }));
 
 // ── CHAT STORE ─────────────────────────────────────────────────────────────
+export type OfferStatus = 'pending' | 'accepted' | 'declined';
+
+export interface OfferPayload {
+  title: string;
+  price: number;
+  description: string;
+  deliveryDays?: number;
+  status: OfferStatus;
+}
+
 export interface Message {
   id: string;
   senderId: string;
@@ -179,6 +238,8 @@ export interface Message {
   text: string;
   timestamp: Date;
   isRead: boolean;
+  type?: 'text' | 'offer';
+  offer?: OfferPayload;
 }
 
 export interface Conversation {
@@ -197,6 +258,8 @@ interface ChatState {
   activeConvId: string | null;
   setActiveConv: (id: string) => void;
   sendMessage: (convId: string, text: string, user: User) => void;
+  sendOffer: (convId: string, offer: Omit<OfferPayload, 'status'>, user: User) => void;
+  respondOffer: (convId: string, messageId: string, accept: boolean) => void;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -271,6 +334,46 @@ export const useChatStore = create<ChatState>((set) => ({
           lastMessage: text,
           lastMessageTime: new Date(),
           unread: 0
+        };
+      })
+    })),
+
+  sendOffer: (convId, offer, user) =>
+    set(state => ({
+      conversations: state.conversations.map(conv => {
+        if (conv.id !== convId) return conv;
+        const msg: Message = {
+          id: `m_${Date.now()}`,
+          senderId: user.id,
+          senderName: user.name,
+          senderAvatar: user.avatar,
+          text: `Oferta: ${offer.title} · €${offer.price}`,
+          timestamp: new Date(),
+          isRead: true,
+          type: 'offer',
+          offer: { ...offer, status: 'pending' }
+        };
+        return {
+          ...conv,
+          messages: [...conv.messages, msg],
+          lastMessage: `💼 Oferta enviada: ${offer.title}`,
+          lastMessageTime: new Date(),
+          unread: 0
+        };
+      })
+    })),
+
+  respondOffer: (convId, messageId, accept) =>
+    set(state => ({
+      conversations: state.conversations.map(conv => {
+        if (conv.id !== convId) return conv;
+        return {
+          ...conv,
+          messages: conv.messages.map(m =>
+            m.id === messageId && m.offer
+              ? { ...m, offer: { ...m.offer, status: accept ? 'accepted' : 'declined' } }
+              : m
+          )
         };
       })
     })),

@@ -9,7 +9,7 @@ import {
   ChevronRight, ArrowUpRight, ArrowDownRight, Clock,
   Wifi, Globe, Bell, Database, Server, FileText
 } from 'lucide-react';
-import { useAuthStore, useUIStore } from '../store/appStore';
+import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, type HeroMediaType } from '../store/appStore';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
 import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS } from '../data/mockData';
 
@@ -628,6 +628,145 @@ const FinanzasSection: React.FC = () => (
 );
 
 // ── 13. DISEÑO WEB ────────────────────────────────────────────────────────
+// ── HERO BANNER EDITOR (image / YouTube / video) ──────────────────────────
+const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const { heroMedia, setHeroMedia } = useSiteConfigStore();
+  const [draftUrl, setDraftUrl] = useState(heroMedia.url);
+  const fileRef = React.useRef<HTMLInputElement>(null);
+
+  const TYPES: { id: HeroMediaType; label: string; icon: string; desc: string }[] = [
+    { id: 'image',   label: 'Imagen',          icon: '🖼️', desc: 'URL de imagen (jpg/png)' },
+    { id: 'youtube', label: 'YouTube',         icon: '▶️', desc: 'Pega cualquier URL de YouTube' },
+    { id: 'video',   label: 'Vídeo local',     icon: '🎬', desc: 'Sube un .mp4 desde tu equipo' },
+  ];
+
+  const apply = () => {
+    if (!draftUrl.trim()) {
+      addToast({ message: 'Introduce una URL o sube un archivo', type: 'error' });
+      return;
+    }
+    if (heroMedia.type === 'youtube' && !getYouTubeId(draftUrl)) {
+      addToast({ message: 'URL de YouTube inválida', type: 'error' });
+      return;
+    }
+    setHeroMedia({ url: draftUrl.trim() });
+    addToast({ message: 'Banner actualizado en la portada', type: 'success' });
+  };
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('video/')) {
+      addToast({ message: 'El archivo debe ser un vídeo', type: 'error' });
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setDraftUrl(url);
+    setHeroMedia({ type: 'video', url });
+    addToast({ message: `Vídeo cargado: ${file.name}`, type: 'success' });
+  };
+
+  const yt = heroMedia.type === 'youtube' ? getYouTubeId(heroMedia.url) : null;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h3 className="font-bold text-gray-900">Banner principal (Hero)</h3>
+          <p className="text-xs text-gray-400 mt-0.5">Elige imagen, vídeo de YouTube o vídeo local para la portada</p>
+        </div>
+      </div>
+
+      {/* Tipo selector */}
+      <div className="grid grid-cols-3 gap-2 mb-4">
+        {TYPES.map(t => (
+          <button
+            key={t.id}
+            onClick={() => { setHeroMedia({ type: t.id }); setDraftUrl(''); }}
+            className={`p-3 rounded-xl border text-left transition-all ${
+              heroMedia.type === t.id
+                ? 'border-brand-orange bg-orange-50'
+                : 'border-gray-200 bg-white hover:border-brand-orange/50'
+            }`}
+          >
+            <div className="text-xl mb-1">{t.icon}</div>
+            <p className="text-sm font-bold text-gray-900">{t.label}</p>
+            <p className="text-[10px] text-gray-400 mt-0.5">{t.desc}</p>
+          </button>
+        ))}
+      </div>
+
+      {/* Input según tipo */}
+      {heroMedia.type === 'video' ? (
+        <div className="space-y-3">
+          <button
+            onClick={() => fileRef.current?.click()}
+            className="w-full border-2 border-dashed border-gray-200 hover:border-brand-orange rounded-xl p-6 text-center transition-all"
+          >
+            <div className="text-3xl mb-1">📁</div>
+            <p className="text-sm font-semibold text-gray-700">Subir vídeo (.mp4, .webm)</p>
+            <p className="text-xs text-gray-400 mt-1">Máx. recomendado: 20 MB · 1200×600px</p>
+          </button>
+          <input ref={fileRef} type="file" accept="video/*" className="hidden" onChange={handleFile} />
+          {heroMedia.url && heroMedia.url.startsWith('blob:') && (
+            <p className="text-xs text-green-600 font-semibold">✅ Vídeo local cargado</p>
+          )}
+        </div>
+      ) : (
+        <div className="flex gap-2 mb-3">
+          <input
+            value={draftUrl}
+            onChange={e => setDraftUrl(e.target.value)}
+            placeholder={heroMedia.type === 'youtube'
+              ? 'https://www.youtube.com/watch?v=...'
+              : 'https://picsum.photos/seed/.../1200/600'}
+            className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange"
+          />
+          <Button variant="orange" onClick={apply}>Aplicar</Button>
+        </div>
+      )}
+
+      {/* Opciones de reproducción (solo vídeo/youtube) */}
+      {heroMedia.type !== 'image' && (
+        <div className="flex flex-wrap gap-4 my-4 p-3 bg-gray-50 rounded-xl">
+          {(['autoplay', 'muted', 'loop'] as const).map(opt => (
+            <label key={opt} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={heroMedia[opt]}
+                onChange={e => setHeroMedia({ [opt]: e.target.checked } as any)}
+                className="w-4 h-4 accent-brand-orange"
+              />
+              <span className="text-xs text-gray-700 capitalize">{opt === 'muted' ? 'Silenciado' : opt === 'loop' ? 'Bucle' : 'Autoplay'}</span>
+            </label>
+          ))}
+        </div>
+      )}
+
+      {/* Preview */}
+      <div className="rounded-xl overflow-hidden border border-gray-200 bg-black" style={{ aspectRatio: '16 / 9' }}>
+        {heroMedia.type === 'youtube' && yt ? (
+          <iframe
+            src={`https://www.youtube.com/embed/${yt}?controls=1&modestbranding=1&rel=0`}
+            title="Hero preview"
+            className="w-full h-full"
+            allow="encrypted-media"
+          />
+        ) : heroMedia.type === 'video' && heroMedia.url ? (
+          <video src={heroMedia.url} controls muted className="w-full h-full object-cover" />
+        ) : heroMedia.type === 'image' && heroMedia.url ? (
+          <img src={heroMedia.url} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">Sin contenido</div>
+        )}
+      </div>
+      <p className="text-xs text-gray-400 mt-2">
+        URL actual: <span className="font-mono break-all">{heroMedia.url || '(vacía)'}</span>
+      </p>
+    </div>
+  );
+};
+
 const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const [colors, setColors] = useState({ primary: '#F97316', secondary: '#111111', accent: '#EA580C' });
   return (
@@ -674,23 +813,8 @@ const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
             <Input label="Meta descripción" defaultValue="La plataforma #1 de entretenimiento latino..." />
           </div>
         </div>
-        <div className="card-white p-6">
-          <h3 className="font-bold text-gray-900 mb-4">Hero Section</h3>
-          <div className="space-y-4">
-            <Input label="Título principal" defaultValue="Encuentra tu Pasión Latina" />
-            <Input label="Subtítulo" defaultValue="Explora la colección más exclusiva de locales..." />
-            <div>
-              <label className="text-gray-600 text-sm font-medium block mb-1">Imagen del hero</label>
-              <div className="border border-gray-200 rounded-xl p-3 flex items-center gap-3 bg-gray-50">
-                <img src="https://picsum.photos/seed/latinodance/60/40" alt="" className="w-16 h-10 object-cover rounded-lg" />
-                <div className="flex-1">
-                  <p className="text-sm text-gray-700">hero-dancing.jpg</p>
-                  <p className="text-xs text-gray-400">1400 × 500px</p>
-                </div>
-                <button onClick={() => addToast({ message: 'Cambiar imagen próximamente', type: 'info' })} className="text-brand-orange text-sm font-semibold hover:underline">Cambiar</button>
-              </div>
-            </div>
-          </div>
+        <div className="card-white p-6 lg:col-span-2">
+          <HeroBannerEditor addToast={addToast} />
         </div>
       </div>
     </div>
