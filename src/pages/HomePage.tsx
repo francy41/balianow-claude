@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight } from 'lucide-react';
 import { ARTISTS, EVENTS, VENUES } from '../data/mockData';
-import { useAuthStore } from '../store/appStore';
+import { useAuthStore, useSiteConfigStore, getYouTubeId } from '../store/appStore';
 import { Avatar, StarRating, SearchBar } from '../components/ui';
 
 // ── COMMUNITY POSTS (Ruta de Hoy) ────────────────────────────────────────
@@ -66,6 +66,7 @@ const RADIO_STATIONS = [
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
+  const { heroMedia } = useSiteConfigStore();
   const [search, setSearch] = useState('');
   const [playing, setPlaying] = useState<number | null>(null);
 
@@ -100,13 +101,48 @@ const HomePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Right image */}
-        <div className="flex-1 relative min-h-[260px]">
-          <img
-            src="https://picsum.photos/seed/latinodance2024/1200/600"
-            alt="Encuentra tu Pasión Latina"
-            className="w-full h-full object-cover"
-          />
+        {/* Right media */}
+        <div className="flex-1 relative min-h-[260px] bg-black">
+          {heroMedia.type === 'youtube' ? (() => {
+            const id = getYouTubeId(heroMedia.url);
+            if (!id) return <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">URL de YouTube inválida</div>;
+            const params = new URLSearchParams({
+              autoplay: heroMedia.autoplay ? '1' : '0',
+              mute: heroMedia.muted ? '1' : '0',
+              loop: heroMedia.loop ? '1' : '0',
+              playlist: heroMedia.loop ? id : '',
+              controls: '1',
+              modestbranding: '1',
+              rel: '0',
+            });
+            return (
+              <iframe
+                src={`https://www.youtube.com/embed/${id}?${params.toString()}`}
+                title="Hero video"
+                className="w-full h-full"
+                style={{ minHeight: 260 }}
+                allow="autoplay; encrypted-media; picture-in-picture"
+                allowFullScreen
+              />
+            );
+          })() : heroMedia.type === 'video' ? (
+            <video
+              key={heroMedia.url}
+              src={heroMedia.url}
+              autoPlay={heroMedia.autoplay}
+              muted={heroMedia.muted}
+              loop={heroMedia.loop}
+              playsInline
+              controls
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <img
+              src={heroMedia.url}
+              alt="Encuentra tu Pasión Latina"
+              className="w-full h-full object-cover"
+            />
+          )}
           {/* Rating bubble */}
           <div className="absolute top-6 right-6 bg-white rounded-2xl p-4 shadow-xl flex items-center gap-3">
             <Star className="w-8 h-8 fill-brand-orange text-brand-orange flex-shrink-0" />
