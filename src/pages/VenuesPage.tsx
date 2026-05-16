@@ -11,11 +11,15 @@ const TYPES = ['Todos', 'Club', 'Bar', 'Studio', 'Rooftop', 'Lounge', 'Restauran
 const CITIES = ['Todas', 'Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'Milano'];
 
 const VenuesPage: React.FC = () => {
-  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-
+  // Si hay :id, delegamos en el detalle (componente separado para que cada uno
+  // mantenga su propio set estable de hooks — evita React error #300)
   if (id) return <VenueDetail venueId={id} />;
+  return <VenuesList />;
+};
 
+const VenuesList: React.FC = () => {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [selectedType, setSelectedType] = useState(['Todos']);
   const [selectedCity, setSelectedCity] = useState(['Todas']);
