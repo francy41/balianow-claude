@@ -9,7 +9,7 @@ import {
   ChevronRight, ArrowUpRight, ArrowDownRight, Clock,
   Wifi, Globe, Bell, Database, Server, FileText
 } from 'lucide-react';
-import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, type HeroMediaType } from '../store/appStore';
+import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, PLATFORM_COMMISSION_RATE, type HeroMediaType } from '../store/appStore';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
 import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS } from '../data/mockData';
 
@@ -18,7 +18,7 @@ type AdminSection =
   | 'overview' | 'categorias' | 'radio' | 'usuarios' | 'localidades'
   | 'suscripciones' | 'artistas' | 'bailarinas' | 'eventos' | 'mercado'
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
-  | 'disputas' | 'seguridad' | 'resenas';
+  | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -33,6 +33,8 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'mercado',        label: 'Mercado y Escrow',        icon: <ShoppingBag className="w-4 h-4" />, badge: '3 pend.' },
   { id: 'cursos',         label: 'Cursos',                  icon: <BookOpen className="w-4 h-4" /> },
   { id: 'finanzas',       label: 'Finanzas',                icon: <DollarSign className="w-4 h-4" /> },
+  { id: 'creators',       label: 'Dashboards Creators',     icon: <LayoutDashboard className="w-4 h-4" /> },
+  { id: 'retiros',        label: 'Retiros pendientes',      icon: <DollarSign className="w-4 h-4" />, badge: 'esc.' },
   { id: 'diseno',         label: 'Diseño Web',              icon: <Palette className="w-4 h-4" /> },
   { id: 'configuracion',  label: 'Configuración',           icon: <Settings className="w-4 h-4" /> },
   { id: 'roles',          label: 'Roles y Permisos',        icon: <Shield className="w-4 h-4" /> },
@@ -120,6 +122,8 @@ const AdminPage: React.FC = () => {
         {active === 'mercado'        && <MercadoSection addToast={addToast} />}
         {active === 'cursos'         && <CursosSection addToast={addToast} />}
         {active === 'finanzas'       && <FinanzasSection />}
+        {active === 'creators'       && <CreatorsSection />}
+        {active === 'retiros'        && <RetirosSection addToast={addToast} />}
         {active === 'diseno'         && <DisenoSection addToast={addToast} />}
         {active === 'configuracion'  && <ConfiguracionSection addToast={addToast} />}
         {active === 'roles'          && <RolesSection addToast={addToast} />}
@@ -568,16 +572,158 @@ const CursosSection: React.FC<{ addToast: Function }> = ({ addToast }) => (
 );
 
 // ── 12. FINANZAS ──────────────────────────────────────────────────────────
-const FinanzasSection: React.FC = () => (
+// ── ADMIN: DASHBOARDS DE CREATORS (vista global) ──────────────────────────
+const CreatorsSection: React.FC = () => {
+  const { transactions, balanceFor, totalsFor } = usePerformerStore();
+  const [filter, setFilter] = useState('');
+  // Agrupa por performerId
+  const performers = Array.from(
+    transactions.reduce((map, t) => {
+      if (!map.has(t.performerId)) {
+        map.set(t.performerId, { id: t.performerId, name: t.performerName || t.performerId, txCount: 0 });
+      }
+      map.get(t.performerId)!.txCount++;
+      return map;
+    }, new Map<string, { id: string; name: string; txCount: number }>())
+    .values()
+  );
+
+  const filtered = performers.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
+
+  return (
+    <div>
+      <PageHeader title="Dashboards de creators" subtitle="Vista superadmin de todos los proveedores (artistas, DJs, bailarines, venues, etc.)" />
+      <div className="card-white p-4 mb-6">
+        <input
+          value={filter}
+          onChange={e => setFilter(e.target.value)}
+          placeholder="🔍 Buscar creator por nombre..."
+          className="input-field"
+        />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {filtered.map(p => {
+          const b = balanceFor(p.id);
+          const t = totalsFor(p.id);
+          return (
+            <div key={p.id} className="card-white p-5">
+              <div className="flex items-center gap-3 mb-3">
+                <Avatar name={p.name} size="md" />
+                <div className="flex-1">
+                  <h4 className="font-bold text-gray-900">{p.name}</h4>
+                  <p className="text-xs text-gray-400 font-mono">{p.id} · {p.txCount} transacciones</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-yellow-50 rounded-lg p-2">
+                  <p className="text-yellow-700 font-semibold">En escrow</p>
+                  <p className="text-lg font-black text-gray-900">€{b.inEscrow}</p>
+                </div>
+                <div className="bg-green-50 rounded-lg p-2">
+                  <p className="text-green-700 font-semibold">Disponible</p>
+                  <p className="text-lg font-black text-gray-900">€{b.available}</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-2">
+                  <p className="text-gray-600 font-semibold">Retirado</p>
+                  <p className="text-lg font-black text-gray-900">€{b.withdrawn}</p>
+                </div>
+                <div className="bg-orange-50 rounded-lg p-2">
+                  <p className="text-brand-orange font-semibold">Comisión a plataforma</p>
+                  <p className="text-lg font-black text-gray-900">€{Math.round((t.grossAllTime - t.netAllTime) * 100) / 100}</p>
+                </div>
+              </div>
+              <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500 flex justify-between">
+                <span>Bruto: <span className="font-bold text-gray-900">€{t.grossAllTime}</span></span>
+                <span>Neto: <span className="font-bold text-green-600">€{t.netAllTime}</span></span>
+              </div>
+            </div>
+          );
+        })}
+        {filtered.length === 0 && (
+          <p className="text-gray-400 text-center py-8 col-span-full">Sin creators que coincidan.</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ── ADMIN: RETIROS PENDIENTES ─────────────────────────────────────────────
+const RetirosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const { withdrawals, approveWithdrawal, rejectWithdrawal } = usePerformerStore();
+  const all = [...withdrawals].sort((a, b) => +new Date(b.requestedAt) - +new Date(a.requestedAt));
+  const pending = all.filter(w => w.status === 'pending');
+
+  return (
+    <div>
+      <PageHeader title="Retiros pendientes" subtitle={`${pending.length} solicitud(es) por aprobar · pago al creador tras validación`} />
+      <div className="card-white overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
+            <tr>
+              <th className="text-left px-4 py-3">Creator</th>
+              <th className="text-left px-4 py-3">Método</th>
+              <th className="text-right px-4 py-3">Importe</th>
+              <th className="text-left px-4 py-3">Fecha solicitud</th>
+              <th className="text-left px-4 py-3">Estado</th>
+              <th className="text-right px-4 py-3">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {all.map(w => (
+              <tr key={w.id} className="border-b border-gray-50 hover:bg-gray-50">
+                <td className="px-4 py-3 font-medium text-gray-900">{w.performerName}</td>
+                <td className="px-4 py-3 text-gray-500">{w.method}</td>
+                <td className="px-4 py-3 text-right font-bold text-gray-900">€{w.amount}</td>
+                <td className="px-4 py-3 text-gray-500 text-xs">{new Date(w.requestedAt).toLocaleString('es-ES')}</td>
+                <td className="px-4 py-3">
+                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
+                    w.status === 'paid' ? 'bg-green-100 text-green-700' :
+                    w.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-brand-orange'
+                  }`}>{w.status === 'paid' ? 'Pagado' : w.status === 'rejected' ? 'Rechazado' : 'Pendiente'}</span>
+                </td>
+                <td className="px-4 py-3 text-right">
+                  {w.status === 'pending' ? (
+                    <div className="flex gap-2 justify-end">
+                      <button onClick={() => { approveWithdrawal(w.id); addToast({ message: `Retiro de €${w.amount} aprobado y pagado a ${w.performerName}`, type: 'success' }); }}
+                        className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-lg hover:bg-green-200">
+                        ✓ Aprobar
+                      </button>
+                      <button onClick={() => { rejectWithdrawal(w.id); addToast({ message: 'Retiro rechazado', type: 'info' }); }}
+                        className="bg-red-100 text-red-600 text-xs font-bold px-3 py-1 rounded-lg hover:bg-red-200">
+                        ✕ Rechazar
+                      </button>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 text-xs">—</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {all.length === 0 && (
+              <tr><td colSpan={6} className="text-center py-8 text-gray-400">Sin solicitudes de retiro.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+const FinanzasSection: React.FC = () => {
+  const { platformTotals, transactions } = usePerformerStore();
+  const totals = platformTotals();
+  const pendingTx = transactions.filter(t => t.status === 'pending');
+  const stats = [
+    { label: 'Bruto total (real)',     value: `€${totals.totalGross.toLocaleString()}`, sub: `${totals.totalTransactions} transacciones`, color: 'text-green-600' },
+    { label: `Comisiones (${(PLATFORM_COMMISSION_RATE * 100).toFixed(0)}%)`, value: `€${totals.totalCommission.toLocaleString()}`, sub: 'Acumulado plataforma', color: 'text-brand-orange' },
+    { label: 'Suscripciones',          value: '€6,240', sub: '312 activas', color: 'text-purple-600' },
+    { label: 'Pendiente pago',         value: `€${pendingTx.reduce((s, t) => s + t.net, 0).toFixed(0)}`, sub: 'En escrow', color: 'text-yellow-600' },
+  ];
+  return (
   <div>
-    <PageHeader title="Finanzas" subtitle="Control financiero completo de la plataforma" />
+    <PageHeader title="Finanzas" subtitle={`Control financiero — comisión plataforma ${(PLATFORM_COMMISSION_RATE * 100).toFixed(0)}% sobre TODAS las transacciones`} />
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      {[
-        { label: 'Revenue total', value: '€48,200', sub: '+22% este mes', color: 'text-green-600' },
-        { label: 'Comisiones (15%)', value: '€7,230', sub: 'Este mes', color: 'text-brand-orange' },
-        { label: 'Suscripciones', value: '€6,240', sub: '312 activas', color: 'text-purple-600' },
-        { label: 'Pendiente pago', value: '€3,120', sub: 'En escrow', color: 'text-yellow-600' },
-      ].map(s => (
+      {stats.map(s => (
         <div key={s.label} className="card-white p-5">
           <p className="text-gray-400 text-xs font-medium">{s.label}</p>
           <p className={`font-black text-2xl ${s.color} mt-1`}>{s.value}</p>
@@ -605,27 +751,26 @@ const FinanzasSection: React.FC = () => (
         ))}
       </div>
       <div className="card-white p-5">
-        <h3 className="font-bold text-gray-900 mb-4">Pagos pendientes de liberar</h3>
-        {[
-          { artist: 'DJ Mambo King', amount: '€450', event: 'Boda García', date: '20 Jun' },
-          { artist: 'La Reina',      amount: '€350', event: 'Festival BCN', date: '14 Jun' },
-          { artist: 'Orquesta Fuego', amount: '€2,500', event: 'Congreso Mundial', date: '25 Jun' },
-        ].map(p => (
-          <div key={p.artist} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
-            <div>
-              <p className="font-semibold text-sm text-gray-800">{p.artist}</p>
-              <p className="text-gray-400 text-xs">{p.event} · {p.date}</p>
+        <h3 className="font-bold text-gray-900 mb-4">Transacciones recientes (todas las fuentes)</h3>
+        <div className="space-y-2 max-h-80 overflow-y-auto">
+          {transactions.slice(0, 12).map(t => (
+            <div key={t.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-sm text-gray-800 truncate">{t.concept}</p>
+                <p className="text-gray-400 text-xs">{t.clientName} · {new Date(t.date).toLocaleDateString('es-ES')} · {t.source}</p>
+              </div>
+              <div className="text-right ml-2">
+                <p className="font-black text-gray-900 text-sm">€{t.gross}</p>
+                <p className="text-[10px] text-brand-orange font-bold">+€{t.commission} comisión</p>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className="font-black text-gray-900">{p.amount}</span>
-              <button className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg font-semibold hover:bg-green-200">Liberar</button>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   </div>
-);
+  );
+};
 
 // ── 13. DISEÑO WEB ────────────────────────────────────────────────────────
 // ── HERO BANNER EDITOR (image / YouTube / video) ──────────────────────────

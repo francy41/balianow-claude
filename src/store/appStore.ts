@@ -1,6 +1,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+// ── PLATFORM COMMISSION ────────────────────────────────────────────────────
+export const PLATFORM_COMMISSION_RATE = 0.15; // 15% para superadmin en TODAS las transacciones
+export const splitAmount = (gross: number) => {
+  const commission = Math.round(gross * PLATFORM_COMMISSION_RATE * 100) / 100;
+  const net = Math.round((gross - commission) * 100) / 100;
+  return { gross, commission, net };
+};
+
 export type UserRole = 'user' | 'artist' | 'dj' | 'dancer' | 'venue' | 'admin';
 
 export interface User {
@@ -378,3 +386,367 @@ export const useChatStore = create<ChatState>((set) => ({
       })
     })),
 }));
+
+// ── PERFORMER STORE (ganancias + cursos + calendario + clases + ofertas) ──
+export interface Transaction {
+  id: string;
+  performerId: string;
+  performerName?: string;
+  clientId?: string;
+  clientName: string;
+  concept: string;
+  gross: number;
+  commission: number;
+  net: number;
+  date: Date;
+  // pending  = pago en escrow, servicio aún no confirmado por comprador
+  // released = comprador confirmó OK → fondos liberados al creador
+  // withdrawn = creador ya retiró estos fondos
+  // refunded = reembolsado al comprador
+  status: 'pending' | 'released' | 'withdrawn' | 'refunded';
+  source: 'booking' | 'course' | 'offer' | 'class' | 'tip';
+  confirmedAt?: Date;
+}
+
+export interface Withdrawal {
+  id: string;
+  performerId: string;
+  performerName: string;
+  amount: number;
+  method: 'bank' | 'paypal' | 'stripe';
+  requestedAt: Date;
+  status: 'pending' | 'paid' | 'rejected';
+  paidAt?: Date;
+  txIds: string[];
+}
+
+export interface Course {
+  id: string;
+  performerId: string;
+  title: string;
+  description: string;
+  price: number;
+  durationMin: number;
+  level: 'beginner' | 'intermediate' | 'advanced';
+  thumbnail: string;
+  videoUrl?: string;
+  enrolledCount: number;
+  isPublished: boolean;
+  createdAt: Date;
+}
+
+export interface AvailabilitySlot {
+  id: string;
+  performerId: string;
+  date: string; // YYYY-MM-DD
+  startTime: string; // HH:MM
+  endTime: string;
+  isBooked: boolean;
+}
+
+export interface OnlineClass {
+  id: string;
+  performerId: string;
+  clientName: string;
+  clientId: string;
+  topic: string;
+  scheduledAt: Date;
+  durationMin: number;
+  price: number;
+  roomUrl: string;
+  status: 'scheduled' | 'live' | 'completed' | 'cancelled';
+}
+
+export interface OfferRequest {
+  id: string;
+  performerId: string;
+  clientName: string;
+  clientAvatar: string;
+  title: string;
+  description: string;
+  proposedPrice: number;
+  date: string;
+  createdAt: Date;
+  status: 'pending' | 'accepted' | 'declined' | 'countered';
+  counterPrice?: number;
+}
+
+interface PerformerState {
+  transactions: Transaction[];
+  withdrawals: Withdrawal[];
+  courses: Course[];
+  slots: AvailabilitySlot[];
+  classes: OnlineClass[];
+  offers: OfferRequest[];
+
+  confirmServiceOK: (txId: string) => void;
+  requestWithdrawal: (performerId: string, performerName: string, amount: number, method: Withdrawal['method']) => boolean;
+  approveWithdrawal: (id: string) => void;
+  rejectWithdrawal: (id: string) => void;
+  balanceFor: (performerId: string) => { inEscrow: number; available: number; withdrawn: number; lifetime: number };
+
+  recordTransaction: (t: Omit<Transaction, 'id' | 'commission' | 'net' | 'date'> & { date?: Date }) => Transaction;
+  addCourse: (c: Omit<Course, 'id' | 'enrolledCount' | 'createdAt'>) => void;
+  updateCourse: (id: string, updates: Partial<Course>) => void;
+  removeCourse: (id: string) => void;
+  addSlot: (s: Omit<AvailabilitySlot, 'id' | 'isBooked'>) => void;
+  removeSlot: (id: string) => void;
+  scheduleClass: (c: Omit<OnlineClass, 'id' | 'roomUrl' | 'status'>) => void;
+  setClassStatus: (id: string, status: OnlineClass['status']) => void;
+  respondOfferRequest: (id: string, action: 'accept' | 'decline' | 'counter', counterPrice?: number) => void;
+
+  totalsFor: (performerId: string) => {
+    grossThisMonth: number;
+    netThisMonth: number;
+    commissionThisMonth: number;
+    grossAllTime: number;
+    netAllTime: number;
+    pendingPayouts: number;
+  };
+  platformTotals: () => { totalCommission: number; totalGross: number; totalTransactions: number };
+}
+
+const today = new Date();
+const daysAgo = (d: number) => new Date(today.getTime() - d * 86400000);
+
+const seedTx = (performerId: string, performerName: string, gross: number, source: Transaction['source'], concept: string, client: string, clientId: string, daysBack: number, status: Transaction['status'] = 'released'): Transaction => {
+  const { commission, net } = splitAmount(gross);
+  return {
+    id: `tx_${Math.random().toString(36).slice(2, 9)}`,
+    performerId, performerName, clientId, clientName: client, concept, gross, commission, net,
+    date: daysAgo(daysBack), status, source,
+    confirmedAt: status !== 'pending' ? daysAgo(daysBack - 1) : undefined,
+  };
+};
+
+export const usePerformerStore = create<PerformerState>()(
+  persist(
+    (set, get) => ({
+      transactions: [
+        seedTx('a1', 'DJ Mambo King', 350, 'booking', 'Set DJ boda Sara & Marco', 'Sara López',  'u1', 2, 'released'),
+        seedTx('a1', 'DJ Mambo King',  80, 'course',  'Curso "Mezcla con Pioneer DDJ"', 'Miguel R.', 'u2', 5, 'released'),
+        seedTx('a1', 'DJ Mambo King',  60, 'class',   'Clase online de DJing 1h', 'Ana Pérez',  'u3', 8, 'withdrawn'),
+        seedTx('a1', 'DJ Mambo King',  25, 'tip',     'Propina stream en directo', 'Carlos M.', 'u1', 1, 'pending'),
+        seedTx('a2', 'La Reina del Ritmo', 220, 'booking', 'Show bachata sensual', 'La Habana Bar', 'u4', 3, 'released'),
+        seedTx('a2', 'La Reina del Ritmo',  45, 'class',   'Clase online de bachata',  'Elena G.',     'u1', 4, 'pending'),
+        seedTx('a3', 'Orquesta Tropical', 180, 'offer',   'Workshop salsa cubana 2h', 'Salsa Madrid', 'u5', 6, 'released'),
+      ],
+      withdrawals: [
+        {
+          id: 'wd1', performerId: 'a1', performerName: 'DJ Mambo King',
+          amount: 51, method: 'paypal', requestedAt: daysAgo(7),
+          status: 'paid', paidAt: daysAgo(5), txIds: []
+        },
+      ],
+      courses: [
+        {
+          id: 'c1', performerId: 'a1', title: 'Fundamentos del DJing Latino',
+          description: 'Aprende a mezclar salsa, bachata y reggaeton desde cero.',
+          price: 49, durationMin: 240, level: 'beginner',
+          thumbnail: 'https://picsum.photos/seed/course-dj/400/250',
+          enrolledCount: 124, isPublished: true, createdAt: daysAgo(45)
+        },
+        {
+          id: 'c2', performerId: 'a2', title: 'Bachata sensual: técnica corporal',
+          description: 'De principiante a nivel intermedio con rutinas explicadas.',
+          price: 39, durationMin: 180, level: 'intermediate',
+          thumbnail: 'https://picsum.photos/seed/course-bachata/400/250',
+          enrolledCount: 87, isPublished: true, createdAt: daysAgo(20)
+        },
+      ],
+      slots: [
+        { id: 's1', performerId: 'a1', date: '2026-05-18', startTime: '18:00', endTime: '20:00', isBooked: false },
+        { id: 's2', performerId: 'a1', date: '2026-05-19', startTime: '17:00', endTime: '19:00', isBooked: true },
+        { id: 's3', performerId: 'a1', date: '2026-05-22', startTime: '20:00', endTime: '22:00', isBooked: false },
+      ],
+      classes: [
+        {
+          id: 'cl1', performerId: 'a1', clientName: 'Ana Pérez', clientId: 'u1',
+          topic: 'Clase 1:1 de mezcla', scheduledAt: new Date(today.getTime() + 86400000),
+          durationMin: 60, price: 60, roomUrl: '/clase/cl1', status: 'scheduled'
+        }
+      ],
+      offers: [
+        {
+          id: 'of1', performerId: 'a1', clientName: 'Roberto Sanz',
+          clientAvatar: 'https://ui-avatars.com/api/?name=Roberto+Sanz&background=F97316&color=fff',
+          title: 'DJ para cumpleaños privado', description: '3 horas, repertorio salsa + reggaeton, 60 invitados.',
+          proposedPrice: 280, date: '2026-06-05', createdAt: daysAgo(0), status: 'pending'
+        },
+        {
+          id: 'of2', performerId: 'a1', clientName: 'Club Tropical',
+          clientAvatar: 'https://ui-avatars.com/api/?name=Club+Tropical&background=EC4899&color=fff',
+          title: 'Residencia DJ los viernes', description: '4 viernes consecutivos, 4h por noche.',
+          proposedPrice: 1200, date: '2026-06-12', createdAt: daysAgo(1), status: 'pending'
+        },
+      ],
+
+      confirmServiceOK: (txId) =>
+        set(state => ({
+          transactions: state.transactions.map(t =>
+            t.id === txId && t.status === 'pending'
+              ? { ...t, status: 'released', confirmedAt: new Date() }
+              : t
+          )
+        })),
+
+      requestWithdrawal: (performerId, performerName, amount, method) => {
+        const state = get();
+        const releasedTx = state.transactions.filter(t => t.performerId === performerId && t.status === 'released');
+        const available = releasedTx.reduce((s, t) => s + t.net, 0);
+        if (amount <= 0 || amount > available + 0.001) return false;
+        // selecciona transacciones hasta cubrir el monto
+        const chosen: string[] = [];
+        let acc = 0;
+        for (const t of releasedTx) {
+          if (acc + t.net <= amount + 0.001) {
+            chosen.push(t.id);
+            acc += t.net;
+            if (Math.abs(acc - amount) < 0.01) break;
+          }
+        }
+        const w: Withdrawal = {
+          id: `wd_${Date.now()}`,
+          performerId, performerName, amount, method,
+          requestedAt: new Date(), status: 'pending', txIds: chosen,
+        };
+        set({
+          withdrawals: [w, ...state.withdrawals],
+          transactions: state.transactions.map(t =>
+            chosen.includes(t.id) ? { ...t, status: 'withdrawn' } : t
+          ),
+        });
+        return true;
+      },
+
+      approveWithdrawal: (id) =>
+        set(state => ({
+          withdrawals: state.withdrawals.map(w =>
+            w.id === id ? { ...w, status: 'paid', paidAt: new Date() } : w
+          )
+        })),
+
+      rejectWithdrawal: (id) =>
+        set(state => {
+          const w = state.withdrawals.find(x => x.id === id);
+          if (!w) return state;
+          // devuelve las transacciones a 'released'
+          return {
+            withdrawals: state.withdrawals.map(x => x.id === id ? { ...x, status: 'rejected' } : x),
+            transactions: state.transactions.map(t =>
+              w.txIds.includes(t.id) ? { ...t, status: 'released' } : t
+            ),
+          };
+        }),
+
+      balanceFor: (performerId) => {
+        const txs = get().transactions.filter(t => t.performerId === performerId);
+        const sum = (s: Transaction['status']) =>
+          Math.round(txs.filter(t => t.status === s).reduce((a, t) => a + t.net, 0) * 100) / 100;
+        const inEscrow  = sum('pending');
+        const available = sum('released');
+        const withdrawn = sum('withdrawn');
+        return { inEscrow, available, withdrawn, lifetime: inEscrow + available + withdrawn };
+      },
+
+      recordTransaction: (input) => {
+        const { commission, net } = splitAmount(input.gross);
+        const tx: Transaction = {
+          id: `tx_${Date.now()}`,
+          commission, net,
+          date: input.date || new Date(),
+          ...input,
+        };
+        set(state => ({ transactions: [tx, ...state.transactions] }));
+        return tx;
+      },
+
+      addCourse: (c) =>
+        set(state => ({
+          courses: [{
+            ...c,
+            id: `c_${Date.now()}`,
+            enrolledCount: 0,
+            createdAt: new Date(),
+          }, ...state.courses]
+        })),
+
+      updateCourse: (id, updates) =>
+        set(state => ({
+          courses: state.courses.map(c => c.id === id ? { ...c, ...updates } : c)
+        })),
+
+      removeCourse: (id) =>
+        set(state => ({ courses: state.courses.filter(c => c.id !== id) })),
+
+      addSlot: (s) =>
+        set(state => ({
+          slots: [...state.slots, { ...s, id: `s_${Date.now()}`, isBooked: false }]
+        })),
+
+      removeSlot: (id) =>
+        set(state => ({ slots: state.slots.filter(s => s.id !== id) })),
+
+      scheduleClass: (c) =>
+        set(state => ({
+          classes: [...state.classes, {
+            ...c,
+            id: `cl_${Date.now()}`,
+            roomUrl: `/clase/cl_${Date.now()}`,
+            status: 'scheduled'
+          }]
+        })),
+
+      setClassStatus: (id, status) =>
+        set(state => ({
+          classes: state.classes.map(c => c.id === id ? { ...c, status } : c)
+        })),
+
+      respondOfferRequest: (id, action, counterPrice) =>
+        set(state => ({
+          offers: state.offers.map(o => {
+            if (o.id !== id) return o;
+            if (action === 'accept')  return { ...o, status: 'accepted' };
+            if (action === 'decline') return { ...o, status: 'declined' };
+            return { ...o, status: 'countered', counterPrice };
+          })
+        })),
+
+      totalsFor: (performerId) => {
+        const completedStatuses: Transaction['status'][] = ['released', 'withdrawn'];
+        const all = get().transactions.filter(t => t.performerId === performerId && completedStatuses.includes(t.status));
+        const month = new Date().getMonth();
+        const year = new Date().getFullYear();
+        const monthTx = all.filter(t => {
+          const d = new Date(t.date);
+          return d.getMonth() === month && d.getFullYear() === year;
+        });
+        const sum = (arr: Transaction[], key: 'gross' | 'net' | 'commission') =>
+          Math.round(arr.reduce((s, t) => s + t[key], 0) * 100) / 100;
+        const pending = get().transactions
+          .filter(t => t.performerId === performerId && t.status === 'pending');
+        return {
+          grossThisMonth: sum(monthTx, 'gross'),
+          netThisMonth: sum(monthTx, 'net'),
+          commissionThisMonth: sum(monthTx, 'commission'),
+          grossAllTime: sum(all, 'gross'),
+          netAllTime: sum(all, 'net'),
+          pendingPayouts: sum(pending, 'net'),
+        };
+      },
+
+      platformTotals: () => {
+        const billable: Transaction['status'][] = ['released', 'withdrawn'];
+        const all = get().transactions.filter(t => billable.includes(t.status));
+        const sum = (key: 'gross' | 'commission') =>
+          Math.round(all.reduce((s, t) => s + t[key], 0) * 100) / 100;
+        return {
+          totalCommission: sum('commission'),
+          totalGross: sum('gross'),
+          totalTransactions: all.length,
+        };
+      },
+    }),
+    { name: 'ritmolatino-performer' }
+  )
+);
