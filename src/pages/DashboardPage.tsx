@@ -12,6 +12,7 @@ import {
 } from '../store/appStore';
 import { Avatar, Badge, Button } from '../components/ui';
 import PaymentMethodsPanel from '../components/PaymentMethodsPanel';
+import ProfileEditModal from '../components/ProfileEditModal';
 
 type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers';
 
@@ -32,6 +33,7 @@ const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
   const [tab, setTab] = useState<TabId>('overview');
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
 
   if (!isAuthenticated || !user) {
     return (
@@ -53,29 +55,54 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-6xl mx-auto px-4">
-        {/* Header */}
-        <div className="card-white rounded-3xl p-6 mb-6 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-r from-brand-orange to-orange-400 opacity-10" />
-          <div className="relative flex flex-col sm:flex-row sm:items-end gap-4">
-            <Avatar src={user.avatar} name={user.name} size="xl" />
-            <div className="flex-1 pb-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="font-display font-black text-2xl text-gray-900">{user.name}</h1>
-                {user.isVerified && <CheckCircle className="w-5 h-5 text-blue-500" />}
-                {user.isPremium && <Badge variant="orange">👑 PRO</Badge>}
-                {isPerformer && <span className="text-[10px] bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full font-bold uppercase">Panel Creator</span>}
+        {/* Header con portada */}
+        <div className="card-white rounded-3xl mb-6 relative overflow-hidden">
+          <div className="relative h-32 sm:h-40 bg-gradient-to-r from-brand-orange to-orange-400 overflow-hidden">
+            {user.coverPhoto && <img src={user.coverPhoto} alt="" className="w-full h-full object-cover" />}
+            <button onClick={() => setShowProfileEdit(true)}
+              className="absolute top-3 right-3 bg-white/90 hover:bg-white text-gray-800 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow">
+              <Edit3 className="w-3.5 h-3.5" /> Editar perfil
+            </button>
+          </div>
+          <div className="p-6 pt-0 relative">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-10">
+              <div className="ring-4 ring-white rounded-full">
+                <Avatar src={user.avatar} name={user.name} size="xl" />
               </div>
-              <p className="text-gray-400 capitalize">{user.role} · {user.city}</p>
-              <p className="text-[11px] text-gray-400 mt-1">
-                💰 Comisión plataforma: <span className="font-bold text-brand-orange">{(PLATFORM_COMMISSION_RATE * 100).toFixed(0)}%</span> en todas las transacciones
-              </p>
+              <div className="flex-1 pb-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="font-display font-black text-2xl text-gray-900">{user.name}</h1>
+                  {user.isVerified && <CheckCircle className="w-5 h-5 text-blue-500" />}
+                  {user.isPremium && <Badge variant="orange">👑 PRO</Badge>}
+                  {isPerformer && <span className="text-[10px] bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full font-bold uppercase">Panel Creator</span>}
+                </div>
+                <p className="text-gray-400 capitalize">{user.role} · {user.city}{user.country ? `, ${user.country}` : ''}</p>
+                {user.bio && <p className="text-gray-600 text-sm mt-2 max-w-2xl">{user.bio}</p>}
+                {user.socials && Object.values(user.socials).some(v => v) && (
+                  <div className="flex gap-2 mt-2">
+                    {Object.entries(user.socials).filter(([, v]) => v).map(([k, v]) => (
+                      <a key={k} href={String(v).startsWith('http') ? String(v) : `https://${k}.com/${String(v).replace('@', '')}`}
+                        target="_blank" rel="noreferrer"
+                        className="text-[10px] bg-gray-100 hover:bg-brand-orange hover:text-white text-gray-700 font-bold px-2 py-0.5 rounded transition-colors uppercase">
+                        {k}
+                      </a>
+                    ))}
+                  </div>
+                )}
+                <p className="text-[11px] text-gray-400 mt-2">
+                  💰 Comisión plataforma: <span className="font-bold text-brand-orange">{(PLATFORM_COMMISSION_RATE * 100).toFixed(0)}%</span> en todas las transacciones
+                </p>
+              </div>
+              {isPerformer && (
+                <Button variant="ghost" size="sm" onClick={() => navigate('/artistas/a1')}>
+                  Ver perfil público
+                </Button>
+              )}
             </div>
-            <Button variant="ghost" size="sm" icon={<Edit3 className="w-4 h-4" />}
-              onClick={() => navigate('/artistas/a1')}>
-              Ver perfil público
-            </Button>
           </div>
         </div>
+
+        <ProfileEditModal open={showProfileEdit} onClose={() => setShowProfileEdit(false)} />
 
         {isPerformer ? (
           <>

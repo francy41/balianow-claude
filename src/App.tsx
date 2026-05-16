@@ -23,6 +23,7 @@ const SubscriptionsPage= lazy(() => import('./pages/SubscriptionsPage'));
 const MapPage          = lazy(() => import('./pages/MapPage'));
 const AuthPage         = lazy(() => import('./pages/AuthPage'));
 const AdminPage        = lazy(() => import('./pages/AdminPage'));
+const ProfilePage      = lazy(() => import('./pages/ProfilePage'));
 
 // Error boundary
 class ErrorBoundary extends React.Component<
@@ -90,6 +91,7 @@ const App: React.FC = () => {
                   <Route path="/mapa"             element={<MapPage />} />
                   <Route path="/chat"             element={<ChatPage />} />
                   <Route path="/dashboard"        element={<DashboardPage />} />
+                  <Route path="/perfil"           element={<ProfilePage />} />
                   <Route path="/wallet"           element={<WalletPage />} />
                   <Route path="/subscripciones"   element={<SubscriptionsPage />} />
                   <Route path="/auth"             element={<AuthPage />} />

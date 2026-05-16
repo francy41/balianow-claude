@@ -43,18 +43,34 @@ export const computeCommissionRate = (
 
 export type UserRole = 'user' | 'artist' | 'dj' | 'dancer' | 'venue' | 'admin';
 
+export interface UserSocials {
+  instagram?: string;
+  tiktok?: string;
+  youtube?: string;
+  spotify?: string;
+  facebook?: string;
+  soundcloud?: string;
+  twitch?: string;
+  website?: string;
+}
+
 export interface User {
   id: string;
   name: string;
   email: string;
   avatar: string;
+  coverPhoto?: string;
+  bio?: string;
+  phone?: string;
   role: UserRole;
   city: string;
+  country?: string;
   isVerified: boolean;
   isPremium: boolean;
   subscriptionPlan?: string;
   wallet: number;
   notifications: number;
+  socials?: UserSocials;
 }
 
 interface AuthState {
