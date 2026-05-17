@@ -32,7 +32,13 @@
       "Bash(git commit -m 'fix: Modal usa isOpen \\(no open\\) — corrige error de compilación Vercel *)",
       "Bash(echo \"---EXIT $?---\")",
       "Bash(git commit *)",
-      "Bash(grep -n \"^.*const.*React.FC\\\\|useState\\\\|useEffect\\\\|useMemo\\\\|useRef\\\\|if \\(.*return\\\\s*$\\\\|if \\(.*\\) {\" src/pages/ArtistsPage.tsx src/pages/MarketplacePage.tsx)"
+      "Bash(grep -n \"^.*const.*React.FC\\\\|useState\\\\|useEffect\\\\|useMemo\\\\|useRef\\\\|if \\(.*return\\\\s*$\\\\|if \\(.*\\) {\" src/pages/ArtistsPage.tsx src/pages/MarketplacePage.tsx)",
+      "Bash(npx netlify-cli *)",
+      "Bash(where netlify *)",
+      "Bash(netlify deploy *)",
+      "Bash(netlify login *)",
+      "Bash(netlify status *)",
+      "Bash(netlify link *)"
     ]
   }
 }
