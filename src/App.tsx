@@ -5,6 +5,7 @@ import Sidebar from './components/layout/Sidebar';
 import BottomNav from './components/layout/BottomNav';
 import DevRoleSwitcher from './components/DevRoleSwitcher';
 import { ToastContainer, FullPageLoader } from './components/ui';
+import { useSupabaseAuthListener } from './hooks/useSupabaseAuth';
 
 // Lazy load pages
 const HomePage         = lazy(() => import('./pages/HomePage'));
@@ -60,6 +61,7 @@ class ErrorBoundary extends React.Component<
 }
 
 const App: React.FC = () => {
+  useSupabaseAuthListener();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (

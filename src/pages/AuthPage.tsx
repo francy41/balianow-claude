@@ -4,6 +4,7 @@ import { Eye, EyeOff, Mail, Lock, User, MapPin } from 'lucide-react';
 import { useAuthStore, useUIStore } from '../store/appStore';
 import type { UserRole } from '../store/appStore';
 import { Button, Input } from '../components/ui';
+import { supabaseLogin, supabaseRegister } from '../hooks/useSupabaseAuth';
 
 const ROLES: { id: UserRole; label: string; icon: string; desc: string }[] = [
   { id: 'user',    label: 'Fanático / Asistente', icon: '🎉', desc: 'Descubre eventos y artistas' },
@@ -35,18 +36,34 @@ const AuthPage: React.FC = () => {
 
   const handleLogin = async () => {
     if (!loginEmail || !loginPassword) { addToast({ message: 'Completa todos los campos', type: 'error' }); return; }
+    // Try Supabase first, fall back to demo login
+    const supa = await supabaseLogin(loginEmail, loginPassword);
+    if (supa.success) {
+      addToast({ message: '¡Bienvenido de vuelta!', type: 'success' });
+      navigate('/dashboard');
+      return;
+    }
+    // Fallback to demo
     const ok = await login(loginEmail, loginPassword);
     if (ok) {
-      addToast({ message: '¡Bienvenido de vuelta!', type: 'success' });
+      addToast({ message: '¡Bienvenido! (modo demo)', type: 'success' });
       navigate('/dashboard');
     }
   };
 
   const handleRegister = async () => {
     if (!regName || !regEmail || !regPassword) { addToast({ message: 'Completa todos los campos requeridos', type: 'error' }); return; }
+    // Try Supabase first
+    const supa = await supabaseRegister(regEmail, regPassword, { name: regName, role: selectedRole, city: regCity || 'Madrid' });
+    if (supa.success) {
+      addToast({ message: '¡Cuenta creada! Revisa tu email para confirmar.', type: 'success' });
+      navigate('/dashboard');
+      return;
+    }
+    // Fallback to demo
     const ok = await register({ name: regName, email: regEmail, city: regCity || 'Madrid', role: selectedRole, password: regPassword });
     if (ok) {
-      addToast({ message: '¡Cuenta creada! Bienvenido a ¡Ritmo Latino!', type: 'success' });
+      addToast({ message: '¡Cuenta creada! (modo demo)', type: 'success' });
       navigate('/dashboard');
     }
   };
