@@ -4,7 +4,7 @@ import { MapPin, Users, Clock, CheckCircle, Star, MessageSquare, Bell, Heart, Sh
 import { VENUES } from '../data/mockData';
 import type { Venue } from '../data/mockData';
 import { Badge, StarRating, SearchBar, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
-import { useAuthStore, useUIStore } from '../store/appStore';
+import { useAuthStore, useUIStore, getYouTubeId } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
 
 const TYPES = ['Todos', 'Club', 'Bar', 'Studio', 'Rooftop', 'Lounge', 'Restaurante'];
@@ -110,6 +110,16 @@ const VENUE_SOCIALS: Record<string, Record<string, string>> = {
   v5: { instagram: 'parcforum_events', youtube: 'ParcForumEvents', facebook: 'ParcForum' },
   v6: { instagram: 'azucarclubvlc', tiktok: 'azucarclub', facebook: 'AzucarClubValencia' },
   v7: { instagram: 'laclaveparis', youtube: 'LaClaveParis', facebook: 'LaClaveClubParis' },
+};
+
+const VENUE_VIDEOS: Record<string, { url: string; title: string }> = {
+  v1: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Noche de Bachata — Club Tropicana Madrid' },
+  v2: { url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', title: 'Salsa Social Night — La Sala Latina BCN' },
+  v3: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Workshop Bachata Sensual — Studio Latino' },
+  v4: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Sunset Salsa Party — Rooftop 360 Sevilla' },
+  v5: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Festival Latino 2026 — Parc del Fòrum' },
+  v6: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Reggaeton Night — Azúcar Club Valencia' },
+  v7: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Latin Groove Friday — La Clave Paris' },
 };
 
 const SOCIAL_COLORS: Record<string, string> = {
@@ -291,6 +301,40 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                   </Badge>
                 </div>
               </div>
+
+              {/* Featured YouTube Video */}
+              {(() => {
+                const vid = VENUE_VIDEOS[venue.id];
+                if (!vid) return null;
+                const ytId = getYouTubeId(vid.url);
+                if (!ytId) return null;
+                return (
+                  <div className="card-white rounded-2xl overflow-hidden">
+                    <div className="p-5 pb-3 flex items-center justify-between">
+                      <h3 className="font-display font-bold text-gray-900 flex items-center gap-2">
+                        🎬 Vídeo destacado
+                      </h3>
+                      <a href={vid.url} target="_blank" rel="noreferrer"
+                        className="text-[10px] text-red-500 font-bold hover:underline flex items-center gap-1">
+                        Ver en YouTube ↗
+                      </a>
+                    </div>
+                    <div className="bg-black aspect-video">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${ytId}?modestbranding=1&rel=0`}
+                        title={vid.title}
+                        className="w-full h-full"
+                        allow="encrypted-media; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                    <div className="px-5 py-3 border-t border-gray-100">
+                      <p className="text-sm font-semibold text-gray-900">{vid.title}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{venue.name} · YouTube</p>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Right sidebar */}
