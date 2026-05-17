@@ -219,8 +219,8 @@ export const useSiteConfigStore = create<SiteConfigState>()(
   persist(
     (set) => ({
       heroMedia: {
-        type: 'image',
-        url: 'https://picsum.photos/seed/latinodance2024/1200/600',
+        type: 'youtube',
+        url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw',
         autoplay: true,
         muted: true,
         loop: true,
@@ -244,7 +244,7 @@ export const useSiteConfigStore = create<SiteConfigState>()(
     }),
     {
       name: 'ritmolatino-site-config',
-      version: 2,
+      version: 3,
       migrate: () => undefined as any,
     }
   )
