@@ -169,6 +169,7 @@ const AdminPage: React.FC = () => {
   const { addToast } = useUIStore();
   const [active, setActive] = useState<AdminSection>('overview');
   const [editReq, setEditReq] = useState<EditRequest | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (!isAuthenticated || user?.role !== 'admin') {
     return (
@@ -187,8 +188,22 @@ const AdminPage: React.FC = () => {
   return (
     <EditContext.Provider value={{ openEdit: setEditReq }}>
     <div className="min-h-screen bg-gray-50 flex">
+      {/* ── MOBILE SIDEBAR TOGGLE ── */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="lg:hidden fixed top-16 left-2 z-30 bg-brand-orange text-white p-2 rounded-xl shadow-lg"
+        aria-label="Toggle admin menu"
+      >
+        <LayoutDashboard className="w-5 h-5" />
+      </button>
+
+      {/* ── MOBILE BACKDROP ── */}
+      {sidebarOpen && (
+        <div className="lg:hidden fixed inset-0 bg-black/40 z-20" onClick={() => setSidebarOpen(false)} />
+      )}
+
       {/* ── ADMIN SIDEBAR ── */}
-      <aside className="w-60 bg-white border-r border-gray-100 flex-shrink-0 fixed top-14 bottom-0 overflow-y-auto z-20" style={{ scrollbarWidth: 'none' }}>
+      <aside className={`w-60 bg-white border-r border-gray-100 flex-shrink-0 fixed top-14 bottom-0 overflow-y-auto z-30 transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`} style={{ scrollbarWidth: 'none' }}>
         <div className="p-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-brand-orange rounded-lg flex items-center justify-center">
@@ -202,7 +217,7 @@ const AdminPage: React.FC = () => {
         </div>
         <nav className="p-3">
           {SECTIONS.map(sec => (
-            <button key={sec.id} onClick={() => setActive(sec.id)}
+            <button key={sec.id} onClick={() => { setActive(sec.id); setSidebarOpen(false); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium mb-0.5 transition-all text-left ${
                 active === sec.id
                   ? 'bg-brand-orange text-white shadow-orange'
@@ -221,7 +236,7 @@ const AdminPage: React.FC = () => {
       </aside>
 
       {/* ── MAIN CONTENT ── */}
-      <main className="flex-1 ml-60 p-6 mt-0">
+      <main className="flex-1 lg:ml-60 p-4 sm:p-6 mt-0">
         {active === 'overview'       && <OverviewSection addToast={addToast} />}
         {active === 'categorias'     && <CategoriasSection addToast={addToast} />}
         {active === 'radio'          && <RadioSection addToast={addToast} />}
@@ -264,9 +279,9 @@ const AdminPage: React.FC = () => {
 
 // ── SHARED COMPONENTS ─────────────────────────────────────────────────────
 const PageHeader: React.FC<{ title: string; subtitle?: string; action?: React.ReactNode }> = ({ title, subtitle, action }) => (
-  <div className="flex items-start justify-between mb-6">
+  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6">
     <div>
-      <h1 className="font-display font-black text-2xl text-gray-900">{title}</h1>
+      <h1 className="font-display font-black text-xl sm:text-2xl text-gray-900">{title}</h1>
       {subtitle && <p className="text-gray-400 text-sm mt-1">{subtitle}</p>}
     </div>
     {action}

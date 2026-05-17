@@ -122,7 +122,7 @@ const HomePage: React.FC = () => {
         </div>
 
         {/* Right media */}
-        <div className="flex-1 relative min-h-[260px] bg-black">
+        <div className="flex-1 relative min-h-[220px] sm:min-h-[260px] bg-black">
           {heroMedia.type === 'youtube' ? (() => {
             const id = getYouTubeId(heroMedia.url);
             if (!id) return <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">URL de YouTube inválida</div>;
@@ -137,10 +137,10 @@ const HomePage: React.FC = () => {
             });
             return (
               <iframe
-                src={`https://www.youtube.com/embed/${id}?${params.toString()}`}
+                src={`https://www.youtube.com/embed/${id}?${params.toString()}&playsinline=1`}
                 title="Hero video"
-                className="w-full h-full"
-                style={{ minHeight: 260 }}
+                className="w-full h-full absolute inset-0"
+                style={{ minHeight: 220 }}
                 allow="autoplay; encrypted-media; picture-in-picture"
                 allowFullScreen
               />
@@ -164,11 +164,11 @@ const HomePage: React.FC = () => {
             />
           )}
           {/* Rating bubble */}
-          <div className="absolute top-6 right-6 bg-white rounded-2xl p-4 shadow-xl flex items-center gap-3">
-            <Star className="w-8 h-8 fill-brand-orange text-brand-orange flex-shrink-0" />
+          <div className="absolute top-3 right-3 sm:top-6 sm:right-6 bg-white rounded-2xl p-2.5 sm:p-4 shadow-xl flex items-center gap-2 sm:gap-3">
+            <Star className="w-6 h-6 sm:w-8 sm:h-8 fill-brand-orange text-brand-orange flex-shrink-0" />
             <div>
-              <p className="font-black text-2xl text-gray-900 leading-none">4,9/5</p>
-              <p className="text-gray-400 text-xs mt-0.5">Calificación global</p>
+              <p className="font-black text-lg sm:text-2xl text-gray-900 leading-none">4,9/5</p>
+              <p className="text-gray-400 text-[10px] sm:text-xs mt-0.5">Calificación global</p>
             </div>
           </div>
         </div>
