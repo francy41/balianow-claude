@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MapPin, Users, Clock, CheckCircle } from 'lucide-react';
+import { MapPin, Users, Clock, CheckCircle, Star, MessageSquare, Bell, Heart, Share2, Calendar, Music2, Instagram, Youtube, Facebook, Globe, Headphones, Video } from 'lucide-react';
 import { VENUES } from '../data/mockData';
 import type { Venue } from '../data/mockData';
-import { Badge, StarRating, SearchBar, FilterChips, EmptyState, Button } from '../components/ui';
+import { Badge, StarRating, SearchBar, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
 import { useAuthStore, useUIStore } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
 
@@ -101,83 +101,248 @@ const VenueCard: React.FC<{ venue: Venue; onClick: () => void }> = ({ venue, onC
   </div>
 );
 
+/* ── Venue social data (mock) ── */
+const VENUE_SOCIALS: Record<string, Record<string, string>> = {
+  v1: { instagram: 'clubtropicana_madrid', facebook: 'ClubTropicanaMadrid', youtube: 'ClubTropicana' },
+  v2: { instagram: 'lasalalatina', tiktok: 'lasalalatina', facebook: 'LaSalaLatinaBCN' },
+  v3: { instagram: 'studiolatinobcn', youtube: 'StudioLatinoBCN' },
+  v4: { instagram: 'rooftop360sevilla', facebook: 'Rooftop360' },
+  v5: { instagram: 'parcforum_events', youtube: 'ParcForumEvents', facebook: 'ParcForum' },
+  v6: { instagram: 'azucarclubvlc', tiktok: 'azucarclub', facebook: 'AzucarClubValencia' },
+  v7: { instagram: 'laclaveparis', youtube: 'LaClaveParis', facebook: 'LaClaveClubParis' },
+};
+
+const SOCIAL_COLORS: Record<string, string> = {
+  instagram:  'from-purple-500 to-pink-500',
+  youtube:    'from-red-500 to-red-600',
+  facebook:   'from-blue-500 to-blue-700',
+  spotify:    'from-green-500 to-green-600',
+  soundcloud: 'from-orange-500 to-orange-600',
+  tiktok:     'from-gray-900 to-pink-500',
+  twitch:     'from-purple-600 to-purple-800',
+};
+
+const SocialIcon: React.FC<{ kind: string }> = ({ kind }) => {
+  switch (kind) {
+    case 'instagram':  return <Instagram className="w-5 h-5" />;
+    case 'youtube':    return <Youtube className="w-5 h-5" />;
+    case 'facebook':   return <Facebook className="w-5 h-5" />;
+    case 'spotify':    return <Music2 className="w-5 h-5" />;
+    case 'soundcloud': return <Headphones className="w-5 h-5" />;
+    case 'tiktok':     return <span className="text-base font-black">♪</span>;
+    case 'twitch':     return <Video className="w-5 h-5" />;
+    default:           return <Globe className="w-5 h-5" />;
+  }
+};
+
+const VENUE_TABS = [
+  { id: 'about' as const,   label: 'Sobre el local', icon: '📍' },
+  { id: 'events' as const,  label: 'Eventos',        icon: '📅' },
+  { id: 'gallery' as const, label: 'Galería',        icon: '📸' },
+  { id: 'reviews' as const, label: 'Reseñas',        icon: '⭐' },
+];
+
 const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
   const venue = VENUES.find(v => v.id === venueId) || VENUES[0];
-  const [activeTab, setActiveTab] = useState<'info' | 'events' | 'photos'>('info');
+  const [activeTab, setActiveTab] = useState<'about' | 'events' | 'gallery' | 'reviews'>('about');
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [following, setFollowing] = useState(false);
+  const [liked, setLiked] = useState(false);
 
   const handleReserve = () => {
     if (!isAuthenticated) { navigate('/auth'); return; }
     setBookingOpen(true);
   };
 
+  const socials = VENUE_SOCIALS[venue.id] || { instagram: venue.name.toLowerCase().replace(/\s+/g, '') };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
-      <div className="relative h-72 overflow-hidden">
+      {/* ── HERO BANNER (like ArtistProfile) ── */}
+      <section className="relative h-72 sm:h-96 overflow-hidden">
         <img src={venue.cover} alt={venue.name} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent" />
-        <button onClick={() => navigate('/venues')} className="absolute top-6 left-4 bg-white/90 text-gray-700 text-sm px-3 py-1.5 rounded-xl hover:bg-white font-medium">← Volver</button>
-        <Badge variant={venue.isOpen ? 'green' : 'gray'} className="absolute top-6 right-4">
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent" />
+
+        <button onClick={() => navigate('/venues')}
+          className="absolute top-4 left-4 bg-white/90 hover:bg-white text-gray-800 text-sm px-3 py-1.5 rounded-xl font-semibold transition-colors backdrop-blur-md">
+          ← Volver
+        </button>
+
+        <Badge variant={venue.isOpen ? 'green' : 'gray'} className="absolute top-4 right-4 text-sm">
           {venue.isOpen ? '🟢 Abierto Ahora' : '🔴 Cerrado'}
         </Badge>
-      </div>
 
-      <div className="max-w-4xl mx-auto px-4 -mt-16 relative">
-        <div className="bg-white rounded-3xl p-6 mb-6 shadow-card-hover border border-gray-100">
-          <div className="flex items-start gap-4">
-            <img src={venue.avatar} alt={venue.name} className="w-16 h-16 rounded-2xl object-cover ring-2 ring-brand-orange/30" />
-            <div className="flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="font-display font-black text-2xl text-gray-900">{venue.name}</h1>
-                {venue.isPremium && <Badge variant="orange">👑 Premium</Badge>}
+        {/* Hero info overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-8">
+          <div className="max-w-5xl mx-auto flex items-end gap-4 flex-wrap">
+            <img src={venue.avatar} alt={venue.name} className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-cover ring-4 ring-white/30 shadow-xl" />
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="bg-white/20 backdrop-blur text-white text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded capitalize">{venue.type}</span>
+                {venue.isPremium && (
+                  <span className="bg-yellow-400 text-yellow-900 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded">⭐ Premium</span>
+                )}
               </div>
-              <p className="text-gray-400 capitalize mt-0.5">{venue.type} · {venue.city}</p>
-              <div className="flex items-center gap-4 mt-1 text-gray-400 text-sm flex-wrap">
-                <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{venue.address}</span>
-                <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{venue.capacity} cap.</span>
-                <span>{'€'.repeat(venue.priceRange)}</span>
+              <h1 className="font-display font-black text-3xl sm:text-4xl text-white leading-tight flex items-center gap-2 flex-wrap">
+                {venue.name}
+                <CheckCircle className="w-6 h-6 text-blue-400 fill-blue-400" />
+              </h1>
+              <div className="flex items-center gap-3 mt-2 text-white/80 text-sm flex-wrap">
+                <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {venue.city}, España</span>
+                <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {(venue.capacity * 12).toLocaleString()} seguidores</span>
+                <span className="flex items-center gap-1"><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /> {venue.rating} ({venue.reviews})</span>
+                <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> Responde ~ 1 hora</span>
               </div>
-              <StarRating rating={venue.rating} count={venue.reviews} size="md" className="mt-2" />
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="mt-4 p-3 bg-gray-50 rounded-xl flex items-center gap-2 border border-gray-100">
-            <Clock className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-500 text-sm">{venue.openHours}</span>
-          </div>
-
-          <div className="flex gap-3 mt-4">
-            <Button variant="orange" className="flex-1" onClick={handleReserve}>📅 Reservar Espacio</Button>
-            <Button variant="outline" onClick={() => navigate('/chat')}>💬 Contactar</Button>
-          </div>
+      {/* ── ACTION BAR ── */}
+      <div className="sticky top-14 z-30 bg-white border-b border-gray-100 shadow-sm">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+          <button onClick={() => navigate('/chat')}
+            className="btn-orange text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
+            <MessageSquare className="w-4 h-4" /> Chat interno
+          </button>
+          <button onClick={handleReserve}
+            className="btn-outline text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
+            <Calendar className="w-4 h-4" /> Reservar
+          </button>
+          <button onClick={() => {
+            setFollowing(f => !f);
+            addToast({ message: following ? 'Dejaste de seguir' : `¡Ahora sigues a ${venue.name}!`, type: 'success' });
+          }}
+            className={`text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-all ${
+              following ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}>
+            <Bell className="w-4 h-4" /> {following ? 'Siguiendo' : 'Seguir'}
+          </button>
+          <button onClick={() => setLiked(l => !l)}
+            className={`text-sm font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-all ${
+              liked ? 'bg-red-50 text-red-500' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}>
+            <Heart className={`w-4 h-4 ${liked ? 'fill-red-500' : ''}`} />
+          </button>
+          <button onClick={() => { navigator.clipboard.writeText(window.location.href); addToast({ message: 'Enlace copiado', type: 'success' }); }}
+            className="text-sm font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">
+            <Share2 className="w-4 h-4" />
+          </button>
         </div>
 
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-6">
-          {(['info', 'events', 'photos'] as const).map(t => (
-            <button key={t} onClick={() => setActiveTab(t)}
-              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === t ? 'bg-white text-brand-orange shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
-              {t === 'info' ? 'Info' : t === 'events' ? 'Eventos' : 'Fotos'}
+        {/* Tabs */}
+        <div className="max-w-5xl mx-auto px-4 flex items-center gap-1 overflow-x-auto border-t border-gray-50" style={{ scrollbarWidth: 'none' }}>
+          {VENUE_TABS.map(t => (
+            <button key={t.id} onClick={() => setActiveTab(t.id)}
+              className={`flex items-center gap-1.5 px-4 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${
+                activeTab === t.id ? 'border-brand-orange text-brand-orange' : 'border-transparent text-gray-500 hover:text-gray-800'
+              }`}>
+              {t.icon} {t.label}
             </button>
           ))}
         </div>
+      </div>
 
-        {activeTab === 'info' && (
-          <div className="space-y-4">
-            <div className="card-white rounded-2xl p-4">
-              <h3 className="text-gray-900 font-semibold mb-2">Descripción</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">{venue.description}</p>
+      {/* ── TAB CONTENT ── */}
+      <div className="max-w-5xl mx-auto px-4 py-6">
+
+        {activeTab === 'about' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Left column */}
+            <div className="lg:col-span-2 space-y-4">
+              <div className="card-white rounded-2xl p-5">
+                <h3 className="font-display font-bold text-gray-900 mb-3">Biografía</h3>
+                <p className="text-gray-600 leading-relaxed">{venue.description}</p>
+              </div>
+
+              <div className="card-white rounded-2xl p-5">
+                <h3 className="font-display font-bold text-gray-900 mb-3">🎭 Estilo</h3>
+                <p className="text-gray-600">
+                  {venue.type === 'club' ? 'Ambiente nocturno con DJs en vivo y pista de baile profesional' :
+                   venue.type === 'bar' ? 'Espacio acogedor con música en vivo y cocktails tropicales' :
+                   venue.type === 'studio' ? 'Estudio profesional con suelo flotante y espejos' :
+                   venue.type === 'rooftop' ? 'Terraza al aire libre con vistas panorámicas' :
+                   venue.type === 'lounge' ? 'Espacio exclusivo con ambiente premium y VIP' :
+                   'Espacio único para eventos latinos y entretenimiento'}
+                </p>
+              </div>
+
+              <div className="card-white rounded-2xl p-5">
+                <h3 className="font-display font-bold text-gray-900 mb-3">Servicios & Amenities</h3>
+                <div className="flex flex-wrap gap-2">
+                  {venue.amenities.map(a => (
+                    <span key={a} className="bg-orange-50 text-brand-orange border border-orange-100 text-sm font-semibold px-3 py-1 rounded-full">{a}</span>
+                  ))}
+                  <span className="bg-gray-50 text-gray-600 border border-gray-100 text-sm px-3 py-1 rounded-full">Capacidad: {venue.capacity}</span>
+                  <span className="bg-gray-50 text-gray-600 border border-gray-100 text-sm px-3 py-1 rounded-full">{'€'.repeat(venue.priceRange)}</span>
+                </div>
+              </div>
+
+              <div className="card-white rounded-2xl p-5">
+                <h3 className="font-display font-bold text-gray-900 mb-3">🕐 Horario</h3>
+                <div className="flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-brand-orange" />
+                  <span className="text-gray-600 font-medium">{venue.openHours}</span>
+                  <Badge variant={venue.isOpen ? 'green' : 'gray'}>
+                    {venue.isOpen ? 'Abierto' : 'Cerrado'}
+                  </Badge>
+                </div>
+              </div>
             </div>
-            <div className="card-white rounded-2xl p-4">
-              <h3 className="text-gray-900 font-semibold mb-3">Servicios & Amenities</h3>
-              <div className="flex flex-wrap gap-2">
-                {venue.amenities.map(a => (
-                  <span key={a} className="flex items-center gap-1.5 bg-green-50 text-green-700 px-3 py-1.5 rounded-xl text-sm border border-green-100">
-                    <CheckCircle className="w-3.5 h-3.5" /> {a}
-                  </span>
-                ))}
+
+            {/* Right sidebar */}
+            <div className="space-y-4">
+              {/* Social Links */}
+              <div className="card-white rounded-2xl p-5">
+                <h3 className="font-display font-bold text-gray-900 mb-3">🌐 Redes sociales</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  {Object.entries(socials).map(([key, handle]) => (
+                    <a key={key}
+                      href={`https://${key}.com/${handle}`}
+                      target="_blank" rel="noreferrer"
+                      className={`bg-gradient-to-br ${SOCIAL_COLORS[key] || 'from-gray-400 to-gray-600'} text-white aspect-square rounded-xl flex flex-col items-center justify-center gap-0.5 hover:scale-105 transition-transform p-2`}>
+                      <SocialIcon kind={key} />
+                      <span className="text-[9px] font-bold uppercase tracking-wider">{key}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {/* Map (replaces Statistics) */}
+              <div className="card-white rounded-2xl p-5">
+                <h3 className="font-display font-bold text-gray-900 mb-3">📍 Ubicación</h3>
+                <div className="rounded-xl overflow-hidden border border-gray-100">
+                  <iframe
+                    title={`Mapa de ${venue.name}`}
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${venue.lng - 0.01}%2C${venue.lat - 0.008}%2C${venue.lng + 0.01}%2C${venue.lat + 0.008}&layer=mapnik&marker=${venue.lat}%2C${venue.lng}`}
+                    className="w-full h-48 sm:h-56 border-0"
+                    loading="lazy"
+                  />
+                </div>
+                <p className="text-gray-500 text-xs mt-2 flex items-center gap-1">
+                  <MapPin className="w-3 h-3" /> {venue.address}, {venue.city}
+                </p>
+              </div>
+
+              {/* Quick stats */}
+              <div className="card-white rounded-2xl p-5">
+                <h3 className="font-display font-bold text-gray-900 mb-3">📊 Estadísticas</h3>
+                <div className="space-y-3">
+                  {[
+                    { label: 'Eventos realizados', value: (venue.reviews * 3).toString() },
+                    { label: 'Reseñas', value: venue.reviews.toString() },
+                    { label: 'Capacidad máxima', value: venue.capacity.toLocaleString() },
+                    { label: 'Seguidores', value: (venue.capacity * 12).toLocaleString() },
+                  ].map(row => (
+                    <div key={row.label} className="flex justify-between items-center">
+                      <span className="text-gray-500 text-sm">{row.label}</span>
+                      <span className="font-black text-brand-orange">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -185,27 +350,82 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
 
         {activeTab === 'events' && (
           <div className="space-y-3">
-            {[1,2,3].map(i => (
-              <div key={i} className="card-white rounded-2xl p-4 flex gap-4">
-                <div className="w-14 flex-shrink-0 bg-brand-orange rounded-xl flex flex-col items-center justify-center p-2">
-                  <span className="text-white font-black text-xl">{14 + i * 7}</span>
-                  <span className="text-white/80 text-xs">JUN</span>
+            {[
+              { day: '21', month: 'JUN', title: 'Noche de Salsa Cubana', time: '22:00 – 05:00', price: 20 },
+              { day: '28', month: 'JUN', title: 'Bachata Sensual Night', time: '21:00 – 04:00', price: 25 },
+              { day: '05', month: 'JUL', title: 'Festival Latino Summer', time: '20:00 – 06:00', price: 35 },
+              { day: '12', month: 'JUL', title: 'Reggaeton Party', time: '23:00 – 05:00', price: 15 },
+            ].map((ev, i) => (
+              <div key={i} className="card-white rounded-2xl p-4 flex gap-4 hover:shadow-card-hover transition-shadow cursor-pointer">
+                <div className="w-16 flex-shrink-0 bg-brand-orange rounded-xl flex flex-col items-center justify-center p-2">
+                  <span className="text-white font-black text-2xl leading-none">{ev.day}</span>
+                  <span className="text-white/80 text-xs font-bold">{ev.month}</span>
                 </div>
-                <div>
-                  <p className="text-gray-900 font-semibold text-sm">Noche de Salsa #{i}</p>
-                  <p className="text-gray-400 text-xs mt-1">{venue.name} · 22:00 – 05:00</p>
-                  <p className="text-brand-orange text-sm font-bold mt-2">€20</p>
+                <div className="flex-1">
+                  <p className="text-gray-900 font-semibold">{ev.title}</p>
+                  <p className="text-gray-400 text-xs mt-1">{venue.name} · {ev.time}</p>
+                  <p className="text-brand-orange text-sm font-bold mt-2">€{ev.price}</p>
                 </div>
+                <button className="self-center bg-brand-orange text-white px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-brand-orange-dark transition-colors">
+                  🎫 Comprar
+                </button>
               </div>
             ))}
           </div>
         )}
 
-        {activeTab === 'photos' && (
-          <div className="grid grid-cols-3 gap-2">
-            {Array.from({ length: 9 }, (_, i) => (
-              <div key={i} className="aspect-square overflow-hidden rounded-xl">
-                <img src={`https://picsum.photos/seed/${venue.id}${i}/400/400`} alt="" className="w-full h-full object-cover hover:scale-110 transition-transform duration-300" />
+        {activeTab === 'gallery' && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {Array.from({ length: 12 }, (_, i) => (
+              <div key={i} className="aspect-square overflow-hidden rounded-xl group cursor-pointer">
+                <img src={`https://picsum.photos/seed/${venue.id}gal${i}/400/400`} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {activeTab === 'reviews' && (
+          <div className="space-y-4">
+            <div className="card-white rounded-2xl p-5 flex items-center gap-6">
+              <div className="text-center">
+                <p className="font-black text-4xl text-gray-900">{venue.rating}</p>
+                <StarRating rating={venue.rating} count={venue.reviews} size="md" className="mt-1" />
+              </div>
+              <div className="flex-1 space-y-1.5">
+                {[5, 4, 3, 2, 1].map(s => {
+                  const pct = s === 5 ? 68 : s === 4 ? 22 : s === 3 ? 7 : s === 2 ? 2 : 1;
+                  return (
+                    <div key={s} className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 w-3">{s}</span>
+                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${pct}%` }} />
+                      </div>
+                      <span className="text-xs text-gray-400 w-8 text-right">{pct}%</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            {[
+              { name: 'María G.', rating: 5, text: 'Increíble ambiente, la mejor pista de salsa de la ciudad. El DJ es espectacular.', time: 'Hace 2 días' },
+              { name: 'Carlos R.', rating: 4, text: 'Muy buen local, buena música y cocktails. A veces se llena demasiado los sábados.', time: 'Hace 1 semana' },
+              { name: 'Ana P.', rating: 5, text: 'El mejor lugar para bailar bachata. Personal muy amable y precios razonables.', time: 'Hace 2 semanas' },
+            ].map((r, i) => (
+              <div key={i} className="card-white rounded-2xl p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-brand-orange/10 rounded-full flex items-center justify-center text-brand-orange font-bold">{r.name[0]}</div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 text-sm">{r.name}</p>
+                    <p className="text-gray-400 text-xs">{r.time}</p>
+                  </div>
+                  <div className="flex items-center gap-0.5">
+                    {Array.from({ length: r.rating }).map((_, j) => (
+                      <Star key={j} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-gray-600 text-sm">{r.text}</p>
               </div>
             ))}
           </div>
