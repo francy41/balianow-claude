@@ -38,7 +38,8 @@
       "Bash(netlify deploy *)",
       "Bash(netlify login *)",
       "Bash(netlify status *)",
-      "Bash(netlify link *)"
+      "Bash(netlify link *)",
+      "Bash(npm list *)"
     ]
   }
 }
