@@ -39,7 +39,16 @@
       "Bash(netlify login *)",
       "Bash(netlify status *)",
       "Bash(netlify link *)",
-      "Bash(npm list *)"
+      "Bash(npm list *)",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "Bash(where psql *)",
+      "Bash(node supabase/run-schema.mjs)",
+      "Bash(node supabase/run-schema.mjs fix-schema.sql)",
+      "Bash(node supabase/setup-complete.mjs)",
+      "Bash(node supabase/run-schema.mjs fix-columns.sql)",
+      "Bash(node supabase/seed-uuid.mjs)",
+      "Bash(node supabase/fix-services.mjs)",
+      "Bash(node supabase/create-admin.mjs)"
     ]
   }
 }
