@@ -197,6 +197,12 @@ export const useAuthStore = create<AuthState>()(
 // ── SITE CONFIG STORE (hero banner, etc.) ─────────────────────────────────
 export type HeroMediaType = 'image' | 'youtube' | 'video';
 
+export interface HeroSliderImage {
+  id: string;
+  url: string;
+  alt: string;
+}
+
 export interface HeroMedia {
   type: HeroMediaType;
   url: string;
@@ -207,8 +213,10 @@ export interface HeroMedia {
 
 interface SiteConfigState {
   heroMedia: HeroMedia;
+  heroSliderImages: HeroSliderImage[];
   commissions: CommissionConfig;
   setHeroMedia: (media: Partial<HeroMedia>) => void;
+  setHeroSliderImages: (images: HeroSliderImage[]) => void;
   setCommission: (source: CommissionSource, rate: number) => void;
   setDefaultCommission: (rate: number) => void;
   setPremiumDiscount: (rate: number) => void;
@@ -225,9 +233,15 @@ export const useSiteConfigStore = create<SiteConfigState>()(
         muted: true,
         loop: true,
       },
+      heroSliderImages: [
+        { id: '1', url: 'https://picsum.photos/seed/slider-latin1/600/300', alt: 'Bachata Night' },
+        { id: '2', url: 'https://picsum.photos/seed/slider-latin2/600/300', alt: 'Salsa Congress' },
+        { id: '3', url: 'https://picsum.photos/seed/slider-latin3/600/300', alt: 'Latin Festival' },
+      ],
       commissions: DEFAULT_COMMISSIONS,
       setHeroMedia: (media) =>
         set((state) => ({ heroMedia: { ...state.heroMedia, ...media } })),
+      setHeroSliderImages: (images) => set({ heroSliderImages: images }),
       setCommission: (source, rate) =>
         set((state) => ({
           commissions: {
@@ -244,7 +258,7 @@ export const useSiteConfigStore = create<SiteConfigState>()(
     }),
     {
       name: 'ritmolatino-site-config',
-      version: 3,
+      version: 4,
       migrate: () => undefined as any,
     }
   )

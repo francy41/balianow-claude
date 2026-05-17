@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp } from 'lucide-react';
 import { ARTISTS, EVENTS, VENUES } from '../data/mockData';
-import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, PLATFORM_COMMISSION_RATE } from '../store/appStore';
+import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, PLATFORM_COMMISSION_RATE, type HeroSliderImage } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
 import { Avatar, StarRating, SearchBar } from '../components/ui';
 
@@ -64,10 +64,41 @@ const RADIO_STATIONS = [
   },
 ];
 
+// ── HERO SLIDER ──────────────────────────────────────────────────────────
+const HeroSlider: React.FC<{ images: HeroSliderImage[] }> = ({ images }) => {
+  const [current, setCurrent] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval>>();
+
+  useEffect(() => {
+    if (images.length <= 1) return;
+    timerRef.current = setInterval(() => setCurrent(p => (p + 1) % images.length), 3500);
+    return () => clearInterval(timerRef.current);
+  }, [images.length]);
+
+  return (
+    <div className="mt-6 overflow-hidden rounded-xl relative" style={{ height: 80 }}>
+      <div
+        className="flex transition-transform duration-700 ease-in-out h-full"
+        style={{ width: `${images.length * 100}%`, transform: `translateX(-${(current * 100) / images.length}%)` }}
+      >
+        {images.map(img => (
+          <img key={img.id} src={img.url} alt={img.alt} className="h-full object-cover flex-shrink-0" style={{ width: `${100 / images.length}%` }} />
+        ))}
+      </div>
+      <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1.5">
+        {images.map((_, i) => (
+          <button key={i} onClick={() => setCurrent(i)}
+            className={`w-1.5 h-1.5 rounded-full transition-all ${i === current ? 'bg-brand-orange w-4' : 'bg-white/50'}`} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
-  const { heroMedia } = useSiteConfigStore();
+  const { heroMedia, heroSliderImages } = useSiteConfigStore();
   const cmsModules = useCMSStore(s => s.modules);
   const cmsCategories = useCMSStore(s => s.categories);
   const enabled = visibleHomeModules(cmsModules);
@@ -119,6 +150,8 @@ const HomePage: React.FC = () => {
               Ver Artistas
             </button>
           </div>
+          {/* Hero Slider */}
+          {heroSliderImages.length > 0 && <HeroSlider images={heroSliderImages} />}
         </div>
 
         {/* Right media */}
