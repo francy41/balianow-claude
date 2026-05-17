@@ -120,7 +120,7 @@ const ExplorePage: React.FC = () => {
           {(tab === 'all' || tab === 'services') && results.services.length > 0 && (
             <div>
               <SectionHeader title="💼 Servicios" action={tab === 'all' ? { label: 'Ver todos', onClick: () => navigate('/marketplace') } : undefined} />
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {results.services.map(s => (
                   <button key={s.id} onClick={() => navigate(`/marketplace/${s.id}`)}
                     className="card-white rounded-xl overflow-hidden hover:shadow-card-hover transition-all text-left">

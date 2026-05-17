@@ -505,7 +505,7 @@ const HomePage: React.FC = () => {
             Ver Todos <ArrowRight className="w-4 h-4" />
           </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {ARTISTS.slice(0, 6).map(artist => (
             <ArtistCard key={artist.id} artist={artist} onClick={() => navigate(`/artistas/${artist.id}`)} />
           ))}
@@ -524,7 +524,7 @@ const HomePage: React.FC = () => {
             Ver Todos <ArrowRight className="w-4 h-4" />
           </button>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {EVENTS.slice(0, 6).map(event => (
             <EventCard key={event.id} event={event} onClick={() => navigate(`/eventos/${event.id}`)} />
           ))}

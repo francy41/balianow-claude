@@ -13,14 +13,18 @@ import {
 import { Avatar, Badge, Button } from '../components/ui';
 import PaymentMethodsPanel from '../components/PaymentMethodsPanel';
 import ProfileEditModal from '../components/ProfileEditModal';
+import { BuyerTable, QRScanner } from '../components/BuyerManagement';
+import { QrCode, Scan } from 'lucide-react';
 
-type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers';
+type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers' | 'buyers' | 'scanner';
 
 const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'overview', label: 'Resumen',       icon: <LayoutDashboard className="w-4 h-4" /> },
   { id: 'earnings', label: 'Ganancias',     icon: <Wallet className="w-4 h-4" /> },
   { id: 'payouts',  label: 'Cobrar',        icon: <DollarSign className="w-4 h-4" /> },
   { id: 'payments', label: 'Pagar',         icon: <CreditCard className="w-4 h-4" /> },
+  { id: 'buyers',   label: 'Compradores',   icon: <Users className="w-4 h-4" /> },
+  { id: 'scanner',  label: 'Escanear QR',   icon: <QrCode className="w-4 h-4" /> },
   { id: 'courses',  label: 'Cursos',        icon: <BookOpen className="w-4 h-4" /> },
   { id: 'calendar', label: 'Calendario',    icon: <CalIcon className="w-4 h-4" /> },
   { id: 'classes',  label: 'Clases Online', icon: <Video className="w-4 h-4" /> },
@@ -138,6 +142,26 @@ const DashboardPage: React.FC = () => {
             {tab === 'calendar' && <CalendarTab performerId={performerId} />}
             {tab === 'classes'  && <ClassesTab  performerId={performerId} />}
             {tab === 'offers'   && <OffersTab   performerId={performerId} />}
+            {tab === 'buyers'   && (
+              <div>
+                <h2 className="font-display font-black text-xl text-gray-900 mb-1">👥 Compradores y Reservas</h2>
+                <p className="text-gray-400 text-sm mb-4">Gestiona los compradores de tus eventos</p>
+                <div className="mb-4">
+                  <select className="px-3 py-2 rounded-xl border border-gray-200 text-sm bg-white">
+                    <option value="e1">Salsa & Bachata Night — Gran Gala</option>
+                    <option value="e3">Festival Latino BCN 2026</option>
+                  </select>
+                </div>
+                <BuyerTable eventId="e1" />
+              </div>
+            )}
+            {tab === 'scanner'  && (
+              <div>
+                <h2 className="font-display font-black text-xl text-gray-900 mb-1">📷 Escanear Entradas</h2>
+                <p className="text-gray-400 text-sm mb-4">Valida tickets QR en la puerta del evento</p>
+                <QRScanner eventId="e1" />
+              </div>
+            )}
           </>
         ) : (
           <FanDashboard userId={user.id} userName={user.name} />
