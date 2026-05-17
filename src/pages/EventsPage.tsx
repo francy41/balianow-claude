@@ -1,22 +1,49 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { MapPin, Clock, Users, Calendar, ArrowLeft } from 'lucide-react';
-import { EVENTS } from '../data/mockData';
-import { Badge, SearchBar, FilterChips, EmptyState, Button } from '../components/ui';
-import { useAuthStore, useUIStore } from '../store/appStore';
+import {
+  MapPin, Clock, Users, Calendar, ArrowLeft, Star, MessageSquare,
+  Bell, Heart, Share2, CheckCircle, Music2, Instagram, Youtube,
+  Facebook, Globe, Headphones, Video, Ticket, Play, ChevronRight,
+} from 'lucide-react';
+import { EVENTS, ARTISTS, VENUES } from '../data/mockData';
+import type { Artist } from '../data/mockData';
+import { Badge, StarRating, SearchBar, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
+import { useAuthStore, useUIStore, getYouTubeId } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
 
 const CATEGORIES = ['Todos', 'Salsa', 'Bachata', 'Festival', 'Masterclass', 'Online', 'Reggaeton', 'Timba'];
 const CITIES = ['Todas', 'Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'Online'];
 
-/* ── Router wrapper — prevents React #300 ─────────────────────────── */
+// ── Event featured videos (mock) ──
+const EVENT_VIDEOS: Record<string, { url: string; title: string }> = {
+  e1: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Marley y Leo Bailando Bachata Sensual En Madrid' },
+  e2: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Masterclass Bachata Sensual — Preview' },
+  e3: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Festival Latino BCN 2025 — Aftermovie' },
+  e5: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Noche de Timba — La Clave Paris' },
+  e6: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Bachata & Reggaeton Open Air Sevilla' },
+};
+
+// ── Event gallery (mock) ──
+const eventGallery = (eventId: string) =>
+  Array.from({ length: 8 }, (_, i) => ({
+    id: `${eventId}-g${i}`,
+    url: `https://picsum.photos/seed/${eventId}gal${i}/600/400`,
+    title: `Foto ${i + 1}`,
+    isVideo: i === 0 || i === 3,
+  }));
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ROUTER WRAPPER — prevents React #300
+   ══════════════════════════════════════════════════════════════════════════ */
 const EventsPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   if (id) return <EventDetail eventId={id} />;
   return <EventsList />;
 };
 
-/* ── List view — 4-column grid like Venues ────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   LIST VIEW — 4-column grid like Venues
+   ══════════════════════════════════════════════════════════════════════════ */
 const EventsList: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
@@ -84,7 +111,9 @@ const EventsList: React.FC = () => {
   );
 };
 
-/* ── Card — vertical style matching Venues ────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   CARD — vertical style matching Venues
+   ══════════════════════════════════════════════════════════════════════════ */
 const EventCard: React.FC<{
   event: typeof EVENTS[0];
   onClick: () => void;
@@ -94,20 +123,19 @@ const EventCard: React.FC<{
   const day = dateObj.toLocaleDateString('es-ES', { day: '2-digit' });
   const month = dateObj.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase();
   const pct = Math.round((event.attending / event.capacity) * 100);
+  const linkedArtists = ARTISTS.filter(a => event.artists.includes(a.id));
 
   return (
     <div onClick={onClick} className="card-white overflow-hidden cursor-pointer hover:shadow-card-hover hover:scale-[1.02] transition-all duration-300">
       <div className="relative h-44 overflow-hidden">
         <img src={event.cover} alt={event.title} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        {/* Date badge */}
         <div className="absolute top-2 right-2 bg-brand-orange rounded-xl px-2.5 py-1.5 flex flex-col items-center">
           <span className="text-white font-black text-lg leading-none">{day}</span>
           <span className="text-white/80 text-[10px] font-bold">{month}</span>
         </div>
         {event.isFeatured && <Badge variant="orange" className="absolute top-2 left-2">⭐ Destacado</Badge>}
         {event.isOnline && <Badge variant="blue" className="absolute bottom-2 left-2">🌐 Online</Badge>}
-        {/* Capacity bar */}
         <div className="absolute bottom-2 right-2 flex items-center gap-1">
           <div className="w-16 h-1.5 bg-white/30 rounded-full overflow-hidden">
             <div className={`h-full rounded-full ${pct > 80 ? 'bg-red-400' : 'bg-emerald-400'}`} style={{ width: `${pct}%` }} />
@@ -122,9 +150,22 @@ const EventCard: React.FC<{
           <span className="mx-1">·</span>
           <Clock className="w-3 h-3" /> {event.time}
         </div>
-        <div className="flex items-center gap-1 text-gray-400 text-xs mt-1">
-          <Users className="w-3 h-3" /> {event.attending}/{event.capacity}
-        </div>
+        {/* Linked artist avatars */}
+        {linkedArtists.length > 0 && (
+          <div className="flex items-center gap-1 mt-2">
+            <div className="flex -space-x-2">
+              {linkedArtists.slice(0, 3).map(a => (
+                <img key={a.id} src={a.avatar} alt={a.name} title={a.name}
+                  className="w-6 h-6 rounded-full border-2 border-white object-cover" />
+              ))}
+            </div>
+            <span className="text-[10px] text-gray-400 ml-1">
+              {linkedArtists.length <= 2
+                ? linkedArtists.map(a => a.name).join(', ')
+                : `${linkedArtists[0].name} +${linkedArtists.length - 1}`}
+            </span>
+          </div>
+        )}
         <div className="flex gap-1 flex-wrap mt-2">
           {event.category.slice(0, 2).map(c => (
             <span key={c} className="text-[10px] bg-orange-50 text-brand-orange px-2 py-0.5 rounded-full font-medium">{c}</span>
@@ -147,72 +188,534 @@ const EventCard: React.FC<{
   );
 };
 
-/* ── Detail view ──────────────────────────────────────────────────── */
+/* ══════════════════════════════════════════════════════════════════════════
+   DETAIL VIEW — Premium artist-profile style
+   ══════════════════════════════════════════════════════════════════════════ */
+const EVENT_TABS_PHYSICAL = [
+  { id: 'info' as const,    label: 'Sobre el evento', icon: '📍' },
+  { id: 'artists' as const, label: 'Artistas',        icon: '🎶' },
+  { id: 'gallery' as const, label: 'Galería',         icon: '📸' },
+  { id: 'reviews' as const, label: 'Reseñas',         icon: '⭐' },
+];
+
 const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
   const event = EVENTS.find(e => e.id === eventId) || EVENTS[0];
+  const [activeTab, setActiveTab] = useState<'info' | 'artists' | 'gallery' | 'reviews'>('info');
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [following, setFollowing] = useState(false);
+  const [liked, setLiked] = useState(false);
 
   const dateObj = new Date(event.date);
   const pct = Math.round((event.attending / event.capacity) * 100);
+  const linkedArtists = ARTISTS.filter(a => event.artists.includes(a.id));
+  const venue = VENUES.find(v => v.id === event.venueId);
+  const video = EVENT_VIDEOS[event.id];
 
   const handleBuy = () => {
     if (!isAuthenticated) { navigate('/auth'); return; }
     setBookingOpen(true);
   };
 
+  const tabs = event.isOnline
+    ? [{ id: 'info' as const, label: 'Información', icon: '📍' }, { id: 'artists' as const, label: 'Artistas', icon: '🎶' }]
+    : EVENT_TABS_PHYSICAL;
+
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
-      <div className="relative h-72 overflow-hidden">
+      {/* ── HERO BANNER ── */}
+      <section className="relative h-72 sm:h-[420px] overflow-hidden">
         <img src={event.cover} alt={event.title} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent" />
-        <button onClick={() => navigate('/eventos')} className="absolute top-6 left-4 bg-white/90 text-gray-700 text-sm px-3 py-1.5 rounded-xl hover:bg-white font-medium flex items-center gap-1">
-          <ArrowLeft className="w-4 h-4" /> Volver
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/50 to-black/20" />
+
+        <button onClick={() => navigate('/eventos')}
+          className="absolute top-4 left-4 bg-white/90 hover:bg-white text-gray-800 text-sm px-3 py-1.5 rounded-xl font-semibold transition-colors backdrop-blur-md z-10">
+          ← Volver
         </button>
-        {event.isFeatured && <Badge variant="orange" className="absolute top-6 right-4">⭐ Destacado</Badge>}
+
+        {/* Date badge top right */}
+        <div className="absolute top-4 right-4 bg-brand-orange rounded-2xl px-4 py-2 flex flex-col items-center shadow-lg z-10">
+          <span className="text-white font-black text-2xl leading-none">
+            {dateObj.toLocaleDateString('es-ES', { day: '2-digit' })}
+          </span>
+          <span className="text-white/80 text-xs font-bold uppercase">
+            {dateObj.toLocaleDateString('es-ES', { month: 'short' })}
+          </span>
+        </div>
+
+        {/* Hero info overlay */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-8">
+          <div className="max-w-5xl mx-auto">
+            {/* Category tags */}
+            <div className="flex items-center gap-2 mb-3 flex-wrap">
+              {event.category.slice(0, 3).map(c => (
+                <span key={c} className="bg-brand-orange/90 text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded">{c}</span>
+              ))}
+              {event.isPremium && (
+                <span className="bg-yellow-400 text-yellow-900 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded">⭐ Premium</span>
+              )}
+              {event.isOnline && (
+                <span className="bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded">🌐 Online</span>
+              )}
+            </div>
+
+            <h1 className="font-display font-black text-3xl sm:text-4xl lg:text-5xl text-white leading-tight mb-3">
+              {event.title}
+            </h1>
+
+            <div className="flex items-center gap-4 text-white/80 text-sm flex-wrap">
+              <span className="flex items-center gap-1.5">
+                <Calendar className="w-4 h-4" />
+                {dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Clock className="w-4 h-4" /> {event.time} – {event.endTime}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <MapPin className="w-4 h-4" /> {event.isOnline ? 'Online' : `${event.venueName}, ${event.city}`}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Users className="w-4 h-4" /> {event.attending.toLocaleString()}/{event.capacity.toLocaleString()}
+              </span>
+            </div>
+
+            {/* Artist avatars in hero */}
+            {linkedArtists.length > 0 && (
+              <div className="flex items-center gap-3 mt-4">
+                <div className="flex -space-x-3">
+                  {linkedArtists.slice(0, 5).map(a => (
+                    <img key={a.id} src={a.avatar} alt={a.name}
+                      className="w-10 h-10 rounded-full border-3 border-white/30 object-cover hover:scale-110 transition-transform cursor-pointer"
+                      onClick={(e) => { e.stopPropagation(); navigate(`/artistas/${a.id}`); }}
+                      title={a.name}
+                    />
+                  ))}
+                </div>
+                <span className="text-white/70 text-sm">
+                  {linkedArtists.map(a => a.name).join(' · ')}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── STICKY ACTION BAR ── */}
+      <div className="sticky top-14 z-30 bg-white border-b border-gray-100 shadow-sm">
+        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+          <button onClick={handleBuy}
+            className="btn-orange text-sm py-2 px-5 flex items-center gap-1.5 whitespace-nowrap">
+            <Ticket className="w-4 h-4" /> Comprar Ticket — €{event.price}
+          </button>
+          <button onClick={() => navigate('/chat')}
+            className="btn-outline text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
+            <MessageSquare className="w-4 h-4" /> Contactar
+          </button>
+          <button onClick={() => {
+            setFollowing(f => !f);
+            addToast({ message: following ? 'Dejaste de seguir' : '¡Evento guardado!', type: 'success' });
+          }}
+            className={`text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-all ${
+              following ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}>
+            <Bell className="w-4 h-4" /> {following ? 'Guardado' : 'Guardar'}
+          </button>
+          <button onClick={() => setLiked(l => !l)}
+            className={`text-sm font-bold py-2 px-3 rounded-lg whitespace-nowrap transition-all ${
+              liked ? 'bg-red-50 text-red-500' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}>
+            <Heart className={`w-4 h-4 ${liked ? 'fill-red-500' : ''}`} />
+          </button>
+          <button onClick={() => { navigator.clipboard.writeText(window.location.href); addToast({ message: 'Enlace copiado', type: 'success' }); }}
+            className="text-sm font-bold py-2 px-3 rounded-lg whitespace-nowrap bg-gray-100 text-gray-700 hover:bg-gray-200">
+            <Share2 className="w-4 h-4" />
+          </button>
+
+          {/* Capacity bar in action bar */}
+          <div className="hidden md:flex ml-auto items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg">
+            <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className={`h-full rounded-full ${pct > 80 ? 'bg-red-500' : 'bg-brand-orange'}`} style={{ width: `${pct}%` }} />
+            </div>
+            <span className="text-xs font-bold text-gray-600">{pct}% vendido</span>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="max-w-5xl mx-auto px-4 flex items-center gap-1 overflow-x-auto border-t border-gray-50" style={{ scrollbarWidth: 'none' }}>
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setActiveTab(t.id as typeof activeTab)}
+              className={`flex items-center gap-1.5 px-4 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${
+                activeTab === t.id ? 'border-brand-orange text-brand-orange' : 'border-transparent text-gray-500 hover:text-gray-800'
+              }`}>
+              {t.icon} {t.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 -mt-16 relative">
-        <div className="bg-white rounded-3xl p-6 mb-6 shadow-card-hover border border-gray-100">
-          <h1 className="font-display font-black text-2xl text-gray-900">{event.title}</h1>
+      {/* ── TAB CONTENT ── */}
+      <div className="max-w-5xl mx-auto px-4 py-6">
 
-          <div className="flex items-center gap-4 mt-3 text-gray-400 text-sm flex-wrap">
-            <span className="flex items-center gap-1"><Calendar className="w-4 h-4" /> {dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
-            <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> {event.time}</span>
-            <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {event.isOnline ? 'Online' : `${event.venueName}, ${event.city}`}</span>
-          </div>
-
-          <div className="flex items-center gap-3 mt-4">
-            <div className="flex items-center gap-2 flex-1">
-              <Users className="w-4 h-4 text-gray-400" />
-              <div className="flex-1 h-2 bg-gray-100 rounded-full">
-                <div className={`h-full rounded-full ${pct > 80 ? 'bg-red-500' : 'bg-brand-orange'}`} style={{ width: `${pct}%` }} />
+        {/* ═══ INFO TAB ═══ */}
+        {activeTab === 'info' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Left column */}
+            <div className="lg:col-span-2 space-y-4">
+              {/* Description */}
+              <div className="card-white rounded-2xl p-5">
+                <h3 className="font-display font-bold text-gray-900 mb-3">Descripción</h3>
+                <p className="text-gray-600 leading-relaxed">{event.description}</p>
               </div>
-              <span className="text-gray-500 text-sm font-medium">{event.attending}/{event.capacity}</span>
+
+              {/* Event details card */}
+              <div className="card-white rounded-2xl p-5">
+                <h3 className="font-display font-bold text-gray-900 mb-4">📋 Detalles del evento</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Calendar className="w-5 h-5 text-brand-orange" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 font-medium">Fecha</p>
+                      <p className="text-gray-900 font-semibold text-sm">
+                        {dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Clock className="w-5 h-5 text-blue-500" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 font-medium">Horario</p>
+                      <p className="text-gray-900 font-semibold text-sm">{event.time} – {event.endTime}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-5 h-5 text-green-500" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 font-medium">Lugar</p>
+                      <p className="text-gray-900 font-semibold text-sm">{event.venueName}</p>
+                      <p className="text-gray-400 text-xs">{event.city}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Ticket className="w-5 h-5 text-purple-500" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 font-medium">Precio</p>
+                      <p className="text-gray-900 font-semibold text-sm">€{event.price}</p>
+                      <p className="text-gray-400 text-xs">{event.attending}/{event.capacity} asistentes</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Linked Artists — compact row */}
+              {linkedArtists.length > 0 && (
+                <div className="card-white rounded-2xl p-5">
+                  <h3 className="font-display font-bold text-gray-900 mb-4">🎤 Artistas & Bailarines confirmados</h3>
+                  <div className="space-y-3">
+                    {linkedArtists.map(artist => (
+                      <div key={artist.id}
+                        onClick={() => navigate(`/artistas/${artist.id}`)}
+                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-orange-50 cursor-pointer transition-colors group">
+                        <img src={artist.avatar} alt={artist.name} className="w-12 h-12 rounded-xl object-cover ring-2 ring-brand-orange/20 group-hover:ring-brand-orange/50 transition-all" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-gray-900 text-sm">{artist.name}</span>
+                            {artist.isVerified && <CheckCircle className="w-3.5 h-3.5 text-blue-400 fill-blue-400" />}
+                            {artist.isPremium && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-bold">PRO</span>}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-gray-400">
+                            <span className="capitalize">{artist.type === 'dj' ? 'DJ' : artist.type === 'dancer' ? 'Bailarín/a' : artist.type === 'band' ? 'Banda' : artist.type === 'singer' ? 'Cantante' : 'Instructor/a'}</span>
+                            <span>·</span>
+                            <span className="flex items-center gap-0.5"><Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> {artist.rating}</span>
+                            <span>·</span>
+                            <span>{artist.genre.slice(0, 2).join(', ')}</span>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-brand-orange transition-colors" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tags */}
+              <div className="card-white rounded-2xl p-5">
+                <h3 className="font-display font-bold text-gray-900 mb-3">Categorías & Tags</h3>
+                <div className="flex flex-wrap gap-2">
+                  {event.category.map(c => (
+                    <span key={c} className="bg-orange-50 text-brand-orange border border-orange-100 text-sm font-semibold px-3 py-1 rounded-full">{c}</span>
+                  ))}
+                  {event.isOnline && <span className="bg-blue-50 text-blue-600 border border-blue-100 text-sm font-semibold px-3 py-1 rounded-full">Online</span>}
+                  {event.isPremium && <span className="bg-yellow-50 text-yellow-700 border border-yellow-100 text-sm font-semibold px-3 py-1 rounded-full">Premium</span>}
+                </div>
+              </div>
+
+              {/* YouTube Video */}
+              {video && (() => {
+                const ytId = getYouTubeId(video.url);
+                if (!ytId) return null;
+                return (
+                  <div className="card-white rounded-2xl overflow-hidden">
+                    <div className="p-5 pb-3 flex items-center justify-between">
+                      <h3 className="font-display font-bold text-gray-900 flex items-center gap-2">
+                        🎬 Vídeo destacado
+                      </h3>
+                      <a href={video.url} target="_blank" rel="noreferrer"
+                        className="text-[10px] text-red-500 font-bold hover:underline flex items-center gap-1">
+                        Ver en YouTube ↗
+                      </a>
+                    </div>
+                    <div className="bg-black aspect-video">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${ytId}?modestbranding=1&rel=0`}
+                        title={video.title}
+                        className="w-full h-full"
+                        allow="encrypted-media; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                    <div className="px-5 py-3 border-t border-gray-100">
+                      <p className="text-sm font-semibold text-gray-900">{video.title}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{event.title} · YouTube</p>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Right sidebar */}
+            <div className="space-y-4">
+              {/* Ticket CTA card */}
+              <div className="card-white rounded-2xl p-5 border-2 border-brand-orange/20">
+                <div className="text-center mb-4">
+                  <p className="text-3xl font-black text-brand-orange">€{event.price}</p>
+                  <p className="text-gray-400 text-xs mt-1">por persona</p>
+                </div>
+                <div className="space-y-2 mb-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Disponibilidad</span>
+                    <span className={`font-bold ${pct > 80 ? 'text-red-500' : 'text-green-600'}`}>
+                      {pct > 90 ? '¡Últimas plazas!' : pct > 70 ? 'Pocas plazas' : 'Disponible'}
+                    </span>
+                  </div>
+                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className={`h-full rounded-full transition-all ${pct > 80 ? 'bg-red-500' : 'bg-brand-orange'}`} style={{ width: `${pct}%` }} />
+                  </div>
+                  <p className="text-xs text-gray-400 text-right">{event.attending}/{event.capacity} asistentes</p>
+                </div>
+                <Button variant="orange" className="w-full" onClick={handleBuy}>
+                  🎫 Comprar Ticket
+                </Button>
+              </div>
+
+              {/* Map (physical events only) */}
+              {!event.isOnline && event.lat !== 0 && (
+                <div className="card-white rounded-2xl p-5">
+                  <h3 className="font-display font-bold text-gray-900 mb-3">📍 Ubicación</h3>
+                  <div className="rounded-xl overflow-hidden border border-gray-100">
+                    <iframe
+                      title={`Mapa de ${event.venueName}`}
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${event.lng - 0.015}%2C${event.lat - 0.01}%2C${event.lng + 0.015}%2C${event.lat + 0.01}&layer=mapnik&marker=${event.lat}%2C${event.lng}`}
+                      className="w-full h-48 border-0"
+                      loading="lazy"
+                    />
+                  </div>
+                  {venue && (
+                    <button onClick={() => navigate(`/venues/${venue.id}`)}
+                      className="w-full mt-3 flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-orange-50 cursor-pointer transition-colors group">
+                      <img src={venue.avatar} alt={venue.name} className="w-10 h-10 rounded-lg object-cover" />
+                      <div className="flex-1 text-left">
+                        <p className="font-semibold text-gray-900 text-sm">{venue.name}</p>
+                        <p className="text-gray-400 text-xs capitalize">{venue.type} · {venue.city}</p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-gray-300" />
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Gallery preview */}
+              <div className="card-white rounded-2xl p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-display font-bold text-gray-900">📸 Galería</h3>
+                  <button onClick={() => setActiveTab('gallery')} className="text-[10px] text-brand-orange font-bold hover:underline">
+                    Ver todo ↗
+                  </button>
+                </div>
+                <div className="grid grid-cols-4 gap-1.5">
+                  {eventGallery(event.id).slice(0, 4).map((img, i) => (
+                    <div key={i} className="aspect-square rounded-lg overflow-hidden relative group cursor-pointer">
+                      <img src={img.url} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                      {img.isVideo && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <Play className="w-5 h-5 text-white fill-white" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quick stats */}
+              <div className="card-white rounded-2xl p-5">
+                <h3 className="font-display font-bold text-gray-900 mb-3">📊 Estadísticas</h3>
+                <div className="space-y-3">
+                  {[
+                    { label: 'Asistentes confirmados', value: event.attending.toLocaleString() },
+                    { label: 'Artistas confirmados', value: linkedArtists.length.toString() },
+                    { label: 'Categorías', value: event.category.length.toString() },
+                    { label: 'Interesados', value: Math.round(event.attending * 1.8).toLocaleString() },
+                  ].map(row => (
+                    <div key={row.label} className="flex justify-between items-center">
+                      <span className="text-gray-500 text-sm">{row.label}</span>
+                      <span className="font-black text-brand-orange">{row.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
+        )}
 
-          <div className="flex gap-2 flex-wrap mt-4">
-            {event.category.map(c => (
-              <span key={c} className="text-xs bg-orange-50 text-brand-orange px-3 py-1 rounded-full font-medium">{c}</span>
+        {/* ═══ ARTISTS TAB ═══ */}
+        {activeTab === 'artists' && (
+          <div className="space-y-4">
+            <p className="text-gray-400 text-sm">{linkedArtists.length} artistas confirmados para este evento</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {linkedArtists.map(artist => (
+                <div key={artist.id}
+                  onClick={() => navigate(`/artistas/${artist.id}`)}
+                  className="card-white rounded-2xl overflow-hidden cursor-pointer hover:shadow-card-hover hover:scale-[1.02] transition-all duration-300">
+                  <div className="relative h-36 overflow-hidden">
+                    <img src={artist.cover} alt={artist.name} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                    {artist.isLive && (
+                      <Badge variant="red" className="absolute top-2 left-2 animate-pulse">🔴 EN VIVO</Badge>
+                    )}
+                    <div className="absolute bottom-3 left-3 flex items-center gap-3">
+                      <img src={artist.avatar} alt={artist.name} className="w-14 h-14 rounded-xl border-2 border-white/40 object-cover" />
+                      <div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-white font-bold">{artist.name}</span>
+                          {artist.isVerified && <CheckCircle className="w-4 h-4 text-blue-400 fill-blue-400" />}
+                        </div>
+                        <span className="text-white/70 text-xs capitalize">{artist.type === 'dj' ? 'DJ' : artist.type === 'dancer' ? 'Bailarín/a' : artist.type === 'band' ? 'Banda' : artist.type}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                      <span className="flex items-center gap-0.5"><Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> {artist.rating} ({artist.reviews})</span>
+                      <span>·</span>
+                      <span>{artist.city}</span>
+                      <span>·</span>
+                      <span>{artist.followers.toLocaleString()} seguidores</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {artist.genre.slice(0, 3).map(g => (
+                        <span key={g} className="text-[10px] bg-orange-50 text-brand-orange px-2 py-0.5 rounded-full font-medium">{g}</span>
+                      ))}
+                    </div>
+                    <button className="w-full mt-3 btn-outline text-xs py-2 flex items-center justify-center gap-1.5">
+                      Ver perfil <ChevronRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {linkedArtists.length === 0 && (
+              <EmptyState icon="🎤" title="Sin artistas confirmados" description="Los artistas se publicarán pronto" />
+            )}
+          </div>
+        )}
+
+        {/* ═══ GALLERY TAB ═══ */}
+        {activeTab === 'gallery' && (
+          <div>
+            <p className="text-gray-400 text-sm mb-4">Fotos y vídeos del evento</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {eventGallery(event.id).map((img, i) => (
+                <div key={i} className="aspect-square rounded-xl overflow-hidden relative group cursor-pointer">
+                  <img src={img.url} alt={img.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                  {img.isVideo && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/50 transition-colors">
+                      <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center">
+                        <Play className="w-6 h-6 text-gray-900 fill-gray-900 ml-0.5" />
+                      </div>
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="text-white text-xs font-medium">{img.title}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ═══ REVIEWS TAB ═══ */}
+        {activeTab === 'reviews' && (
+          <div className="space-y-4">
+            <div className="card-white rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-6">
+              <div className="text-center">
+                <p className="font-black text-5xl text-gray-900">4.8</p>
+                <div className="flex items-center gap-0.5 mt-1 justify-center">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className={`w-4 h-4 ${i < 5 ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} />
+                  ))}
+                </div>
+                <p className="text-gray-400 text-xs mt-1">{event.attending} asistentes</p>
+              </div>
+              <div className="flex-1 w-full space-y-1.5">
+                {[
+                  { stars: 5, pct: 72 }, { stars: 4, pct: 18 },
+                  { stars: 3, pct: 6 },  { stars: 2, pct: 3 }, { stars: 1, pct: 1 },
+                ].map(r => (
+                  <div key={r.stars} className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400 w-3">{r.stars}</span>
+                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${r.pct}%` }} />
+                    </div>
+                    <span className="text-xs text-gray-400 w-8 text-right">{r.pct}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {[
+              { name: 'Laura M.', rating: 5, text: 'Increíble noche. Los artistas estuvieron geniales y el ambiente fue espectacular. Sin duda repetiré.', time: 'Hace 3 días', avatar: 'L' },
+              { name: 'Pablo S.', rating: 5, text: 'Mejor evento de salsa al que he ido en Madrid. La organización perfecta y el DJ increíble.', time: 'Hace 1 semana', avatar: 'P' },
+              { name: 'Sofia K.', rating: 4, text: 'Muy bueno, pero se llenó mucho. Recomiendo llegar temprano. La música excelente.', time: 'Hace 2 semanas', avatar: 'S' },
+            ].map((r, i) => (
+              <div key={i} className="card-white rounded-2xl p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-brand-orange/10 rounded-full flex items-center justify-center text-brand-orange font-bold">{r.avatar}</div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-900 text-sm">{r.name}</p>
+                    <p className="text-gray-400 text-xs">{r.time}</p>
+                  </div>
+                  <div className="flex items-center gap-0.5">
+                    {Array.from({ length: r.rating }).map((_, j) => (
+                      <Star key={j} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                </div>
+                <p className="text-gray-600 text-sm leading-relaxed">{r.text}</p>
+              </div>
             ))}
-            {event.isOnline && <Badge variant="blue">🌐 Online</Badge>}
           </div>
-
-          <div className="flex gap-3 mt-6">
-            <Button variant="orange" className="flex-1" onClick={handleBuy}>
-              🎫 Comprar Ticket — €{event.price}
-            </Button>
-            <Button variant="outline" onClick={() => navigate('/chat')}>💬 Contactar</Button>
-          </div>
-        </div>
-
-        <div className="card-white rounded-2xl p-4">
-          <h3 className="text-gray-900 font-semibold mb-2">Descripción</h3>
-          <p className="text-gray-500 text-sm leading-relaxed">{event.description}</p>
-        </div>
+        )}
       </div>
 
       <BookingModal
@@ -223,7 +726,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
         source="booking"
         defaultConcept={`Ticket: ${event.title}`}
         defaultPrice={event.price}
-        helperText={`${event.isOnline ? 'Online' : event.city} · ${event.time}`}
+        helperText={`${event.isOnline ? 'Online' : event.city} · ${event.time} – ${event.endTime}`}
       />
     </div>
   );
