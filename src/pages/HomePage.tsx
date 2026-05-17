@@ -428,6 +428,34 @@ const HomePage: React.FC = () => {
       </section>
       )}
 
+      {/* ── LOCALIDADES ── */}
+      <section className="mx-4 mt-10">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-display font-black text-lg text-gray-900">📍 Localidades</h2>
+          <button onClick={() => navigate('/venues')} className="text-brand-orange text-sm font-semibold flex items-center gap-1">
+            Ver más <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {VENUES.slice(0, 5).map(v => (
+            <button key={v.id} onClick={() => navigate(`/venues/${v.id}`)}
+              className="card-white rounded-xl overflow-hidden text-left hover:shadow-card-hover transition-all">
+              <img src={v.cover} alt={v.name} className="w-full h-24 object-cover" />
+              <div className="p-3">
+                <p className="text-gray-900 font-semibold text-xs truncate">{v.name}</p>
+                <p className="text-gray-400 text-[10px] flex items-center gap-1 mt-0.5">
+                  <MapPin className="w-3 h-3" />{v.city}
+                </p>
+                <div className="flex items-center gap-1 mt-1">
+                  <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                  <span className="text-xs text-gray-600 font-medium">{v.rating}</span>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+
       {/* ── DONDE SALIR A BAILAR EN LA CIUDAD ── */}
       {isModuleOn('cities') && (
       <section className="mx-4 mt-10">
