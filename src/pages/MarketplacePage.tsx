@@ -88,7 +88,7 @@ const MarketplacePage: React.FC = () => {
             <EmptyState icon="💼" title="No hay servicios" description="Prueba con otros filtros"
               action={<button onClick={() => { setSearch(''); setSelectedCat(['Todos']); }} className="btn-outline text-sm">Limpiar</button>} />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {filtered.map(service => (
                 <ServiceCard key={service.id} service={service} onClick={() => navigate(`/marketplace/${service.id}`)} />
               ))}

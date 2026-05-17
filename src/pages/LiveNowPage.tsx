@@ -225,7 +225,7 @@ const LiveNowPage: React.FC = () => {
         </div>
 
         {/* ── TRENDING GRID ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-10">
           {filtered.map((stream, idx) => (
             <button key={stream.id} onClick={() => setActiveStream(stream)}
               className="card-white rounded-2xl overflow-hidden text-left group hover:shadow-lg transition-all">

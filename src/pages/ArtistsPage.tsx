@@ -107,7 +107,7 @@ const ArtistsPage: React.FC = () => {
               action={<button onClick={() => { setSearch(''); setSelectedType(['Todos']); setSelectedGenre(['Todos']); }} className="btn-outline text-sm">Limpiar filtros</button>}
             />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {filtered.map(artist => (
                 <ArtistCard key={artist.id} artist={artist} onClick={() => navigate(`/artistas/${artist.id}`)} />
               ))}

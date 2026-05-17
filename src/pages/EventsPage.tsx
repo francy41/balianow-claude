@@ -10,6 +10,8 @@ import type { Artist } from '../data/mockData';
 import { Badge, StarRating, SearchBar, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
 import { useAuthStore, useUIStore, getYouTubeId } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
+import { VenueSectionsSelector } from '../components/VenueSections';
+import { useTicketStore } from '../store/ticketStore';
 
 const CATEGORIES = ['Todos', 'Salsa', 'Bachata', 'Festival', 'Masterclass', 'Online', 'Reggaeton', 'Timba'];
 const CITIES = ['Todas', 'Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'Online'];
@@ -97,7 +99,7 @@ const EventsList: React.FC = () => {
             <EmptyState icon="🎉" title="No hay eventos" description="Prueba con otros filtros o ciudades"
               action={<button onClick={() => { setSearch(''); setSelectedCat(['Todos']); setSelectedCity(['Todas']); }} className="btn-outline text-sm">Limpiar filtros</button>} />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {filtered.map(event => (
                 <EventCard key={event.id} event={event}
                   onClick={() => navigate(`/eventos/${event.id}`)}
@@ -192,10 +194,11 @@ const EventCard: React.FC<{
    DETAIL VIEW — Premium artist-profile style
    ══════════════════════════════════════════════════════════════════════════ */
 const EVENT_TABS_PHYSICAL = [
-  { id: 'info' as const,    label: 'Sobre el evento', icon: '📍' },
-  { id: 'artists' as const, label: 'Artistas',        icon: '🎶' },
-  { id: 'gallery' as const, label: 'Galería',         icon: '📸' },
-  { id: 'reviews' as const, label: 'Reseñas',         icon: '⭐' },
+  { id: 'info' as const,     label: 'Sobre el evento', icon: '📍' },
+  { id: 'sections' as const, label: 'Localidades',     icon: '🎫' },
+  { id: 'artists' as const,  label: 'Artistas',        icon: '🎶' },
+  { id: 'gallery' as const,  label: 'Galería',         icon: '📸' },
+  { id: 'reviews' as const,  label: 'Reseñas',         icon: '⭐' },
 ];
 
 const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
@@ -203,7 +206,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
   const { isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
   const event = EVENTS.find(e => e.id === eventId) || EVENTS[0];
-  const [activeTab, setActiveTab] = useState<'info' | 'artists' | 'gallery' | 'reviews'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'sections' | 'artists' | 'gallery' | 'reviews'>('info');
   const [bookingOpen, setBookingOpen] = useState(false);
   const [following, setFollowing] = useState(false);
   const [liked, setLiked] = useState(false);
@@ -583,6 +586,22 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ═══ SECTIONS / LOCALIDADES TAB ═══ */}
+        {activeTab === 'sections' && !event.isOnline && (
+          <div className="space-y-4">
+            <div className="card-white rounded-2xl p-5">
+              <h3 className="font-display font-bold text-gray-900 mb-2">🎫 Selecciona tu localidad</h3>
+              <p className="text-gray-400 text-sm">Elige tu zona, selecciona cantidad y compra tus entradas. Reserva temporal de 10 minutos.</p>
+            </div>
+            <VenueSectionsSelector
+              eventId={event.id}
+              onSelectSection={(section, qty) => {
+                handleBuy();
+              }}
+            />
           </div>
         )}
 
