@@ -136,6 +136,141 @@ const DEFAULT_CATEGORIES: CategoryWithImage[] = [
   { id: '16', name: 'Chat', icon: '💬', slug: 'chat', route: '/chat', section: 'comunidad', color_start: '#AD1457', color_mid: '#D81B60', color_end: '#D81B60', shadow_color: 'rgba(173, 20, 87, 0.4)', display_order: 4, active: true, image_url: 'https://picsum.photos/seed/chat2024/800/400' },
 ];
 
+// ── MODERN SMART SEARCH ────────────────────────────────────────────────
+const ModernSearchSection: React.FC<{ navigate: any; categories: any[] }> = ({ navigate, categories }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilters, setActiveFilters] = useState<string[]>(['eventos', 'artistas', 'localidades']);
+  const [showFilters, setShowFilters] = useState(false);
+  const availableFilters = ['eventos', 'artistas', 'localidades', 'marketplace'];
+
+  const toggleFilter = (filter: string) => {
+    setActiveFilters(prev =>
+      prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter]
+    );
+  };
+
+  const addFilter = (filter: string) => {
+    if (!activeFilters.includes(filter)) {
+      setActiveFilters([...activeFilters, filter]);
+    }
+  };
+
+  const removeFilter = (filter: string) => {
+    setActiveFilters(activeFilters.filter(f => f !== filter));
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/explorar?q=${encodeURIComponent(searchQuery)}&filters=${activeFilters.join(',')}`);
+    }
+  };
+
+  return (
+    <section className="mx-4 mt-6 mb-8">
+      <div className="bg-gradient-to-br from-pink-50 via-white to-rose-50 rounded-2xl p-6 sm:p-8 shadow-lg border border-pink-100">
+        {/* Header */}
+        <div className="mb-6">
+          <h2 className="font-display font-black text-2xl sm:text-3xl bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent mb-2">
+            🔍 Busca Tu Vibe Latino
+          </h2>
+          <p className="text-gray-500 text-sm">Explora eventos, artistas, locales y mucho más</p>
+        </div>
+
+        {/* Main Search Bar */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-5">
+          <div className="flex-1 relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              placeholder="Busca artistas, eventos, locales..."
+              className="w-full px-5 py-3 rounded-xl border-2 border-pink-200 focus:border-brand-orange focus:outline-none text-gray-900 placeholder-gray-400 transition-all"
+            />
+            <button
+              onClick={handleSearch}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-orange hover:scale-110 transition-transform"
+            >
+              ✨
+            </button>
+          </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`px-6 py-3 rounded-xl font-bold text-sm transition-all ${
+              showFilters
+                ? 'bg-brand-orange text-white'
+                : 'bg-white text-gray-900 border-2 border-pink-200 hover:border-brand-orange'
+            }`}
+          >
+            ⚙️ Filtros ({activeFilters.length})
+          </button>
+        </div>
+
+        {/* Filter Pills */}
+        <div className="flex flex-wrap gap-2 mb-5">
+          {activeFilters.map(filter => (
+            <div
+              key={filter}
+              className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-brand-orange rounded-full text-sm font-semibold text-gray-900 shadow-sm"
+            >
+              <span className="capitalize">{filter}</span>
+              <button
+                onClick={() => removeFilter(filter)}
+                className="text-brand-orange hover:text-red-500 transition-colors font-bold"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Filter Selector (Expandable) */}
+        {showFilters && (
+          <div className="p-4 bg-white rounded-xl border-2 border-pink-100 mb-5">
+            <p className="text-xs font-bold text-gray-600 uppercase mb-3">Agregar más filtros:</p>
+            <div className="flex flex-wrap gap-2">
+              {availableFilters.map(filter => (
+                !activeFilters.includes(filter) && (
+                  <button
+                    key={filter}
+                    onClick={() => addFilter(filter)}
+                    className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-brand-orange hover:text-white text-gray-700 text-sm font-semibold transition-all"
+                  >
+                    + {filter}
+                  </button>
+                )
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Quick Categories */}
+        <div>
+          <p className="text-xs font-bold text-gray-600 uppercase mb-3">O explora por categoría:</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+            {categories.slice(0, 8).map(cat => (
+              <button
+                key={cat.id}
+                onClick={() => navigate(cat.route)}
+                className="group relative overflow-hidden rounded-lg p-3 text-white text-xs font-bold text-center transition-all hover:scale-105 shadow-md"
+                style={{
+                  background: `linear-gradient(135deg, ${cat.color_start}, ${cat.color_mid}, ${cat.color_end})`,
+                }}
+              >
+                <span className="relative z-10 flex items-center justify-center gap-1">
+                  <span className="text-base">{cat.icon}</span>
+                  <span className="line-clamp-1">{cat.name}</span>
+                </span>
+                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
 // ── DYNAMIC CATEGORIES SECTION ────────────────────────────────────────
 const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => {
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
@@ -287,38 +422,16 @@ const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
 
-      {/* ── HERO — split layout ── */}
-      <section className="mx-4 mt-4 rounded-3xl overflow-hidden flex flex-col sm:flex-row" style={{ minHeight: 420 }}>
-        {/* Left black panel */}
-        <div className="bg-black flex flex-col justify-center p-8 sm:p-12 sm:w-2/5 flex-shrink-0">
-          <h1 className="font-display font-black text-4xl sm:text-5xl lg:text-6xl text-white leading-tight mb-4">
-            Encuentra tu<br />Pasión<br />
-            <span className="text-brand-orange">Latina</span>
-          </h1>
-          <p className="text-white/60 text-sm sm:text-base mb-8 max-w-xs leading-relaxed">
-            Explora la colección más exclusiva de locales, eventos y artistas latinos.
-            Encuentra el lugar perfecto para vivir tu pasión.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => navigate('/eventos')}
-              className="btn-orange uppercase tracking-widest text-sm px-6 py-3"
-            >
-              Explorar Eventos
-            </button>
-            <button
-              onClick={() => navigate('/artistas')}
-              className="btn-dark uppercase tracking-widest text-sm px-6 py-3"
-            >
-              Ver Artistas
-            </button>
+      {/* ── HERO — Compact with Video & Slider ── */}
+      <section className="mx-4 mt-4 rounded-2xl overflow-hidden bg-black" style={{ minHeight: 280 }}>
+        <div className="flex flex-col lg:flex-row h-full">
+          {/* Slider - Left side */}
+          <div className="w-full lg:w-1/3 flex flex-col justify-center p-4">
+            {heroSliderImages.length > 0 && <HeroSlider images={heroSliderImages} />}
           </div>
-          {/* Hero Slider */}
-          {heroSliderImages.length > 0 && <HeroSlider images={heroSliderImages} />}
-        </div>
 
-        {/* Right media */}
-        <div className="flex-1 relative min-h-[220px] sm:min-h-[260px] bg-black">
+          {/* Video - Right side */}
+          <div className="flex-1 relative min-h-[200px] lg:min-h-[280px] bg-black">
           {heroMedia.type === 'youtube' ? (() => {
             const id = getYouTubeId(heroMedia.url);
             if (!id) return <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">URL de YouTube inválida</div>;
@@ -359,16 +472,12 @@ const HomePage: React.FC = () => {
               className="w-full h-full object-cover"
             />
           )}
-          {/* Rating bubble */}
-          <div className="absolute top-3 right-3 sm:top-6 sm:right-6 bg-white rounded-2xl p-2.5 sm:p-4 shadow-xl flex items-center gap-2 sm:gap-3">
-            <Star className="w-6 h-6 sm:w-8 sm:h-8 fill-brand-orange text-brand-orange flex-shrink-0" />
-            <div>
-              <p className="font-black text-lg sm:text-2xl text-gray-900 leading-none">4,9/5</p>
-              <p className="text-gray-400 text-[10px] sm:text-xs mt-0.5">Calificación global</p>
-            </div>
-          </div>
         </div>
       </section>
+
+      {/* ── MODERN SMART SEARCH ── */}
+      <ModernSearchSection navigate={navigate} categories={DEFAULT_CATEGORIES} />
+
 
       {/* ── PANEL SUPERADMIN ── */}
       {isAdmin && adminStats && isModuleOn('admin-panel') && (
