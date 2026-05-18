@@ -530,7 +530,7 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
         </div>
 
         {/* Info Footer */}
-        <div className="mt-6 pt-4 border-t border-pink-200 text-center">
+        <div className="mt-6 pt-4 border-t border-brand-orange/20 text-center">
           <p className="text-xs text-gray-500">
             <span className="font-bold text-gray-700">{approvablePosts.length}</span> posts activos ahora •
             <span className="font-bold text-gray-700 ml-1">{new Set(approvablePosts.map(p => p.location)).size}</span> ciudades
@@ -560,7 +560,6 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
         }
       } catch (error) {
         console.error('Error fetching categories from Supabase:', error);
-        // Keep using default categories
       }
     };
     fetchCategories();
@@ -570,46 +569,35 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
   const mercadoCats = categories.filter(c => c.section === 'mercado').sort((a, b) => a.display_order - b.display_order);
   const comunidadCats = categories.filter(c => c.section === 'comunidad').sort((a, b) => a.display_order - b.display_order);
 
-  const CategoryButton: React.FC<{ cat: any; large?: boolean }> = ({ cat, large = false }) => (
-    <button
-      onClick={() => navigate(cat.route)}
-      className={`relative overflow-hidden rounded-lg group transition-all hover:scale-105 shadow-md ${large ? 'h-24' : 'h-24'}`}
-      style={{ minHeight: large ? '100px' : '100px' }}
-    >
-      {/* Background Image */}
-      {cat.image_url && (
-        <img
-          src={cat.image_url}
-          alt={cat.name}
-          className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-        />
-      )}
+  // Color palette for dynamic assignment
+  const colorPalette = [
+    'bg-brand-orange', 'bg-sky-500', 'bg-emerald-500', 'bg-purple-600',
+    'bg-red-500', 'bg-indigo-600', 'bg-cyan-500', 'bg-amber-500',
+    'bg-rose-600', 'bg-lime-500', 'bg-pink-600', 'bg-teal-500',
+    'bg-fuchsia-600', 'bg-blue-500', 'bg-orange-600', 'bg-violet-600'
+  ];
 
-      {/* Gradient Overlay */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: `linear-gradient(135deg, ${cat.color_start}dd 0%, ${cat.color_mid}dd 50%, ${cat.color_end}dd 100%)`,
-        }}
-      />
+  const CategoryButton: React.FC<{ cat: any; index: number }> = ({ cat, index }) => {
+    const bgColor = colorPalette[index % colorPalette.length];
 
-      {/* Content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 p-2">
-        <span className="text-2xl drop-shadow-lg">{cat.icon}</span>
-        <span className="text-white font-bold text-xs text-center line-clamp-2 drop-shadow-lg">{cat.name}</span>
-      </div>
-
-      {/* Hover Effect */}
-      <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-    </button>
-  );
+    return (
+      <button
+        onClick={() => navigate(cat.route)}
+        className={`group relative overflow-hidden rounded-3xl p-6 text-white font-bold transition-all hover:scale-110 hover:shadow-2xl h-32 flex flex-col items-center justify-center gap-4 ${bgColor} border-0 shadow-lg hover:shadow-xl`}
+      >
+        <span className="text-5xl group-hover:scale-125 transition-transform duration-300">{cat.icon}</span>
+        <span className="line-clamp-2 text-center text-sm font-bold leading-tight">{cat.name}</span>
+        <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300 rounded-3xl" />
+      </button>
+    );
+  };
 
   return (
-    <section className="mt-8">
+    <section className="mt-8 px-2 sm:px-4">
       {/* Header */}
-      <div className="text-center mb-8 px-4">
-        <h2 className="font-display font-black text-2xl sm:text-3xl bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 bg-clip-text text-transparent mb-2">
-          Baila Now
+      <div className="text-center mb-8">
+        <h2 className="font-display font-black text-2xl sm:text-3xl bg-gradient-to-r from-brand-orange to-orange-600 bg-clip-text text-transparent mb-2">
+          🎉 Baila Now
         </h2>
         <p className="text-gray-500 text-sm max-w-lg mx-auto">
           Todo lo que amas del baile, en un solo lugar
@@ -617,29 +605,36 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
       </div>
 
       {/* Main Categories Grid */}
-      <div className="px-2 space-y-3">
+      <div className="space-y-6">
         {/* Main Categories - 4 columnas */}
         {mainCats.length > 0 && (
-          <>
-            {Array.from({ length: Math.ceil(mainCats.length / 4) }).map((_, rowIdx) => (
-              <div key={rowIdx} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                {mainCats.slice(rowIdx * 4, rowIdx * 4 + 4).map(cat => (
-                  <CategoryButton key={cat.id} cat={cat} large />
-                ))}
-              </div>
-            ))}
-          </>
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-3 h-3 rounded-full bg-brand-orange" />
+              <h3 className="font-display font-bold text-sm sm:text-base text-gray-900 uppercase tracking-wider">
+                ⭐ Principales
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {mainCats.map((cat, idx) => (
+                <CategoryButton key={cat.id} cat={cat} index={idx} />
+              ))}
+            </div>
+          </div>
         )}
 
         {/* MERCADO Section */}
         {mercadoCats.length > 0 && (
-          <div className="mt-5">
-            <h3 className="font-display font-bold text-sm text-gray-900 mb-2 uppercase tracking-wider px-2">
-              <span className="bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">🏪 Mercado</span>
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-              {mercadoCats.map(cat => (
-                <CategoryButton key={cat.id} cat={cat} />
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-3 h-3 rounded-full bg-brand-orange" />
+              <h3 className="font-display font-bold text-sm sm:text-base text-gray-900 uppercase tracking-wider">
+                🏪 Mercado
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {mercadoCats.map((cat, idx) => (
+                <CategoryButton key={cat.id} cat={cat} index={mainCats.length + idx} />
               ))}
             </div>
           </div>
@@ -647,13 +642,16 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
 
         {/* COMUNIDAD Section */}
         {comunidadCats.length > 0 && (
-          <div className="mt-4 pb-6">
-            <h3 className="font-display font-bold text-sm text-gray-900 mb-2 uppercase tracking-wider px-2">
-              <span className="bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">💬 Comunidad</span>
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-              {comunidadCats.map(cat => (
-                <CategoryButton key={cat.id} cat={cat} />
+          <div className="pb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="w-3 h-3 rounded-full bg-brand-orange" />
+              <h3 className="font-display font-bold text-sm sm:text-base text-gray-900 uppercase tracking-wider">
+                💬 Comunidad
+              </h3>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {comunidadCats.map((cat, idx) => (
+                <CategoryButton key={cat.id} cat={cat} index={mainCats.length + mercadoCats.length + idx} />
               ))}
             </div>
           </div>
