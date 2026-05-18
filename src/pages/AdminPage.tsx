@@ -1436,34 +1436,276 @@ const ConfiguracionSection: React.FC<{ addToast: Function }> = ({ addToast }) =>
 );
 
 // ── 15. ROLES Y PERMISOS ──────────────────────────────────────────────────
+interface SupaProfile {
+  id: string;
+  full_name: string;
+  email: string;
+  role: string;
+  whatsapp: string;
+  avatar_url: string;
+  verified: boolean;
+  location: string;
+  created_at: string;
+}
+
+const ROLE_CONFIG = [
+  { role: 'admin',    label: 'Superadministrador', color: 'bg-red-100 text-red-700', perms: ['Todo', 'Configuración', 'Finanzas', 'Roles'] },
+  { role: 'moderator', label: 'Moderador',        color: 'bg-blue-100 text-blue-700', perms: ['Reseñas', 'Disputas', 'Contenido'] },
+  { role: 'artist',   label: 'Artista',            color: 'bg-purple-100 text-purple-700', perms: ['Mi perfil', 'Servicios', 'Bookings'] },
+  { role: 'dj',       label: 'DJ',                 color: 'bg-pink-100 text-pink-700', perms: ['Mi perfil', 'Sets', 'Bookings'] },
+  { role: 'dancer',   label: 'Bailarín/a',         color: 'bg-indigo-100 text-indigo-700', perms: ['Mi perfil', 'Shows', 'Clases'] },
+  { role: 'business', label: 'Venue / Local',      color: 'bg-green-100 text-green-700', perms: ['Mi local', 'Eventos', 'Estadísticas'] },
+  { role: 'promoter', label: 'Promotor',           color: 'bg-yellow-100 text-yellow-700', perms: ['Eventos', 'Marketing', 'Ventas'] },
+  { role: 'user',     label: 'Usuario',            color: 'bg-gray-100 text-gray-600', perms: ['Explorar', 'Reservar', 'Reseñar'] },
+];
+
 const RolesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
-  const roles = [
-    { name: 'Superadministrador', users: 1,  color: 'bg-red-100 text-red-700',    perms: ['Todo', 'Configuración', 'Finanzas', 'Roles'] },
-    { name: 'Administrador',      users: 3,  color: 'bg-orange-100 text-orange-700', perms: ['Usuarios', 'Eventos', 'Artistas', 'Moderación'] },
-    { name: 'Moderador',          users: 8,  color: 'bg-blue-100 text-blue-700',   perms: ['Reseñas', 'Disputas', 'Contenido'] },
-    { name: 'Artista',            users: 523, color: 'bg-purple-100 text-purple-700', perms: ['Mi perfil', 'Servicios', 'Bookings'] },
-    { name: 'Venue',              users: 47,  color: 'bg-green-100 text-green-700', perms: ['Mi local', 'Eventos', 'Estadísticas'] },
-    { name: 'Usuario',            users: 665, color: 'bg-gray-100 text-gray-600',  perms: ['Explorar', 'Reservar', 'Reseñar'] },
-  ];
+  const [profiles, setProfiles] = useState<SupaProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedRole, setExpandedRole] = useState<string | null>(null);
+  const [editingUser, setEditingUser] = useState<SupaProfile | null>(null);
+  const [editForm, setEditForm] = useState({ full_name: '', email: '', whatsapp: '', role: '' });
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState('');
+
+  // Fetch profiles from Supabase
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const { supabase } = await import('../lib/supabase');
+        const { data, error } = await supabase.from('profiles').select('id, full_name, email, role, whatsapp, avatar_url, verified, location, created_at').order('created_at', { ascending: false });
+        if (error) throw error;
+        setProfiles(data || []);
+      } catch (e: any) {
+        console.warn('Error loading profiles:', e.message);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  const profilesByRole = React.useMemo(() => {
+    const map: Record<string, SupaProfile[]> = {};
+    ROLE_CONFIG.forEach(r => { map[r.role] = []; });
+    profiles.forEach(p => {
+      const key = map[p.role] ? p.role : 'user';
+      map[key].push(p);
+    });
+    return map;
+  }, [profiles]);
+
+  const filteredUsers = React.useMemo(() => {
+    if (!expandedRole) return [];
+    const users = profilesByRole[expandedRole] || [];
+    if (!search) return users;
+    const q = search.toLowerCase();
+    return users.filter(u =>
+      (u.full_name || '').toLowerCase().includes(q) ||
+      (u.email || '').toLowerCase().includes(q) ||
+      (u.whatsapp || '').includes(q)
+    );
+  }, [expandedRole, profilesByRole, search]);
+
+  const startEdit = (user: SupaProfile) => {
+    setEditingUser(user);
+    setEditForm({ full_name: user.full_name || '', email: user.email || '', whatsapp: user.whatsapp || '', role: user.role });
+  };
+
+  const saveEdit = async () => {
+    if (!editingUser) return;
+    setSaving(true);
+    try {
+      const { supabase } = await import('../lib/supabase');
+      const { error } = await supabase.from('profiles').update({
+        full_name: editForm.full_name,
+        email: editForm.email,
+        whatsapp: editForm.whatsapp,
+        role: editForm.role,
+      }).eq('id', editingUser.id);
+      if (error) throw error;
+      setProfiles(prev => prev.map(p => p.id === editingUser.id ? { ...p, ...editForm } : p));
+      setEditingUser(null);
+      addToast({ message: `Usuario ${editForm.full_name} actualizado`, type: 'success' });
+    } catch (e: any) {
+      addToast({ message: `Error: ${e.message}`, type: 'error' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteUser = async (user: SupaProfile) => {
+    if (!confirm(`¿Eliminar a ${user.full_name || user.email}?`)) return;
+    try {
+      const { supabase } = await import('../lib/supabase');
+      const { error } = await supabase.from('profiles').delete().eq('id', user.id);
+      if (error) throw error;
+      setProfiles(prev => prev.filter(p => p.id !== user.id));
+      addToast({ message: 'Usuario eliminado', type: 'success' });
+    } catch (e: any) {
+      addToast({ message: `Error: ${e.message}`, type: 'error' });
+    }
+  };
+
   return (
     <div>
       <PageHeader title="Roles y Permisos" subtitle="Gestiona los roles de acceso a la plataforma" action={
         <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => addToast({ message: 'Nuevo rol creado', type: 'success' })}>Nuevo rol</Button>
       } />
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {roles.map(role => (
-          <div key={role.name} className="card-white p-5">
-            <div className="flex items-center justify-between mb-3">
-              <span className={`px-3 py-1 rounded-full text-sm font-bold ${role.color}`}>{role.name}</span>
-              <span className="text-gray-400 text-sm">{role.users} usuarios</span>
+
+      {loading ? (
+        <div className="text-center py-12"><div className="animate-spin w-8 h-8 border-4 border-brand-orange border-t-transparent rounded-full mx-auto" /><p className="text-gray-400 mt-3">Cargando usuarios de Supabase...</p></div>
+      ) : (
+        <>
+          {/* Summary cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 mb-6">
+            <div className="card-white p-4 text-center">
+              <p className="text-3xl font-black text-gray-900">{profiles.length}</p>
+              <p className="text-gray-400 text-xs mt-1">Total usuarios</p>
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {role.perms.map(p => <span key={p} className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-lg">{p}</span>)}
+            <div className="card-white p-4 text-center">
+              <p className="text-3xl font-black text-green-600">{profiles.filter(p => p.verified).length}</p>
+              <p className="text-gray-400 text-xs mt-1">Verificados</p>
             </div>
-            <button onClick={() => addToast({ message: `Editando rol: ${role.name}`, type: 'info' })} className="mt-4 text-brand-orange text-xs font-semibold hover:underline">Editar permisos →</button>
+            <div className="card-white p-4 text-center">
+              <p className="text-3xl font-black text-blue-600">{profiles.filter(p => p.whatsapp).length}</p>
+              <p className="text-gray-400 text-xs mt-1">Con WhatsApp</p>
+            </div>
+            <div className="card-white p-4 text-center">
+              <p className="text-3xl font-black text-purple-600">{profiles.filter(p => p.email).length}</p>
+              <p className="text-gray-400 text-xs mt-1">Con email</p>
+            </div>
           </div>
-        ))}
-      </div>
+
+          {/* Role cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {ROLE_CONFIG.map(rc => {
+              const users = profilesByRole[rc.role] || [];
+              const isExpanded = expandedRole === rc.role;
+              return (
+                <div key={rc.role} className={`card-white p-5 transition-all ${isExpanded ? 'ring-2 ring-brand-orange col-span-full' : ''}`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`px-3 py-1 rounded-full text-sm font-bold ${rc.color}`}>{rc.label}</span>
+                    <span className="text-gray-400 text-sm font-semibold">{users.length} usuarios</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {rc.perms.map(p => <span key={p} className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-lg">{p}</span>)}
+                  </div>
+                  <button
+                    onClick={() => { setExpandedRole(isExpanded ? null : rc.role); setSearch(''); }}
+                    className="text-brand-orange text-xs font-semibold hover:underline"
+                  >
+                    {isExpanded ? '← Cerrar lista' : `Ver ${users.length} usuarios →`}
+                  </button>
+
+                  {/* Expanded user list */}
+                  {isExpanded && (
+                    <div className="mt-4 border-t border-gray-100 pt-4">
+                      <div className="mb-3">
+                        <input
+                          type="text"
+                          placeholder="Buscar por nombre, email o WhatsApp..."
+                          value={search}
+                          onChange={e => setSearch(e.target.value)}
+                          className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:border-brand-orange"
+                        />
+                      </div>
+
+                      {filteredUsers.length === 0 ? (
+                        <p className="text-gray-400 text-sm text-center py-4">No hay usuarios con este rol</p>
+                      ) : (
+                        <div className="space-y-2 max-h-96 overflow-y-auto">
+                          {filteredUsers.map(user => (
+                            <div key={user.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-orange-50 transition-colors">
+                              <img
+                                src={user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name || 'U')}&background=6B7280&color=fff&size=40`}
+                                alt={user.full_name}
+                                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-gray-900 font-semibold text-sm truncate">{user.full_name || 'Sin nombre'}</p>
+                                  {user.verified && <CheckCircle className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />}
+                                </div>
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-3 mt-0.5">
+                                  {user.email && (
+                                    <a href={`mailto:${user.email}`} className="text-xs text-gray-500 hover:text-brand-orange truncate flex items-center gap-1">
+                                      📧 {user.email}
+                                    </a>
+                                  )}
+                                  {user.whatsapp && (
+                                    <a href={`https://wa.me/${user.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer"
+                                      className="text-xs text-green-600 hover:text-green-700 flex items-center gap-1">
+                                      📱 {user.whatsapp}
+                                    </a>
+                                  )}
+                                </div>
+                                {user.location && <p className="text-[10px] text-gray-400 mt-0.5">📍 {user.location}</p>}
+                              </div>
+                              <div className="flex gap-1 flex-shrink-0">
+                                <button onClick={() => startEdit(user)} className="p-1.5 rounded-lg hover:bg-orange-100 text-gray-400 hover:text-brand-orange transition-colors" title="Editar">
+                                  <Edit className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => deleteUser(user)} className="p-1.5 rounded-lg hover:bg-red-100 text-gray-400 hover:text-red-500 transition-colors" title="Eliminar">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                                {user.whatsapp && (
+                                  <a href={`https://wa.me/${user.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer"
+                                    className="p-1.5 rounded-lg hover:bg-green-100 text-gray-400 hover:text-green-600 transition-colors" title="WhatsApp">
+                                    <ArrowUpRight className="w-3.5 h-3.5" />
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {/* Edit modal */}
+      {editingUser && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setEditingUser(null)}>
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="font-bold text-lg text-gray-900 mb-4">Editar Usuario</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre completo</label>
+                <input type="text" value={editForm.full_name} onChange={e => setEditForm(f => ({ ...f, full_name: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-orange" placeholder="Nombre y apellidos" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Correo electrónico</label>
+                <input type="email" value={editForm.email} onChange={e => setEditForm(f => ({ ...f, email: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-orange" placeholder="email@ejemplo.com" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
+                <input type="tel" value={editForm.whatsapp} onChange={e => setEditForm(f => ({ ...f, whatsapp: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-orange" placeholder="+34 600 000 000" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rol</label>
+                <select value={editForm.role} onChange={e => setEditForm(f => ({ ...f, role: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-brand-orange bg-white">
+                  {ROLE_CONFIG.map(r => <option key={r.role} value={r.role}>{r.label}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <Button variant="outline" className="flex-1" onClick={() => setEditingUser(null)}>Cancelar</Button>
+              <Button variant="orange" className="flex-1" onClick={saveEdit} disabled={saving}>
+                {saving ? 'Guardando...' : 'Guardar cambios'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
