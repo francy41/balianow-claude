@@ -161,6 +161,19 @@ export const FIELDS_SUBSCRIPTION: EditField[] = [
 
 export const FIELDS_CATEGORY: EditField[] = [
   { key: 'name', label: 'Nombre', type: 'text', required: true },
+  { key: 'icon', label: 'Ícono (emoji)', type: 'text', placeholder: '🎉' },
+  { key: 'slug', label: 'Slug', type: 'text', required: true },
+  { key: 'route', label: 'Ruta', type: 'text', placeholder: '/eventos' },
+  { key: 'section', label: 'Sección', type: 'select', required: true, options: [
+    { value: 'main', label: 'Main (Principal)' },
+    { value: 'mercado', label: 'Mercado' },
+    { value: 'comunidad', label: 'Comunidad' }
+  ]},
+  { key: 'color_start', label: 'Color inicial', type: 'color', helper: 'Hex color (ej: #EC407A)' },
+  { key: 'color_mid', label: 'Color medio', type: 'color', helper: 'Hex color (ej: #FF1493)' },
+  { key: 'color_end', label: 'Color final', type: 'color', helper: 'Hex color (ej: #C2185B)' },
+  { key: 'display_order', label: 'Orden de visualización', type: 'number', placeholder: '1' },
+  { key: 'active', label: 'Activo', type: 'checkbox' },
 ];
 
 const AdminPage: React.FC = () => {
@@ -371,28 +384,546 @@ const OverviewSection: React.FC<{ addToast: Function }> = ({ addToast }) => (
 );
 
 // ── 2. CATEGORÍAS ──────────────────────────────────────────────────────────
+interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  slug: string;
+  route: string;
+  section: 'main' | 'mercado' | 'comunidad';
+  color_start: string;
+  color_mid: string;
+  color_end: string;
+  shadow_color: string;
+  display_order: number;
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
-  const { openEdit } = useAdminEdit();
-  const cats = ['Conciertos y Música en Vivo', 'Festivales y Congresos', 'Noches de club', 'Talleres y clases magistrales', 'Clases y Academia', 'Eventos Sociales', 'Competiciones', 'Bachata', 'Salsa', 'Kizomba'];
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['main']));
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editData, setEditData] = useState<Partial<Category>>({});
+  const [showNewForm, setShowNewForm] = useState(false);
+  const [newCategory, setNewCategory] = useState<Partial<Category>>({
+    name: '',
+    icon: '🎉',
+    slug: '',
+    route: '/',
+    section: 'main',
+    color_start: '#EC407A',
+    color_mid: '#FF1493',
+    color_end: '#C2185B',
+    active: true,
+    display_order: 1,
+  });
+
+  // Fetch categories from Supabase
+  const fetchCategories = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('https://lpwwdjujxwxdvyoznehp.supabase.co/rest/v1/categories?select=*&order=section.asc,display_order.asc', {
+        headers: {
+          'apikey': 'sb_publishable_Kn08qRlITmDXEcMpATB-7Q_GE5MHvvP',
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+      setCategories(data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      addToast({ message: 'Error al cargar categorías', type: 'error' });
+    }
+    setLoading(false);
+  };
+
+  // Load on mount
+  React.useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  // Update category in Supabase
+  const handleSaveCategory = async (id: string, updates: Partial<Category>) => {
+    try {
+      const response = await fetch(`https://lpwwdjujxwxdvyoznehp.supabase.co/rest/v1/categories?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': 'sb_publishable_Kn08qRlITmDXEcMpATB-7Q_GE5MHvvP',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer sb_publishable_Kn08qRlITmDXEcMpATB-7Q_GE5MHvvP`,
+        },
+        body: JSON.stringify(updates),
+      });
+      if (response.ok) {
+        setEditingId(null);
+        addToast({ message: 'Categoría actualizada', type: 'success' });
+        fetchCategories();
+      } else {
+        addToast({ message: 'Error al guardar categoría', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Error updating category:', error);
+      addToast({ message: 'Error al guardar cambios', type: 'error' });
+    }
+  };
+
+  // Delete category
+  const handleDeleteCategory = async (id: string) => {
+    if (!confirm('¿Estás seguro de que deseas eliminar esta categoría?')) return;
+    try {
+      const response = await fetch(`https://lpwwdjujxwxdvyoznehp.supabase.co/rest/v1/categories?id=eq.${id}`, {
+        method: 'DELETE',
+        headers: {
+          'apikey': 'sb_publishable_Kn08qRlITmDXEcMpATB-7Q_GE5MHvvP',
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        addToast({ message: 'Categoría eliminada', type: 'success' });
+        fetchCategories();
+      } else {
+        addToast({ message: 'Error al eliminar categoría', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      addToast({ message: 'Error al eliminar', type: 'error' });
+    }
+  };
+
+  // Add new category
+  const handleAddCategory = async () => {
+    if (!newCategory.name || !newCategory.slug) {
+      addToast({ message: 'Nombre y slug son requeridos', type: 'error' });
+      return;
+    }
+    try {
+      const response = await fetch('https://lpwwdjujxwxdvyoznehp.supabase.co/rest/v1/categories', {
+        method: 'POST',
+        headers: {
+          'apikey': 'sb_publishable_Kn08qRlITmDXEcMpATB-7Q_GE5MHvvP',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newCategory),
+      });
+      if (response.ok) {
+        addToast({ message: 'Categoría creada', type: 'success' });
+        setShowNewForm(false);
+        setNewCategory({
+          name: '',
+          icon: '🎉',
+          slug: '',
+          route: '/',
+          section: 'main',
+          color_start: '#EC407A',
+          color_mid: '#FF1493',
+          color_end: '#C2185B',
+          active: true,
+          display_order: 1,
+        });
+        fetchCategories();
+      } else {
+        const error = await response.json();
+        addToast({ message: error.message || 'Error al crear categoría', type: 'error' });
+      }
+    } catch (error) {
+      console.error('Error creating category:', error);
+      addToast({ message: 'Error al crear categoría', type: 'error' });
+    }
+  };
+
+  const categoryBySection = {
+    main: categories.filter(c => c.section === 'main'),
+    mercado: categories.filter(c => c.section === 'mercado'),
+    comunidad: categories.filter(c => c.section === 'comunidad'),
+  };
+
+  const SectionCard: React.FC<{ section: 'main' | 'mercado' | 'comunidad'; title: string }> = ({ section, title }) => {
+    const isExpanded = expandedSections.has(section);
+    return (
+    <div className="card-white mb-4 overflow-hidden">
+      <button
+        onClick={() => {
+          const newSet = new Set(expandedSections);
+          if (newSet.has(section)) {
+            newSet.delete(section);
+          } else {
+            newSet.add(section);
+          }
+          setExpandedSections(newSet);
+        }}
+        className="w-full p-4 flex items-center justify-between hover:bg-gray-50"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-brand-orange/10 text-brand-orange flex items-center justify-center font-bold text-sm">
+            {categoryBySection[section].length}
+          </div>
+          <div className="text-left">
+            <h3 className="font-bold text-gray-900">{title}</h3>
+            <p className="text-gray-400 text-xs">{categoryBySection[section].length} categorías</p>
+          </div>
+        </div>
+        <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+      </button>
+
+      {isExpanded && (
+        <div className="border-t border-gray-100 p-4 space-y-4">
+          {categoryBySection[section].map(cat => (
+            <div
+              key={cat.id}
+              className="p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-100 hover:border-brand-orange/50 transition-all"
+            >
+              {editingId === cat.id ? (
+                // Edit mode
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-gray-600">Nombre</label>
+                      <input
+                        type="text"
+                        value={editData.name || ''}
+                        onChange={e => setEditData({ ...editData, name: e.target.value })}
+                        className="input w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-600">Ícono</label>
+                      <input
+                        type="text"
+                        value={editData.icon || ''}
+                        onChange={e => setEditData({ ...editData, icon: e.target.value })}
+                        className="input w-full"
+                        maxLength={2}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-gray-600">Slug</label>
+                      <input
+                        type="text"
+                        value={editData.slug || ''}
+                        onChange={e => setEditData({ ...editData, slug: e.target.value })}
+                        className="input w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-600">Ruta</label>
+                      <input
+                        type="text"
+                        value={editData.route || ''}
+                        onChange={e => setEditData({ ...editData, route: e.target.value })}
+                        className="input w-full"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Color pickers with preview */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-gray-600">Color inicio</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={editData.color_start || '#EC407A'}
+                          onChange={e => setEditData({ ...editData, color_start: e.target.value })}
+                          className="w-10 h-10 rounded cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={editData.color_start || ''}
+                          onChange={e => setEditData({ ...editData, color_start: e.target.value })}
+                          className="input text-xs flex-1"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-600">Color medio</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={editData.color_mid || '#FF1493'}
+                          onChange={e => setEditData({ ...editData, color_mid: e.target.value })}
+                          className="w-10 h-10 rounded cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={editData.color_mid || ''}
+                          onChange={e => setEditData({ ...editData, color_mid: e.target.value })}
+                          className="input text-xs flex-1"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-600">Color fin</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="color"
+                          value={editData.color_end || '#C2185B'}
+                          onChange={e => setEditData({ ...editData, color_end: e.target.value })}
+                          className="w-10 h-10 rounded cursor-pointer"
+                        />
+                        <input
+                          type="text"
+                          value={editData.color_end || ''}
+                          onChange={e => setEditData({ ...editData, color_end: e.target.value })}
+                          className="input text-xs flex-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Preview */}
+                  <div className="flex items-center gap-3">
+                    <label className="text-xs font-medium text-gray-600">Preview:</label>
+                    <div
+                      className="px-4 py-2 rounded-lg text-white font-bold text-center w-full"
+                      style={{
+                        background: `linear-gradient(135deg, ${editData.color_start}, ${editData.color_mid}, ${editData.color_end})`,
+                        boxShadow: `0 10px 30px rgba(0, 0, 0, 0.3)`,
+                      }}
+                    >
+                      {editData.icon} {editData.name}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-gray-600">Orden</label>
+                      <input
+                        type="number"
+                        value={editData.display_order || 1}
+                        onChange={e => setEditData({ ...editData, display_order: parseInt(e.target.value) })}
+                        className="input w-full"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editData.active}
+                          onChange={e => setEditData({ ...editData, active: e.target.checked })}
+                          className="w-4 h-4"
+                        />
+                        <span className="text-xs font-medium text-gray-600">Activa</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleSaveCategory(cat.id, editData)}
+                      className="flex-1 btn-orange text-sm"
+                    >
+                      Guardar
+                    </button>
+                    <button
+                      onClick={() => setEditingId(null)}
+                      className="flex-1 btn-white text-sm"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                // View mode
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-2xl">{cat.icon}</span>
+                      <div>
+                        <p className="font-bold text-gray-900">{cat.name}</p>
+                        <p className="text-xs text-gray-400">{cat.slug} • {cat.route}</p>
+                      </div>
+                    </div>
+                    <div
+                      className="mt-3 px-3 py-1.5 rounded-lg text-white text-xs font-bold inline-block"
+                      style={{
+                        background: `linear-gradient(135deg, ${cat.color_start}, ${cat.color_mid}, ${cat.color_end})`,
+                        boxShadow: `0 5px 15px ${cat.shadow_color || 'rgba(236, 64, 122, 0.4)'}`,
+                      }}
+                    >
+                      Diseño {cat.display_order}
+                    </div>
+                    <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
+                      <span>{cat.active ? '✓ Activa' : '✗ Inactiva'}</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-1 flex-shrink-0">
+                    <button
+                      onClick={() => {
+                        setEditingId(cat.id);
+                        setEditData(cat);
+                      }}
+                      className="p-2 hover:bg-brand-orange/10 text-brand-orange rounded-lg"
+                      title="Editar"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCategory(cat.id)}
+                      className="p-2 hover:bg-red-50 text-red-500 rounded-lg"
+                      title="Eliminar"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+    );
+  };
+
   return (
     <div>
-      <PageHeader title="Categorías" subtitle="Gestiona las categorías de la plataforma" action={
-        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => addToast({ message: 'Nueva categoría creada', type: 'success' })}>Nueva categoría</Button>
-      } />
-      <AdminTable
-        headers={['#', 'Nombre', 'Eventos', 'Artistas', 'Estado', 'Acciones']}
-        rows={cats.map((cat, i) => [
-          <span className="text-gray-400">{i + 1}</span>,
-          <span className="font-semibold text-gray-800">{cat}</span>,
-          <span>{Math.floor(Math.random() * 50) + 5}</span>,
-          <span>{Math.floor(Math.random() * 30) + 2}</span>,
-          <Badge variant="green">Activa</Badge>,
-          <div className="flex gap-2">
-            <button onClick={() => openEdit({ entity: 'category', title: cat, item: { id: `legacy-cat-${i}`, name: cat }, fields: FIELDS_CATEGORY })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-700"><Edit className="w-4 h-4" /></button>
-            <button onClick={() => addToast({ message: 'Categoría eliminada', type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
-          </div>
-        ])}
+      <PageHeader
+        title="Categorías"
+        subtitle="Diseña y gestiona todas las categorías de la plataforma"
+        action={
+          <Button
+            variant="orange"
+            icon={<Plus className="w-4 h-4" />}
+            onClick={() => setShowNewForm(!showNewForm)}
+          >
+            Nueva categoría
+          </Button>
+        }
       />
+
+      {showNewForm && (
+        <div className="card-white p-6 mb-6 bg-gradient-to-r from-brand-orange/5 to-transparent border-l-4 border-brand-orange">
+          <h3 className="font-bold text-gray-900 mb-4">Nueva categoría</h3>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-gray-600">Nombre *</label>
+                <input
+                  type="text"
+                  value={newCategory.name || ''}
+                  onChange={e => setNewCategory({ ...newCategory, name: e.target.value })}
+                  placeholder="Ej: Explorador"
+                  className="input w-full"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600">Ícono</label>
+                <input
+                  type="text"
+                  value={newCategory.icon || ''}
+                  onChange={e => setNewCategory({ ...newCategory, icon: e.target.value })}
+                  placeholder="🎉"
+                  maxLength={2}
+                  className="input w-full"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-gray-600">Slug *</label>
+                <input
+                  type="text"
+                  value={newCategory.slug || ''}
+                  onChange={e => setNewCategory({ ...newCategory, slug: e.target.value })}
+                  placeholder="explorador"
+                  className="input w-full"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600">Sección</label>
+                <select
+                  value={newCategory.section || 'main'}
+                  onChange={e => setNewCategory({ ...newCategory, section: e.target.value as any })}
+                  className="input w-full"
+                >
+                  <option value="main">Main (Principal)</option>
+                  <option value="mercado">Mercado</option>
+                  <option value="comunidad">Comunidad</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="text-xs font-medium text-gray-600">Color inicio</label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    value={newCategory.color_start || '#EC407A'}
+                    onChange={e => setNewCategory({ ...newCategory, color_start: e.target.value })}
+                    className="w-10 h-10 rounded cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={newCategory.color_start || ''}
+                    onChange={e => setNewCategory({ ...newCategory, color_start: e.target.value })}
+                    className="input text-xs flex-1"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600">Color medio</label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    value={newCategory.color_mid || '#FF1493'}
+                    onChange={e => setNewCategory({ ...newCategory, color_mid: e.target.value })}
+                    className="w-10 h-10 rounded cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={newCategory.color_mid || ''}
+                    onChange={e => setNewCategory({ ...newCategory, color_mid: e.target.value })}
+                    className="input text-xs flex-1"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-600">Color fin</label>
+                <div className="flex gap-2">
+                  <input
+                    type="color"
+                    value={newCategory.color_end || '#C2185B'}
+                    onChange={e => setNewCategory({ ...newCategory, color_end: e.target.value })}
+                    className="w-10 h-10 rounded cursor-pointer"
+                  />
+                  <input
+                    type="text"
+                    value={newCategory.color_end || ''}
+                    onChange={e => setNewCategory({ ...newCategory, color_end: e.target.value })}
+                    className="input text-xs flex-1"
+                  />
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={handleAddCategory} className="flex-1 btn-orange">
+                Crear categoría
+              </button>
+              <button onClick={() => setShowNewForm(false)} className="flex-1 btn-white">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="card-white p-8 text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-brand-orange" />
+          <p className="text-gray-400 mt-2">Cargando categorías...</p>
+        </div>
+      ) : (
+        <div>
+          <SectionCard section="main" title="📌 Principal" />
+          <SectionCard section="mercado" title="🏪 Mercado" />
+          <SectionCard section="comunidad" title="💬 Comunidad" />
+        </div>
+      )}
     </div>
   );
 };
