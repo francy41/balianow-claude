@@ -111,10 +111,34 @@ const HeroSlider: React.FC<{ images: HeroSliderImage[] }> = ({ images }) => {
   );
 };
 
+// Category interface with images
+interface CategoryWithImage extends Category {
+  image_url?: string;
+}
+
+// ── DEFAULT CATEGORIES (Fallback) ────────────────────────────────────────
+const DEFAULT_CATEGORIES: CategoryWithImage[] = [
+  { id: '1', name: 'Explorador', icon: '🧭', slug: 'explorador', route: '/explorar', section: 'main', color_start: '#EC407A', color_mid: '#FF1493', color_end: '#C2185B', shadow_color: 'rgba(236, 64, 122, 0.4)', display_order: 1, active: true, image_url: 'https://picsum.photos/seed/explorer2024/800/400' },
+  { id: '2', name: 'Localidades', icon: '📍', slug: 'localidades', route: '/venues', section: 'main', color_start: '#F06292', color_mid: '#FF69B4', color_end: '#EC407A', shadow_color: 'rgba(240, 98, 146, 0.4)', display_order: 2, active: true, image_url: 'https://picsum.photos/seed/venues2024/800/400' },
+  { id: '3', name: 'Eventos', icon: '🎉', slug: 'eventos', route: '/eventos', section: 'main', color_start: '#D81B60', color_mid: '#F50057', color_end: '#C2185B', shadow_color: 'rgba(216, 27, 96, 0.4)', display_order: 3, active: true, image_url: 'https://picsum.photos/seed/events2024/800/400' },
+  { id: '4', name: 'Artistas', icon: '🎧', slug: 'artistas', route: '/artistas', section: 'main', color_start: '#FF6B9D', color_mid: '#FF1493', color_end: '#EC407A', shadow_color: 'rgba(255, 107, 157, 0.4)', display_order: 4, active: true, image_url: 'https://picsum.photos/seed/artists2024/800/400' },
+  { id: '5', name: 'Bailarines', icon: '💃', slug: 'bailarines', route: '/artistas?tipo=dancer', section: 'main', color_start: '#E91E63', color_mid: '#F06292', color_end: '#F48FB1', shadow_color: 'rgba(233, 30, 99, 0.4)', display_order: 5, active: true, image_url: 'https://picsum.photos/seed/dancers2024/800/400' },
+  { id: '6', name: 'Marketplace', icon: '🏪', slug: 'marketplace', route: '/marketplace', section: 'main', color_start: '#AD1457', color_mid: '#E91E63', color_end: '#C2185B', shadow_color: 'rgba(173, 20, 87, 0.4)', display_order: 6, active: true, image_url: 'https://picsum.photos/seed/marketplace2024/800/400' },
+  { id: '7', name: 'Clases en vivo', icon: '🎥', slug: 'clases-vivo', route: '/live', section: 'main', color_start: '#FF6B9D', color_mid: '#FF1493', color_end: '#FF69B4', shadow_color: 'rgba(255, 107, 157, 0.4)', display_order: 7, active: true, image_url: 'https://picsum.photos/seed/classes2024/800/400' },
+  { id: '8', name: 'Comunidad', icon: '💬', slug: 'comunidad', route: '/chat', section: 'main', color_start: '#E91E63', color_mid: '#F06292', color_end: '#AD1457', shadow_color: 'rgba(233, 30, 99, 0.4)', display_order: 8, active: true, image_url: 'https://picsum.photos/seed/community2024/800/400' },
+  { id: '9', name: 'Ruta de Hoy', icon: '📍', slug: 'ruta-hoy', route: '/eventos?type=featured', section: 'mercado', color_start: '#FF5252', color_mid: '#FF1493', color_end: '#FF1493', shadow_color: 'rgba(255, 82, 82, 0.4)', display_order: 1, active: true, image_url: 'https://picsum.photos/seed/route2024/800/400' },
+  { id: '10', name: 'Proyectos', icon: '🚀', slug: 'proyectos', route: '/marketplace?cat=Producción', section: 'mercado', color_start: '#FF6B9D', color_mid: '#F06292', color_end: '#F06292', shadow_color: 'rgba(255, 107, 157, 0.4)', display_order: 2, active: true, image_url: 'https://picsum.photos/seed/projects2024/800/400' },
+  { id: '11', name: 'Clasesenvivo', icon: '🎬', slug: 'clasesenvivo', route: '/live', section: 'mercado', color_start: '#E91E63', color_mid: '#AD1457', color_end: '#AD1457', shadow_color: 'rgba(233, 30, 99, 0.4)', display_order: 3, active: true, image_url: 'https://picsum.photos/seed/live2024/800/400' },
+  { id: '12', name: 'Ofertas', icon: '⭐', slug: 'ofertas', route: '/eventos?featured=true', section: 'mercado', color_start: '#D81B60', color_mid: '#C2185B', color_end: '#C2185B', shadow_color: 'rgba(216, 27, 96, 0.4)', display_order: 4, active: true, image_url: 'https://picsum.photos/seed/offers2024/800/400' },
+  { id: '13', name: 'Anuncios', icon: '📢', slug: 'anuncios', route: '/chat', section: 'comunidad', color_start: '#FF1493', color_mid: '#FF69B4', color_end: '#FF69B4', shadow_color: 'rgba(255, 20, 147, 0.4)', display_order: 1, active: true, image_url: 'https://picsum.photos/seed/announcements2024/800/400' },
+  { id: '14', name: 'Academia', icon: '🎓', slug: 'academia', route: '/marketplace?cat=Clases', section: 'comunidad', color_start: '#F06292', color_mid: '#EC407A', color_end: '#EC407A', shadow_color: 'rgba(240, 98, 146, 0.4)', display_order: 2, active: true, image_url: 'https://picsum.photos/seed/academy2024/800/400' },
+  { id: '15', name: 'Comunidad', icon: '👥', slug: 'comunidad-users', route: '/chat', section: 'comunidad', color_start: '#EC407A', color_mid: '#E91E63', color_end: '#E91E63', shadow_color: 'rgba(236, 64, 122, 0.4)', display_order: 3, active: true, image_url: 'https://picsum.photos/seed/communityusers2024/800/400' },
+  { id: '16', name: 'Chat', icon: '💬', slug: 'chat', route: '/chat', section: 'comunidad', color_start: '#AD1457', color_mid: '#D81B60', color_end: '#D81B60', shadow_color: 'rgba(173, 20, 87, 0.4)', display_order: 4, active: true, image_url: 'https://picsum.photos/seed/chat2024/800/400' },
+];
+
 // ── DYNAMIC CATEGORIES SECTION ────────────────────────────────────────
 const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -126,11 +150,13 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
           },
         });
         const data = await response.json();
-        setCategories(data || []);
+        if (data && Array.isArray(data) && data.length > 0) {
+          setCategories(data);
+        }
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.error('Error fetching categories from Supabase:', error);
+        // Keep using default categories
       }
-      setLoading(false);
     };
     fetchCategories();
   }, []);
@@ -139,21 +165,39 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
   const mercadoCats = categories.filter(c => c.section === 'mercado').sort((a, b) => a.display_order - b.display_order);
   const comunidadCats = categories.filter(c => c.section === 'comunidad').sort((a, b) => a.display_order - b.display_order);
 
-  const CategoryButton: React.FC<{ cat: Category; large?: boolean }> = ({ cat, large = false }) => (
+  const CategoryButton: React.FC<{ cat: any; large?: boolean }> = ({ cat, large = false }) => (
     <button
       onClick={() => navigate(cat.route)}
-      className={`relative overflow-hidden rounded-${large ? '3xl' : '2xl'} p-${large ? '5' : '4'} text-white font-bold text-${large ? 'lg' : 'sm'} flex ${large ? 'items-center justify-between' : 'flex-col items-center justify-center gap-2'} group transition-all hover:scale-105 shadow-lg ${!large && 'h-28'}`}
-      style={{
-        background: `linear-gradient(135deg, ${cat.color_start} 0%, ${cat.color_mid} 50%, ${cat.color_end} 100%)`,
-        boxShadow: `0 ${large ? 10 : 8}px ${large ? 30 : 20}px ${cat.shadow_color}`,
-      }}
+      className={`relative overflow-hidden rounded-lg group transition-all hover:scale-105 shadow-md ${large ? 'h-24' : 'h-24'}`}
+      style={{ minHeight: large ? '100px' : '100px' }}
     >
-      <span>{cat.icon} {cat.name}</span>
+      {/* Background Image */}
+      {cat.image_url && (
+        <img
+          src={cat.image_url}
+          alt={cat.name}
+          className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+        />
+      )}
+
+      {/* Gradient Overlay */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `linear-gradient(135deg, ${cat.color_start}dd 0%, ${cat.color_mid}dd 50%, ${cat.color_end}dd 100%)`,
+        }}
+      />
+
+      {/* Content */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 p-2">
+        <span className="text-2xl drop-shadow-lg">{cat.icon}</span>
+        <span className="text-white font-bold text-xs text-center line-clamp-2 drop-shadow-lg">{cat.name}</span>
+      </div>
+
+      {/* Hover Effect */}
       <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
     </button>
   );
-
-  if (loading) return null;
 
   return (
     <section className="mt-8">
@@ -168,13 +212,13 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
       </div>
 
       {/* Main Categories Grid */}
-      <div className="px-4 space-y-4">
-        {/* Main Categories - 2x2 Grid */}
+      <div className="px-2 space-y-3">
+        {/* Main Categories - 4 columnas */}
         {mainCats.length > 0 && (
           <>
-            {Array.from({ length: Math.ceil(mainCats.length / 2) }).map((_, rowIdx) => (
-              <div key={rowIdx} className="grid grid-cols-2 gap-3">
-                {mainCats.slice(rowIdx * 2, rowIdx * 2 + 2).map(cat => (
+            {Array.from({ length: Math.ceil(mainCats.length / 4) }).map((_, rowIdx) => (
+              <div key={rowIdx} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                {mainCats.slice(rowIdx * 4, rowIdx * 4 + 4).map(cat => (
                   <CategoryButton key={cat.id} cat={cat} large />
                 ))}
               </div>
@@ -184,11 +228,11 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
 
         {/* MERCADO Section */}
         {mercadoCats.length > 0 && (
-          <div className="mt-8">
-            <h3 className="font-display font-bold text-lg text-gray-900 mb-3 uppercase tracking-wider px-2">
-              <span className="bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">Mercado</span>
+          <div className="mt-5">
+            <h3 className="font-display font-bold text-sm text-gray-900 mb-2 uppercase tracking-wider px-2">
+              <span className="bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">🏪 Mercado</span>
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {mercadoCats.map(cat => (
                 <CategoryButton key={cat.id} cat={cat} />
               ))}
@@ -198,11 +242,11 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
 
         {/* COMUNIDAD Section */}
         {comunidadCats.length > 0 && (
-          <div className="mt-6 pb-8">
-            <h3 className="font-display font-bold text-lg text-gray-900 mb-3 uppercase tracking-wider px-2">
-              <span className="bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">Comunidad</span>
+          <div className="mt-4 pb-6">
+            <h3 className="font-display font-bold text-sm text-gray-900 mb-2 uppercase tracking-wider px-2">
+              <span className="bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">💬 Comunidad</span>
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
               {comunidadCats.map(cat => (
                 <CategoryButton key={cat.id} cat={cat} />
               ))}

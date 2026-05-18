@@ -164,6 +164,7 @@ export const FIELDS_CATEGORY: EditField[] = [
   { key: 'icon', label: 'Ícono (emoji)', type: 'text', placeholder: '🎉' },
   { key: 'slug', label: 'Slug', type: 'text', required: true },
   { key: 'route', label: 'Ruta', type: 'text', placeholder: '/eventos' },
+  { key: 'image_url', label: 'URL Imagen de fondo', type: 'text', placeholder: 'https://...' },
   { key: 'section', label: 'Sección', type: 'select', required: true, options: [
     { value: 'main', label: 'Main (Principal)' },
     { value: 'mercado', label: 'Mercado' },
