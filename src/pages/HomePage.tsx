@@ -411,53 +411,191 @@ const HomePage: React.FC = () => {
         />
       </section>
 
-      {/* ── CATEGORÍAS (CMS-driven) ── */}
+      {/* ── CATEGORÍAS APP STYLE (Baila Now) ── */}
       {isModuleOn('categories') && (
-      <section className="mx-4 mt-10">
-        <div className="text-center mb-6">
-          <h2 className="font-display font-bold text-2xl text-gray-900">Categorías</h2>
-          <p className="text-blue-500 text-sm mt-1">
-            Descubre lo mejor de Madrid: eventos, artistas, vida nocturna y mucho más.
+      <section className="mt-8">
+        {/* Header */}
+        <div className="text-center mb-8 px-4">
+          <h2 className="font-display font-black text-2xl sm:text-3xl bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 bg-clip-text text-transparent mb-2">
+            Baila Now
+          </h2>
+          <p className="text-gray-500 text-sm max-w-lg mx-auto">
+            Todo lo que amas del baile, en un solo lugar
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {CATEGORY_CARDS.map(cat => (
-            <button
-              key={cat.name}
-              onClick={() => navigate(cat.to)}
-              className="relative rounded-2xl overflow-hidden group text-left"
-              style={{ height: 220 }}
-            >
-              <img
-                src={cat.img}
-                alt={cat.name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/10" />
-              <div className="absolute inset-x-0 bottom-0 p-5">
-                <p className="text-white/70 text-[10px] font-bold uppercase tracking-widest mb-1">CATEGORÍA</p>
-                <p className="text-white font-display font-black text-lg leading-tight mb-3">{cat.name}</p>
-                <span className={`inline-block ${cat.btnColor} text-white text-xs font-bold px-4 py-1.5 rounded-full`}>
-                  VER MÁS
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
 
-        {/* CMS dynamic categories (chips) — admin-managed extras */}
-        {dynamicCats.length > 0 && (
-          <div className="mt-6 flex flex-wrap gap-2 justify-center">
-            {dynamicCats.map(c => (
-              <button key={c.id}
-                onClick={() => navigate(`/eventos?cat=${c.slug}`)}
-                className="text-xs font-bold px-3 py-1.5 rounded-full border transition-all hover:scale-105"
-                style={{ backgroundColor: c.color + '15', color: c.color, borderColor: c.color + '40' }}>
-                <span className="mr-1">{c.icon}</span>{c.name}
-              </button>
-            ))}
+        {/* Main Categories Grid */}
+        <div className="px-4 space-y-4">
+          {/* Row 1: Explorador, Localidades */}
+          <div className="grid grid-cols-2 gap-3">
+            <button onClick={() => navigate('/explorar')}
+              className="relative overflow-hidden rounded-3xl p-5 text-white font-bold text-lg flex items-center justify-between group transition-all hover:scale-105 shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #EC407A 0%, #FF1493 50%, #C2185B 100%)',
+                boxShadow: '0 10px 30px rgba(236, 64, 122, 0.4)'
+              }}>
+              <span>🧭 Explorador</span>
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+            <button onClick={() => navigate('/venues')}
+              className="relative overflow-hidden rounded-3xl p-5 text-white font-bold text-lg flex items-center justify-between group transition-all hover:scale-105 shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #F06292 0%, #FF69B4 50%, #EC407A 100%)',
+                boxShadow: '0 10px 30px rgba(240, 98, 146, 0.4)'
+              }}>
+              <span>📍 Localidades</span>
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
           </div>
-        )}
+
+          {/* Row 2: Eventos, Artistas */}
+          <div className="grid grid-cols-2 gap-3">
+            <button onClick={() => navigate('/eventos')}
+              className="relative overflow-hidden rounded-3xl p-5 text-white font-bold text-lg flex items-center justify-between group transition-all hover:scale-105 shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #D81B60 0%, #F50057 50%, #C2185B 100%)',
+                boxShadow: '0 10px 30px rgba(216, 27, 96, 0.4)'
+              }}>
+              <span>🎉 Eventos</span>
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+            <button onClick={() => navigate('/artistas')}
+              className="relative overflow-hidden rounded-3xl p-5 text-white font-bold text-lg flex items-center justify-between group transition-all hover:scale-105 shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #FF6B9D 0%, #FF1493 50%, #EC407A 100%)',
+                boxShadow: '0 10px 30px rgba(255, 107, 157, 0.4)'
+              }}>
+              <span>🎧 Artistas</span>
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          </div>
+
+          {/* Row 3: Bailarines, Marketplace */}
+          <div className="grid grid-cols-2 gap-3">
+            <button onClick={() => navigate('/artistas?tipo=dancer')}
+              className="relative overflow-hidden rounded-3xl p-5 text-white font-bold text-lg flex items-center justify-between group transition-all hover:scale-105 shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #E91E63 0%, #F06292 50%, #F48FB1 100%)',
+                boxShadow: '0 10px 30px rgba(233, 30, 99, 0.4)'
+              }}>
+              <span>💃 Bailarines</span>
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+            <button onClick={() => navigate('/marketplace')}
+              className="relative overflow-hidden rounded-3xl p-5 text-white font-bold text-lg flex items-center justify-between group transition-all hover:scale-105 shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #AD1457 0%, #E91E63 50%, #C2185B 100%)',
+                boxShadow: '0 10px 30px rgba(173, 20, 87, 0.4)'
+              }}>
+              <span>🏪 Marketplace</span>
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          </div>
+
+          {/* Row 4: Clases en vivo, Comunidad */}
+          <div className="grid grid-cols-2 gap-3">
+            <button onClick={() => navigate('/live')}
+              className="relative overflow-hidden rounded-3xl p-5 text-white font-bold text-lg flex items-center justify-between group transition-all hover:scale-105 shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #FF6B9D 0%, #FF1493 50%, #FF69B4 100%)',
+                boxShadow: '0 10px 30px rgba(255, 107, 157, 0.4)'
+              }}>
+              <span>🎥 Clases en vivo</span>
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+            <button onClick={() => navigate('/chat')}
+              className="relative overflow-hidden rounded-3xl p-5 text-white font-bold text-lg flex items-center justify-between group transition-all hover:scale-105 shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #E91E63 0%, #F06292 50%, #AD1457 100%)',
+                boxShadow: '0 10px 30px rgba(233, 30, 99, 0.4)'
+              }}>
+              <span>💬 Comunidad</span>
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </button>
+          </div>
+
+          {/* MERCADO Section */}
+          <div className="mt-8">
+            <h3 className="font-display font-bold text-lg text-gray-900 mb-3 uppercase tracking-wider px-2">
+              <span className="bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">Mercado</span>
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => navigate('/eventos?type=featured')}
+                className="relative overflow-hidden rounded-2xl p-4 text-white font-bold text-sm flex flex-col items-center justify-center gap-2 group transition-all hover:scale-105 shadow-lg h-28"
+                style={{
+                  background: 'linear-gradient(135deg, #FF5252 0%, #FF1493 100%)',
+                  boxShadow: '0 8px 20px rgba(255, 82, 82, 0.4)'
+                }}>
+                📍 Ruta de Hoy
+              </button>
+              <button onClick={() => navigate('/marketplace?cat=Producción')}
+                className="relative overflow-hidden rounded-2xl p-4 text-white font-bold text-sm flex flex-col items-center justify-center gap-2 group transition-all hover:scale-105 shadow-lg h-28"
+                style={{
+                  background: 'linear-gradient(135deg, #FF6B9D 0%, #F06292 100%)',
+                  boxShadow: '0 8px 20px rgba(255, 107, 157, 0.4)'
+                }}>
+                🚀 Proyectos
+              </button>
+              <button onClick={() => navigate('/live')}
+                className="relative overflow-hidden rounded-2xl p-4 text-white font-bold text-sm flex flex-col items-center justify-center gap-2 group transition-all hover:scale-105 shadow-lg h-28"
+                style={{
+                  background: 'linear-gradient(135deg, #E91E63 0%, #AD1457 100%)',
+                  boxShadow: '0 8px 20px rgba(233, 30, 99, 0.4)'
+                }}>
+                🎬 Clasesenvivo
+              </button>
+              <button onClick={() => navigate('/eventos?featured=true')}
+                className="relative overflow-hidden rounded-2xl p-4 text-white font-bold text-sm flex flex-col items-center justify-center gap-2 group transition-all hover:scale-105 shadow-lg h-28"
+                style={{
+                  background: 'linear-gradient(135deg, #D81B60 0%, #C2185B 100%)',
+                  boxShadow: '0 8px 20px rgba(216, 27, 96, 0.4)'
+                }}>
+                ⭐ Ofertas
+              </button>
+            </div>
+          </div>
+
+          {/* COMUNIDAD Section */}
+          <div className="mt-6 pb-8">
+            <h3 className="font-display font-bold text-lg text-gray-900 mb-3 uppercase tracking-wider px-2">
+              <span className="bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">Comunidad</span>
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => navigate('/chat')}
+                className="relative overflow-hidden rounded-2xl p-4 text-white font-bold text-sm flex flex-col items-center justify-center gap-2 group transition-all hover:scale-105 shadow-lg h-28"
+                style={{
+                  background: 'linear-gradient(135deg, #FF1493 0%, #FF69B4 100%)',
+                  boxShadow: '0 8px 20px rgba(255, 20, 147, 0.4)'
+                }}>
+                📢 Anuncios
+              </button>
+              <button onClick={() => navigate('/marketplace?cat=Clases')}
+                className="relative overflow-hidden rounded-2xl p-4 text-white font-bold text-sm flex flex-col items-center justify-center gap-2 group transition-all hover:scale-105 shadow-lg h-28"
+                style={{
+                  background: 'linear-gradient(135deg, #F06292 0%, #EC407A 100%)',
+                  boxShadow: '0 8px 20px rgba(240, 98, 146, 0.4)'
+                }}>
+                🎓 Academia
+              </button>
+              <button onClick={() => navigate('/chat')}
+                className="relative overflow-hidden rounded-2xl p-4 text-white font-bold text-sm flex flex-col items-center justify-center gap-2 group transition-all hover:scale-105 shadow-lg h-28"
+                style={{
+                  background: 'linear-gradient(135deg, #EC407A 0%, #E91E63 100%)',
+                  boxShadow: '0 8px 20px rgba(236, 64, 122, 0.4)'
+                }}>
+                👥 Comunidad
+              </button>
+              <button onClick={() => navigate('/chat')}
+                className="relative overflow-hidden rounded-2xl p-4 text-white font-bold text-sm flex flex-col items-center justify-center gap-2 group transition-all hover:scale-105 shadow-lg h-28"
+                style={{
+                  background: 'linear-gradient(135deg, #AD1457 0%, #D81B60 100%)',
+                  boxShadow: '0 8px 20px rgba(173, 20, 87, 0.4)'
+                }}>
+                💬 Comunidad
+              </button>
+            </div>
+          </div>
+        </div>
       </section>
       )}
 
