@@ -472,6 +472,7 @@ const HomePage: React.FC = () => {
               className="w-full h-full object-cover"
             />
           )}
+          </div>
         </div>
       </section>
 
