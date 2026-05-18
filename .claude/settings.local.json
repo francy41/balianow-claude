@@ -62,7 +62,25 @@
       "Bash(node supabase/run-schema.mjs supabase/add-category-images.sql)",
       "Bash(node supabase/add-images.mjs)",
       "Bash(curl -s http://localhost:3001)",
-      "mcp__Claude_in_Chrome__switch_browser"
+      "mcp__Claude_in_Chrome__switch_browser",
+      "Bash(vercel --version)",
+      "Bash(cat > *)",
+      "Bash(vercel deploy *)",
+      "Bash(curl -s https://balianow-claude.vercel.app)",
+      "Bash(vercel projects *)",
+      "Bash(curl -s https://balianow-claude-solfa-mendezs-projects.vercel.app)",
+      "Bash(vercel logs *)",
+      "Bash(rm -rf .vercel)",
+      "Bash(vercel --prod)",
+      "Bash(curl -s https://balianow-claude-solfa-mendezs-projects.vercel.app -w \"\\\\nHTTP Status: %{http_code}\\\\n\")",
+      "Bash(vercel redeploy *)",
+      "Bash(curl -s -I https://balianow-claude-solfa-mendezs-projects.vercel.app)",
+      "Bash(vercel list *)",
+      "Bash(curl -s https://balianow-claude-solfa-mendezs-projects.vercel.app -I)",
+      "Bash(curl -s https://balianow-claude-solfa-mendezs-projects.vercel.app -w \"\\\\nStatus: %{http_code}\\\\n\")",
+      "Bash(git stash *)",
+      "Bash(curl -s https://balianow-claude.netlify.app -w \"\\\\nStatus: %{http_code}\\\\n\")",
+      "Bash(curl -s -I https://francy41.github.io/balianow-claude)"
     ]
   }
 }
