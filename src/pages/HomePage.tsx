@@ -80,7 +80,7 @@ const RADIO_STATIONS = [
   },
 ];
 
-// ── HERO SLIDER ──────────────────────────────────────────────────────────
+// ── HERO SLIDER (Small) ──────────────────────────────────────────────────────────
 const HeroSlider: React.FC<{ images: HeroSliderImage[] }> = ({ images }) => {
   const [current, setCurrent] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
@@ -111,6 +111,66 @@ const HeroSlider: React.FC<{ images: HeroSliderImage[] }> = ({ images }) => {
   );
 };
 
+// ── HERO SLIDER (Full Height) ────────────────────────────────────────────────
+const HeroSliderFullHeight: React.FC<{ images: HeroSliderImage[] }> = ({ images }) => {
+  const [current, setCurrent] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval>>();
+
+  useEffect(() => {
+    if (images.length <= 1) return;
+    timerRef.current = setInterval(() => setCurrent(p => (p + 1) % images.length), 5000);
+    return () => clearInterval(timerRef.current);
+  }, [images.length]);
+
+  const goToPrev = () => setCurrent(p => (p - 1 + images.length) % images.length);
+  const goToNext = () => setCurrent(p => (p + 1) % images.length);
+
+  return (
+    <div className="relative w-full h-full overflow-hidden">
+      <div
+        className="flex transition-transform duration-1000 ease-in-out h-full"
+        style={{ width: `${images.length * 100}%`, transform: `translateX(-${(current * 100) / images.length}%)` }}
+      >
+        {images.map(img => (
+          <img key={img.id} src={img.url} alt={img.alt} className="h-full object-cover flex-shrink-0 w-full" />
+        ))}
+      </div>
+
+      {/* Navigation Arrows */}
+      <button
+        onClick={goToPrev}
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all hover:scale-110 backdrop-blur-sm"
+      >
+        <ChevronRight className="w-5 h-5 rotate-180" />
+      </button>
+      <button
+        onClick={goToNext}
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all hover:scale-110 backdrop-blur-sm"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+
+      {/* Indicators */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        {images.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            className={`transition-all backdrop-blur-sm rounded-full ${
+              i === current
+                ? 'bg-brand-orange w-8 h-2'
+                : 'bg-white/40 hover:bg-white/60 w-2 h-2'
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+    </div>
+  );
+};
+
 // Category interface with images
 interface CategoryWithImage extends Category {
   image_url?: string;
@@ -136,132 +196,163 @@ const DEFAULT_CATEGORIES: CategoryWithImage[] = [
   { id: '16', name: 'Chat', icon: '💬', slug: 'chat', route: '/chat', section: 'comunidad', color_start: '#AD1457', color_mid: '#D81B60', color_end: '#D81B60', shadow_color: 'rgba(173, 20, 87, 0.4)', display_order: 4, active: true, image_url: 'https://picsum.photos/seed/chat2024/800/400' },
 ];
 
-// ── MODERN SMART SEARCH ────────────────────────────────────────────────
-const ModernSearchSection: React.FC<{ navigate: any; categories: any[] }> = ({ navigate, categories }) => {
+// ── ULTRAMODERN SMART SEARCH with AUTOCOMPLETE ────────────────────────────────────────────────
+const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> = ({ navigate, categories }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeFilters, setActiveFilters] = useState<string[]>(['eventos', 'artistas', 'localidades']);
-  const [showFilters, setShowFilters] = useState(false);
-  const availableFilters = ['eventos', 'artistas', 'localidades', 'marketplace'];
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
 
-  const toggleFilter = (filter: string) => {
-    setActiveFilters(prev =>
-      prev.includes(filter) ? prev.filter(f => f !== filter) : [...prev, filter]
-    );
-  };
+  // Filter categories based on search input
+  const filteredCategories = searchQuery.trim() === ''
+    ? []
+    : categories.filter(cat =>
+        cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        cat.slug.toLowerCase().includes(searchQuery.toLowerCase())
+      );
 
-  const addFilter = (filter: string) => {
-    if (!activeFilters.includes(filter)) {
-      setActiveFilters([...activeFilters, filter]);
+  const handleSearch = (query: string = searchQuery) => {
+    if (query.trim()) {
+      setShowSuggestions(false);
+      navigate(`/explorar?q=${encodeURIComponent(query)}`);
     }
   };
 
-  const removeFilter = (filter: string) => {
-    setActiveFilters(activeFilters.filter(f => f !== filter));
+  const handleCategoryClick = (cat: any) => {
+    setShowSuggestions(false);
+    setSearchQuery('');
+    navigate(cat.route);
   };
 
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      navigate(`/explorar?q=${encodeURIComponent(searchQuery)}&filters=${activeFilters.join(',')}`);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev + 1) % (filteredCategories.length + 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev - 1 + filteredCategories.length + 1) % (filteredCategories.length + 1));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedIndex === 0) {
+        handleSearch();
+      } else if (selectedIndex > 0) {
+        handleCategoryClick(filteredCategories[selectedIndex - 1]);
+      } else {
+        handleSearch();
+      }
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
     }
   };
 
   return (
-    <section className="mx-4 mt-6 mb-8">
-      <div className="bg-gradient-to-br from-pink-50 via-white to-rose-50 rounded-2xl p-6 sm:p-8 shadow-lg border border-pink-100">
-        {/* Header */}
-        <div className="mb-6">
-          <h2 className="font-display font-black text-2xl sm:text-3xl bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent mb-2">
-            🔍 Busca Tu Vibe Latino
-          </h2>
-          <p className="text-gray-500 text-sm">Explora eventos, artistas, locales y mucho más</p>
-        </div>
+    <section className="mx-4 mt-6 mb-10">
+      <div className="relative">
+        {/* Search Container */}
+        <div className="relative">
+          <div className="bg-gradient-to-r from-brand-orange/10 via-pink-100/10 to-rose-100/10 backdrop-blur-lg rounded-3xl p-1 shadow-2xl border border-brand-orange/20">
+            <div className="bg-white rounded-3xl px-6 py-4 flex items-center gap-3 group">
+              {/* Icon */}
+              <div className="text-2xl animate-pulse">🔍</div>
 
-        {/* Main Search Bar */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-5">
-          <div className="flex-1 relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Busca artistas, eventos, locales..."
-              className="w-full px-5 py-3 rounded-xl border-2 border-pink-200 focus:border-brand-orange focus:outline-none text-gray-900 placeholder-gray-400 transition-all"
-            />
-            <button
-              onClick={handleSearch}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-orange hover:scale-110 transition-transform"
-            >
-              ✨
-            </button>
-          </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`px-6 py-3 rounded-xl font-bold text-sm transition-all ${
-              showFilters
-                ? 'bg-brand-orange text-white'
-                : 'bg-white text-gray-900 border-2 border-pink-200 hover:border-brand-orange'
-            }`}
-          >
-            ⚙️ Filtros ({activeFilters.length})
-          </button>
-        </div>
+              {/* Input */}
+              <input
+                ref={inputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSuggestions(true);
+                  setSelectedIndex(-1);
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onKeyDown={handleKeyDown}
+                placeholder="Escribe para descubrir... (Artistas, Eventos, Localidades)"
+                className="flex-1 bg-transparent outline-none text-gray-900 placeholder-gray-400 text-sm font-medium"
+              />
 
-        {/* Filter Pills */}
-        <div className="flex flex-wrap gap-2 mb-5">
-          {activeFilters.map(filter => (
-            <div
-              key={filter}
-              className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-brand-orange rounded-full text-sm font-semibold text-gray-900 shadow-sm"
-            >
-              <span className="capitalize">{filter}</span>
+              {/* Search Button */}
               <button
-                onClick={() => removeFilter(filter)}
-                className="text-brand-orange hover:text-red-500 transition-colors font-bold"
+                onClick={() => handleSearch()}
+                className="px-6 py-2 bg-gradient-to-r from-brand-orange to-orange-500 text-white rounded-full font-bold text-sm hover:shadow-lg hover:scale-105 transition-all"
               >
-                ✕
+                Buscar
               </button>
             </div>
-          ))}
+          </div>
+
+          {/* Autocomplete Suggestions */}
+          {showSuggestions && searchQuery.trim() !== '' && (
+            <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 max-h-[400px] overflow-y-auto">
+              {/* Search Results Option */}
+              <button
+                onClick={() => handleSearch()}
+                className={`w-full px-6 py-3 text-left flex items-center gap-3 transition-all ${
+                  selectedIndex === 0
+                    ? 'bg-brand-orange/10 border-l-4 border-brand-orange'
+                    : 'hover:bg-gray-50 border-l-4 border-transparent'
+                }`}
+              >
+                <span className="text-lg">🔎</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-gray-900 text-sm">Buscar "{searchQuery}"</p>
+                  <p className="text-gray-500 text-xs">Busca en toda la plataforma</p>
+                </div>
+              </button>
+
+              {filteredCategories.length > 0 && (
+                <>
+                  <div className="px-6 py-2 border-t border-gray-200">
+                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wide">Categorías</p>
+                  </div>
+                  {filteredCategories.map((cat, idx) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => handleCategoryClick(cat)}
+                      className={`w-full px-6 py-3 text-left flex items-center gap-3 transition-all border-l-4 ${
+                        selectedIndex === idx + 1
+                          ? 'bg-brand-orange/10 border-brand-orange'
+                          : 'hover:bg-gray-50 border-transparent'
+                      }`}
+                    >
+                      <span className="text-lg">{cat.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900 text-sm">{cat.name}</p>
+                        <p className="text-gray-500 text-xs capitalize">{cat.section}</p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                    </button>
+                  ))}
+                </>
+              )}
+
+              {filteredCategories.length === 0 && (
+                <div className="px-6 py-8 text-center">
+                  <p className="text-gray-500 text-sm">No encontramos categorías que coincidan</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Filter Selector (Expandable) */}
-        {showFilters && (
-          <div className="p-4 bg-white rounded-xl border-2 border-pink-100 mb-5">
-            <p className="text-xs font-bold text-gray-600 uppercase mb-3">Agregar más filtros:</p>
-            <div className="flex flex-wrap gap-2">
-              {availableFilters.map(filter => (
-                !activeFilters.includes(filter) && (
-                  <button
-                    key={filter}
-                    onClick={() => addFilter(filter)}
-                    className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-brand-orange hover:text-white text-gray-700 text-sm font-semibold transition-all"
-                  >
-                    + {filter}
-                  </button>
-                )
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Quick Categories */}
-        <div>
-          <p className="text-xs font-bold text-gray-600 uppercase mb-3">O explora por categoría:</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+        {/* Quick Categories Grid */}
+        <div className="mt-8">
+          <p className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-4 px-2">Explora por categoría</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {categories.slice(0, 8).map(cat => (
               <button
                 key={cat.id}
                 onClick={() => navigate(cat.route)}
-                className="group relative overflow-hidden rounded-lg p-3 text-white text-xs font-bold text-center transition-all hover:scale-105 shadow-md"
+                className="group relative overflow-hidden rounded-2xl p-4 text-white font-bold text-sm transition-all hover:scale-105 hover:shadow-2xl h-24 flex flex-col items-center justify-center gap-2"
                 style={{
                   background: `linear-gradient(135deg, ${cat.color_start}, ${cat.color_mid}, ${cat.color_end})`,
+                  boxShadow: `0 8px 20px ${cat.shadow_color}`,
                 }}
               >
-                <span className="relative z-10 flex items-center justify-center gap-1">
-                  <span className="text-base">{cat.icon}</span>
-                  <span className="line-clamp-1">{cat.name}</span>
-                </span>
-                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <span className="text-3xl group-hover:scale-125 transition-transform">{cat.icon}</span>
+                <span className="line-clamp-2 text-center text-xs">{cat.name}</span>
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
             ))}
           </div>
@@ -422,25 +513,56 @@ const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
 
-      {/* ── HERO — Compact with Video & Slider ── */}
-      <section className="mx-4 mt-4 rounded-2xl overflow-hidden bg-black" style={{ minHeight: 280 }}>
-        <div className="flex flex-col lg:flex-row h-full">
-          {/* Slider - Left side */}
-          <div className="w-full lg:w-1/3 flex flex-col justify-center p-4">
-            {heroSliderImages.length > 0 && <HeroSlider images={heroSliderImages} />}
+      {/* ── RADIO BAR (TOP) ── */}
+      {isModuleOn('radio') && (
+      <section className="mx-4 mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {RADIO_STATIONS.map((station, i) => (
+          <div key={i} className="card-white flex items-center gap-3 p-3 rounded-xl hover:shadow-md transition-all cursor-pointer group">
+            <img
+              src={station.img}
+              alt={station.name}
+              className="w-12 h-12 rounded-lg object-cover flex-shrink-0 bg-gray-200 group-hover:scale-105 transition-transform"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-gray-900 text-xs">{station.name}</p>
+              <p className="text-gray-400 text-[10px] flex items-center gap-1 mt-0.5">
+                <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
+                {station.sub}
+              </p>
+            </div>
+            <button
+              onClick={() => setPlaying(playing === i ? null : i)}
+              className="w-8 h-8 rounded-full bg-gradient-to-r from-brand-orange to-orange-500 text-white flex items-center justify-center hover:scale-110 transition-transform flex-shrink-0 shadow-sm"
+            >
+              {playing === i
+                ? <Pause className="w-3.5 h-3.5" />
+                : <Play className="w-3.5 h-3.5 fill-current ml-0.5" />}
+            </button>
           </div>
+        ))}
+      </section>
+      )}
 
-          {/* Video - Right side */}
-          <div className="flex-1 relative min-h-[200px] lg:min-h-[280px] bg-black">
+      {/* ── HERO — Full Height with Slider ── */}
+      <section className="mx-4 mt-4 rounded-3xl overflow-hidden bg-black relative" style={{ minHeight: '400px' }}>
+        <div className="absolute inset-0">
+          {heroSliderImages.length > 0 && (
+            <div className="h-full">
+              <HeroSliderFullHeight images={heroSliderImages} />
+            </div>
+          )}
+        </div>
+        {/* Video Overlay */}
+        <div className="absolute inset-0 hidden lg:flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 bg-black/40">
           {heroMedia.type === 'youtube' ? (() => {
             const id = getYouTubeId(heroMedia.url);
-            if (!id) return <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">URL de YouTube inválida</div>;
+            if (!id) return null;
             const params = new URLSearchParams({
-              autoplay: heroMedia.autoplay ? '1' : '0',
-              mute: heroMedia.muted ? '1' : '0',
-              loop: heroMedia.loop ? '1' : '0',
-              playlist: heroMedia.loop ? id : '',
-              controls: '1',
+              autoplay: '1',
+              mute: '1',
+              loop: '1',
+              playlist: id,
+              controls: '0',
               modestbranding: '1',
               rel: '0',
             });
@@ -448,36 +570,17 @@ const HomePage: React.FC = () => {
               <iframe
                 src={`https://www.youtube.com/embed/${id}?${params.toString()}&playsinline=1`}
                 title="Hero video"
-                className="w-full h-full absolute inset-0"
-                style={{ minHeight: 220 }}
+                className="w-full h-full"
                 allow="autoplay; encrypted-media; picture-in-picture"
                 allowFullScreen
               />
             );
-          })() : heroMedia.type === 'video' ? (
-            <video
-              key={heroMedia.url}
-              src={heroMedia.url}
-              autoPlay={heroMedia.autoplay}
-              muted={heroMedia.muted}
-              loop={heroMedia.loop}
-              playsInline
-              controls
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <img
-              src={heroMedia.url}
-              alt="Encuentra tu Pasión Latina"
-              className="w-full h-full object-cover"
-            />
-          )}
-          </div>
+          })() : null}
         </div>
       </section>
 
-      {/* ── MODERN SMART SEARCH ── */}
-      <ModernSearchSection navigate={navigate} categories={DEFAULT_CATEGORIES} />
+      {/* ── ULTRAMODERN SMART SEARCH ── */}
+      <UltraModernSearchSection navigate={navigate} categories={DEFAULT_CATEGORIES} />
 
 
       {/* ── PANEL SUPERADMIN ── */}
@@ -598,36 +701,6 @@ const HomePage: React.FC = () => {
           </div>
           <button onClick={() => navigate('/dashboard')} className="btn-orange text-sm">Ver mis pedidos</button>
         </section>
-      )}
-
-      {/* ── RADIO BAR ── */}
-      {isModuleOn('radio') && (
-      <section className="mx-4 mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {RADIO_STATIONS.map((station, i) => (
-          <div key={i} className="card-white flex items-center gap-4 p-4 rounded-2xl">
-            <img
-              src={station.img}
-              alt={station.name}
-              className="w-14 h-14 rounded-xl object-cover flex-shrink-0 bg-gray-200"
-            />
-            <div className="flex-1 min-w-0">
-              <p className="font-bold text-gray-900 text-sm">{station.name}</p>
-              <p className="text-gray-400 text-xs flex items-center gap-1.5 mt-0.5">
-                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
-                {station.sub}
-              </p>
-            </div>
-            <button
-              onClick={() => setPlaying(playing === i ? null : i)}
-              className="w-10 h-10 rounded-full border-2 border-gray-200 bg-white text-gray-500 flex items-center justify-center hover:border-brand-orange hover:text-brand-orange transition-all flex-shrink-0"
-            >
-              {playing === i
-                ? <Pause className="w-4 h-4" />
-                : <Play className="w-4 h-4 fill-current ml-0.5" />}
-            </button>
-          </div>
-        ))}
-      </section>
       )}
 
       {/* ── RUTA DE HOY ── */}
