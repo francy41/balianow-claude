@@ -418,7 +418,6 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
 const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, posts }) => {
   const [scrollPosition, setScrollPosition] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const approvablePosts = posts.filter(p => p.status === 'APROBADO');
 
   const scroll = (direction: 'left' | 'right') => {
     if (containerRef.current) {
@@ -457,7 +456,7 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
             className="flex gap-4 overflow-x-auto pb-4"
             style={{ scrollBehavior: 'smooth', scrollbarWidth: 'none' }}
           >
-            {approvablePosts.slice(0, 5).map((post, idx) => (
+            {posts.slice(0, 5).map((post, idx) => (
               <div
                 key={post.id}
                 className="flex-shrink-0 w-72 bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all hover:scale-105 border border-gray-200 cursor-pointer"
@@ -490,26 +489,6 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
                     {post.category}
                   </span>
                 </div>
-
-                {/* Status Badge */}
-                <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-                  <span className={`text-xs font-bold uppercase tracking-wide ${
-                    post.status === 'APROBADO'
-                      ? 'text-green-600'
-                      : 'text-red-600'
-                  }`}>
-                    {post.status === 'APROBADO' ? '✓ Aprobado' : '✕ Rechazado'}
-                  </span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/comunidad?post=${post.id}`);
-                    }}
-                    className="text-brand-orange hover:text-orange-600 text-sm font-bold flex items-center gap-1"
-                  >
-                    Ver más ✨
-                  </button>
-                </div>
               </div>
             ))}
           </div>
@@ -527,14 +506,6 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
           >
             <ChevronRight className="w-5 h-5" />
           </button>
-        </div>
-
-        {/* Info Footer */}
-        <div className="mt-6 pt-4 border-t border-brand-orange/20 text-center">
-          <p className="text-xs text-gray-500">
-            <span className="font-bold text-gray-700">{approvablePosts.length}</span> posts activos ahora •
-            <span className="font-bold text-gray-700 ml-1">{new Set(approvablePosts.map(p => p.location)).size}</span> ciudades
-          </p>
         </div>
       </div>
     </section>
