@@ -52,7 +52,8 @@
       "Bash(node -e ' *)",
       "Bash(node supabase/make-admin.mjs)",
       "Bash(node supabase/run-schema.mjs categories-schema.sql)",
-      "Bash(node supabase/run-schema.mjs add-category-columns.sql)"
+      "Bash(node supabase/run-schema.mjs add-category-columns.sql)",
+      "Bash(curl -s \"https://resplendent-florentine-a72794.netlify.app\")"
     ]
   }
 }

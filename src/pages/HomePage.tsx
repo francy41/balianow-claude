@@ -531,9 +531,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* ── CATEGORÍAS APP STYLE (Baila Now) ── */}
-      {isModuleOn('categories') && (
-        <DynamicCategoriesSection navigate={navigate} />
-      )}
+      <DynamicCategoriesSection navigate={navigate} />
 
       {/* ── LOCALIDADES ── */}
       <section className="mx-4 mt-10">
