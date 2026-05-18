@@ -266,7 +266,7 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
       <div className="relative">
         {/* Search Container */}
         <div className="relative">
-          <div className="bg-gradient-to-r from-brand-orange/10 via-pink-100/10 to-rose-100/10 backdrop-blur-lg rounded-3xl p-1 shadow-2xl border border-brand-orange/20">
+          <div className="bg-gradient-to-r from-brand-orange/15 via-white to-orange-500/10 backdrop-blur-lg rounded-3xl p-1 shadow-2xl border border-brand-orange/30">
             <div className="bg-white rounded-3xl px-6 py-4 flex items-center gap-3 group">
               {/* Icon */}
               <div className="text-2xl animate-pulse">🔍</div>
@@ -283,14 +283,14 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
                 }}
                 onFocus={() => setShowSuggestions(true)}
                 onKeyDown={handleKeyDown}
-                placeholder="Escribe para descubrir... (Artistas, Eventos, Localidades)"
+                placeholder="Escribe para descubrir... (Artistas, Eventos, Localidades, Ciudades)"
                 className="flex-1 bg-transparent outline-none text-gray-900 placeholder-gray-400 text-sm font-medium"
               />
 
               {/* Search Button */}
               <button
                 onClick={() => handleSearch()}
-                className="px-6 py-2 bg-gradient-to-r from-brand-orange to-orange-500 text-white rounded-full font-bold text-sm hover:shadow-lg hover:scale-105 transition-all"
+                className="px-6 py-2 bg-brand-orange hover:bg-orange-600 text-white rounded-full font-bold text-sm hover:shadow-lg hover:scale-105 transition-all"
               >
                 Buscar
               </button>
@@ -380,23 +380,33 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
         {/* Quick Categories Grid */}
         <div className="mt-8">
           <p className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-4 px-2">Explora por categoría</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-            {categories.slice(0, 8).map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => navigate(cat.route)}
-                className="group relative overflow-hidden rounded-2xl p-4 text-white font-bold text-sm transition-all hover:scale-105 hover:shadow-2xl h-24 flex flex-col items-center justify-center gap-2"
-                style={{
-                  background: `linear-gradient(135deg, ${cat.color_start}, ${cat.color_mid}, ${cat.color_end})`,
-                  boxShadow: `0 8px 20px ${cat.shadow_color}`,
-                }}
-              >
-                <span className="text-3xl group-hover:scale-125 transition-transform">{cat.icon}</span>
-                <span className="line-clamp-2 text-center text-xs">{cat.name}</span>
-                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              </button>
-            ))}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {categories.slice(0, 8).map((cat, idx) => {
+              // Color palette: naranja principal + complementarios
+              const colorPalette = [
+                'bg-brand-orange',      // Naranja principal
+                'bg-sky-500',           // Azul cielo
+                'bg-emerald-500',       // Verde esmeralda
+                'bg-purple-600',        // Púrpura
+                'bg-red-500',           // Rojo
+                'bg-indigo-600',        // Índigo
+                'bg-cyan-500',          // Cian
+                'bg-amber-500',         // Ámbar
+              ];
+              const bgColor = colorPalette[idx % colorPalette.length];
+
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => navigate(cat.route)}
+                  className={`group relative overflow-hidden rounded-3xl p-6 text-white font-bold transition-all hover:scale-110 hover:shadow-2xl h-32 flex flex-col items-center justify-center gap-4 ${bgColor} border-0 shadow-lg hover:shadow-xl`}
+                >
+                  <span className="text-5xl group-hover:scale-125 transition-transform duration-300">{cat.icon}</span>
+                  <span className="line-clamp-2 text-center text-sm font-bold leading-tight">{cat.name}</span>
+                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300 rounded-3xl" />
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -423,18 +433,18 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
 
   return (
     <section className="mx-4 mt-8 mb-10">
-      <div className="bg-gradient-to-r from-pink-50 via-white to-rose-50 rounded-3xl p-6 sm:p-8 border border-pink-200">
+      <div className="bg-gradient-to-r from-orange-50 via-white to-amber-50 rounded-3xl p-6 sm:p-8 border border-brand-orange/20">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="font-display font-black text-2xl sm:text-3xl bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent mb-1">
+            <h2 className="font-display font-black text-2xl sm:text-3xl bg-gradient-to-r from-brand-orange to-orange-600 bg-clip-text text-transparent mb-1">
               🔥 Ruta de Hoy
             </h2>
             <p className="text-gray-500 text-sm">Lo que está pasando ahora mismo en tu comunidad</p>
           </div>
           <button
             onClick={() => navigate('/comunidad')}
-            className="px-4 py-2 bg-gradient-to-r from-brand-orange to-orange-500 text-white rounded-full font-bold text-sm hover:shadow-lg transition-all hover:scale-105"
+            className="px-4 py-2 bg-brand-orange hover:bg-orange-600 text-white rounded-full font-bold text-sm hover:shadow-lg transition-all hover:scale-105"
           >
             Ver más →
           </button>
@@ -473,10 +483,10 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
 
                 {/* Location & Category */}
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="text-xs bg-pink-100 text-pink-700 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+                  <span className="text-xs bg-brand-orange/10 text-brand-orange px-3 py-1 rounded-full font-semibold flex items-center gap-1">
                     📍 {post.location}
                   </span>
-                  <span className="text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-semibold capitalize">
+                  <span className="text-xs bg-slate-200 text-slate-700 px-3 py-1 rounded-full font-semibold capitalize">
                     {post.category}
                   </span>
                 </div>
