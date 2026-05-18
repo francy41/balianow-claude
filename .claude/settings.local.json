@@ -60,7 +60,9 @@
       "Bash(pkill -9 node)",
       "Bash(taskkill /F /IM node.exe)",
       "Bash(node supabase/run-schema.mjs supabase/add-category-images.sql)",
-      "Bash(node supabase/add-images.mjs)"
+      "Bash(node supabase/add-images.mjs)",
+      "Bash(curl -s http://localhost:3001)",
+      "mcp__Claude_in_Chrome__switch_browser"
     ]
   }
 }

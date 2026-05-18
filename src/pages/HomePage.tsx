@@ -884,16 +884,6 @@ const HomePage: React.FC = () => {
         </section>
       )}
 
-      {/* ── SEARCH ── */}
-      <section className="mx-4 mt-6">
-        <SearchBar
-          placeholder="Buscar DJs, bailarines, eventos, ciudades..."
-          value={search}
-          onChange={setSearch}
-          onSearch={() => navigate(`/explorar?q=${search}`)}
-        />
-      </section>
-
       {/* ── CATEGORÍAS APP STYLE (Baila Now) ── */}
       <DynamicCategoriesSection navigate={navigate} />
 
