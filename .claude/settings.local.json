@@ -53,7 +53,14 @@
       "Bash(node supabase/make-admin.mjs)",
       "Bash(node supabase/run-schema.mjs categories-schema.sql)",
       "Bash(node supabase/run-schema.mjs add-category-columns.sql)",
-      "Bash(curl -s \"https://resplendent-florentine-a72794.netlify.app\")"
+      "Bash(curl -s \"https://resplendent-florentine-a72794.netlify.app\")",
+      "Bash(pkill -f \"vite\")",
+      "Bash(rm -rf node_modules/.vite)",
+      "Bash(sleep 5 && cat /tmp/dev.log | tail -20)",
+      "Bash(pkill -9 node)",
+      "Bash(taskkill /F /IM node.exe)",
+      "Bash(node supabase/run-schema.mjs supabase/add-category-images.sql)",
+      "Bash(node supabase/add-images.mjs)"
     ]
   }
 }
