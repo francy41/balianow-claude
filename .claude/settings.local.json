@@ -48,7 +48,11 @@
       "Bash(node supabase/run-schema.mjs fix-columns.sql)",
       "Bash(node supabase/seed-uuid.mjs)",
       "Bash(node supabase/fix-services.mjs)",
-      "Bash(node supabase/create-admin.mjs)"
+      "Bash(node supabase/create-admin.mjs)",
+      "Bash(node -e ' *)",
+      "Bash(node supabase/make-admin.mjs)",
+      "Bash(node supabase/run-schema.mjs categories-schema.sql)",
+      "Bash(node supabase/run-schema.mjs add-category-columns.sql)"
     ]
   }
 }

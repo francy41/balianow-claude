@@ -49,7 +49,7 @@ export const authService = {
 function visibleId(id: string) { return id; }
 
 // ── CRUD HELPERS ─────────────────────────────────────────────
-type Table = 'artists' | 'venues' | 'events' | 'services' | 'bookings' | 'reviews' | 'tickets' | 'messages' | 'favorites' | 'site_config';
+type Table = 'artists' | 'venues' | 'events' | 'services' | 'bookings' | 'reviews' | 'tickets' | 'messages' | 'favorites' | 'site_config' | 'profiles' | 'categories';
 
 export const db = {
   // Read all rows (optionally filter)
