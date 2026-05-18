@@ -24,15 +24,15 @@ interface Category {
 
 // ── COMMUNITY POSTS (Ruta de Hoy) ────────────────────────────────────────
 const COMMUNITY_POSTS = [
-  { id: 1, user: 'Elena G.',  text: '"Primera vez en Madrid, busca un local c..."', status: 'APROBADO' },
-  { id: 2, user: 'Miguel A.', text: '"¿Alguien para practicar ruedas de casino..."', status: 'APROBADO' },
-  { id: 3, user: 'Sofía T.',  text: '"Tengo 2 entradas extra para el concierto..."', status: 'RECHAZAR' },
-  { id: 4, user: 'Daniel C.', text: '"¿Cuál es la mejor discoteca latina abierta..."', status: 'APROBADO' },
-  { id: 5, user: 'María V.',  text: '"Buscamos grupo para ir a Tropical House..."', status: 'APROBADO' },
-  { id: 6, user: 'Pedro K.',  text: '"Mensaje de spam: compra criptomo..."', status: 'RECHAZAR' },
-  { id: 7, user: 'Carlos M.', text: '"El viernes voy a Madrid, ¿donde puedo sal..."', status: 'APROBADO' },
-  { id: 8, user: 'Laura S.',  text: '"Busco pareja para ir a la social de salsa..."', status: 'APROBADO' },
-  { id: 9, user: 'David R.',  text: '"¿Algún evento de Kizomba..."', status: 'APROBADO' },
+  { id: 1, user: 'Elena García', fullText: 'Primera vez en Madrid, busca un local donde bailar bachata esta noche. ¡Alguien que me recomiende el mejor lugar!', location: 'Madrid', category: 'localidades', status: 'APROBADO', time: 'Hace 15 min' },
+  { id: 2, user: 'Miguel Ángel', fullText: '¿Alguien para practicar ruedas de casino? Tengo nivel intermedio y busco pareja para entrenamiento en Barcelona.', location: 'Barcelona', category: 'bailarines', status: 'APROBADO', time: 'Hace 32 min' },
+  { id: 3, user: 'Sofía Tomás', fullText: 'Tengo 2 entradas extra para el concierto de Grupo Mania en Medellín. ¡Rápido, se agotan en minutos!', location: 'Medellín', category: 'eventos', status: 'APROBADO', time: 'Hace 48 min' },
+  { id: 4, user: 'Daniel Cruz', fullText: '¿Cuál es la mejor discoteca latina abierta ahora en Valencia? Queremos bailar sábado por la noche.', location: 'Valencia', category: 'localidades', status: 'APROBADO', time: 'Hace 1 hora' },
+  { id: 5, user: 'María Vargas', fullText: 'Buscamos grupo para ir a Tropical House Nightclub. ¡Somos 4 personas de Cali! Quien quiera unirse?', location: 'Cali', category: 'eventos', status: 'APROBADO', time: 'Hace 2 horas' },
+  { id: 6, user: 'Pedro Koss', fullText: 'Mensaje de spam: compra criptomo aqui...', location: 'Online', category: 'comunidad', status: 'RECHAZAR', time: 'Hace 2 horas' },
+  { id: 7, user: 'Carlos Mendez', fullText: 'El viernes voy a Madrid, ¿donde puedo salir a bailar? Prefiero salsa y ambiente latino auténtico.', location: 'Madrid', category: 'artistas', status: 'APROBADO', time: 'Hace 3 horas' },
+  { id: 8, user: 'Laura Silva', fullText: 'Busco pareja para ir a la social de salsa de este jueves. ¡Nivel intermedio! Quien esté interesado?', location: 'Barcelona', category: 'bailarines', status: 'APROBADO', time: 'Hace 3 horas' },
+  { id: 9, user: 'David Rojas', fullText: '¿Algún evento de Kizomba esta semana? Quiero aprender con alguien experimentado en Valencia.', location: 'Valencia', category: 'eventos', status: 'APROBADO', time: 'Hace 4 horas' },
 ];
 
 // ── CITIES ────────────────────────────────────────────────────────────────
@@ -203,13 +203,21 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
   const inputRef = useRef<HTMLInputElement>(null);
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
-  // Filter categories based on search input
+  // Filter categories and cities based on search input
   const filteredCategories = searchQuery.trim() === ''
     ? []
     : categories.filter(cat =>
         cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         cat.slug.toLowerCase().includes(searchQuery.toLowerCase())
       );
+
+  const filteredCities = searchQuery.trim() === ''
+    ? []
+    : CITIES.filter(city =>
+        city.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
+  const totalSuggestions = 1 + filteredCategories.length + filteredCities.length; // 1 para "buscar"
 
   const handleSearch = (query: string = searchQuery) => {
     if (query.trim()) {
@@ -224,19 +232,27 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
     navigate(cat.route);
   };
 
+  const handleCityClick = (city: any) => {
+    setShowSuggestions(false);
+    setSearchQuery('');
+    navigate(`/venues?city=${encodeURIComponent(city.name)}`);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setSelectedIndex(prev => (prev + 1) % (filteredCategories.length + 1));
+      setSelectedIndex(prev => (prev + 1) % totalSuggestions);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setSelectedIndex(prev => (prev - 1 + filteredCategories.length + 1) % (filteredCategories.length + 1));
+      setSelectedIndex(prev => (prev - 1 + totalSuggestions) % totalSuggestions);
     } else if (e.key === 'Enter') {
       e.preventDefault();
       if (selectedIndex === 0) {
         handleSearch();
-      } else if (selectedIndex > 0) {
+      } else if (selectedIndex > 0 && selectedIndex <= filteredCategories.length) {
         handleCategoryClick(filteredCategories[selectedIndex - 1]);
+      } else if (selectedIndex > filteredCategories.length) {
+        handleCityClick(filteredCities[selectedIndex - filteredCategories.length - 1]);
       } else {
         handleSearch();
       }
@@ -283,7 +299,7 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
 
           {/* Autocomplete Suggestions */}
           {showSuggestions && searchQuery.trim() !== '' && (
-            <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 max-h-[400px] overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 max-h-[500px] overflow-y-auto">
               {/* Search Results Option */}
               <button
                 onClick={() => handleSearch()}
@@ -303,7 +319,7 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
               {filteredCategories.length > 0 && (
                 <>
                   <div className="px-6 py-2 border-t border-gray-200">
-                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wide">Categorías</p>
+                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wide">🎉 Categorías</p>
                   </div>
                   {filteredCategories.map((cat, idx) => (
                     <button
@@ -326,9 +342,35 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
                 </>
               )}
 
-              {filteredCategories.length === 0 && (
+              {filteredCities.length > 0 && (
+                <>
+                  <div className="px-6 py-2 border-t border-gray-200">
+                    <p className="text-xs font-bold text-gray-600 uppercase tracking-wide">📍 Ciudades</p>
+                  </div>
+                  {filteredCities.map((city, idx) => (
+                    <button
+                      key={city.name}
+                      onClick={() => handleCityClick(city)}
+                      className={`w-full px-6 py-3 text-left flex items-center gap-3 transition-all border-l-4 ${
+                        selectedIndex === filteredCategories.length + idx + 1
+                          ? 'bg-brand-orange/10 border-brand-orange'
+                          : 'hover:bg-gray-50 border-transparent'
+                      }`}
+                    >
+                      <span className="text-lg">📍</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900 text-sm">{city.name}</p>
+                        <p className="text-gray-500 text-xs">{city.venues} locales • {city.events} eventos</p>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                    </button>
+                  ))}
+                </>
+              )}
+
+              {filteredCategories.length === 0 && filteredCities.length === 0 && (
                 <div className="px-6 py-8 text-center">
-                  <p className="text-gray-500 text-sm">No encontramos categorías que coincidan</p>
+                  <p className="text-gray-500 text-sm">No encontramos categorías ni ciudades que coincidan</p>
                 </div>
               )}
             </div>
@@ -356,6 +398,133 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
               </button>
             ))}
           </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// ── RUTA DE HOY SLIDER SECTION ────────────────────────────────────────
+const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, posts }) => {
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const approvablePosts = posts.filter(p => p.status === 'APROBADO');
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (containerRef.current) {
+      const scrollAmount = 320;
+      const newPosition = direction === 'left'
+        ? scrollPosition - scrollAmount
+        : scrollPosition + scrollAmount;
+      containerRef.current.scrollLeft = newPosition;
+      setScrollPosition(newPosition);
+    }
+  };
+
+  return (
+    <section className="mx-4 mt-8 mb-10">
+      <div className="bg-gradient-to-r from-pink-50 via-white to-rose-50 rounded-3xl p-6 sm:p-8 border border-pink-200">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="font-display font-black text-2xl sm:text-3xl bg-gradient-to-r from-pink-600 to-rose-600 bg-clip-text text-transparent mb-1">
+              🔥 Ruta de Hoy
+            </h2>
+            <p className="text-gray-500 text-sm">Lo que está pasando ahora mismo en tu comunidad</p>
+          </div>
+          <button
+            onClick={() => navigate('/comunidad')}
+            className="px-4 py-2 bg-gradient-to-r from-brand-orange to-orange-500 text-white rounded-full font-bold text-sm hover:shadow-lg transition-all hover:scale-105"
+          >
+            Ver más →
+          </button>
+        </div>
+
+        {/* Slider Container */}
+        <div className="relative">
+          <div
+            ref={containerRef}
+            className="flex gap-4 overflow-x-auto pb-4"
+            style={{ scrollBehavior: 'smooth', scrollbarWidth: 'none' }}
+          >
+            {approvablePosts.slice(0, 5).map((post, idx) => (
+              <div
+                key={post.id}
+                className="flex-shrink-0 w-72 bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all hover:scale-105 border border-gray-200 cursor-pointer"
+                onClick={() => navigate(`/comunidad?post=${post.id}`)}
+              >
+                {/* Header con Avatar */}
+                <div className="flex items-start gap-3 mb-3">
+                  <img
+                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(post.user)}&background=F97316&color=fff&size=120&bold=true&rounded=true`}
+                    alt={post.user}
+                    className="w-12 h-12 rounded-full object-cover flex-shrink-0 border-2 border-brand-orange"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-gray-900 text-sm">{post.user}</p>
+                    <p className="text-gray-500 text-xs">{post.time}</p>
+                  </div>
+                </div>
+
+                {/* Post Text */}
+                <p className="text-gray-700 text-sm line-clamp-3 mb-3 leading-relaxed">
+                  {post.fullText}
+                </p>
+
+                {/* Location & Category */}
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xs bg-pink-100 text-pink-700 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+                    📍 {post.location}
+                  </span>
+                  <span className="text-xs bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-semibold capitalize">
+                    {post.category}
+                  </span>
+                </div>
+
+                {/* Status Badge */}
+                <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                  <span className={`text-xs font-bold uppercase tracking-wide ${
+                    post.status === 'APROBADO'
+                      ? 'text-green-600'
+                      : 'text-red-600'
+                  }`}>
+                    {post.status === 'APROBADO' ? '✓ Aprobado' : '✕ Rechazado'}
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/comunidad?post=${post.id}`);
+                    }}
+                    className="text-brand-orange hover:text-orange-600 text-sm font-bold flex items-center gap-1"
+                  >
+                    Ver más ✨
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Navigation Arrows */}
+          <button
+            onClick={() => scroll('left')}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 z-10 w-10 h-10 rounded-full bg-gradient-to-r from-brand-orange to-orange-500 text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+          >
+            <ChevronRight className="w-5 h-5 rotate-180" />
+          </button>
+          <button
+            onClick={() => scroll('right')}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 z-10 w-10 h-10 rounded-full bg-gradient-to-r from-brand-orange to-orange-500 text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Info Footer */}
+        <div className="mt-6 pt-4 border-t border-pink-200 text-center">
+          <p className="text-xs text-gray-500">
+            <span className="font-bold text-gray-700">{approvablePosts.length}</span> posts activos ahora •
+            <span className="font-bold text-gray-700 ml-1">{new Set(approvablePosts.map(p => p.location)).size}</span> ciudades
+          </p>
         </div>
       </div>
     </section>
@@ -582,6 +751,10 @@ const HomePage: React.FC = () => {
       {/* ── ULTRAMODERN SMART SEARCH ── */}
       <UltraModernSearchSection navigate={navigate} categories={DEFAULT_CATEGORIES} />
 
+      {/* ── RUTA DE HOY SLIDER ── */}
+      {isModuleOn('ruta') && (
+        <RutaDeHoySlider navigate={navigate} posts={COMMUNITY_POSTS} />
+      )}
 
       {/* ── PANEL SUPERADMIN ── */}
       {isAdmin && adminStats && isModuleOn('admin-panel') && (
@@ -701,50 +874,6 @@ const HomePage: React.FC = () => {
           </div>
           <button onClick={() => navigate('/dashboard')} className="btn-orange text-sm">Ver mis pedidos</button>
         </section>
-      )}
-
-      {/* ── RUTA DE HOY ── */}
-      {isModuleOn('ruta') && (
-      <section className="mx-4 mt-6">
-        <div className="section-head">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 bg-brand-orange rounded-full" />
-            <h2 className="font-display font-bold text-base text-gray-900 uppercase tracking-wide">La Ruta de Hoy</h2>
-          </div>
-          <button onClick={() => navigate('/comunidad')} className="section-link text-xs">Ver más rutas →</button>
-        </div>
-        <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
-          {COMMUNITY_POSTS.map(post => (
-            <div key={post.id} className="flex-shrink-0 w-60 card-white p-3 rounded-xl">
-              <div className="flex items-start gap-2 mb-2">
-                <Avatar
-                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(post.user)}&background=F97316&color=fff&size=80`}
-                  name={post.user} size="xs"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-gray-900 font-semibold text-xs">{post.user}</p>
-                  <p className="text-gray-500 text-xs line-clamp-2 mt-0.5">{post.text}</p>
-                </div>
-              </div>
-              <div className="flex gap-1.5">
-                <span className={`${post.status === 'APROBADO' ? 'tag-green' : 'tag-red'} text-[10px]`}>
-                  {post.status}
-                </span>
-                {isAuthenticated && (
-                  <>
-                    <button className="flex items-center gap-0.5 text-[10px] px-2 py-0.5 rounded bg-green-50 text-green-600 hover:bg-green-100 transition-colors font-semibold">
-                      <Check className="w-3 h-3" /> Aprobar
-                    </button>
-                    <button className="flex items-center gap-0.5 text-[10px] px-2 py-0.5 rounded bg-red-50 text-red-500 hover:bg-red-100 transition-colors font-semibold">
-                      <X className="w-3 h-3" /> Rechazar
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
       )}
 
       {/* ── SEARCH ── */}
