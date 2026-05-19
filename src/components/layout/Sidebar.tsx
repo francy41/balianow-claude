@@ -47,7 +47,6 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { label: '📢 Promociónate', icon: <Megaphone className="w-4 h-4" />, to: '/promocionate' },
       { label: 'Clases en vivo',icon: <Video className="w-4 h-4" />,      to: '/live' },
       { label: 'Ofertas',       icon: <Gift className="w-4 h-4" />,       to: '/marketplace?cat=ofertas' },
-      { label: 'Afiliados RRPP', icon: <Briefcase className="w-4 h-4" />, to: '/afiliados' },
     ],
   },
   {
