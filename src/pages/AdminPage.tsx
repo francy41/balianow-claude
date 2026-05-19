@@ -11,13 +11,14 @@ import {
 } from 'lucide-react';
 import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useAdminOverridesStore, PLATFORM_COMMISSION_RATE, type HeroMediaType, type CommissionSource, type HeroSliderImage } from '../store/appStore';
 import AdminCMS from '../components/AdminCMS';
+import AdminMediaManager from '../components/AdminMediaManager';
 import AdminEditModal, { type EditField } from '../components/AdminEditModal';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
 import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS } from '../data/mockData';
 
 // ── ADMIN SECTIONS ─────────────────────────────────────────────────────────
 type AdminSection =
-  | 'overview' | 'categorias' | 'radio' | 'usuarios' | 'localidades'
+  | 'overview' | 'categorias' | 'media' | 'radio' | 'usuarios' | 'localidades'
   | 'suscripciones' | 'artistas' | 'bailarinas' | 'eventos' | 'mercado'
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms';
@@ -26,6 +27,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
   { id: 'cms',            label: 'CMS · Constructor',       icon: <Palette className="w-4 h-4" />, badge: 'NEW' },
   { id: 'categorias',     label: 'Categorías',              icon: <Tag className="w-4 h-4" /> },
+  { id: 'media',          label: 'Media Manager',           icon: <Palette className="w-4 h-4" />, badge: 'NEW' },
   { id: 'radio',          label: 'Radio Online',            icon: <Radio className="w-4 h-4" />, badge: '2 live' },
   { id: 'usuarios',       label: 'Usuarios',                icon: <Users className="w-4 h-4" /> },
   { id: 'localidades',    label: 'Localidades',             icon: <MapPin className="w-4 h-4" /> },
@@ -253,6 +255,7 @@ const AdminPage: React.FC = () => {
       <main className="flex-1 lg:ml-60 p-4 sm:p-6 mt-0">
         {active === 'overview'       && <OverviewSection addToast={addToast} />}
         {active === 'categorias'     && <CategoriasSection addToast={addToast} />}
+        {active === 'media'          && <MediaSection />}
         {active === 'radio'          && <RadioSection addToast={addToast} />}
         {active === 'usuarios'       && <UsuariosSection addToast={addToast} />}
         {active === 'localidades'    && <LocalidadesSection addToast={addToast} />}
@@ -409,7 +412,8 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<Category>>({});
   const [showNewForm, setShowNewForm] = useState(false);
-  const [newCategory, setNewCategory] = useState<Partial<Category>>({
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [newCategory, setNewCategory] = useState<Partial<Category & { image_url?: string; border_radius?: number; shadow_intensity?: number; hover_effect?: string }>>({
     name: '',
     icon: '🎉',
     slug: '',
@@ -420,6 +424,10 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     color_end: '#C2185B',
     active: true,
     display_order: 1,
+    image_url: '',
+    border_radius: 12,
+    shadow_intensity: 1,
+    hover_effect: 'scale',
   });
 
   // Fetch categories from Supabase
@@ -574,7 +582,22 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           {categoryBySection[section].map(cat => (
             <div
               key={cat.id}
-              className="p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-100 hover:border-brand-orange/50 transition-all"
+              draggable
+              onDragStart={() => setDragId(cat.id)}
+              onDragOver={e => e.preventDefault()}
+              onDrop={() => {
+                if (dragId && dragId !== cat.id) {
+                  const dragCat = categories.find(c => c.id === dragId);
+                  const dropCat = cat;
+                  if (dragCat && dropCat) {
+                    // Swap display_order
+                    handleSaveCategory(dragCat.id, { display_order: dropCat.display_order });
+                    handleSaveCategory(dropCat.id, { display_order: dragCat.display_order });
+                  }
+                }
+                setDragId(null);
+              }}
+              className={`p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border transition-all cursor-grab active:cursor-grabbing ${dragId === cat.id ? 'border-pink-400 bg-pink-50 opacity-60' : 'border-gray-100 hover:border-pink-300'}`}
             >
               {editingId === cat.id ? (
                 // Edit mode
@@ -676,21 +699,73 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
                     </div>
                   </div>
 
-                  {/* Preview */}
-                  <div className="flex items-center gap-3">
-                    <label className="text-xs font-medium text-gray-600">Preview:</label>
-                    <div
-                      className="px-4 py-2 rounded-lg text-white font-bold text-center w-full"
-                      style={{
-                        background: `linear-gradient(135deg, ${editData.color_start}, ${editData.color_mid}, ${editData.color_end})`,
-                        boxShadow: `0 10px 30px rgba(0, 0, 0, 0.3)`,
-                      }}
-                    >
-                      {editData.icon} {editData.name}
+                  {/* Image URL */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-600">Imagen de fondo (URL)</label>
+                    <input
+                      type="text"
+                      value={(editData as any).image_url || ''}
+                      onChange={e => setEditData({ ...editData, image_url: e.target.value } as any)}
+                      className="input w-full"
+                      placeholder="https://ejemplo.com/imagen.jpg"
+                    />
+                  </div>
+
+                  {/* Visual controls */}
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-gray-600">Border Radius</label>
+                      <input
+                        type="range" min="0" max="30" step="1"
+                        value={(editData as any).border_radius || 12}
+                        onChange={e => setEditData({ ...editData, border_radius: parseInt(e.target.value) } as any)}
+                        className="w-full accent-pink-500"
+                      />
+                      <span className="text-[10px] text-gray-400">{(editData as any).border_radius || 12}px</span>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-600">Sombra</label>
+                      <input
+                        type="range" min="0" max="5" step="1"
+                        value={(editData as any).shadow_intensity || 1}
+                        onChange={e => setEditData({ ...editData, shadow_intensity: parseInt(e.target.value) } as any)}
+                        className="w-full accent-pink-500"
+                      />
+                      <span className="text-[10px] text-gray-400">Nivel {(editData as any).shadow_intensity || 1}</span>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-600">Efecto Hover</label>
+                      <select
+                        value={(editData as any).hover_effect || 'scale'}
+                        onChange={e => setEditData({ ...editData, hover_effect: e.target.value } as any)}
+                        className="input w-full text-xs"
+                      >
+                        <option value="scale">Zoom</option>
+                        <option value="lift">Elevar</option>
+                        <option value="glow">Brillo</option>
+                        <option value="none">Ninguno</option>
+                      </select>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  {/* Preview */}
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">Vista previa:</label>
+                    <div
+                      className="px-4 py-3 text-white font-bold text-center w-full flex items-center justify-center gap-2"
+                      style={{
+                        background: (editData as any).image_url
+                          ? `linear-gradient(135deg, ${editData.color_start}CC, ${editData.color_end}CC), url(${(editData as any).image_url}) center/cover`
+                          : `linear-gradient(135deg, ${editData.color_start}, ${editData.color_mid}, ${editData.color_end})`,
+                        borderRadius: `${(editData as any).border_radius || 12}px`,
+                        boxShadow: `0 ${((editData as any).shadow_intensity || 1) * 4}px ${((editData as any).shadow_intensity || 1) * 10}px ${editData.shadow_color || 'rgba(0,0,0,0.2)'}`,
+                      }}
+                    >
+                      <span className="text-2xl">{editData.icon}</span> {editData.name}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3">
                     <div>
                       <label className="text-xs font-medium text-gray-600">Orden</label>
                       <input
@@ -700,13 +775,25 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
                         className="input w-full"
                       />
                     </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-600">Sección</label>
+                      <select
+                        value={editData.section || 'main'}
+                        onChange={e => setEditData({ ...editData, section: e.target.value as any })}
+                        className="input w-full text-xs"
+                      >
+                        <option value="main">Principal</option>
+                        <option value="mercado">Mercado</option>
+                        <option value="comunidad">Comunidad</option>
+                      </select>
+                    </div>
                     <div className="flex items-end">
                       <label className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={editData.active}
                           onChange={e => setEditData({ ...editData, active: e.target.checked })}
-                          className="w-4 h-4"
+                          className="w-4 h-4 accent-pink-500"
                         />
                         <span className="text-xs font-medium text-gray-600">Activa</span>
                       </label>
@@ -731,34 +818,54 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
               ) : (
                 // View mode
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-2xl">{cat.icon}</span>
-                      <div>
-                        <p className="font-bold text-gray-900">{cat.name}</p>
-                        <p className="text-xs text-gray-400">{cat.slug} • {cat.route}</p>
-                      </div>
-                    </div>
+                  <div className="flex items-center gap-4 flex-1">
+                    {/* Mini preview */}
                     <div
-                      className="mt-3 px-3 py-1.5 rounded-lg text-white text-xs font-bold inline-block"
+                      className="w-14 h-14 rounded-xl flex items-center justify-center text-white text-xl flex-shrink-0"
                       style={{
-                        background: `linear-gradient(135deg, ${cat.color_start}, ${cat.color_mid}, ${cat.color_end})`,
-                        boxShadow: `0 5px 15px ${cat.shadow_color || 'rgba(236, 64, 122, 0.4)'}`,
+                        background: (cat as any).image_url
+                          ? `linear-gradient(135deg, ${cat.color_start}CC, ${cat.color_end}CC), url(${(cat as any).image_url}) center/cover`
+                          : `linear-gradient(135deg, ${cat.color_start}, ${cat.color_end})`,
+                        borderRadius: `${(cat as any).border_radius || 12}px`,
                       }}
                     >
-                      Diseño {cat.display_order}
+                      {cat.icon}
                     </div>
-                    <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
-                      <span>{cat.active ? '✓ Activa' : '✗ Inactiva'}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-gray-900">{cat.name}</p>
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${cat.active ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'}`}>
+                          {cat.active ? 'Activa' : 'Inactiva'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-0.5">{cat.slug} • {cat.route} • Orden: {cat.display_order}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="w-3 h-3 rounded-full" style={{ background: cat.color_start }} />
+                        <div className="w-3 h-3 rounded-full" style={{ background: cat.color_mid }} />
+                        <div className="w-3 h-3 rounded-full" style={{ background: cat.color_end }} />
+                        <span className="text-[10px] text-gray-400 ml-1">↕ Arrastra para reordenar</span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex gap-1 flex-shrink-0">
                     <button
                       onClick={() => {
+                        // Duplicate
+                        const dup = { ...cat, name: cat.name + ' (copia)', slug: cat.slug + '-copy', display_order: cat.display_order + 1 };
+                        delete (dup as any).id;
+                        handleAddCategory();
+                      }}
+                      className="p-2 hover:bg-gray-100 text-gray-400 rounded-lg"
+                      title="Duplicar"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => {
                         setEditingId(cat.id);
                         setEditData(cat);
                       }}
-                      className="p-2 hover:bg-brand-orange/10 text-brand-orange rounded-lg"
+                      className="p-2 hover:bg-pink-50 text-pink-500 rounded-lg"
                       title="Editar"
                     >
                       <Edit className="w-4 h-4" />
@@ -928,6 +1035,16 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     </div>
   );
 };
+
+// ── 2b. MEDIA MANAGER ────────────────────────────────────────────────────
+const MediaSection: React.FC = () => (
+  <div>
+    <PageHeader title="Media Manager" subtitle="Gestiona todas las imágenes, banners, vídeos e iconos de la plataforma" />
+    <div className="card-white p-6">
+      <AdminMediaManager />
+    </div>
+  </div>
+);
 
 // ── 3. RADIO ──────────────────────────────────────────────────────────────
 const RadioSection: React.FC<{ addToast: Function }> = ({ addToast }) => {

@@ -24,6 +24,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { label: 'Eventos',      icon: <Calendar className="w-4 h-4" />,   to: '/eventos' },
       { label: 'Artistas',     icon: <Music2 className="w-4 h-4" />,     to: '/artistas' },
       { label: 'Bailarines',   icon: <Users className="w-4 h-4" />,      to: '/artistas?tipo=dancer' },
+      { label: '🟢 Abiertos Ahora', icon: <MapPin className="w-4 h-4" />, to: '/venues?open=true' },
     ],
   },
   {
@@ -45,6 +46,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { label: 'Proyectos',     icon: <Briefcase className="w-4 h-4" />,  to: '/marketplace' },
       { label: 'Clases en vivo',icon: <Video className="w-4 h-4" />,      to: '/live' },
       { label: 'Ofertas',       icon: <Gift className="w-4 h-4" />,       to: '/marketplace?cat=ofertas' },
+      { label: 'Afiliados RRPP', icon: <Briefcase className="w-4 h-4" />, to: '/afiliados' },
     ],
   },
   {
