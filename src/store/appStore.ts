@@ -215,12 +215,14 @@ interface SiteConfigState {
   heroMedia: HeroMedia;
   heroSliderImages: HeroSliderImage[];
   commissions: CommissionConfig;
+  siteLogo: string; // base64 or URL
   setHeroMedia: (media: Partial<HeroMedia>) => void;
   setHeroSliderImages: (images: HeroSliderImage[]) => void;
   setCommission: (source: CommissionSource, rate: number) => void;
   setDefaultCommission: (rate: number) => void;
   setPremiumDiscount: (rate: number) => void;
   resetCommissions: () => void;
+  setSiteLogo: (logo: string) => void;
 }
 
 export const useSiteConfigStore = create<SiteConfigState>()(
@@ -238,9 +240,11 @@ export const useSiteConfigStore = create<SiteConfigState>()(
         { id: '2', url: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=1400&h=500&fit=crop&crop=center', alt: 'BailaNow - Encuentra todo el mundo del baile en tus manos' },
       ],
       commissions: DEFAULT_COMMISSIONS,
+      siteLogo: '',
       setHeroMedia: (media) =>
         set((state) => ({ heroMedia: { ...state.heroMedia, ...media } })),
       setHeroSliderImages: (images) => set({ heroSliderImages: images }),
+      setSiteLogo: (logo) => set({ siteLogo: logo }),
       setCommission: (source, rate) =>
         set((state) => ({
           commissions: {
@@ -257,7 +261,7 @@ export const useSiteConfigStore = create<SiteConfigState>()(
     }),
     {
       name: 'ritmolatino-site-config',
-      version: 4,
+      version: 5,
       migrate: () => undefined as any,
     }
   )

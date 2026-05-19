@@ -98,7 +98,14 @@
       "Bash(cd \"F:\\\\BACHASALSEROS APP WEB\\\\PROYEC LATINO CLAUDE\" && git show c655844:src/pages/HomePage.tsx > /tmp/homepage_backup.tsx && wc -l /tmp/homepage_backup.tsx)",
       "Bash(ls supabase/)",
       "Bash(cat .env)",
-      "Bash(cat .env.local)"
+      "Bash(cat .env.local)",
+      "Bash(npx supabase *)",
+      "Bash(supabase --version)",
+      "Bash(node -e \"const {execSync}=require\\('child_process'\\); console.log\\(execSync\\('where supabase'\\).toString\\(\\)\\)\")",
+      "Bash(node supabase/run-schema.mjs payments-schema.sql)",
+      "Bash(node supabase/run-schema.mjs fix-payments.sql)",
+      "Bash(node supabase/run-schema.mjs fix-policies.sql)",
+      "Bash(node supabase/deploy-functions.mjs)"
     ]
   }
 }

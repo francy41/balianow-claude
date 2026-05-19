@@ -1896,18 +1896,26 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const handleImgFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setNewSlideUrl(url);
-    addToast({ message: `Imagen cargada: ${file.name}`, type: 'success' });
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      setNewSlideUrl(dataUrl);
+      addToast({ message: `Imagen cargada: ${file.name}`, type: 'success' });
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleVideoFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setDraftUrl(url);
-    setHeroMedia({ type: 'video', url });
-    addToast({ message: `Video cargado: ${file.name}`, type: 'success' });
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      setDraftUrl(dataUrl);
+      setHeroMedia({ type: 'video', url: dataUrl });
+      addToast({ message: `Video cargado: ${file.name}`, type: 'success' });
+    };
+    reader.readAsDataURL(file);
   };
 
   const applyOverlay = () => {
@@ -2088,6 +2096,29 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
 
 const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const [colors, setColors] = useState({ primary: '#EC4899', secondary: '#111111', accent: '#DB2777' });
+  const { siteLogo, setSiteLogo } = useSiteConfigStore();
+  const logoFileRef = React.useRef<HTMLInputElement>(null);
+  const [logoUrl, setLogoUrl] = useState('');
+
+  const handleLogoFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string;
+      setSiteLogo(dataUrl);
+      addToast({ message: `Logo guardado: ${file.name}`, type: 'success' });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogoUrl = () => {
+    if (!logoUrl.trim()) { addToast({ message: 'Introduce una URL válida', type: 'error' }); return; }
+    setSiteLogo(logoUrl.trim());
+    setLogoUrl('');
+    addToast({ message: 'Logo actualizado por URL', type: 'success' });
+  };
+
   return (
     <div>
       <PageHeader title="Diseño Web" subtitle="Personaliza la apariencia de la plataforma" action={
@@ -2115,14 +2146,40 @@ const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
         </div>
         <div className="card-white p-6">
           <h3 className="font-bold text-gray-900 mb-4">Logo y branding</h3>
-          <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center mb-4">
-            <div className="text-4xl mb-2">💃</div>
-            <p className="font-display font-black text-xl"><span className="text-white" style={{ color: colors.secondary }}>Baila</span><span style={{ color: colors.primary }}>Now</span></p>
-            <p className="text-gray-400 text-sm mt-2">Vista previa del logo</p>
+          {/* Preview */}
+          <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center mb-4 bg-gray-50">
+            {siteLogo ? (
+              <div className="space-y-2">
+                <img src={siteLogo} alt="Logo actual" className="max-h-20 max-w-full mx-auto object-contain rounded-lg" />
+                <p className="text-xs text-green-600 font-semibold">✅ Logo guardado</p>
+                <button onClick={() => { setSiteLogo(''); addToast({ message: 'Logo eliminado', type: 'info' }); }}
+                  className="text-xs text-red-400 hover:text-red-600 underline">Eliminar logo</button>
+              </div>
+            ) : (
+              <>
+                <div className="text-4xl mb-2">💃</div>
+                <p className="font-display font-black text-xl">
+                  <span style={{ color: colors.secondary }}>Baila</span>
+                  <span style={{ color: colors.primary }}>Now</span>
+                </p>
+                <p className="text-gray-400 text-xs mt-1">Sin logo personalizado</p>
+              </>
+            )}
           </div>
-          <Button variant="outline" className="w-full" onClick={() => addToast({ message: 'Subir logo proximamente', type: 'info' })}>
-            📁 Subir nuevo logo
-          </Button>
+          {/* Upload from file */}
+          <button onClick={() => logoFileRef.current?.click()}
+            className="w-full border-2 border-dashed border-pink-300 hover:border-pink-500 rounded-xl py-3 text-sm font-semibold text-pink-500 hover:text-pink-700 hover:bg-pink-50 transition-all mb-2">
+            📁 Subir logo desde archivo (PNG, SVG, JPG)
+          </button>
+          <input ref={logoFileRef} type="file" accept="image/*" className="hidden" onChange={handleLogoFile} />
+          {/* Or by URL */}
+          <div className="flex gap-2 mt-2">
+            <input value={logoUrl} onChange={e => setLogoUrl(e.target.value)}
+              placeholder="https://ejemplo.com/logo.png"
+              className="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-orange" />
+            <Button variant="orange" onClick={handleLogoUrl} className="text-xs px-3">Guardar URL</Button>
+          </div>
+          <p className="text-[10px] text-gray-400 mt-2">💡 Los archivos locales se convierten a base64 y se guardan permanentemente</p>
         </div>
         <div className="card-white p-6">
           <h3 className="font-bold text-gray-900 mb-4">Textos y SEO</h3>
