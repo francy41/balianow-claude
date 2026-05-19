@@ -494,18 +494,6 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     );
   };
 
-  const VerTodasBtn: React.FC<{ to: string }> = ({ to }) => (
-    <button
-      onClick={() => navigate(to)}
-      className="group flex flex-col items-center justify-center h-[88px] sm:h-24 rounded-xl border-2 border-dashed border-pink-300 hover:border-pink-500 hover:bg-pink-50 dark:hover:bg-pink-950/30 transition-all duration-300"
-    >
-      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-pink-500/30">
-        <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-      </div>
-      <span className="text-pink-500 text-[10px] sm:text-xs font-black mt-2 uppercase tracking-wide">Ver Todas</span>
-    </button>
-  );
-
   return (
     <section className="mt-4 px-2 sm:px-4">
       {/* Header */}
@@ -533,7 +521,6 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
               {mainCats.map((cat, idx) => (
                 <CategoryButton key={cat.id} cat={cat} index={idx} />
               ))}
-              <VerTodasBtn to="/explorar" />
             </div>
           </div>
         )}
@@ -551,7 +538,6 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
               {mercadoCats.map((cat, idx) => (
                 <CategoryButton key={cat.id} cat={cat} index={mainCats.length + idx} />
               ))}
-              <VerTodasBtn to="/marketplace" />
             </div>
           </div>
         )}
@@ -569,7 +555,6 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
               {comunidadCats.map((cat, idx) => (
                 <CategoryButton key={cat.id} cat={cat} index={mainCats.length + mercadoCats.length + idx} />
               ))}
-              <VerTodasBtn to="/chat" />
             </div>
           </div>
         )}

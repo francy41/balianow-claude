@@ -542,7 +542,7 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     <div>
       <PageHeader
         title="Categorías del Home"
-        subtitle={`${activeCount} categorías visibles · Los cambios se aplican al instante en el homepage`}
+        subtitle={`${activeCount} categorías visibles · Desde aquí puedes agregar, eliminar, ocultar y mover categorías del homepage al instante`}
         action={
           <div className="flex gap-2">
             <button onClick={resetToDefault} className="border border-gray-200 text-gray-600 text-sm font-bold px-3 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-1.5">
