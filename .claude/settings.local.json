@@ -91,7 +91,11 @@
       "mcp__Claude_in_Chrome__tabs_create_mcp",
       "mcp__Claude_in_Chrome__read_page",
       "mcp__Claude_in_Chrome__tabs_close_mcp",
-      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://bailanow.com\" -MaximumRedirection 5 -UseBasicParsing -TimeoutSec 10; \"Status: $\\($r.StatusCode\\) | Length: $\\($r.Content.Length\\)\" } catch { $_.Exception.Message })"
+      "PowerShell(try { $r = Invoke-WebRequest -Uri \"https://bailanow.com\" -MaximumRedirection 5 -UseBasicParsing -TimeoutSec 10; \"Status: $\\($r.StatusCode\\) | Length: $\\($r.Content.Length\\)\" } catch { $_.Exception.Message })",
+      "Bash(npx vite *)",
+      "Bash(npx vercel *)",
+      "Bash(mkdir -p \"F:/BACHASALSEROS APP WEB/PROYEC LATINO CLAUDE/.claude\")",
+      "Bash(cd \"F:\\\\BACHASALSEROS APP WEB\\\\PROYEC LATINO CLAUDE\" && git show c655844:src/pages/HomePage.tsx > /tmp/homepage_backup.tsx && wc -l /tmp/homepage_backup.tsx)"
     ]
   }
 }
