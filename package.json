@@ -13,6 +13,9 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
   },
   "dependencies": {
+    "@paypal/react-paypal-js": "^9.2.0",
+    "@stripe/react-stripe-js": "^6.4.0",
+    "@stripe/stripe-js": "^9.6.0",
     "@supabase/supabase-js": "^2.105.4",
     "clsx": "^2.1.0",
     "date-fns": "^3.3.0",

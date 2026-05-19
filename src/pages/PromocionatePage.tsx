@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MessageSquare, ShoppingBag, ShoppingCart, CheckCircle, Clock, TrendingUp, Shield, Users, Eye, Send, X, Trash2, CreditCard, Plus, Minus } from 'lucide-react';
+import { MessageSquare, ShoppingBag, ShoppingCart, CheckCircle, Clock, TrendingUp, Shield, Users, Eye, Send, X, Trash2, CreditCard } from 'lucide-react';
 import { PROMO_SERVICES, PROMO_SELLERS } from '../data/mockData';
 import type { PromoService, PromoSeller } from '../data/mockData';
-import { useAuthStore, useUIStore, useCartStore, PLATFORM_COMMISSION_RATE } from '../store/appStore';
+import { useAuthStore, useUIStore, useCartStore } from '../store/appStore';
 import { StarRating, Badge, SearchBar } from '../components/ui';
 import BookingModal from '../components/BookingModal';
+import PaymentGateway from '../components/payment/PaymentGateway';
 
 const CATEGORY_TABS = [
   { id: 'all', label: 'Todo', icon: '🔥' },
@@ -283,7 +284,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
   );
 };
 
-/* ── Checkout Modal ── */
+/* ── Checkout Modal — replaced by PaymentGateway, kept for reference ── */
 const CheckoutModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => {
   const { items, getSubtotal, getCommission, getTotal, getSellerBreakdown, clearCart } = useCartStore();
   const { addToast } = useUIStore();
@@ -765,8 +766,8 @@ const PromocionatePage: React.FC = () => {
         onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }}
       />
 
-      {/* Checkout Modal */}
-      <CheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
+      {/* Checkout — Real Stripe + PayPal gateway */}
+      <PaymentGateway open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
 
       {/* Seller Modal */}
       {selectedSeller && <SellerModal seller={selectedSeller} onClose={() => setSelectedSeller(null)} />}

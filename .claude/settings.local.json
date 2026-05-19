@@ -95,7 +95,10 @@
       "Bash(npx vite *)",
       "Bash(npx vercel *)",
       "Bash(mkdir -p \"F:/BACHASALSEROS APP WEB/PROYEC LATINO CLAUDE/.claude\")",
-      "Bash(cd \"F:\\\\BACHASALSEROS APP WEB\\\\PROYEC LATINO CLAUDE\" && git show c655844:src/pages/HomePage.tsx > /tmp/homepage_backup.tsx && wc -l /tmp/homepage_backup.tsx)"
+      "Bash(cd \"F:\\\\BACHASALSEROS APP WEB\\\\PROYEC LATINO CLAUDE\" && git show c655844:src/pages/HomePage.tsx > /tmp/homepage_backup.tsx && wc -l /tmp/homepage_backup.tsx)",
+      "Bash(ls supabase/)",
+      "Bash(cat .env)",
+      "Bash(cat .env.local)"
     ]
   }
 }
