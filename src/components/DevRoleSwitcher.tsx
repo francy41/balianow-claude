@@ -140,7 +140,7 @@ const DevRoleSwitcher: React.FC = () => {
       {/* Floating button */}
       <button
         onClick={() => setOpen(v => !v)}
-        className="fixed bottom-4 right-4 z-[60] bg-gray-900 hover:bg-black text-white rounded-full shadow-2xl px-4 py-2.5 flex items-center gap-2 text-xs font-bold"
+        className="fixed bottom-24 lg:bottom-4 right-4 z-[60] bg-gray-900 hover:bg-black text-white rounded-full shadow-2xl px-4 py-2.5 flex items-center gap-2 text-xs font-bold"
         title="Cambiar de usuario rápidamente"
       >
         <Settings className="w-4 h-4" />
@@ -149,7 +149,7 @@ const DevRoleSwitcher: React.FC = () => {
 
       {/* Panel */}
       {open && (
-        <div className="fixed bottom-20 right-4 z-[60] w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden max-h-[80vh] flex flex-col">
+        <div className="fixed bottom-40 lg:bottom-20 right-4 z-[60] w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden max-h-[60vh] flex flex-col">
           <div className="bg-gray-900 text-white p-3 flex items-center justify-between flex-shrink-0">
             <div>
               <p className="text-[10px] uppercase tracking-widest text-white/60 font-bold">Modo desarrollo</p>

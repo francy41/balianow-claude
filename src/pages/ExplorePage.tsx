@@ -23,8 +23,8 @@ const ExplorePage: React.FC = () => {
   const totalResults = results.artists.length + results.events.length + results.venues.length + results.services.length;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen bg-gray-50 py-6 overflow-x-hidden">
+      <div className="max-w-7xl mx-auto px-4 overflow-hidden">
         <h1 className="font-display font-black text-3xl text-gray-900 mb-6">🔍 Explorar</h1>
 
         <SearchBar

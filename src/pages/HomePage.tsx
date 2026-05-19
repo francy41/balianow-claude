@@ -37,11 +37,11 @@ const COMMUNITY_POSTS = [
 
 // ── CITIES ────────────────────────────────────────────────────────────────
 const CITIES = [
-  { name: 'Madrid',    venues: 12, events: 8,  img: 'https://picsum.photos/seed/madrid2024/800/400' },
-  { name: 'Barcelona', venues: 8,  events: 5,  img: 'https://picsum.photos/seed/barcelona2024/800/400' },
-  { name: 'Valencia',  venues: 5,  events: 3,  img: 'https://picsum.photos/seed/valencia2024/800/400' },
-  { name: 'Medellín',  venues: 6,  events: 4,  img: 'https://picsum.photos/seed/medellin2024/800/400' },
-  { name: 'Cali',      venues: 9,  events: 6,  img: 'https://picsum.photos/seed/cali2024/800/400' },
+  { name: 'Madrid',    venues: 12, events: 8,  img: 'https://picsum.photos/seed/madrid2024/800/400',    monument: '🏛️', landmark: 'Puerta de Alcalá' },
+  { name: 'Barcelona', venues: 8,  events: 5,  img: 'https://picsum.photos/seed/barcelona2024/800/400', monument: '⛪', landmark: 'Sagrada Familia' },
+  { name: 'Valencia',  venues: 5,  events: 3,  img: 'https://picsum.photos/seed/valencia2024/800/400',  monument: '🏟️', landmark: 'Ciudad de las Artes' },
+  { name: 'Medellín',  venues: 6,  events: 4,  img: 'https://picsum.photos/seed/medellin2024/800/400',  monument: '🌺', landmark: 'Plaza Botero' },
+  { name: 'Cali',      venues: 9,  events: 6,  img: 'https://picsum.photos/seed/cali2024/800/400',      monument: '💃', landmark: 'Capital de la Salsa' },
 ];
 
 // ── CATEGORIES ────────────────────────────────────────────────────────────
@@ -194,6 +194,9 @@ const DEFAULT_CATEGORIES: CategoryWithImage[] = [
   { id: '14', name: 'Academia', icon: '🎓', slug: 'academia', route: '/marketplace?cat=Clases', section: 'comunidad', color_start: '#F06292', color_mid: '#EC407A', color_end: '#EC407A', shadow_color: 'rgba(240, 98, 146, 0.4)', display_order: 2, active: true, image_url: 'https://picsum.photos/seed/academy2024/800/400' },
   { id: '15', name: 'Comunidad', icon: '👥', slug: 'comunidad-users', route: '/chat', section: 'comunidad', color_start: '#EC407A', color_mid: '#E91E63', color_end: '#E91E63', shadow_color: 'rgba(236, 64, 122, 0.4)', display_order: 3, active: true, image_url: 'https://picsum.photos/seed/communityusers2024/800/400' },
   { id: '16', name: 'Chat', icon: '💬', slug: 'chat', route: '/chat', section: 'comunidad', color_start: '#AD1457', color_mid: '#D81B60', color_end: '#D81B60', shadow_color: 'rgba(173, 20, 87, 0.4)', display_order: 4, active: true, image_url: 'https://picsum.photos/seed/chat2024/800/400' },
+  { id: '17', name: 'Abiertos Ahora', icon: '🟢', slug: 'abiertos-ahora', route: '/venues?open=true', section: 'main', color_start: '#10B981', color_mid: '#059669', color_end: '#047857', shadow_color: 'rgba(16, 185, 129, 0.4)', display_order: 9, active: true, image_url: 'https://picsum.photos/seed/opennow2024/800/400' },
+  { id: '18', name: 'En Directo', icon: '🔴', slug: 'en-directo', route: '/live', section: 'main', color_start: '#EF4444', color_mid: '#DC2626', color_end: '#B91C1C', shadow_color: 'rgba(239, 68, 68, 0.4)', display_order: 10, active: true, image_url: 'https://picsum.photos/seed/livenow2024/800/400' },
+  { id: '19', name: 'Afiliados RRPP', icon: '🤝', slug: 'afiliados', route: '/afiliados', section: 'mercado', color_start: '#8B5CF6', color_mid: '#7C3AED', color_end: '#6D28D9', shadow_color: 'rgba(139, 92, 246, 0.4)', display_order: 5, active: true, image_url: 'https://picsum.photos/seed/affiliates2024/800/400' },
 ];
 
 // ── ULTRAMODERN SMART SEARCH with AUTOCOMPLETE ────────────────────────────────────────────────
@@ -380,33 +383,19 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
         {/* Quick Categories Grid */}
         <div className="mt-8">
           <p className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-4 px-2">Explora por categoría</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {categories.slice(0, 8).map((cat, idx) => {
-              // Color palette: naranja principal + complementarios
-              const colorPalette = [
-                'bg-brand-orange',      // Naranja principal
-                'bg-sky-500',           // Azul cielo
-                'bg-emerald-500',       // Verde esmeralda
-                'bg-purple-600',        // Púrpura
-                'bg-red-500',           // Rojo
-                'bg-indigo-600',        // Índigo
-                'bg-cyan-500',          // Cian
-                'bg-amber-500',         // Ámbar
-              ];
-              const bgColor = colorPalette[idx % colorPalette.length];
-
-              return (
-                <button
-                  key={cat.id}
-                  onClick={() => navigate(cat.route)}
-                  className={`group relative overflow-hidden rounded-3xl p-6 text-white font-bold transition-all hover:scale-110 hover:shadow-2xl h-32 flex flex-col items-center justify-center gap-4 ${bgColor} border-0 shadow-lg hover:shadow-xl`}
-                >
-                  <span className="text-5xl group-hover:scale-125 transition-transform duration-300">{cat.icon}</span>
-                  <span className="line-clamp-2 text-center text-sm font-bold leading-tight">{cat.name}</span>
-                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300 rounded-3xl" />
-                </button>
-              );
-            })}
+          <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
+            {categories.slice(0, 8).map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => navigate(cat.route)}
+                className="group bg-white rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center gap-2 h-[88px] sm:h-24 border border-gray-100 shadow-sm hover:shadow-lg hover:shadow-pink-500/10 hover:border-pink-200 transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-pink-50 flex items-center justify-center group-hover:bg-pink-100 transition-colors duration-300">
+                  <span className="text-xl sm:text-2xl">{cat.icon}</span>
+                </div>
+                <span className="text-gray-700 text-[10px] sm:text-xs font-semibold leading-tight text-center line-clamp-2 group-hover:text-pink-600 transition-colors">{cat.name}</span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -560,33 +549,28 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     'from-fuchsia-400 to-violet-600'
   ];
 
-  const CategoryButton: React.FC<{ cat: any; index: number }> = ({ cat, index }) => {
-    const gradient = gradientPalette[index % gradientPalette.length];
-
+  const CategoryButton: React.FC<{ cat: any; index: number }> = ({ cat }) => {
     return (
       <button
         onClick={() => navigate(cat.route)}
-        className={`group relative overflow-hidden rounded-2xl p-5 text-white font-bold transition-all duration-300 hover:scale-105 h-28 sm:h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br ${gradient} border border-white/20 shadow-lg hover:shadow-neon`}
-        style={{ backdropFilter: 'blur(10px)' }}
+        className="group bg-white rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center gap-2 h-[88px] sm:h-24 border border-gray-100 shadow-sm hover:shadow-lg hover:shadow-pink-500/10 hover:border-pink-200 transition-all duration-300 hover:-translate-y-1"
       >
-        {/* Glossy shine effect */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/25 via-transparent to-black/10 rounded-2xl pointer-events-none" />
-        {/* Hover glow */}
-        <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300 rounded-2xl pointer-events-none" />
-        <span className="text-4xl sm:text-5xl group-hover:scale-110 transition-transform duration-300 drop-shadow-lg relative z-10">{cat.icon}</span>
-        <span className="line-clamp-2 text-center text-xs sm:text-sm font-bold leading-tight relative z-10 drop-shadow-md">{cat.name}</span>
+        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-pink-50 flex items-center justify-center group-hover:bg-pink-100 transition-colors duration-300">
+          <span className="text-xl sm:text-2xl">{cat.icon}</span>
+        </div>
+        <span className="text-gray-700 text-[10px] sm:text-xs font-semibold leading-tight text-center line-clamp-2 group-hover:text-pink-600 transition-colors">{cat.name}</span>
       </button>
     );
   };
 
   return (
-    <section className="mt-8 px-2 sm:px-4">
+    <section className="mt-4 px-2 sm:px-4">
       {/* Header */}
-      <div className="text-center mb-8">
-        <h2 className="font-display font-black text-2xl sm:text-3xl bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 bg-clip-text text-transparent mb-2">
-          🎉 Baila Now
+      <div className="text-center mb-5">
+        <h2 className="font-display font-black text-xl sm:text-2xl text-gray-900 mb-1">
+          💃 <span className="text-pink-600">Baila</span> Now
         </h2>
-        <p className="text-gray-400 text-sm max-w-lg mx-auto">
+        <p className="text-gray-400 text-xs sm:text-sm max-w-lg mx-auto">
           Todo lo que amas del baile, en un solo lugar
         </p>
       </div>
@@ -602,7 +586,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
                 ⭐ Principales
               </h3>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
               {mainCats.map((cat, idx) => (
                 <CategoryButton key={cat.id} cat={cat} index={idx} />
               ))}
@@ -619,7 +603,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
                 🏪 Mercado
               </h3>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
               {mercadoCats.map((cat, idx) => (
                 <CategoryButton key={cat.id} cat={cat} index={mainCats.length + idx} />
               ))}
@@ -636,7 +620,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
                 💬 Comunidad
               </h3>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
               {comunidadCats.map((cat, idx) => (
                 <CategoryButton key={cat.id} cat={cat} index={mainCats.length + mercadoCats.length + idx} />
               ))}
@@ -647,6 +631,124 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     </section>
   );
 };
+
+// ── OPEN VENUES NOW SECTION ────────────────────────────────────────
+const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
+  const openVenues = VENUES.filter(v => v.isOpen).sort((a, b) => {
+    if (a.isPremium && !b.isPremium) return -1;
+    if (!a.isPremium && b.isPremium) return 1;
+    return b.rating - a.rating;
+  });
+
+  if (openVenues.length === 0) return null;
+
+  return (
+    <section className="mx-4 mt-8">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
+          </span>
+          <h2 className="font-display font-black text-lg text-gray-900">Locales Abiertos Ahora</h2>
+        </div>
+        <button onClick={() => navigate('/venues?open=true')}
+          className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-full flex items-center gap-1.5 shadow-lg shadow-emerald-500/30 transition-all hover:scale-105">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+          </span>
+          Ver Todos
+        </button>
+      </div>
+      <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+        {openVenues.slice(0, 6).map(v => (
+          <button key={v.id} onClick={() => navigate(`/venues/${v.id}`)}
+            className="flex-shrink-0 w-44 bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:shadow-emerald-500/10 transition-all hover:-translate-y-1 border border-gray-100 group">
+            <div className="relative">
+              <img src={v.cover} alt={v.name} className="w-full h-24 object-cover group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute top-2 right-2 bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-lg">
+                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                ABIERTO
+              </div>
+              {v.isPremium && (
+                <div className="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-[8px] font-black px-1.5 py-0.5 rounded">PRO</div>
+              )}
+            </div>
+            <div className="p-3">
+              <p className="text-gray-900 font-bold text-xs truncate">{v.name}</p>
+              <p className="text-gray-400 text-[10px] flex items-center gap-1 mt-0.5">
+                <MapPin className="w-3 h-3" />{v.city}
+              </p>
+              <p className="text-emerald-600 text-[10px] font-semibold mt-1">{v.openHours}</p>
+              <div className="flex items-center gap-1 mt-1">
+                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                <span className="text-xs text-gray-600 font-medium">{v.rating}</span>
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+// ── LIVE NOW HOME SECTION ────────────────────────────────────────
+const LIVE_STREAMS = [
+  { id: 'l1', name: 'DJ Mambo King', type: 'DJ Set', viewers: 342, city: 'Madrid', img: 'https://picsum.photos/seed/live-dj1/400/600', isLive: true },
+  { id: 'l2', name: 'La Reina del Ritmo', type: 'Bachata Show', viewers: 189, city: 'Barcelona', img: 'https://picsum.photos/seed/live-dancer1/400/600', isLive: true },
+  { id: 'l3', name: 'Orquesta Tropical', type: 'Concierto', viewers: 567, city: 'Valencia', img: 'https://picsum.photos/seed/live-band1/400/600', isLive: true },
+  { id: 'l4', name: 'Salsa Night Madrid', type: 'Club Live', viewers: 891, city: 'Madrid', img: 'https://picsum.photos/seed/live-club1/400/600', isLive: true },
+];
+
+const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => (
+  <section className="mx-4 mt-8">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-2">
+        <span className="relative flex h-3 w-3">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+        </span>
+        <h2 className="font-display font-black text-lg text-gray-900">En Directo Ahora</h2>
+      </div>
+      <button onClick={() => navigate('/live')}
+        className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-full flex items-center gap-1.5 shadow-lg shadow-red-500/30 transition-all hover:scale-105">
+        <span className="relative flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+        </span>
+        LIVE
+      </button>
+    </div>
+    <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+      {LIVE_STREAMS.map(s => (
+        <button key={s.id} onClick={() => navigate(`/live/${s.id}`)}
+          className="flex-shrink-0 w-36 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 group relative border-2 border-red-500/30 hover:border-red-500">
+          <img src={s.img} alt={s.name} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+          {/* LIVE badge */}
+          <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded flex items-center gap-1 shadow-lg animate-pulse">
+            <span className="w-1.5 h-1.5 bg-white rounded-full" /> LIVE
+          </div>
+          {/* Viewers */}
+          <div className="absolute top-2 right-2 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">
+            👁 {s.viewers}
+          </div>
+          {/* Bottom info */}
+          <div className="absolute bottom-2 left-2 right-2">
+            <p className="text-white font-bold text-xs truncate">{s.name}</p>
+            <p className="text-white/70 text-[10px]">{s.type}</p>
+            <p className="text-white/50 text-[9px] flex items-center gap-0.5 mt-0.5">
+              <MapPin className="w-2.5 h-2.5" />{s.city}
+            </p>
+          </div>
+          {/* Glow border */}
+          <div className="absolute inset-0 rounded-2xl ring-1 ring-red-500/50 group-hover:ring-2 group-hover:ring-red-500 transition-all" />
+        </button>
+      ))}
+    </div>
+  </section>
+);
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
@@ -874,6 +976,12 @@ const HomePage: React.FC = () => {
       {/* ── CATEGORÍAS APP STYLE (Baila Now) ── */}
       <DynamicCategoriesSection navigate={navigate} />
 
+      {/* ── LOCALES ABIERTOS AHORA ── */}
+      <OpenVenuesNowSection navigate={navigate} />
+
+      {/* ── EN DIRECTO AHORA ── */}
+      <LiveNowHomeSection navigate={navigate} />
+
       {/* ── LOCALIDADES ── */}
       <section className="mx-4 mt-10">
         <div className="flex items-center justify-between mb-4">
@@ -926,20 +1034,26 @@ const HomePage: React.FC = () => {
                 alt={city.name}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
               />
-              {/* Pink gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-pink-900/20 to-transparent" />
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
               {/* Glow border on hover */}
               <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-pink-500/50 transition-all duration-300" />
+              {/* Monument emoji */}
+              <div className="absolute top-3 left-3 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl shadow-lg">
+                {city.monument}
+              </div>
+              {/* Top-right badge */}
+              <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                📍 Explorar
+              </div>
+              {/* Bottom info */}
               <div className="absolute bottom-3 left-3 right-3 text-left">
                 <p className="text-white font-display font-bold text-base sm:text-lg leading-tight drop-shadow-lg">{city.name}</p>
-                <div className="flex items-center gap-2 mt-1">
+                <p className="text-white/70 text-[10px] font-medium mt-0.5">{city.landmark}</p>
+                <div className="flex items-center gap-2 mt-1.5">
                   <span className="bg-pink-500/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{city.venues} venues</span>
                   <span className="bg-fuchsia-500/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{city.events} eventos</span>
                 </div>
-              </div>
-              {/* Top badge */}
-              <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                📍 Explorar
               </div>
             </button>
           ))}

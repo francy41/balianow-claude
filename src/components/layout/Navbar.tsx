@@ -47,6 +47,13 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
         <span className="bg-gradient-to-r from-pink-400 to-fuchsia-500 bg-clip-text text-transparent">Now</span>
       </Link>
 
+      {/* Green OPEN NOW button */}
+      <Link to="/venues?open=true" className="hidden sm:flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-3 py-1.5 rounded-full transition-all shadow-lg shadow-emerald-500/30 ml-2 animate-pulse hover:animate-none">
+        <span className="w-2 h-2 bg-white rounded-full animate-ping" style={{ animationDuration: '1.5s' }} />
+        <span className="w-2 h-2 bg-white rounded-full absolute ml-0" />
+        ABIERTO
+      </Link>
+
       {/* Desktop nav links */}
       <nav className="hidden lg:flex items-center gap-0.5 ml-4">
         {[
@@ -170,7 +177,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
 
             {/* SALIR link */}
             <button onClick={handleLogout}
-              className="hidden sm:block text-sm font-bold text-red-400 hover:text-red-300 transition-colors px-1">
+              className="text-xs sm:text-sm font-bold text-red-400 hover:text-red-300 transition-colors px-1">
               SALIR
             </button>
           </>
