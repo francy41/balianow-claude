@@ -1811,26 +1811,36 @@ const HeroSliderEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
 
   return (
     <div className="mt-6 border-t border-gray-100 pt-5">
-      <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">🖼️ Slider Hero (banner negro)</h4>
-      <p className="text-gray-400 text-xs mb-4">Imágenes en movimiento horizontal en el hero. Se recomienda 3 imágenes.</p>
+      <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">🖼️ Slider Hero (Banner Principal)</h4>
+      <p className="text-gray-400 text-xs mb-4">Banners del slider principal. Tamaño recomendado: 1200×400px. El texto "alt" se usa como subtitulo del slide.</p>
       <div className="space-y-3">
         {images.map((img, idx) => (
-          <div key={img.id} className="flex items-center gap-2">
-            <img src={img.url} alt={img.alt} className="w-16 h-10 object-cover rounded-lg border border-gray-200 flex-shrink-0"
-              onError={e => { (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/placeholder/160/100'; }} />
-            <div className="flex-1 min-w-0">
-              <input type="text" value={img.url} onChange={e => handleUrlChange(img.id, e.target.value)}
-                className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand-orange" placeholder="URL de imagen" />
+          <div key={img.id} className="bg-gray-50 rounded-xl p-3 border border-gray-200">
+            <div className="flex items-start gap-3">
+              <img src={img.url} alt={img.alt} className="w-24 h-14 object-cover rounded-lg border border-gray-200 flex-shrink-0"
+                onError={e => { (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/placeholder/160/100'; }} />
+              <div className="flex-1 min-w-0 space-y-1.5">
+                <input type="text" value={img.url} onChange={e => handleUrlChange(img.id, e.target.value)}
+                  className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand-orange" placeholder="URL de imagen del banner" />
+                <input type="text" value={img.alt} onChange={e => {
+                  const updated = images.map(i => i.id === img.id ? { ...i, alt: e.target.value } : i);
+                  setImages(updated);
+                  setHeroSliderImages(updated);
+                }} className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand-orange" placeholder="Texto / subtitulo del slide" />
+              </div>
+              <button onClick={() => handleRemove(img.id)} className="text-red-400 hover:text-red-600 flex-shrink-0 p-1 mt-1">
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
-            <button onClick={() => handleRemove(img.id)} className="text-red-400 hover:text-red-600 flex-shrink-0 p-1">
-              <Trash2 className="w-4 h-4" />
-            </button>
+            <p className="text-[10px] text-gray-400 mt-1.5 ml-[108px]">Slide {idx + 1} de {images.length}</p>
           </div>
         ))}
       </div>
       <div className="mt-3 flex gap-2">
         <input type="text" value={newUrl} onChange={e => setNewUrl(e.target.value)}
-          placeholder="URL nueva imagen..." className="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-orange" />
+          placeholder="URL nueva imagen banner..." className="flex-1 text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-orange" />
+        <input type="text" value={newAlt} onChange={e => setNewAlt(e.target.value)}
+          placeholder="Texto del slide..." className="w-40 text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-orange" />
         <Button variant="orange" onClick={handleAdd} className="flex-shrink-0 text-xs">
           <Plus className="w-3 h-3 mr-1" /> Añadir
         </Button>
@@ -1841,140 +1851,237 @@ const HeroSliderEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
 
 // ── 13. DISEÑO WEB ────────────────────────────────────────────────────────
 // ── HERO BANNER EDITOR (image / YouTube / video) ──────────────────────────
+// ── 13. DISEÑO WEB — UNIFIED BANNER MANAGER ──────────────────────────
 const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
-  const { heroMedia, setHeroMedia } = useSiteConfigStore();
+  const { heroMedia, setHeroMedia, heroSliderImages, setHeroSliderImages } = useSiteConfigStore();
   const [draftUrl, setDraftUrl] = useState(heroMedia.url);
+  const [addMode, setAddMode] = useState<'url' | 'youtube' | 'upload'>('url');
+  const [newSlideUrl, setNewSlideUrl] = useState('');
+  const [newSlideAlt, setNewSlideAlt] = useState('');
+  const [slides, setSlides] = useState<HeroSliderImage[]>(heroSliderImages);
   const fileRef = React.useRef<HTMLInputElement>(null);
+  const imgFileRef = React.useRef<HTMLInputElement>(null);
 
-  const TYPES: { id: HeroMediaType; label: string; icon: string; desc: string }[] = [
-    { id: 'image',   label: 'Imagen',          icon: '🖼️', desc: 'URL de imagen (jpg/png)' },
-    { id: 'youtube', label: 'YouTube',         icon: '▶️', desc: 'Pega cualquier URL de YouTube' },
-    { id: 'video',   label: 'Vídeo local',     icon: '🎬', desc: 'Sube un .mp4 desde tu equipo' },
-  ];
-
-  const apply = () => {
-    if (!draftUrl.trim()) {
-      addToast({ message: 'Introduce una URL o sube un archivo', type: 'error' });
-      return;
-    }
-    if (heroMedia.type === 'youtube' && !getYouTubeId(draftUrl)) {
-      addToast({ message: 'URL de YouTube inválida', type: 'error' });
-      return;
-    }
-    setHeroMedia({ url: draftUrl.trim() });
-    addToast({ message: 'Banner actualizado en la portada', type: 'success' });
+  const saveSlides = (updated: HeroSliderImage[]) => {
+    setSlides(updated);
+    setHeroSliderImages(updated);
   };
 
-  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const addSlide = () => {
+    if (!newSlideUrl.trim()) return;
+    const updated = [...slides, { id: Date.now().toString(), url: newSlideUrl.trim(), alt: newSlideAlt.trim() || 'Banner slide' }];
+    saveSlides(updated);
+    setNewSlideUrl('');
+    setNewSlideAlt('');
+    addToast({ message: 'Slide agregado al banner', type: 'success' });
+  };
+
+  const removeSlide = (id: string) => {
+    saveSlides(slides.filter(s => s.id !== id));
+    addToast({ message: 'Slide eliminado', type: 'info' });
+  };
+
+  const updateSlide = (id: string, field: 'url' | 'alt', value: string) => {
+    saveSlides(slides.map(s => s.id === id ? { ...s, [field]: value } : s));
+  };
+
+  const moveSlide = (idx: number, dir: -1 | 1) => {
+    const arr = [...slides];
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= arr.length) return;
+    [arr[idx], arr[newIdx]] = [arr[newIdx], arr[idx]];
+    saveSlides(arr);
+  };
+
+  const handleImgFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('video/')) {
-      addToast({ message: 'El archivo debe ser un vídeo', type: 'error' });
-      return;
-    }
+    const url = URL.createObjectURL(file);
+    setNewSlideUrl(url);
+    addToast({ message: `Imagen cargada: ${file.name}`, type: 'success' });
+  };
+
+  const handleVideoFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
     const url = URL.createObjectURL(file);
     setDraftUrl(url);
     setHeroMedia({ type: 'video', url });
-    addToast({ message: `Vídeo cargado: ${file.name}`, type: 'success' });
+    addToast({ message: `Video cargado: ${file.name}`, type: 'success' });
+  };
+
+  const applyOverlay = () => {
+    if (!draftUrl.trim()) { addToast({ message: 'Introduce una URL', type: 'error' }); return; }
+    if (heroMedia.type === 'youtube' && !getYouTubeId(draftUrl)) { addToast({ message: 'URL de YouTube invalida', type: 'error' }); return; }
+    setHeroMedia({ url: draftUrl.trim() });
+    addToast({ message: 'Video overlay actualizado', type: 'success' });
   };
 
   const yt = heroMedia.type === 'youtube' ? getYouTubeId(heroMedia.url) : null;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="font-bold text-gray-900">Banner principal (Hero)</h3>
-          <p className="text-xs text-gray-400 mt-0.5">Elige imagen, vídeo de YouTube o vídeo local para la portada</p>
+    <div className="space-y-6">
+      {/* ── SLIDER BANNER (Imagenes) ── */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="font-bold text-gray-900 flex items-center gap-2">🖼️ Slider Banner Principal</h3>
+            <p className="text-xs text-gray-400 mt-0.5">Imagenes del slider hero. Recomendado: 1400x500px. Se muestran en la portada.</p>
+          </div>
+          <span className="text-xs bg-pink-50 text-pink-600 px-2 py-1 rounded-full font-bold">{slides.length} slides</span>
         </div>
-      </div>
 
-      {/* Tipo selector */}
-      <div className="grid grid-cols-3 gap-2 mb-4">
-        {TYPES.map(t => (
-          <button
-            key={t.id}
-            onClick={() => { setHeroMedia({ type: t.id }); setDraftUrl(''); }}
-            className={`p-3 rounded-xl border text-left transition-all ${
-              heroMedia.type === t.id
-                ? 'border-brand-orange bg-pink-50'
-                : 'border-gray-200 bg-white hover:border-brand-orange/50'
-            }`}
-          >
-            <div className="text-xl mb-1">{t.icon}</div>
-            <p className="text-sm font-bold text-gray-900">{t.label}</p>
-            <p className="text-[10px] text-gray-400 mt-0.5">{t.desc}</p>
-          </button>
-        ))}
-      </div>
-
-      {/* Input según tipo */}
-      {heroMedia.type === 'video' ? (
-        <div className="space-y-3">
-          <button
-            onClick={() => fileRef.current?.click()}
-            className="w-full border-2 border-dashed border-gray-200 hover:border-brand-orange rounded-xl p-6 text-center transition-all"
-          >
-            <div className="text-3xl mb-1">📁</div>
-            <p className="text-sm font-semibold text-gray-700">Subir vídeo (.mp4, .webm)</p>
-            <p className="text-xs text-gray-400 mt-1">Máx. recomendado: 20 MB · 1200×600px</p>
-          </button>
-          <input ref={fileRef} type="file" accept="video/*" className="hidden" onChange={handleFile} />
-          {heroMedia.url && heroMedia.url.startsWith('blob:') && (
-            <p className="text-xs text-green-600 font-semibold">✅ Vídeo local cargado</p>
-          )}
-        </div>
-      ) : (
-        <div className="flex gap-2 mb-3">
-          <input
-            value={draftUrl}
-            onChange={e => setDraftUrl(e.target.value)}
-            placeholder={heroMedia.type === 'youtube'
-              ? 'https://www.youtube.com/watch?v=...'
-              : 'https://picsum.photos/seed/.../1200/600'}
-            className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange"
-          />
-          <Button variant="orange" onClick={apply}>Aplicar</Button>
-        </div>
-      )}
-
-      {/* Opciones de reproducción (solo vídeo/youtube) */}
-      {heroMedia.type !== 'image' && (
-        <div className="flex flex-wrap gap-4 my-4 p-3 bg-gray-50 rounded-xl">
-          {(['autoplay', 'muted', 'loop'] as const).map(opt => (
-            <label key={opt} className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={heroMedia[opt]}
-                onChange={e => setHeroMedia({ [opt]: e.target.checked } as any)}
-                className="w-4 h-4 accent-brand-orange"
-              />
-              <span className="text-xs text-gray-700 capitalize">{opt === 'muted' ? 'Silenciado' : opt === 'loop' ? 'Bucle' : 'Autoplay'}</span>
-            </label>
+        {/* Current slides */}
+        <div className="space-y-2 mb-4">
+          {slides.map((slide, idx) => (
+            <div key={slide.id} className="bg-gray-50 rounded-xl p-3 border border-gray-200 hover:border-pink-300 transition-colors">
+              <div className="flex items-start gap-3">
+                <img src={slide.url} alt={slide.alt}
+                  className="w-28 h-16 object-cover rounded-lg border border-gray-200 flex-shrink-0 bg-gray-200"
+                  onError={e => { (e.target as HTMLImageElement).src = 'https://picsum.photos/seed/placeholder/280/160'; }} />
+                <div className="flex-1 min-w-0 space-y-1.5">
+                  <input type="text" value={slide.url} onChange={e => updateSlide(slide.id, 'url', e.target.value)}
+                    className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand-orange font-mono" placeholder="URL de la imagen" />
+                  <input type="text" value={slide.alt} onChange={e => updateSlide(slide.id, 'alt', e.target.value)}
+                    className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand-orange" placeholder="Texto descriptivo del slide" />
+                </div>
+                <div className="flex flex-col gap-1 flex-shrink-0">
+                  <button onClick={() => moveSlide(idx, -1)} disabled={idx === 0}
+                    className="text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs p-1">▲</button>
+                  <button onClick={() => moveSlide(idx, 1)} disabled={idx === slides.length - 1}
+                    className="text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs p-1">▼</button>
+                  <button onClick={() => removeSlide(slide.id)}
+                    className="text-red-400 hover:text-red-600 p-1">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+              <p className="text-[10px] text-gray-400 mt-1.5">Slide {idx + 1} de {slides.length}</p>
+            </div>
           ))}
         </div>
-      )}
 
-      {/* Preview */}
-      <div className="rounded-xl overflow-hidden border border-gray-200 bg-black" style={{ aspectRatio: '16 / 9' }}>
-        {heroMedia.type === 'youtube' && yt ? (
-          <iframe
-            src={`https://www.youtube.com/embed/${yt}?controls=1&modestbranding=1&rel=0`}
-            title="Hero preview"
-            className="w-full h-full"
-            allow="encrypted-media"
-          />
-        ) : heroMedia.type === 'video' && heroMedia.url ? (
-          <video src={heroMedia.url} controls muted className="w-full h-full object-cover" />
-        ) : heroMedia.type === 'image' && heroMedia.url ? (
-          <img src={heroMedia.url} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">Sin contenido</div>
-        )}
+        {/* Add new slide */}
+        <div className="border-2 border-dashed border-gray-200 rounded-xl p-4">
+          <p className="text-xs font-bold text-gray-600 mb-3">Agregar nuevo slide:</p>
+          <div className="flex gap-2 mb-3">
+            {[
+              { id: 'url' as const, label: '🔗 URL', desc: 'Pegar URL de imagen' },
+              { id: 'youtube' as const, label: '▶️ YouTube', desc: 'Thumbnail de YouTube' },
+              { id: 'upload' as const, label: '📁 Subir', desc: 'Desde tu equipo' },
+            ].map(m => (
+              <button key={m.id} onClick={() => setAddMode(m.id)}
+                className={`flex-1 p-2 rounded-lg border text-center transition-all ${
+                  addMode === m.id ? 'border-brand-orange bg-pink-50' : 'border-gray-200 hover:border-pink-300'
+                }`}>
+                <p className="text-xs font-bold">{m.label}</p>
+                <p className="text-[9px] text-gray-400">{m.desc}</p>
+              </button>
+            ))}
+          </div>
+
+          {addMode === 'upload' ? (
+            <div className="space-y-2">
+              <button onClick={() => imgFileRef.current?.click()}
+                className="w-full border border-gray-200 hover:border-brand-orange rounded-lg p-3 text-center transition-all text-xs text-gray-600 hover:text-pink-600">
+                📁 Click para seleccionar imagen (jpg, png, webp)
+              </button>
+              <input ref={imgFileRef} type="file" accept="image/*" className="hidden" onChange={handleImgFile} />
+              {newSlideUrl && <img src={newSlideUrl} alt="" className="w-full h-20 object-cover rounded-lg" />}
+            </div>
+          ) : addMode === 'youtube' ? (
+            <input value={newSlideUrl} onChange={e => {
+              setNewSlideUrl(e.target.value);
+              const ytId = getYouTubeId(e.target.value);
+              if (ytId) setNewSlideUrl(`https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`);
+            }} placeholder="https://www.youtube.com/watch?v=... (se extrae el thumbnail)"
+              className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-orange" />
+          ) : (
+            <input value={newSlideUrl} onChange={e => setNewSlideUrl(e.target.value)}
+              placeholder="https://ejemplo.com/imagen-banner.jpg"
+              className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-brand-orange" />
+          )}
+
+          <input value={newSlideAlt} onChange={e => setNewSlideAlt(e.target.value)}
+            placeholder="Texto descriptivo (opcional)"
+            className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 mt-2 focus:outline-none focus:border-brand-orange" />
+
+          <Button variant="orange" onClick={addSlide} className="w-full mt-3 text-xs">
+            <Plus className="w-3 h-3 mr-1" /> Agregar Slide al Banner
+          </Button>
+        </div>
       </div>
-      <p className="text-xs text-gray-400 mt-2">
-        URL actual: <span className="font-mono break-all">{heroMedia.url || '(vacía)'}</span>
-      </p>
+
+      {/* ── VIDEO OVERLAY (Desktop hover) ── */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="font-bold text-gray-900 flex items-center gap-2">🎬 Video Overlay (Desktop)</h3>
+            <p className="text-xs text-gray-400 mt-0.5">Video que aparece al pasar el mouse sobre el banner en desktop</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          {([
+            { id: 'image' as HeroMediaType, label: 'Imagen', icon: '🖼️' },
+            { id: 'youtube' as HeroMediaType, label: 'YouTube', icon: '▶️' },
+            { id: 'video' as HeroMediaType, label: 'Video local', icon: '🎬' },
+          ]).map(t => (
+            <button key={t.id} onClick={() => { setHeroMedia({ type: t.id }); setDraftUrl(''); }}
+              className={`p-2.5 rounded-xl border text-center transition-all ${
+                heroMedia.type === t.id ? 'border-brand-orange bg-pink-50' : 'border-gray-200 hover:border-pink-300'
+              }`}>
+              <span className="text-lg">{t.icon}</span>
+              <p className="text-xs font-bold mt-0.5">{t.label}</p>
+            </button>
+          ))}
+        </div>
+
+        {heroMedia.type === 'video' ? (
+          <div className="space-y-2">
+            <button onClick={() => fileRef.current?.click()}
+              className="w-full border-2 border-dashed border-gray-200 hover:border-brand-orange rounded-xl p-4 text-center transition-all">
+              <p className="text-sm font-semibold text-gray-700">📁 Subir video (.mp4, .webm)</p>
+              <p className="text-xs text-gray-400 mt-1">Max. 20 MB</p>
+            </button>
+            <input ref={fileRef} type="file" accept="video/*" className="hidden" onChange={handleVideoFile} />
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <input value={draftUrl} onChange={e => setDraftUrl(e.target.value)}
+              placeholder={heroMedia.type === 'youtube' ? 'https://www.youtube.com/watch?v=...' : 'https://ejemplo.com/imagen.jpg'}
+              className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange" />
+            <Button variant="orange" onClick={applyOverlay}>Aplicar</Button>
+          </div>
+        )}
+
+        {heroMedia.type !== 'image' && (
+          <div className="flex flex-wrap gap-4 mt-3 p-3 bg-gray-50 rounded-xl">
+            {(['autoplay', 'muted', 'loop'] as const).map(opt => (
+              <label key={opt} className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={heroMedia[opt]}
+                  onChange={e => setHeroMedia({ [opt]: e.target.checked } as any)}
+                  className="w-4 h-4 accent-brand-orange" />
+                <span className="text-xs text-gray-700">{opt === 'muted' ? 'Silenciado' : opt === 'loop' ? 'Bucle' : 'Autoplay'}</span>
+              </label>
+            ))}
+          </div>
+        )}
+
+        {/* Preview */}
+        <div className="rounded-xl overflow-hidden border border-gray-200 bg-black mt-3" style={{ aspectRatio: '21 / 9' }}>
+          {heroMedia.type === 'youtube' && yt ? (
+            <iframe src={`https://www.youtube.com/embed/${yt}?controls=1&modestbranding=1&rel=0`}
+              title="Preview" className="w-full h-full" allow="encrypted-media" />
+          ) : heroMedia.type === 'video' && heroMedia.url ? (
+            <video src={heroMedia.url} controls muted className="w-full h-full object-cover" />
+          ) : heroMedia.type === 'image' && heroMedia.url ? (
+            <img src={heroMedia.url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white/40 text-sm">Sin contenido</div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
@@ -1991,7 +2098,7 @@ const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           <h3 className="font-bold text-gray-900 mb-4">Colores de la marca</h3>
           <div className="space-y-4">
             {[
-              { label: 'Color primario (naranja)', key: 'primary' as const },
+              { label: 'Color primario (rosa)', key: 'primary' as const },
               { label: 'Color secundario (fondo)', key: 'secondary' as const },
               { label: 'Color acento', key: 'accent' as const },
             ].map(c => (
@@ -2009,21 +2116,20 @@ const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
         <div className="card-white p-6">
           <h3 className="font-bold text-gray-900 mb-4">Logo y branding</h3>
           <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center mb-4">
-            <div className="text-4xl mb-2">🎵</div>
-            <p className="font-display font-black text-xl"><span style={{ color: colors.secondary }}>¡Ritmo </span><span style={{ color: colors.primary }}>Latino!</span></p>
+            <div className="text-4xl mb-2">💃</div>
+            <p className="font-display font-black text-xl"><span className="text-white" style={{ color: colors.secondary }}>Baila</span><span style={{ color: colors.primary }}>Now</span></p>
             <p className="text-gray-400 text-sm mt-2">Vista previa del logo</p>
           </div>
-          <Button variant="outline" className="w-full" onClick={() => addToast({ message: 'Subir logo próximamente', type: 'info' })}>
+          <Button variant="outline" className="w-full" onClick={() => addToast({ message: 'Subir logo proximamente', type: 'info' })}>
             📁 Subir nuevo logo
           </Button>
-          <HeroSliderEditor addToast={addToast} />
         </div>
         <div className="card-white p-6">
           <h3 className="font-bold text-gray-900 mb-4">Textos y SEO</h3>
           <div className="space-y-4">
-            <Input label="Nombre del sitio" defaultValue="¡Ritmo Latino!" />
-            <Input label="Claim / Tagline" defaultValue="Encuentra tu Pasión Latina" />
-            <Input label="Meta descripción" defaultValue="La plataforma #1 de entretenimiento latino..." />
+            <Input label="Nombre del sitio" defaultValue="BailaNow" />
+            <Input label="Claim / Tagline" defaultValue="Encuentra tu Pasion Latina" />
+            <Input label="Meta descripcion" defaultValue="La plataforma #1 de entretenimiento latino..." />
           </div>
         </div>
         <div className="card-white p-6 lg:col-span-2">

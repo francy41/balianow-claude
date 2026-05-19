@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MessageSquare, ShoppingBag, Star, CheckCircle, Clock, ChevronRight, TrendingUp, Shield, Users, Eye, Send } from 'lucide-react';
+import { MessageSquare, ShoppingBag, ShoppingCart, CheckCircle, Clock, TrendingUp, Shield, Users, Eye, Send, X, Trash2, CreditCard, Plus, Minus } from 'lucide-react';
 import { PROMO_SERVICES, PROMO_SELLERS } from '../data/mockData';
 import type { PromoService, PromoSeller } from '../data/mockData';
-import { useAuthStore, useUIStore } from '../store/appStore';
-import { Avatar, StarRating, Badge, SearchBar } from '../components/ui';
+import { useAuthStore, useUIStore, useCartStore, PLATFORM_COMMISSION_RATE } from '../store/appStore';
+import { StarRating, Badge, SearchBar } from '../components/ui';
 import BookingModal from '../components/BookingModal';
 
 const CATEGORY_TABS = [
@@ -41,7 +41,7 @@ const SellerCard: React.FC<{ seller: PromoSeller; onClick: () => void }> = ({ se
         </div>
         <div className="flex items-center gap-2 mt-0.5">
           <StarRating rating={seller.rating} count={seller.reviews} />
-          <span className="text-[10px] text-gray-400">· {seller.orders} ventas</span>
+          <span className="text-[10px] text-gray-400">{seller.orders} ventas</span>
         </div>
       </div>
     </div>
@@ -56,13 +56,18 @@ const SellerCard: React.FC<{ seller: PromoSeller; onClick: () => void }> = ({ se
 );
 
 /* ── Service Card ── */
-const PromoServiceCard: React.FC<{ service: PromoService; onBuy: () => void; onChat: () => void }> = ({ service, onBuy, onChat }) => {
+const PromoServiceCard: React.FC<{
+  service: PromoService;
+  onBuy: () => void;
+  onReserve: () => void;
+  onChat: () => void;
+  isInCart: boolean;
+}> = ({ service, onBuy, onReserve, onChat, isInCart }) => {
   const totalFollowers = service.platforms.reduce((sum, p) => sum + p.totalFollowers, 0);
   const totalAccounts = service.platforms.reduce((sum, p) => sum + p.accounts, 0);
 
   return (
     <div className="card-white rounded-2xl overflow-hidden hover:shadow-lg transition-all">
-      {/* Cover */}
       <div className="relative">
         <img src={service.cover} alt={service.title} className="w-full h-44 object-cover" />
         <div className="absolute top-3 left-3 flex gap-1.5">
@@ -75,14 +80,17 @@ const PromoServiceCard: React.FC<{ service: PromoService; onBuy: () => void; onC
             </span>
           )}
         </div>
+        {isInCart && (
+          <div className="absolute top-3 right-3 bg-green-500 text-white px-2 py-1 rounded-full text-[10px] font-bold flex items-center gap-1">
+            <ShoppingCart className="w-3 h-3" /> En carrito
+          </div>
+        )}
         <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white px-3 py-1.5 rounded-xl">
           <span className="font-black text-lg">€{service.price}</span>
         </div>
       </div>
 
-      {/* Content */}
       <div className="p-4">
-        {/* Seller */}
         <div className="flex items-center gap-2 mb-3">
           <img src={service.sellerAvatar} alt={service.sellerName} className="w-8 h-8 rounded-full" />
           <div className="flex-1 min-w-0">
@@ -92,10 +100,8 @@ const PromoServiceCard: React.FC<{ service: PromoService; onBuy: () => void; onC
           <span className="text-[10px] text-gray-400">{service.orders} ventas</span>
         </div>
 
-        {/* Title */}
         <h3 className="font-bold text-sm text-gray-900 mb-2 line-clamp-2 leading-snug">{service.title}</h3>
 
-        {/* Platforms */}
         <div className="flex flex-wrap gap-1.5 mb-3">
           {service.platforms.map((p, i) => (
             <span key={i} className="inline-flex items-center gap-1 text-[10px] bg-pink-50 text-pink-600 px-2 py-1 rounded-lg font-semibold border border-pink-100">
@@ -104,15 +110,13 @@ const PromoServiceCard: React.FC<{ service: PromoService; onBuy: () => void; onC
           ))}
         </div>
 
-        {/* Stats */}
         <div className="flex items-center gap-3 mb-3 text-[10px] text-gray-400">
-          <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {formatFollowers(totalFollowers)} seguidores</span>
+          <span className="flex items-center gap-1"><Users className="w-3 h-3" /> {formatFollowers(totalFollowers)}</span>
           <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {totalAccounts} cuentas</span>
           <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {service.deliveryDays}d</span>
         </div>
 
-        {/* Includes preview */}
-        <div className="space-y-1 mb-4">
+        <div className="space-y-1 mb-3">
           {service.includes.slice(0, 3).map((inc, i) => (
             <p key={i} className="text-[11px] text-gray-500 flex items-center gap-1.5">
               <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" /> {inc}
@@ -123,25 +127,22 @@ const PromoServiceCard: React.FC<{ service: PromoService; onBuy: () => void; onC
           )}
         </div>
 
-        {/* Tags */}
-        <div className="flex flex-wrap gap-1 mb-4">
+        <div className="flex flex-wrap gap-1 mb-3">
           {service.tags.slice(0, 4).map(tag => (
             <span key={tag} className="text-[9px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded font-medium">{tag}</span>
           ))}
         </div>
 
-        {/* Comisión */}
         <div className="bg-gray-50 rounded-lg p-2 mb-3 flex items-center justify-between">
           <span className="text-[10px] text-gray-400">Comisión plataforma ({service.platformFee}%)</span>
           <span className="text-[10px] font-bold text-gray-500">€{(service.price * service.platformFee / 100).toFixed(2)}</span>
         </div>
 
-        {/* Extras */}
         {service.extras.length > 0 && (
-          <div className="mb-4">
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1.5">Extras opcionales</p>
+          <div className="mb-3">
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-1">Extras opcionales</p>
             {service.extras.map((extra, i) => (
-              <div key={i} className="flex items-center justify-between py-1 text-[11px]">
+              <div key={i} className="flex items-center justify-between py-0.5 text-[11px]">
                 <span className="text-gray-600">+ {extra.label}</span>
                 <span className="text-pink-500 font-bold">+€{extra.price}</span>
               </div>
@@ -149,15 +150,313 @@ const PromoServiceCard: React.FC<{ service: PromoService; onBuy: () => void; onC
           </div>
         )}
 
-        {/* Action buttons */}
+        {/* Action buttons — 3 buttons */}
         <div className="flex gap-2">
-          <button onClick={onChat} className="flex-1 flex items-center justify-center gap-1.5 border-2 border-pink-500 text-pink-500 font-bold rounded-xl py-2.5 text-xs hover:bg-pink-500 hover:text-white transition-all">
-            <MessageSquare className="w-3.5 h-3.5" /> Chat
+          <button onClick={onChat} className="flex items-center justify-center gap-1 border-2 border-pink-500 text-pink-500 font-bold rounded-xl py-2.5 px-3 text-xs hover:bg-pink-500 hover:text-white transition-all">
+            <MessageSquare className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={onReserve}
+            disabled={isInCart}
+            className={`flex-1 flex items-center justify-center gap-1.5 font-bold rounded-xl py-2.5 text-xs transition-all border-2 ${
+              isInCart
+                ? 'border-green-400 text-green-600 bg-green-50 cursor-default'
+                : 'border-purple-500 text-purple-600 hover:bg-purple-500 hover:text-white'
+            }`}
+          >
+            <ShoppingCart className="w-3.5 h-3.5" /> {isInCart ? 'Reservado' : 'Reservar'}
           </button>
           <button onClick={onBuy} className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold rounded-xl py-2.5 text-xs hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25">
             <ShoppingBag className="w-3.5 h-3.5" /> Contratar
           </button>
         </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── Cart Drawer ── */
+const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () => void }> = ({ open, onClose, onCheckout }) => {
+  const { items, removeItem, toggleExtra, getSubtotal, getCommission, getTotal } = useCartStore();
+
+  if (!open) return null;
+
+  return (
+    <>
+      <div className="fixed inset-0 z-50 bg-black/50" onClick={onClose} />
+      <div className="fixed right-0 top-0 bottom-0 z-50 w-full sm:w-[420px] bg-white dark:bg-gray-900 shadow-2xl flex flex-col animate-[slideInRight_0.3s_ease]">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-purple-600 to-fuchsia-600 p-4 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-2 text-white">
+            <ShoppingCart className="w-5 h-5" />
+            <h2 className="font-black text-lg">Mi Reserva</h2>
+            <span className="bg-white/20 text-xs px-2 py-0.5 rounded-full font-bold">{items.length}</span>
+          </div>
+          <button onClick={onClose} className="text-white/70 hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Items */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ scrollbarWidth: 'thin' }}>
+          {items.length === 0 ? (
+            <div className="text-center py-16">
+              <ShoppingCart className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+              <p className="text-gray-900 font-bold">Tu carrito está vacío</p>
+              <p className="text-gray-400 text-sm mt-1">Reserva servicios y págalos todos juntos</p>
+            </div>
+          ) : (
+            items.map(item => {
+              const extrasTotal = item.extras.filter(e => e.selected).reduce((s, e) => s + e.price, 0);
+              const itemTotal = item.price + extrasTotal;
+              return (
+                <div key={item.id} className="card-white rounded-xl p-3 border border-gray-100">
+                  <div className="flex items-start gap-3">
+                    <img src={item.sellerAvatar} alt={item.sellerName} className="w-10 h-10 rounded-full flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-gray-900 line-clamp-2">{item.title}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{item.sellerName}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="font-black text-sm text-pink-500">€{itemTotal}</span>
+                      <button onClick={() => removeItem(item.id)} className="text-gray-300 hover:text-red-500 transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Extras toggles */}
+                  {item.extras.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-gray-50 space-y-1">
+                      <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">Extras</p>
+                      {item.extras.map((extra, idx) => (
+                        <label key={idx} className="flex items-center gap-2 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={extra.selected}
+                            onChange={() => toggleExtra(item.id, idx)}
+                            className="w-3.5 h-3.5 rounded border-gray-300 text-pink-500 focus:ring-pink-500"
+                          />
+                          <span className={`text-[11px] flex-1 ${extra.selected ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
+                            {extra.label}
+                          </span>
+                          <span className={`text-[11px] font-bold ${extra.selected ? 'text-pink-500' : 'text-gray-300'}`}>
+                            +€{extra.price}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Summary & Checkout */}
+        {items.length > 0 && (
+          <div className="border-t border-gray-200 p-4 space-y-3 flex-shrink-0 bg-gray-50 dark:bg-gray-800">
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Subtotal ({items.length} servicio{items.length > 1 ? 's' : ''})</span>
+                <span className="text-gray-900 font-bold">€{getSubtotal().toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Comisión plataforma (15%)</span>
+                <span className="text-gray-400 text-xs">incluida en precio</span>
+              </div>
+              <div className="border-t border-gray-200 pt-2 flex justify-between">
+                <span className="text-gray-900 font-black text-lg">Total</span>
+                <span className="text-pink-500 font-black text-xl">€{getTotal().toFixed(2)}</span>
+              </div>
+            </div>
+            <button
+              onClick={onCheckout}
+              className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black rounded-xl py-3.5 text-sm hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2"
+            >
+              <CreditCard className="w-4 h-4" /> Pagar todo junto
+            </button>
+          </div>
+        )}
+      </div>
+    </>
+  );
+};
+
+/* ── Checkout Modal ── */
+const CheckoutModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => {
+  const { items, getSubtotal, getCommission, getTotal, getSellerBreakdown, clearCart } = useCartStore();
+  const { addToast } = useUIStore();
+  const navigate = useNavigate();
+  const [processing, setProcessing] = useState(false);
+  const [completed, setCompleted] = useState(false);
+
+  if (!open) return null;
+
+  const breakdown = getSellerBreakdown();
+
+  const handlePay = () => {
+    setProcessing(true);
+    setTimeout(() => {
+      setProcessing(false);
+      setCompleted(true);
+    }, 2000);
+  };
+
+  const handleFinish = () => {
+    clearCart();
+    addToast({ message: '¡Pago completado! Los vendedores han sido notificados.', type: 'success' });
+    onClose();
+    navigate('/dashboard');
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-black/60 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        {completed ? (
+          /* Success Screen */
+          <div className="p-8 text-center">
+            <div className="w-20 h-20 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-10 h-10 text-green-500" />
+            </div>
+            <h2 className="font-black text-2xl text-gray-900 mb-2">¡Pago completado!</h2>
+            <p className="text-gray-500 text-sm mb-6">
+              Se ha distribuido el pago a {breakdown.length} vendedor{breakdown.length > 1 ? 'es' : ''}.
+              Cada uno ha recibido su parte menos el 15% de comisión de la plataforma.
+            </p>
+
+            <div className="bg-gray-50 rounded-xl p-4 mb-6 text-left space-y-3">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Distribución de pagos</p>
+              {breakdown.map(s => (
+                <div key={s.sellerId} className="flex items-center gap-3 bg-white rounded-lg p-3 border border-gray-100">
+                  <img src={s.sellerAvatar} alt={s.sellerName} className="w-9 h-9 rounded-full" />
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-gray-900">{s.sellerName}</p>
+                    <p className="text-[10px] text-gray-400">Bruto: €{s.gross.toFixed(2)} - Comisión: €{s.commission.toFixed(2)}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-black text-green-600">€{s.net.toFixed(2)}</p>
+                    <p className="text-[9px] text-gray-400">recibe</p>
+                  </div>
+                </div>
+              ))}
+              <div className="border-t border-gray-200 pt-2 flex items-center justify-between">
+                <span className="text-xs text-gray-400">Comisión total BailaNow (15%)</span>
+                <span className="text-sm font-bold text-pink-500">€{getCommission().toFixed(2)}</span>
+              </div>
+            </div>
+
+            <button onClick={handleFinish} className="btn-orange w-full">
+              Ver mis pedidos
+            </button>
+          </div>
+        ) : (
+          /* Checkout Form */
+          <div className="p-5">
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-black text-xl text-gray-900 flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-pink-500" /> Checkout
+              </h2>
+              <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Order Summary */}
+            <div className="space-y-2 mb-4">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wide">Resumen del pedido</p>
+              {items.map(item => {
+                const extrasTotal = item.extras.filter(e => e.selected).reduce((s, e) => s + e.price, 0);
+                return (
+                  <div key={item.id} className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
+                    <img src={item.sellerAvatar} alt={item.sellerName} className="w-8 h-8 rounded-full" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-gray-900 truncate">{item.title}</p>
+                      <p className="text-[10px] text-gray-400">{item.sellerName}</p>
+                      {extrasTotal > 0 && <p className="text-[10px] text-purple-500">+ extras: €{extrasTotal}</p>}
+                    </div>
+                    <span className="font-bold text-sm text-gray-900">€{(item.price + extrasTotal).toFixed(2)}</span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Seller Breakdown */}
+            <div className="mb-4">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Distribución a vendedores</p>
+              {breakdown.map(s => (
+                <div key={s.sellerId} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                  <div className="flex items-center gap-2">
+                    <img src={s.sellerAvatar} alt={s.sellerName} className="w-6 h-6 rounded-full" />
+                    <span className="text-xs text-gray-700">{s.sellerName}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs font-bold text-green-600">€{s.net.toFixed(2)}</span>
+                    <span className="text-[9px] text-gray-400 ml-1">(- €{s.commission.toFixed(2)} comisión)</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Totals */}
+            <div className="bg-gray-50 rounded-xl p-4 mb-5 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Subtotal</span>
+                <span className="font-bold text-gray-900">€{getSubtotal().toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Comisión plataforma (15%)</span>
+                <span className="text-gray-400 text-xs">incluida</span>
+              </div>
+              <div className="border-t border-gray-200 pt-2 flex justify-between">
+                <span className="font-black text-lg text-gray-900">Total a pagar</span>
+                <span className="font-black text-xl text-pink-500">€{getTotal().toFixed(2)}</span>
+              </div>
+            </div>
+
+            {/* Payment method (mock) */}
+            <div className="mb-5">
+              <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Método de pago</p>
+              <div className="space-y-2">
+                {[
+                  { label: 'Tarjeta de crédito/débito', icon: '💳', selected: true },
+                  { label: 'PayPal', icon: '🅿️', selected: false },
+                  { label: 'Wallet BailaNow', icon: '👛', selected: false },
+                ].map(pm => (
+                  <label key={pm.label} className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                    pm.selected ? 'border-pink-500 bg-pink-50' : 'border-gray-200 hover:border-gray-300'
+                  }`}>
+                    <input type="radio" name="payment" defaultChecked={pm.selected} className="w-4 h-4 text-pink-500 focus:ring-pink-500" />
+                    <span className="text-lg">{pm.icon}</span>
+                    <span className="text-sm font-medium text-gray-900">{pm.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Pay button */}
+            <button
+              onClick={handlePay}
+              disabled={processing}
+              className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black rounded-xl py-4 text-sm hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {processing ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Procesando pago...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="w-4 h-4" /> Pagar €{getTotal().toFixed(2)}
+                </>
+              )}
+            </button>
+
+            <p className="text-center text-[10px] text-gray-400 mt-3 flex items-center justify-center gap-1">
+              <Shield className="w-3 h-3" /> Pago seguro con escrow · Los vendedores recibirán el pago al completar el servicio
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -246,16 +545,21 @@ const SellerModal: React.FC<{ seller: PromoSeller; onClose: () => void }> = ({ s
   </div>
 );
 
-/* ── Main Page ── */
+/* ════════════════════════════════════════════════════
+   MAIN PAGE
+   ════════════════════════════════════════════════════ */
 const PromocionatePage: React.FC = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
+  const cart = useCartStore();
   const [search, setSearch] = useState(params.get('q') || '');
   const [activeTab, setActiveTab] = useState(params.get('cat') || 'all');
   const [selectedSeller, setSelectedSeller] = useState<PromoSeller | null>(null);
   const [bookingService, setBookingService] = useState<PromoService | null>(null);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -272,11 +576,28 @@ const PromocionatePage: React.FC = () => {
     setBookingService(service);
   };
 
+  const handleReserve = (service: PromoService) => {
+    if (!isAuthenticated) { navigate('/auth'); return; }
+    cart.addItem({
+      serviceId: service.id,
+      sellerId: service.sellerId,
+      sellerName: service.sellerName,
+      sellerAvatar: service.sellerAvatar,
+      title: service.title,
+      price: service.price,
+      currency: service.currency,
+      extras: service.extras.map(e => ({ ...e, selected: false })),
+    });
+    addToast({ message: `"${service.title}" añadido al carrito`, type: 'success' });
+  };
+
   const handleChat = (service: PromoService) => {
     if (!isAuthenticated) { navigate('/auth'); return; }
     addToast({ message: `Chat iniciado con ${service.sellerName}`, type: 'success' });
     navigate('/chat');
   };
+
+  const cartItemIds = cart.items.map(i => i.serviceId);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-20 transition-colors">
@@ -300,7 +621,7 @@ const PromocionatePage: React.FC = () => {
             {[
               { icon: '📱', label: '32+ cuentas', desc: 'Redes sociales' },
               { icon: '👥', label: '5M+', desc: 'Seguidores combinados' },
-              { icon: '🔒', label: 'Pago seguro', desc: 'Escrow garantizado' },
+              { icon: '🛒', label: 'Reserva', desc: 'Paga todo junto' },
               { icon: '💬', label: 'Chat directo', desc: 'Con vendedores' },
             ].map(stat => (
               <div key={stat.label} className="bg-white/10 backdrop-blur-sm rounded-xl px-3 py-2 border border-white/20">
@@ -317,12 +638,12 @@ const PromocionatePage: React.FC = () => {
         {/* How it works */}
         <div className="grid grid-cols-4 gap-2 sm:gap-4 -mt-5 relative z-10 mb-6">
           {[
-            { step: '1', icon: '🔍', title: 'Elige', desc: 'Servicio ideal' },
-            { step: '2', icon: '💬', title: 'Contacta', desc: 'Chat con vendedor' },
-            { step: '3', icon: '💳', title: 'Paga', desc: 'Escrow seguro' },
-            { step: '4', icon: '📊', title: 'Resultados', desc: 'Métricas reales' },
+            { icon: '🔍', title: 'Elige', desc: 'Servicios ideales' },
+            { icon: '🛒', title: 'Reserva', desc: 'Añade al carrito' },
+            { icon: '💳', title: 'Paga junto', desc: 'Un solo pago' },
+            { icon: '📊', title: 'Resultados', desc: 'Métricas reales' },
           ].map(s => (
-            <div key={s.step} className="card-white rounded-xl p-2.5 sm:p-4 text-center shadow-lg">
+            <div key={s.icon} className="card-white rounded-xl p-2.5 sm:p-4 text-center shadow-lg">
               <span className="text-xl sm:text-2xl">{s.icon}</span>
               <p className="text-gray-900 font-bold text-[10px] sm:text-xs mt-1">{s.title}</p>
               <p className="text-gray-400 text-[8px] sm:text-[10px]">{s.desc}</p>
@@ -384,7 +705,9 @@ const PromocionatePage: React.FC = () => {
               key={service.id}
               service={service}
               onBuy={() => handleBuy(service)}
+              onReserve={() => handleReserve(service)}
               onChat={() => handleChat(service)}
+              isInCart={cartItemIds.includes(service.id)}
             />
           ))}
         </div>
@@ -415,10 +738,40 @@ const PromocionatePage: React.FC = () => {
         </div>
       </div>
 
+      {/* Floating Cart Button */}
+      {cart.items.length > 0 && (
+        <button
+          onClick={() => setCartOpen(true)}
+          className="fixed bottom-24 lg:bottom-4 left-4 z-[55] bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white rounded-2xl shadow-2xl px-5 py-3 flex items-center gap-3 hover:scale-105 transition-all animate-bounce"
+          style={{ animationDuration: '2s', animationIterationCount: '3' }}
+        >
+          <div className="relative">
+            <ShoppingCart className="w-5 h-5" />
+            <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full text-[10px] font-black flex items-center justify-center">
+              {cart.items.length}
+            </span>
+          </div>
+          <div className="text-left">
+            <p className="text-[10px] opacity-70">Mi reserva</p>
+            <p className="text-sm font-black">€{cart.getTotal().toFixed(2)}</p>
+          </div>
+        </button>
+      )}
+
+      {/* Cart Drawer */}
+      <CartDrawer
+        open={cartOpen}
+        onClose={() => setCartOpen(false)}
+        onCheckout={() => { setCartOpen(false); setCheckoutOpen(true); }}
+      />
+
+      {/* Checkout Modal */}
+      <CheckoutModal open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
+
       {/* Seller Modal */}
       {selectedSeller && <SellerModal seller={selectedSeller} onClose={() => setSelectedSeller(null)} />}
 
-      {/* Booking Modal */}
+      {/* Booking Modal (direct purchase) */}
       {bookingService && (
         <BookingModal
           open={!!bookingService}

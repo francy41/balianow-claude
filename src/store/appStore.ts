@@ -234,9 +234,8 @@ export const useSiteConfigStore = create<SiteConfigState>()(
         loop: true,
       },
       heroSliderImages: [
-        { id: '1', url: 'https://picsum.photos/seed/slider-latin1/600/300', alt: 'Bachata Night' },
-        { id: '2', url: 'https://picsum.photos/seed/slider-latin2/600/300', alt: 'Salsa Congress' },
-        { id: '3', url: 'https://picsum.photos/seed/slider-latin3/600/300', alt: 'Latin Festival' },
+        { id: '1', url: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1400&h=500&fit=crop&crop=center', alt: 'BailaNow - Todo lo que amas del baile latino' },
+        { id: '2', url: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=1400&h=500&fit=crop&crop=center', alt: 'BailaNow - Encuentra todo el mundo del baile en tus manos' },
       ],
       commissions: DEFAULT_COMMISSIONS,
       setHeroMedia: (media) =>
@@ -285,9 +284,11 @@ interface UIState {
   activeModal: string | null;
   sidebarOpen: boolean;
   toasts: Toast[];
+  darkMode: boolean;
   openModal: (id: string) => void;
   closeModal: () => void;
   toggleSidebar: () => void;
+  toggleDarkMode: () => void;
   addToast: (toast: Omit<Toast, 'id'>) => void;
   removeToast: (id: string) => void;
 }
@@ -302,10 +303,21 @@ export const useUIStore = create<UIState>((set) => ({
   activeModal: null,
   sidebarOpen: false,
   toasts: [],
+  darkMode: typeof window !== 'undefined' && localStorage.getItem('bailanow-dark') === 'true',
 
   openModal: (id) => set({ activeModal: id }),
   closeModal: () => set({ activeModal: null }),
   toggleSidebar: () => set(state => ({ sidebarOpen: !state.sidebarOpen })),
+  toggleDarkMode: () => set(state => {
+    const next = !state.darkMode;
+    localStorage.setItem('bailanow-dark', String(next));
+    if (next) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    return { darkMode: next };
+  }),
 
   addToast: (toast) =>
     set(state => ({
@@ -1013,5 +1025,97 @@ export const usePerformerStore = create<PerformerState>()(
       version: 3,
       migrate: () => undefined as any,
     }
+  )
+);
+
+// ── PROMO CART STORE ──────────────────────────────────────────────────────
+export interface CartItem {
+  id: string;
+  serviceId: string;
+  sellerId: string;
+  sellerName: string;
+  sellerAvatar: string;
+  title: string;
+  price: number;
+  currency: string;
+  extras: { label: string; price: number; selected: boolean }[];
+  quantity: number;
+  addedAt: string;
+}
+
+export interface CartState {
+  items: CartItem[];
+  addItem: (item: Omit<CartItem, 'id' | 'quantity' | 'addedAt'>) => void;
+  removeItem: (id: string) => void;
+  toggleExtra: (itemId: string, extraIndex: number) => void;
+  clearCart: () => void;
+  getSubtotal: () => number;
+  getCommission: () => number;
+  getTotal: () => number;
+  getSellerBreakdown: () => { sellerId: string; sellerName: string; sellerAvatar: string; gross: number; commission: number; net: number }[];
+}
+
+export const useCartStore = create<CartState>()(
+  persist(
+    (set, get) => ({
+      items: [],
+
+      addItem: (item) => {
+        const existing = get().items.find(i => i.serviceId === item.serviceId);
+        if (existing) return; // no duplicates
+        set(s => ({
+          items: [...s.items, {
+            ...item,
+            id: `cart_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            quantity: 1,
+            addedAt: new Date().toISOString(),
+          }],
+        }));
+      },
+
+      removeItem: (id) => set(s => ({ items: s.items.filter(i => i.id !== id) })),
+
+      toggleExtra: (itemId, extraIndex) => set(s => ({
+        items: s.items.map(i =>
+          i.id === itemId
+            ? { ...i, extras: i.extras.map((e, idx) => idx === extraIndex ? { ...e, selected: !e.selected } : e) }
+            : i
+        ),
+      })),
+
+      clearCart: () => set({ items: [] }),
+
+      getSubtotal: () => {
+        return get().items.reduce((sum, item) => {
+          const extrasTotal = item.extras.filter(e => e.selected).reduce((s, e) => s + e.price, 0);
+          return sum + item.price + extrasTotal;
+        }, 0);
+      },
+
+      getCommission: () => Math.round(get().getSubtotal() * PLATFORM_COMMISSION_RATE * 100) / 100,
+
+      getTotal: () => get().getSubtotal(),
+
+      getSellerBreakdown: () => {
+        const items = get().items;
+        const sellerMap = new Map<string, { sellerId: string; sellerName: string; sellerAvatar: string; gross: number }>();
+        items.forEach(item => {
+          const extrasTotal = item.extras.filter(e => e.selected).reduce((s, e) => s + e.price, 0);
+          const itemTotal = item.price + extrasTotal;
+          const existing = sellerMap.get(item.sellerId);
+          if (existing) {
+            existing.gross += itemTotal;
+          } else {
+            sellerMap.set(item.sellerId, { sellerId: item.sellerId, sellerName: item.sellerName, sellerAvatar: item.sellerAvatar, gross: itemTotal });
+          }
+        });
+        return Array.from(sellerMap.values()).map(s => ({
+          ...s,
+          commission: Math.round(s.gross * PLATFORM_COMMISSION_RATE * 100) / 100,
+          net: Math.round(s.gross * (1 - PLATFORM_COMMISSION_RATE) * 100) / 100,
+        }));
+      },
+    }),
+    { name: 'bailanow-promo-cart', version: 1 }
   )
 );
