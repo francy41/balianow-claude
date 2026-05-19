@@ -266,10 +266,10 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
       <div className="relative">
         {/* Search Container */}
         <div className="relative">
-          <div className="bg-gradient-to-r from-brand-orange/15 via-white to-pink-500/10 backdrop-blur-lg rounded-3xl p-1 shadow-2xl border border-brand-orange/30">
-            <div className="bg-white rounded-3xl px-6 py-4 flex items-center gap-3 group">
+          <div className="bg-gradient-to-r from-pink-500/20 via-fuchsia-500/10 to-purple-500/20 backdrop-blur-lg rounded-3xl p-1 shadow-2xl border border-pink-500/30 shadow-pink-500/10">
+            <div className="bg-white/95 backdrop-blur-xl rounded-3xl px-5 sm:px-6 py-4 flex items-center gap-3 group">
               {/* Icon */}
-              <div className="text-2xl animate-pulse">🔍</div>
+              <div className="text-2xl">🔍</div>
 
               {/* Input */}
               <input
@@ -283,14 +283,14 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
                 }}
                 onFocus={() => setShowSuggestions(true)}
                 onKeyDown={handleKeyDown}
-                placeholder="Escribe para descubrir... (Artistas, Eventos, Localidades, Ciudades)"
+                placeholder="Descubre artistas, eventos, venues..."
                 className="flex-1 bg-transparent outline-none text-gray-900 placeholder-gray-400 text-sm font-medium"
               />
 
               {/* Search Button */}
               <button
                 onClick={() => handleSearch()}
-                className="px-6 py-2 bg-brand-orange hover:bg-pink-600 text-white rounded-full font-bold text-sm hover:shadow-lg hover:scale-105 transition-all"
+                className="px-5 sm:px-6 py-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 hover:from-pink-600 hover:to-fuchsia-700 text-white rounded-full font-bold text-sm hover:shadow-lg hover:shadow-pink-500/30 hover:scale-105 transition-all"
               >
                 Buscar
               </button>
@@ -299,14 +299,14 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
 
           {/* Autocomplete Suggestions */}
           {showSuggestions && searchQuery.trim() !== '' && (
-            <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 max-h-[500px] overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-3 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-pink-500/20 z-50 max-h-[500px] overflow-y-auto">
               {/* Search Results Option */}
               <button
                 onClick={() => handleSearch()}
                 className={`w-full px-6 py-3 text-left flex items-center gap-3 transition-all ${
                   selectedIndex === 0
-                    ? 'bg-brand-orange/10 border-l-4 border-brand-orange'
-                    : 'hover:bg-gray-50 border-l-4 border-transparent'
+                    ? 'bg-pink-500/10 border-l-4 border-pink-500'
+                    : 'hover:bg-pink-50 border-l-4 border-transparent'
                 }`}
               >
                 <span className="text-lg">🔎</span>
