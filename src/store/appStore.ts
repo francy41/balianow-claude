@@ -194,6 +194,37 @@ export const useAuthStore = create<AuthState>()(
   )
 );
 
+// ── HOME CATEGORY ─────────────────────────────────────────────────────────
+export interface HomeCategory {
+  id: string;
+  name: string;
+  icon: string;
+  route: string;
+  section: 'main' | 'mercado' | 'comunidad';
+  display_order: number;
+  active: boolean;
+}
+
+export const DEFAULT_HOME_CATEGORIES: HomeCategory[] = [
+  { id: '1',  name: 'Explorador',     icon: '🧭', route: '/explorar',                  section: 'main',      display_order: 1,  active: true },
+  { id: '2',  name: 'Ciudades',        icon: '🌆', route: '/venues',                    section: 'main',      display_order: 2,  active: true },
+  { id: '3',  name: 'Eventos',         icon: '🎉', route: '/eventos',                   section: 'main',      display_order: 3,  active: true },
+  { id: '4',  name: 'Artistas',        icon: '🎧', route: '/artistas',                  section: 'main',      display_order: 4,  active: true },
+  { id: '5',  name: 'Bailarines',      icon: '💃', route: '/artistas?tipo=dancer',      section: 'main',      display_order: 5,  active: true },
+  { id: '6',  name: 'Marketplace',     icon: '🏪', route: '/marketplace',               section: 'main',      display_order: 6,  active: true },
+  { id: '20', name: 'Promociónate',    icon: '📢', route: '/promocionate',              section: 'main',      display_order: 7,  active: true },
+  { id: '7',  name: 'Clases en vivo',  icon: '🎥', route: '/live',                      section: 'main',      display_order: 8,  active: true },
+  { id: '8',  name: 'Comunidad',       icon: '💬', route: '/chat',                      section: 'main',      display_order: 9,  active: true },
+  { id: '9',  name: 'Ruta de Hoy',     icon: '📍', route: '/eventos?type=featured',     section: 'mercado',   display_order: 1,  active: true },
+  { id: '10', name: 'Proyectos',       icon: '🚀', route: '/marketplace?cat=Producción',section: 'mercado',   display_order: 2,  active: true },
+  { id: '11', name: 'Clases en vivo',  icon: '🎬', route: '/live',                      section: 'mercado',   display_order: 3,  active: true },
+  { id: '12', name: 'Ofertas',         icon: '⭐', route: '/eventos?featured=true',     section: 'mercado',   display_order: 4,  active: true },
+  { id: '13', name: 'Anuncios',        icon: '📢', route: '/chat',                      section: 'comunidad', display_order: 1,  active: true },
+  { id: '14', name: 'Academia',        icon: '🎓', route: '/marketplace?cat=Clases',    section: 'comunidad', display_order: 2,  active: true },
+  { id: '15', name: 'Comunidad',       icon: '👥', route: '/chat',                      section: 'comunidad', display_order: 3,  active: true },
+  { id: '16', name: 'Chat',            icon: '💬', route: '/chat',                      section: 'comunidad', display_order: 4,  active: true },
+];
+
 // ── SITE CONFIG STORE (hero banner, etc.) ─────────────────────────────────
 export type HeroMediaType = 'image' | 'youtube' | 'video';
 
@@ -215,7 +246,8 @@ interface SiteConfigState {
   heroMedia: HeroMedia;
   heroSliderImages: HeroSliderImage[];
   commissions: CommissionConfig;
-  siteLogo: string; // base64 or URL
+  siteLogo: string;
+  homeCategories: HomeCategory[];
   setHeroMedia: (media: Partial<HeroMedia>) => void;
   setHeroSliderImages: (images: HeroSliderImage[]) => void;
   setCommission: (source: CommissionSource, rate: number) => void;
@@ -223,6 +255,7 @@ interface SiteConfigState {
   setPremiumDiscount: (rate: number) => void;
   resetCommissions: () => void;
   setSiteLogo: (logo: string) => void;
+  setHomeCategories: (cats: HomeCategory[]) => void;
 }
 
 export const useSiteConfigStore = create<SiteConfigState>()(
@@ -241,10 +274,12 @@ export const useSiteConfigStore = create<SiteConfigState>()(
       ],
       commissions: DEFAULT_COMMISSIONS,
       siteLogo: '',
+      homeCategories: DEFAULT_HOME_CATEGORIES,
       setHeroMedia: (media) =>
         set((state) => ({ heroMedia: { ...state.heroMedia, ...media } })),
       setHeroSliderImages: (images) => set({ heroSliderImages: images }),
       setSiteLogo: (logo) => set({ siteLogo: logo }),
+      setHomeCategories: (cats) => set({ homeCategories: cats }),
       setCommission: (source, rate) =>
         set((state) => ({
           commissions: {
@@ -261,7 +296,7 @@ export const useSiteConfigStore = create<SiteConfigState>()(
     }),
     {
       name: 'ritmolatino-site-config',
-      version: 5,
+      version: 6,
       migrate: () => undefined as any,
     }
   )
