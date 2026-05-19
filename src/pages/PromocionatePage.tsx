@@ -176,107 +176,249 @@ const PromoServiceCard: React.FC<{
   );
 };
 
-/* ── Cart Drawer ── */
+/* ── Cart Drawer (Premium) ── */
 const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () => void }> = ({ open, onClose, onCheckout }) => {
-  const { items, removeItem, toggleExtra, getSubtotal, getCommission, getTotal } = useCartStore();
-
-  if (!open) return null;
+  const { items, removeItem, toggleExtra, getSubtotal, getCommission, getTotal, getSellerBreakdown } = useCartStore();
+  const [showBreakdown, setShowBreakdown] = useState(false);
+  const breakdown = getSellerBreakdown();
 
   return (
     <>
-      <div className="fixed inset-0 z-50 bg-black/50" onClick={onClose} />
-      <div className="fixed right-0 top-0 bottom-0 z-50 w-full sm:w-[420px] bg-white dark:bg-gray-900 shadow-2xl flex flex-col animate-[slideInRight_0.3s_ease]">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-fuchsia-600 p-4 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-2 text-white">
-            <ShoppingCart className="w-5 h-5" />
-            <h2 className="font-black text-lg">Mi Reserva</h2>
-            <span className="bg-white/20 text-xs px-2 py-0.5 rounded-full font-bold">{items.length}</span>
+      {/* Backdrop */}
+      <div
+        className={`fixed inset-0 z-50 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${open ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        onClick={onClose}
+      />
+
+      {/* Drawer Panel */}
+      <div
+        className={`fixed right-0 top-0 bottom-0 z-50 w-full sm:w-[440px] flex flex-col shadow-2xl transition-transform duration-300 ease-out ${open ? 'translate-x-0' : 'translate-x-full'}`}
+        style={{ background: 'linear-gradient(180deg, #0f0f1a 0%, #1a1a2e 100%)' }}
+      >
+        {/* ── Header ── */}
+        <div className="relative flex-shrink-0 px-5 pt-5 pb-4">
+          {/* Decorative glow */}
+          <div className="absolute top-0 right-0 w-40 h-40 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                <ShoppingCart className="w-4.5 h-4.5 text-white" style={{ width: 18, height: 18 }} />
+              </div>
+              <div>
+                <h2 className="font-black text-lg text-white leading-none">Mi Reserva</h2>
+                <p className="text-[11px] text-purple-300 mt-0.5">
+                  {items.length === 0 ? 'Sin servicios aún' : `${items.length} servicio${items.length > 1 ? 's' : ''} seleccionado${items.length > 1 ? 's' : ''}`}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {items.length > 0 && (
+                <span className="bg-gradient-to-r from-purple-500 to-fuchsia-600 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-lg shadow-purple-500/30">
+                  {items.length}
+                </span>
+              )}
+              <button
+                onClick={onClose}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/70 hover:text-white transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-          <button onClick={onClose} className="text-white/70 hover:text-white">
-            <X className="w-5 h-5" />
-          </button>
+
+          {/* Divider with glow */}
+          <div className="mt-4 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
         </div>
 
-        {/* Items */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-3" style={{ scrollbarWidth: 'thin' }}>
+        {/* ── Items List ── */}
+        <div className="flex-1 overflow-y-auto px-4 pb-2 space-y-3" style={{ scrollbarWidth: 'thin', scrollbarColor: '#4a4a6a transparent' }}>
           {items.length === 0 ? (
-            <div className="text-center py-16">
-              <ShoppingCart className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-900 font-bold">Tu carrito está vacío</p>
-              <p className="text-gray-400 text-sm mt-1">Reserva servicios y págalos todos juntos</p>
+            <div className="flex flex-col items-center justify-center h-full py-20 text-center">
+              <div className="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mb-5">
+                <ShoppingCart className="w-9 h-9 text-white/20" />
+              </div>
+              <p className="text-white/60 font-bold text-base">Tu carrito está vacío</p>
+              <p className="text-white/30 text-sm mt-2 max-w-[200px] leading-relaxed">Reserva servicios y págalos todos juntos con un solo pago</p>
+              <button onClick={onClose} className="mt-6 bg-gradient-to-r from-purple-500 to-fuchsia-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:from-purple-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-purple-500/25">
+                Explorar servicios
+              </button>
             </div>
           ) : (
-            items.map(item => {
-              const extrasTotal = item.extras.filter(e => e.selected).reduce((s, e) => s + e.price, 0);
-              const itemTotal = item.price + extrasTotal;
-              return (
-                <div key={item.id} className="card-white rounded-xl p-3 border border-gray-100">
-                  <div className="flex items-start gap-3">
-                    <img src={item.sellerAvatar} alt={item.sellerName} className="w-10 h-10 rounded-full flex-shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-gray-900 line-clamp-2">{item.title}</p>
-                      <p className="text-[10px] text-gray-400 mt-0.5">{item.sellerName}</p>
+            <>
+              {items.map((item, idx) => {
+                const extrasTotal = item.extras.filter(e => e.selected).reduce((s, e) => s + e.price, 0);
+                const itemTotal = item.price + extrasTotal;
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-2xl border border-white/10 overflow-hidden"
+                    style={{ background: 'rgba(255,255,255,0.04)' }}
+                  >
+                    {/* Item header */}
+                    <div className="flex items-start gap-3 p-3.5">
+                      <div className="relative flex-shrink-0">
+                        <img src={item.sellerAvatar} alt={item.sellerName} className="w-11 h-11 rounded-xl object-cover ring-2 ring-purple-500/30" />
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-pink-500 to-fuchsia-600 rounded-full flex items-center justify-center text-[8px] font-black text-white">
+                          {idx + 1}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[13px] font-bold text-white line-clamp-2 leading-snug">{item.title}</p>
+                        <p className="text-[11px] text-white/40 mt-0.5">{item.sellerName}</p>
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <span className="text-[10px] bg-white/10 text-white/50 px-2 py-0.5 rounded-full">Base: €{item.price.toFixed(2)}</span>
+                          {extrasTotal > 0 && (
+                            <span className="text-[10px] bg-fuchsia-500/20 text-fuchsia-300 px-2 py-0.5 rounded-full">+extras: €{extrasTotal.toFixed(2)}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                        <span className="font-black text-base text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-fuchsia-400">
+                          €{itemTotal.toFixed(2)}
+                        </span>
+                        <button
+                          onClick={() => removeItem(item.id)}
+                          className="w-6 h-6 rounded-lg bg-red-500/10 hover:bg-red-500/20 flex items-center justify-center text-red-400/60 hover:text-red-400 transition-all"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="font-black text-sm text-pink-500">€{itemTotal}</span>
-                      <button onClick={() => removeItem(item.id)} className="text-gray-300 hover:text-red-500 transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
 
-                  {/* Extras toggles */}
-                  {item.extras.length > 0 && (
-                    <div className="mt-2 pt-2 border-t border-gray-50 space-y-1">
-                      <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">Extras</p>
-                      {item.extras.map((extra, idx) => (
-                        <label key={idx} className="flex items-center gap-2 cursor-pointer group">
-                          <input
-                            type="checkbox"
-                            checked={extra.selected}
-                            onChange={() => toggleExtra(item.id, idx)}
-                            className="w-3.5 h-3.5 rounded border-gray-300 text-pink-500 focus:ring-pink-500"
-                          />
-                          <span className={`text-[11px] flex-1 ${extra.selected ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
-                            {extra.label}
-                          </span>
-                          <span className={`text-[11px] font-bold ${extra.selected ? 'text-pink-500' : 'text-gray-300'}`}>
-                            +€{extra.price}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  )}
+                    {/* Extras toggles */}
+                    {item.extras.length > 0 && (
+                      <div className="mx-3.5 mb-3.5 rounded-xl border border-white/5 overflow-hidden" style={{ background: 'rgba(0,0,0,0.2)' }}>
+                        <div className="px-3 py-2 border-b border-white/5">
+                          <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">Extras opcionales</p>
+                        </div>
+                        <div className="px-3 py-2 space-y-2">
+                          {item.extras.map((extra, eidx) => (
+                            <label key={eidx} className="flex items-center gap-2.5 cursor-pointer group">
+                              <div
+                                onClick={() => toggleExtra(item.id, eidx)}
+                                className={`w-4 h-4 rounded flex items-center justify-center transition-all flex-shrink-0 cursor-pointer border ${
+                                  extra.selected
+                                    ? 'bg-gradient-to-br from-pink-500 to-fuchsia-600 border-transparent shadow-lg shadow-pink-500/30'
+                                    : 'border-white/20 bg-white/5 hover:border-purple-400/50'
+                                }`}
+                              >
+                                {extra.selected && (
+                                  <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 10 8">
+                                    <path d="M1 4l3 3 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                )}
+                              </div>
+                              <span className={`text-[12px] flex-1 transition-colors ${extra.selected ? 'text-white font-semibold' : 'text-white/40 group-hover:text-white/60'}`}>
+                                {extra.label}
+                              </span>
+                              <span className={`text-[12px] font-black transition-colors ${extra.selected ? 'text-pink-400' : 'text-white/20'}`}>
+                                +€{extra.price}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* Seller Breakdown toggle */}
+              {breakdown.length > 1 && (
+                <button
+                  onClick={() => setShowBreakdown(v => !v)}
+                  className="w-full text-[11px] text-purple-300/70 hover:text-purple-300 font-semibold flex items-center justify-center gap-1.5 py-2 rounded-xl border border-white/5 hover:border-white/10 transition-all"
+                  style={{ background: 'rgba(255,255,255,0.02)' }}
+                >
+                  <Users className="w-3 h-3" />
+                  {showBreakdown ? 'Ocultar distribución por vendedor' : 'Ver distribución por vendedor'}
+                  <svg className={`w-3 h-3 transition-transform ${showBreakdown ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 12 12">
+                    <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              )}
+
+              {showBreakdown && (
+                <div className="rounded-2xl border border-white/10 overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <div className="px-4 py-2.5 border-b border-white/5">
+                    <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">Distribución de pagos (85% vendedor / 15% plataforma)</p>
+                  </div>
+                  <div className="p-3 space-y-2">
+                    {breakdown.map(s => (
+                      <div key={s.sellerId} className="flex items-center gap-3">
+                        <img src={s.sellerAvatar} alt={s.sellerName} className="w-7 h-7 rounded-lg object-cover" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[11px] font-bold text-white/70 truncate">{s.sellerName}</p>
+                          <div className="h-1 bg-white/5 rounded-full mt-1 overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full" style={{ width: '85%' }} />
+                          </div>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-[12px] font-black text-green-400">€{s.net.toFixed(2)}</p>
+                          <p className="text-[9px] text-white/20">-€{s.commission.toFixed(2)} plataforma</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              );
-            })
+              )}
+            </>
           )}
         </div>
 
-        {/* Summary & Checkout */}
+        {/* ── Summary & Checkout Footer ── */}
         {items.length > 0 && (
-          <div className="border-t border-gray-200 p-4 space-y-3 flex-shrink-0 bg-gray-50 dark:bg-gray-800">
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Subtotal ({items.length} servicio{items.length > 1 ? 's' : ''})</span>
-                <span className="text-gray-900 font-bold">€{getSubtotal().toFixed(2)}</span>
+          <div className="flex-shrink-0 px-4 pb-5 pt-3">
+            {/* Divider */}
+            <div className="h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent mb-4" />
+
+            {/* Totals */}
+            <div className="rounded-2xl border border-white/10 p-4 mb-4 space-y-2.5" style={{ background: 'rgba(255,255,255,0.04)' }}>
+              <div className="flex justify-between items-center">
+                <span className="text-[12px] text-white/50">Subtotal ({items.length} servicio{items.length > 1 ? 's' : ''})</span>
+                <span className="text-[13px] font-bold text-white">€{getSubtotal().toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Comisión plataforma (15%)</span>
-                <span className="text-gray-400 text-xs">incluida en precio</span>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[12px] text-white/50">Comisión BailaNow</span>
+                  <span className="text-[9px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded-full font-bold">15%</span>
+                </div>
+                <span className="text-[12px] text-white/30 line-through">€{getCommission().toFixed(2)}</span>
               </div>
-              <div className="border-t border-gray-200 pt-2 flex justify-between">
-                <span className="text-gray-900 font-black text-lg">Total</span>
-                <span className="text-pink-500 font-black text-xl">€{getTotal().toFixed(2)}</span>
+              <div className="h-px bg-white/5" />
+              <div className="flex justify-between items-center">
+                <span className="text-base font-black text-white">Total a pagar</span>
+                <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-fuchsia-400">
+                  €{getTotal().toFixed(2)}
+                </span>
               </div>
             </div>
+
+            {/* CTA button */}
             <button
               onClick={onCheckout}
-              className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black rounded-xl py-3.5 text-sm hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2"
+              className="w-full relative overflow-hidden rounded-2xl py-4 flex items-center justify-center gap-2.5 font-black text-sm text-white transition-all hover:scale-[1.02] active:scale-95 shadow-2xl shadow-pink-500/30"
+              style={{ background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #6366f1 100%)' }}
             >
-              <CreditCard className="w-4 h-4" /> Pagar todo junto
+              {/* Shimmer effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 translate-x-[-100%] hover:translate-x-[200%] transition-transform duration-700" />
+              <CreditCard className="w-4.5 h-4.5" style={{ width: 18, height: 18 }} />
+              <span>Pagar todo junto · €{getTotal().toFixed(2)}</span>
             </button>
+
+            {/* Trust badges */}
+            <div className="flex items-center justify-center gap-4 mt-3">
+              {[
+                { icon: '🔒', label: 'Pago seguro SSL' },
+                { icon: '🛡️', label: 'Escrow garantizado' },
+                { icon: '↩️', label: 'Reembolso 7 días' },
+              ].map(badge => (
+                <div key={badge.label} className="flex items-center gap-1">
+                  <span className="text-[10px]">{badge.icon}</span>
+                  <span className="text-[9px] text-white/25 font-medium">{badge.label}</span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
