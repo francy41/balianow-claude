@@ -296,8 +296,11 @@ export const useSiteConfigStore = create<SiteConfigState>()(
     }),
     {
       name: 'ritmolatino-site-config',
-      version: 6,
-      migrate: () => undefined as any,
+      version: 7,
+      migrate: (state: any) => ({
+        ...state,
+        homeCategories: DEFAULT_HOME_CATEGORIES,
+      }),
     }
   )
 );
