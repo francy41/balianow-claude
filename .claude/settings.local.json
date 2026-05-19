@@ -80,7 +80,15 @@
       "Bash(curl -s https://balianow-claude-solfa-mendezs-projects.vercel.app -w \"\\\\nStatus: %{http_code}\\\\n\")",
       "Bash(git stash *)",
       "Bash(curl -s https://balianow-claude.netlify.app -w \"\\\\nStatus: %{http_code}\\\\n\")",
-      "Bash(curl -s -I https://francy41.github.io/balianow-claude)"
+      "Bash(curl -s -I https://francy41.github.io/balianow-claude)",
+      "Bash(git fetch *)",
+      "Bash(curl -s https://francy41.github.io/balianow-claude -w \"\\\\nStatus: %{http_code}\\\\n\")",
+      "Bash(curl -sL https://francy41.github.io/balianow-claude -w \"\\\\nHTTP Status: %{http_code}\\\\n\")",
+      "mcp__Claude_in_Chrome__browser_batch",
+      "mcp__Claude_in_Chrome__navigate",
+      "mcp__Claude_in_Chrome__computer",
+      "PowerShell(npx wrangler --version)",
+      "mcp__Claude_in_Chrome__tabs_create_mcp"
     ]
   }
 }
