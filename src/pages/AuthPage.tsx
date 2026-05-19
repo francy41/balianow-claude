@@ -72,8 +72,8 @@ const AuthPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 py-12">
       {/* Decorative background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-orange-100 rounded-full blur-3xl opacity-60" />
-        <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-orange-50 rounded-full blur-3xl opacity-60" />
+        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-pink-100 rounded-full blur-3xl opacity-60" />
+        <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-pink-50 rounded-full blur-3xl opacity-60" />
       </div>
 
       <div className="relative w-full max-w-md">
@@ -137,7 +137,7 @@ const AuthPage: React.FC = () => {
                     const ok = await login('solfamende41@gmail.com', 'Solfa11111111@');
                     if (ok) { addToast({ message: '¡Bienvenida, Super Admin!', type: 'success' }); navigate('/admin'); }
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-orange-50 transition-colors border-b border-gray-50"
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-pink-50 transition-colors border-b border-gray-50"
                 >
                   <div className="w-8 h-8 rounded-full bg-brand-orange flex items-center justify-center flex-shrink-0">
                     <span className="text-white text-xs font-black">SM</span>
@@ -187,7 +187,7 @@ const AuthPage: React.FC = () => {
                       onClick={() => setSelectedRole(role.id)}
                       className={`flex items-center gap-3 p-3 rounded-xl transition-all text-left border ${
                         selectedRole === role.id
-                          ? 'border-brand-orange bg-orange-50'
+                          ? 'border-brand-orange bg-pink-50'
                           : 'border-gray-200 bg-white hover:border-brand-orange/50'
                       }`}
                     >

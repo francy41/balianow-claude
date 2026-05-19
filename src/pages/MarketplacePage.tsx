@@ -125,7 +125,7 @@ const ServiceCard: React.FC<{ service: Service; onClick: () => void }> = ({ serv
 
       <div className="flex flex-wrap gap-1 mb-3">
         {service.tags.slice(0, 3).map(tag => (
-          <span key={tag} className="text-[10px] bg-orange-50 text-brand-orange px-2 py-0.5 rounded-full">{tag}</span>
+          <span key={tag} className="text-[10px] bg-pink-50 text-brand-orange px-2 py-0.5 rounded-full">{tag}</span>
         ))}
       </div>
 

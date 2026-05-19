@@ -71,7 +71,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4" onClick={onClose}>
       <div onClick={e => e.stopPropagation()} className="bg-white rounded-3xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-gradient-to-r from-brand-orange to-orange-500 text-white p-5 flex items-center justify-between">
+        <div className="sticky top-0 bg-gradient-to-r from-brand-orange to-pink-500 text-white p-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
               <Briefcase className="w-5 h-5" />
@@ -147,7 +147,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
             </div>
           </div>
 
-          <div className="bg-orange-50 border border-orange-200 rounded-2xl p-3 text-xs text-gray-700 space-y-1.5">
+          <div className="bg-pink-50 border border-pink-200 rounded-2xl p-3 text-xs text-gray-700 space-y-1.5">
             <p className="flex items-start gap-2 font-semibold text-gray-900">
               <Shield className="w-4 h-4 text-brand-orange flex-shrink-0 mt-0.5" />
               Pago retenido en escrow

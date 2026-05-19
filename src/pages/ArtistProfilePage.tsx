@@ -244,7 +244,7 @@ const ArtistProfilePage: React.FC = () => {
               rows={4} placeholder="Cuéntale al artista qué necesitas, fecha, ubicación..."
               className="input-field text-sm" />
           </div>
-          <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 text-xs text-gray-600">
+          <div className="bg-pink-50 border border-pink-100 rounded-xl p-3 text-xs text-gray-600">
             <p className="flex items-start gap-2"><Lock className="w-4 h-4 text-brand-orange flex-shrink-0 mt-0.5" />
               Tu pago queda retenido en escrow hasta confirmar la entrega del servicio. Comisión plataforma: 15%.
             </p>
@@ -289,7 +289,7 @@ const AboutTab: React.FC<{ artist: Artist }> = ({ artist }) => (
         <h3 className="font-display font-bold text-gray-900 mb-3">Géneros y especialidades</h3>
         <div className="flex flex-wrap gap-2">
           {artist.genre.map(g => (
-            <span key={g} className="bg-orange-50 text-brand-orange border border-orange-100 text-sm font-semibold px-3 py-1 rounded-full">{g}</span>
+            <span key={g} className="bg-pink-50 text-brand-orange border border-pink-100 text-sm font-semibold px-3 py-1 rounded-full">{g}</span>
           ))}
           {artist.tags.map(t => (
             <span key={t} className="bg-gray-50 text-gray-600 border border-gray-100 text-sm px-3 py-1 rounded-full">{t}</span>
@@ -340,7 +340,7 @@ const SOCIAL_COLORS: Record<string, string> = {
   youtube:    'from-red-500 to-red-600',
   facebook:   'from-blue-500 to-blue-700',
   spotify:    'from-green-500 to-green-600',
-  soundcloud: 'from-orange-500 to-orange-600',
+  soundcloud: 'from-pink-500 to-pink-600',
   tiktok:     'from-gray-900 to-pink-500',
   twitch:     'from-purple-600 to-purple-800',
 };
@@ -521,10 +521,10 @@ const ScheduledStreamsList: React.FC<{ artist: Artist }> = ({ artist }) => {
               <p className="text-gray-400 text-xs">
                 {new Date(s.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'long' })} · {s.time}
               </p>
-              <span className="text-[10px] font-bold uppercase bg-orange-50 text-brand-orange px-1.5 py-0.5 rounded mt-1 inline-block">{s.category}</span>
+              <span className="text-[10px] font-bold uppercase bg-pink-50 text-brand-orange px-1.5 py-0.5 rounded mt-1 inline-block">{s.category}</span>
             </div>
             <button onClick={() => addToast({ message: '🔔 Recordatorio activado', type: 'success' })}
-              className="flex items-center gap-1 bg-brand-orange text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-orange-600 transition-colors">
+              className="flex items-center gap-1 bg-brand-orange text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-pink-600 transition-colors">
               <Bell className="w-3 h-3" /> Recordar
             </button>
           </div>
@@ -586,7 +586,7 @@ const OffersTab: React.FC<{ artist: Artist; onBook: (p: OfferPackage) => void; o
   const packages = artist.packages || [];
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-orange-50 to-pink-50 rounded-2xl p-4 sm:p-5 border border-orange-100">
+      <div className="bg-gradient-to-r from-pink-50 to-pink-50 rounded-2xl p-4 sm:p-5 border border-pink-100">
         <div className="flex items-start gap-3">
           <Lock className="w-5 h-5 text-brand-orange flex-shrink-0 mt-0.5" />
           <div>
@@ -635,7 +635,7 @@ const OffersTab: React.FC<{ artist: Artist; onBook: (p: OfferPackage) => void; o
               </ul>
               <button onClick={() => onBook(pkg)}
                 className={`w-full font-bold text-sm py-2.5 rounded-lg transition-all ${
-                  isPopular ? 'bg-brand-orange text-white hover:bg-orange-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  isPopular ? 'bg-brand-orange text-white hover:bg-pink-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}>
                 Solicitar por chat
               </button>
@@ -733,7 +733,7 @@ const AvailabilityTab: React.FC<{ artist: Artist; onChat: () => void }> = ({ art
                 disabled={!available}
                 className={`aspect-square rounded-xl flex flex-col items-center justify-center text-xs font-bold transition-all ${
                   available
-                    ? 'bg-brand-orange text-white hover:bg-orange-600 cursor-pointer'
+                    ? 'bg-brand-orange text-white hover:bg-pink-600 cursor-pointer'
                     : 'bg-gray-50 text-gray-300 cursor-not-allowed'
                 }`}>
                 <span className="text-[10px] uppercase opacity-80">{d}</span>

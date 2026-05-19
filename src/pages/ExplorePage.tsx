@@ -83,7 +83,7 @@ const ExplorePage: React.FC = () => {
                       </p>
                       <div className="flex gap-1 mt-1">
                         {e.category.slice(0, 2).map(c => (
-                          <span key={c} className="text-[10px] bg-orange-50 text-brand-orange px-2 py-0.5 rounded-full">{c}</span>
+                          <span key={c} className="text-[10px] bg-pink-50 text-brand-orange px-2 py-0.5 rounded-full">{c}</span>
                         ))}
                       </div>
                     </div>

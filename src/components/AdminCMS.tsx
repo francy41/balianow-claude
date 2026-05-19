@@ -99,8 +99,8 @@ const CategoriesPanel: React.FC = () => {
             <input value={edit.slug || ''} onChange={e => setEdit({ ...edit, slug: e.target.value })} placeholder="slug-url-amigable" className="input-field font-mono" />
             <input value={edit.icon || ''} onChange={e => setEdit({ ...edit, icon: e.target.value })} placeholder="Emoji icono (ej. 🎤)" className="input-field text-center text-2xl" />
             <div className="flex items-center gap-2">
-              <input type="color" value={edit.color || '#F97316'} onChange={e => setEdit({ ...edit, color: e.target.value })} className="h-10 w-16 rounded-lg cursor-pointer" />
-              <input value={edit.color || ''} onChange={e => setEdit({ ...edit, color: e.target.value })} placeholder="#F97316" className="input-field font-mono flex-1" />
+              <input type="color" value={edit.color || '#EC4899'} onChange={e => setEdit({ ...edit, color: e.target.value })} className="h-10 w-16 rounded-lg cursor-pointer" />
+              <input value={edit.color || ''} onChange={e => setEdit({ ...edit, color: e.target.value })} placeholder="#EC4899" className="input-field font-mono flex-1" />
             </div>
             <select value={edit.layout || 'grid'} onChange={e => setEdit({ ...edit, layout: e.target.value as any })} className="input-field">
               <option value="grid">Grid</option>
@@ -363,7 +363,7 @@ const MediaPanel: React.FC = () => {
 
         <div onDragOver={e => e.preventDefault()} onDrop={e => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
           onClick={() => fileRef.current?.click()}
-          className="border-2 border-dashed border-gray-300 hover:border-brand-orange bg-gray-50 hover:bg-orange-50 transition-all rounded-2xl p-8 text-center cursor-pointer">
+          className="border-2 border-dashed border-gray-300 hover:border-brand-orange bg-gray-50 hover:bg-pink-50 transition-all rounded-2xl p-8 text-center cursor-pointer">
           <Upload className="w-8 h-8 mx-auto text-gray-400 mb-2" />
           <p className="font-bold text-gray-700">Arrastra archivos aquí o haz click para subir</p>
           <p className="text-xs text-gray-400 mt-1">Imágenes y vídeos · destino: <span className="font-bold text-brand-orange">{folder}</span></p>

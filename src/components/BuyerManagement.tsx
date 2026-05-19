@@ -49,7 +49,7 @@ export const BuyerTable: React.FC<{ eventId: string }> = ({ eventId }) => {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: 'Total Compradores', value: tickets.length, icon: '👥', color: 'bg-blue-50 text-blue-700' },
-          { label: 'Tickets Vendidos', value: tickets.reduce((s, t) => s + t.quantity, 0), icon: '🎫', color: 'bg-orange-50 text-brand-orange' },
+          { label: 'Tickets Vendidos', value: tickets.reduce((s, t) => s + t.quantity, 0), icon: '🎫', color: 'bg-pink-50 text-brand-orange' },
           { label: 'Revenue', value: `€${tickets.filter(t => t.paymentStatus === 'paid').reduce((s, t) => s + t.totalPrice, 0).toLocaleString()}`, icon: '💰', color: 'bg-green-50 text-green-700' },
           { label: 'Accesos', value: tickets.filter(t => t.qrStatus === 'used').length, icon: '✅', color: 'bg-purple-50 text-purple-700' },
         ].map(stat => (
@@ -107,7 +107,7 @@ export const BuyerTable: React.FC<{ eventId: string }> = ({ eventId }) => {
             </thead>
             <tbody>
               {paged.map(ticket => (
-                <tr key={ticket.id} className="border-b border-gray-50 hover:bg-orange-50/30 transition-colors">
+                <tr key={ticket.id} className="border-b border-gray-50 hover:bg-pink-50/30 transition-colors">
                   <td className="py-3 px-4">
                     <div>
                       <p className="font-semibold text-gray-900">{ticket.buyerName}</p>
@@ -242,7 +242,7 @@ export const QRScanner: React.FC<{ eventId?: string }> = ({ eventId }) => {
             <div className="flex flex-wrap gap-2">
               {['TKT-AbCd1234-EfGh-5678-IjKlMnOpQrSt-m1abc', 'TKT-QwEr5678-TyUi-9012-OpAsDfGhJkLz-m3ghi', 'TKT-FAKE-TOKEN'].map(token => (
                 <button key={token} onClick={() => handleScan(token)}
-                  className="text-[10px] px-2 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-orange-50 hover:text-brand-orange transition-colors font-mono truncate max-w-[200px]">
+                  className="text-[10px] px-2 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-pink-50 hover:text-brand-orange transition-colors font-mono truncate max-w-[200px]">
                   {token.slice(0, 25)}...
                 </button>
               ))}

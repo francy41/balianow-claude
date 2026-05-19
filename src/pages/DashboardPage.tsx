@@ -61,7 +61,7 @@ const DashboardPage: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4">
         {/* Header con portada */}
         <div className="card-white rounded-3xl mb-6 relative overflow-hidden">
-          <div className="relative h-32 sm:h-40 bg-gradient-to-r from-brand-orange to-orange-400 overflow-hidden">
+          <div className="relative h-32 sm:h-40 bg-gradient-to-r from-brand-orange to-pink-400 overflow-hidden">
             {user.coverPhoto && <img src={user.coverPhoto} alt="" className="w-full h-full object-cover" />}
             <button onClick={() => setShowProfileEdit(true)}
               className="absolute top-3 right-3 bg-white/90 hover:bg-white text-gray-800 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow">
@@ -224,7 +224,7 @@ const OverviewTab: React.FC<{ performerId: string; onNavigate: (t: TabId) => voi
           ) : (
             <div className="space-y-2">
               {pendingOffers.slice(0, 3).map(o => (
-                <div key={o.id} className="flex items-center gap-3 p-3 bg-orange-50 rounded-xl border border-orange-100">
+                <div key={o.id} className="flex items-center gap-3 p-3 bg-pink-50 rounded-xl border border-pink-100">
                   <Avatar src={o.clientAvatar} name={o.clientName} size="sm" />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm text-gray-900 truncate">{o.title}</p>
@@ -244,7 +244,7 @@ const OverviewTab: React.FC<{ performerId: string; onNavigate: (t: TabId) => voi
 const StatCard: React.FC<{ label: string; value: string; sub?: string; icon: React.ReactNode; color: 'green' | 'orange' | 'purple' | 'pink' }> = ({ label, value, sub, icon, color }) => {
   const colors = {
     green:  'bg-green-50 text-green-600',
-    orange: 'bg-orange-50 text-brand-orange',
+    orange: 'bg-pink-50 text-brand-orange',
     purple: 'bg-purple-50 text-purple-600',
     pink:   'bg-pink-50 text-pink-600',
   };
@@ -303,7 +303,7 @@ const PayoutsTab: React.FC<{ performerId: string; performerName: string }> = ({ 
             {(['stripe', 'paypal', 'bank'] as const).map(t => (
               <button key={t} onClick={() => setForm({ ...form, type: t })}
                 className={`p-3 rounded-xl border text-center transition-all ${
-                  form.type === t ? 'border-brand-orange bg-orange-50' : 'border-gray-200 bg-white hover:border-brand-orange/50'
+                  form.type === t ? 'border-brand-orange bg-pink-50' : 'border-gray-200 bg-white hover:border-brand-orange/50'
                 }`}>
                 <div className="text-2xl mb-1">{TYPE_INFO[t].icon}</div>
                 <p className="text-sm font-bold text-gray-900">{TYPE_INFO[t].label}</p>
@@ -423,7 +423,7 @@ const EarningsTab: React.FC<{ performerId: string; performerName: string }> = ({
               {data.map(d => (
                 <div key={d.month} className="flex-1 flex flex-col items-center gap-1">
                   <div className="w-full bg-gray-100 rounded-t-lg flex-1 flex items-end overflow-hidden">
-                    <div className="w-full bg-gradient-to-t from-brand-orange to-orange-300 rounded-t-lg" style={{ height: `${(d.gross / max) * 100}%`, minHeight: d.gross > 0 ? 4 : 0 }} />
+                    <div className="w-full bg-gradient-to-t from-brand-orange to-pink-300 rounded-t-lg" style={{ height: `${(d.gross / max) * 100}%`, minHeight: d.gross > 0 ? 4 : 0 }} />
                   </div>
                   <span className="text-[10px] text-gray-500 font-bold">{d.month}</span>
                   <span className="text-[10px] text-gray-400">€{Math.round(d.net)}</span>
@@ -476,7 +476,7 @@ const EarningsTab: React.FC<{ performerId: string; performerName: string }> = ({
                 </div>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
                   w.status === 'paid' ? 'bg-green-100 text-green-700' :
-                  w.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-brand-orange'
+                  w.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-pink-100 text-brand-orange'
                 }`}>
                   {w.status === 'paid' ? 'Pagado' : w.status === 'rejected' ? 'Rechazado' : 'Pendiente aprobación'}
                 </span>
@@ -905,7 +905,7 @@ const OffersTab: React.FC<{ performerId: string }> = ({ performerId }) => {
               </div>
             )}
             {o.status === 'accepted' && (
-              <div className="mt-3 p-2 bg-orange-50 rounded-lg text-xs text-gray-700 flex items-center gap-2">
+              <div className="mt-3 p-2 bg-pink-50 rounded-lg text-xs text-gray-700 flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-brand-orange" />
                 Pago retenido en escrow. Se liberará al confirmar el servicio.
               </div>

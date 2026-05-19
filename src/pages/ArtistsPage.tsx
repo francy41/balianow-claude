@@ -144,7 +144,7 @@ const ArtistCard: React.FC<{ artist: Artist; onClick: () => void }> = ({ artist,
     <div className="p-4">
       <div className="flex flex-wrap gap-1 mb-3">
         {artist.genre.slice(0, 3).map(g => (
-          <span key={g} className="text-xs bg-orange-50 text-brand-orange px-2 py-0.5 rounded-full font-medium">{g}</span>
+          <span key={g} className="text-xs bg-pink-50 text-brand-orange px-2 py-0.5 rounded-full font-medium">{g}</span>
         ))}
       </div>
 

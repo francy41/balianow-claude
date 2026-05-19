@@ -66,7 +66,7 @@ export interface HistorySnapshot {
 const now = () => new Date();
 
 const DEFAULT_CATEGORIES: CMSCategory[] = [
-  { id: 'cat-conciertos',  name: 'Conciertos y Música en Vivo', slug: 'conciertos', icon: '🎤', color: '#F97316', parentId: null, order: 0, isActive: true, isDeleted: false, layout: 'grid', template: 'feature', createdAt: now(), updatedAt: now() },
+  { id: 'cat-conciertos',  name: 'Conciertos y Música en Vivo', slug: 'conciertos', icon: '🎤', color: '#EC4899', parentId: null, order: 0, isActive: true, isDeleted: false, layout: 'grid', template: 'feature', createdAt: now(), updatedAt: now() },
   { id: 'cat-festivales',  name: 'Festivales y Congresos',      slug: 'festivales', icon: '🎉', color: '#A855F7', parentId: null, order: 1, isActive: true, isDeleted: false, layout: 'carousel', template: 'feature', createdAt: now(), updatedAt: now() },
   { id: 'cat-club',        name: 'Noches de club',              slug: 'club',       icon: '🎧', color: '#EC4899', parentId: null, order: 2, isActive: true, isDeleted: false, layout: 'grid', template: 'default', createdAt: now(), updatedAt: now() },
   { id: 'cat-talleres',    name: 'Talleres y clases',           slug: 'talleres',   icon: '📚', color: '#10B981', parentId: null, order: 3, isActive: true, isDeleted: false, layout: 'list', template: 'compact', createdAt: now(), updatedAt: now() },
@@ -179,7 +179,7 @@ export const useCMSStore = create<CMSState>()(
             name: data.name || 'Nueva categoría',
             slug: (data.slug || data.name || 'nueva').toLowerCase().replace(/\s+/g, '-'),
             icon: data.icon || '✨',
-            color: data.color || '#F97316',
+            color: data.color || '#EC4899',
             parentId: data.parentId ?? null,
             order, isActive: true, isDeleted: false,
             layout: data.layout || 'grid',

@@ -266,7 +266,7 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
       <div className="relative">
         {/* Search Container */}
         <div className="relative">
-          <div className="bg-gradient-to-r from-brand-orange/15 via-white to-orange-500/10 backdrop-blur-lg rounded-3xl p-1 shadow-2xl border border-brand-orange/30">
+          <div className="bg-gradient-to-r from-brand-orange/15 via-white to-pink-500/10 backdrop-blur-lg rounded-3xl p-1 shadow-2xl border border-brand-orange/30">
             <div className="bg-white rounded-3xl px-6 py-4 flex items-center gap-3 group">
               {/* Icon */}
               <div className="text-2xl animate-pulse">🔍</div>
@@ -290,7 +290,7 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
               {/* Search Button */}
               <button
                 onClick={() => handleSearch()}
-                className="px-6 py-2 bg-brand-orange hover:bg-orange-600 text-white rounded-full font-bold text-sm hover:shadow-lg hover:scale-105 transition-all"
+                className="px-6 py-2 bg-brand-orange hover:bg-pink-600 text-white rounded-full font-bold text-sm hover:shadow-lg hover:scale-105 transition-all"
               >
                 Buscar
               </button>
@@ -432,18 +432,18 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
 
   return (
     <section className="mx-4 mt-8 mb-10">
-      <div className="bg-gradient-to-r from-orange-50 via-white to-amber-50 rounded-3xl p-6 sm:p-8 border border-brand-orange/20">
+      <div className="bg-gradient-to-r from-pink-50 via-white to-amber-50 rounded-3xl p-6 sm:p-8 border border-brand-orange/20">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="font-display font-black text-2xl sm:text-3xl bg-gradient-to-r from-brand-orange to-orange-600 bg-clip-text text-transparent mb-1">
+            <h2 className="font-display font-black text-2xl sm:text-3xl bg-gradient-to-r from-brand-orange to-pink-600 bg-clip-text text-transparent mb-1">
               🔥 Ruta de Hoy
             </h2>
             <p className="text-gray-500 text-sm">Lo que está pasando ahora mismo en tu comunidad</p>
           </div>
           <button
             onClick={() => navigate('/comunidad')}
-            className="px-4 py-2 bg-brand-orange hover:bg-orange-600 text-white rounded-full font-bold text-sm hover:shadow-lg transition-all hover:scale-105"
+            className="px-4 py-2 bg-brand-orange hover:bg-pink-600 text-white rounded-full font-bold text-sm hover:shadow-lg transition-all hover:scale-105"
           >
             Ver más →
           </button>
@@ -465,7 +465,7 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
                 {/* Header con Avatar */}
                 <div className="flex items-start gap-3 mb-3">
                   <img
-                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(post.user)}&background=F97316&color=fff&size=120&bold=true&rounded=true`}
+                    src={`https://ui-avatars.com/api/?name=${encodeURIComponent(post.user)}&background=EC4899&color=fff&size=120&bold=true&rounded=true`}
                     alt={post.user}
                     className="w-12 h-12 rounded-full object-cover flex-shrink-0 border-2 border-brand-orange"
                   />
@@ -496,13 +496,13 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
           {/* Navigation Arrows */}
           <button
             onClick={() => scroll('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 z-10 w-10 h-10 rounded-full bg-gradient-to-r from-brand-orange to-orange-500 text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 z-10 w-10 h-10 rounded-full bg-gradient-to-r from-brand-orange to-pink-500 text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
           >
             <ChevronRight className="w-5 h-5 rotate-180" />
           </button>
           <button
             onClick={() => scroll('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 z-10 w-10 h-10 rounded-full bg-gradient-to-r from-brand-orange to-orange-500 text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 z-10 w-10 h-10 rounded-full bg-gradient-to-r from-brand-orange to-pink-500 text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -545,7 +545,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     'bg-brand-orange', 'bg-sky-500', 'bg-emerald-500', 'bg-purple-600',
     'bg-red-500', 'bg-indigo-600', 'bg-cyan-500', 'bg-amber-500',
     'bg-rose-600', 'bg-lime-500', 'bg-pink-600', 'bg-teal-500',
-    'bg-fuchsia-600', 'bg-blue-500', 'bg-orange-600', 'bg-violet-600'
+    'bg-fuchsia-600', 'bg-blue-500', 'bg-pink-600', 'bg-violet-600'
   ];
 
   const CategoryButton: React.FC<{ cat: any; index: number }> = ({ cat, index }) => {
@@ -567,7 +567,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     <section className="mt-8 px-2 sm:px-4">
       {/* Header */}
       <div className="text-center mb-8">
-        <h2 className="font-display font-black text-2xl sm:text-3xl bg-gradient-to-r from-brand-orange to-orange-600 bg-clip-text text-transparent mb-2">
+        <h2 className="font-display font-black text-2xl sm:text-3xl bg-gradient-to-r from-brand-orange to-pink-600 bg-clip-text text-transparent mb-2">
           🎉 Baila Now
         </h2>
         <p className="text-gray-500 text-sm max-w-lg mx-auto">
@@ -680,7 +680,7 @@ const HomePage: React.FC = () => {
             </div>
             <button
               onClick={() => setPlaying(playing === i ? null : i)}
-              className="w-8 h-8 rounded-full bg-gradient-to-r from-brand-orange to-orange-500 text-white flex items-center justify-center hover:scale-110 transition-transform flex-shrink-0 shadow-sm"
+              className="w-8 h-8 rounded-full bg-gradient-to-r from-brand-orange to-pink-500 text-white flex items-center justify-center hover:scale-110 transition-transform flex-shrink-0 shadow-sm"
             >
               {playing === i
                 ? <Pause className="w-3.5 h-3.5" />
@@ -801,7 +801,7 @@ const HomePage: React.FC = () => {
 
       {/* ── MI PANEL (logged-in user) ── */}
       {isPerformer && myBalance && isModuleOn('creator-panel') && (
-        <section className="mx-4 mt-4 bg-gradient-to-r from-brand-orange to-orange-500 rounded-3xl p-5 sm:p-6 text-white shadow-card">
+        <section className="mx-4 mt-4 bg-gradient-to-r from-brand-orange to-pink-500 rounded-3xl p-5 sm:p-6 text-white shadow-card">
           <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
             <div>
               <p className="text-white/70 text-xs font-semibold uppercase tracking-wider">Mi Panel Creator</p>

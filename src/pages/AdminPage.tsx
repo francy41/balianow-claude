@@ -52,7 +52,7 @@ const STATS = [
   { label: 'Usuarios totales',    value: '1,247',  change: '+12%', up: true,  icon: <Users className="w-6 h-6 text-blue-500" />,   color: 'bg-blue-50' },
   { label: 'Artistas activos',    value: '523',    change: '+8%',  up: true,  icon: <Music2 className="w-6 h-6 text-purple-500" />, color: 'bg-purple-50' },
   { label: 'Eventos este mes',    value: '204',    change: '+31%', up: true,  icon: <Calendar className="w-6 h-6 text-green-500" />, color: 'bg-green-50' },
-  { label: 'Revenue total',       value: '€48.2k', change: '+22%', up: true,  icon: <DollarSign className="w-6 h-6 text-brand-orange" />, color: 'bg-orange-50' },
+  { label: 'Revenue total',       value: '€48.2k', change: '+22%', up: true,  icon: <DollarSign className="w-6 h-6 text-brand-orange" />, color: 'bg-pink-50' },
   { label: 'Suscripciones activas', value: '312', change: '+19%', up: true,  icon: <Crown className="w-6 h-6 text-yellow-500" />,  color: 'bg-yellow-50' },
   { label: 'Disputas abiertas',   value: '5',      change: '-2',   up: false, icon: <AlertTriangle className="w-6 h-6 text-red-500" />, color: 'bg-red-50' },
 ];
@@ -1205,7 +1205,7 @@ const MercadoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     <div>
       <PageHeader title="Mercado y Depósito en Garantía" subtitle="Control de transacciones y escrow" />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {[{ l: 'En escrow', v: '€1,240', c: 'bg-yellow-50', i: '🔒' }, { l: 'Completados', v: '€38.4k', c: 'bg-green-50', i: '✅' }, { l: 'En disputa', v: '€80', c: 'bg-red-50', i: '⚠️' }, { l: 'Comisión (15%)', v: '€6.2k', c: 'bg-orange-50', i: '💰' }].map(s => (
+        {[{ l: 'En escrow', v: '€1,240', c: 'bg-yellow-50', i: '🔒' }, { l: 'Completados', v: '€38.4k', c: 'bg-green-50', i: '✅' }, { l: 'En disputa', v: '€80', c: 'bg-red-50', i: '⚠️' }, { l: 'Comisión (15%)', v: '€6.2k', c: 'bg-pink-50', i: '💰' }].map(s => (
           <div key={s.l} className="card-white p-4">
             <div className={`w-10 h-10 ${s.c} rounded-xl flex items-center justify-center text-xl mb-2`}>{s.i}</div>
             <p className="text-gray-400 text-xs">{s.l}</p>
@@ -1407,7 +1407,7 @@ const CreatorsSection: React.FC = () => {
           return (
             <div key={p.id} className="card-white p-5">
               <div className="flex items-center gap-3 mb-3">
-                <Avatar src={`https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=F97316&color=fff`} name={p.name} size="md" />
+                <Avatar src={`https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=EC4899&color=fff`} name={p.name} size="md" />
                 <div className="flex-1">
                   <h4 className="font-bold text-gray-900">{p.name}</h4>
                   <p className="text-xs text-gray-400 font-mono">{p.id} · {p.txCount} transacciones</p>
@@ -1426,7 +1426,7 @@ const CreatorsSection: React.FC = () => {
                   <p className="text-gray-600 font-semibold">Retirado</p>
                   <p className="text-lg font-black text-gray-900">€{b.withdrawn}</p>
                 </div>
-                <div className="bg-orange-50 rounded-lg p-2">
+                <div className="bg-pink-50 rounded-lg p-2">
                   <p className="text-brand-orange font-semibold">Comisión a plataforma</p>
                   <p className="text-lg font-black text-gray-900">€{Math.round((t.grossAllTime - t.netAllTime) * 100) / 100}</p>
                 </div>
@@ -1477,7 +1477,7 @@ const RetirosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
                 <td className="px-4 py-3">
                   <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
                     w.status === 'paid' ? 'bg-green-100 text-green-700' :
-                    w.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-orange-100 text-brand-orange'
+                    w.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-pink-100 text-brand-orange'
                   }`}>{w.status === 'paid' ? 'Pagado' : w.status === 'rejected' ? 'Rechazado' : 'Pendiente'}</span>
                 </td>
                 <td className="px-4 py-3 text-right">
@@ -1573,7 +1573,7 @@ const FinanzasSection: React.FC = () => {
           {monthly.map(m => (
             <div key={m.label} className="flex-1 flex flex-col items-center gap-1 group">
               <div className="w-full bg-gray-100 rounded-t-lg flex-1 flex items-end overflow-hidden">
-                <div className="w-full bg-gradient-to-t from-brand-orange to-orange-300 rounded-t-lg transition-all"
+                <div className="w-full bg-gradient-to-t from-brand-orange to-pink-300 rounded-t-lg transition-all"
                   style={{ height: `${(m.gross / maxGross) * 100}%`, minHeight: m.gross > 0 ? 4 : 0 }} />
               </div>
               <span className="text-[10px] text-gray-500 font-bold uppercase">{m.label}</span>
@@ -1780,7 +1780,7 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
             onClick={() => { setHeroMedia({ type: t.id }); setDraftUrl(''); }}
             className={`p-3 rounded-xl border text-left transition-all ${
               heroMedia.type === t.id
-                ? 'border-brand-orange bg-orange-50'
+                ? 'border-brand-orange bg-pink-50'
                 : 'border-gray-200 bg-white hover:border-brand-orange/50'
             }`}
           >
@@ -1863,7 +1863,7 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
 };
 
 const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
-  const [colors, setColors] = useState({ primary: '#F97316', secondary: '#111111', accent: '#EA580C' });
+  const [colors, setColors] = useState({ primary: '#EC4899', secondary: '#111111', accent: '#DB2777' });
   return (
     <div>
       <PageHeader title="Diseño Web" subtitle="Personaliza la apariencia de la plataforma" action={
@@ -2147,7 +2147,7 @@ const RolesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
                       ) : (
                         <div className="space-y-2 max-h-96 overflow-y-auto">
                           {filteredUsers.map(user => (
-                            <div key={user.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-orange-50 transition-colors">
+                            <div key={user.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-pink-50 transition-colors">
                               <img
                                 src={user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name || 'U')}&background=6B7280&color=fff&size=40`}
                                 alt={user.full_name}
@@ -2174,7 +2174,7 @@ const RolesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
                                 {user.location && <p className="text-[10px] text-gray-400 mt-0.5">📍 {user.location}</p>}
                               </div>
                               <div className="flex gap-1 flex-shrink-0">
-                                <button onClick={() => startEdit(user)} className="p-1.5 rounded-lg hover:bg-orange-100 text-gray-400 hover:text-brand-orange transition-colors" title="Editar">
+                                <button onClick={() => startEdit(user)} className="p-1.5 rounded-lg hover:bg-pink-100 text-gray-400 hover:text-brand-orange transition-colors" title="Editar">
                                   <Edit className="w-3.5 h-3.5" />
                                 </button>
                                 <button onClick={() => deleteUser(user)} className="p-1.5 rounded-lg hover:bg-red-100 text-gray-400 hover:text-red-500 transition-colors" title="Eliminar">
@@ -2297,7 +2297,7 @@ const SeguridadSection: React.FC = () => (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       {[
         { label: 'Intentos login fallidos (24h)', val: '23', icon: <Lock className="w-5 h-5 text-red-500" />, color: 'bg-red-50' },
-        { label: 'IPs bloqueadas', val: '4', icon: <Shield className="w-5 h-5 text-orange-500" />, color: 'bg-orange-50' },
+        { label: 'IPs bloqueadas', val: '4', icon: <Shield className="w-5 h-5 text-pink-500" />, color: 'bg-pink-50' },
         { label: 'Sesiones activas', val: '847', icon: <Wifi className="w-5 h-5 text-green-500" />, color: 'bg-green-50' },
         { label: 'Uptime del servidor', val: '99.9%', icon: <Server className="w-5 h-5 text-blue-500" />, color: 'bg-blue-50' },
       ].map(s => (

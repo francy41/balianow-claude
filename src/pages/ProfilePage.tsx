@@ -24,7 +24,7 @@ const SOCIAL_COLORS: Record<string, string> = {
   youtube:    'from-red-500 to-red-600',
   facebook:   'from-blue-500 to-blue-700',
   spotify:    'from-green-500 to-green-600',
-  soundcloud: 'from-orange-500 to-orange-600',
+  soundcloud: 'from-pink-500 to-pink-600',
   tiktok:     'from-gray-900 to-pink-500',
   twitch:     'from-purple-600 to-purple-800',
   website:    'from-gray-700 to-gray-900',

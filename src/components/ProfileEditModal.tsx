@@ -17,7 +17,7 @@ const SOCIAL_FIELDS: { key: keyof UserSocials; label: string; icon: React.ReactN
   { key: 'youtube',    label: 'YouTube',    icon: <Youtube className="w-4 h-4" />,   placeholder: 'URL del canal',          color: 'from-red-500 to-red-600' },
   { key: 'spotify',    label: 'Spotify',    icon: <Music2 className="w-4 h-4" />,    placeholder: 'URL artista Spotify',    color: 'from-green-500 to-green-600' },
   { key: 'facebook',   label: 'Facebook',   icon: <Facebook className="w-4 h-4" />,  placeholder: 'URL página/perfil',      color: 'from-blue-500 to-blue-700' },
-  { key: 'soundcloud', label: 'SoundCloud', icon: <Music2 className="w-4 h-4" />,    placeholder: 'URL SoundCloud',         color: 'from-orange-500 to-orange-600' },
+  { key: 'soundcloud', label: 'SoundCloud', icon: <Music2 className="w-4 h-4" />,    placeholder: 'URL SoundCloud',         color: 'from-pink-500 to-pink-600' },
   { key: 'twitch',     label: 'Twitch',     icon: <Twitch className="w-4 h-4" />,    placeholder: 'URL Twitch',             color: 'from-purple-600 to-purple-800' },
   { key: 'website',    label: 'Web',        icon: <Globe className="w-4 h-4" />,     placeholder: 'https://...',            color: 'from-gray-700 to-gray-900' },
 ];

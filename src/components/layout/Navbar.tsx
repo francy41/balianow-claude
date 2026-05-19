@@ -56,7 +56,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
           { label: 'Artistas',   to: '/artistas' },
         ].map(link => (
           <Link key={link.to} to={link.to}
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-gray-600 hover:text-brand-orange hover:bg-orange-50 transition-all">
+            className="px-4 py-2 rounded-lg text-sm font-semibold text-gray-600 hover:text-brand-orange hover:bg-pink-50 transition-all">
             {link.label}
           </Link>
         ))}
@@ -149,7 +149,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
                     💳 Wallet — €{user.wallet.toFixed(0)}
                   </Link>
                   {isAdmin && (
-                    <Link to="/admin" className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-orange-50 text-brand-orange text-sm font-semibold transition-colors mt-1">
+                    <Link to="/admin" className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-pink-50 text-brand-orange text-sm font-semibold transition-colors mt-1">
                       <Shield className="w-4 h-4" /> Panel Admin
                     </Link>
                   )}
@@ -163,7 +163,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
             {/* Panel link (admin) */}
             {isAdmin && (
               <Link to="/admin"
-                className="hidden sm:flex items-center gap-1.5 bg-brand-orange text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-orange-600 transition-colors">
+                className="hidden sm:flex items-center gap-1.5 bg-brand-orange text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:bg-pink-600 transition-colors">
                 ⚙️ Panel Admin
               </Link>
             )}
