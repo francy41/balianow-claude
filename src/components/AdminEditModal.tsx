@@ -69,7 +69,7 @@ const AdminEditModal: React.FC<Props> = ({ open, onClose, title, entity, item, f
   return (
     <div className="fixed inset-0 z-[70] bg-black/60 flex items-center justify-center p-4" onClick={onClose}>
       <div onClick={e => e.stopPropagation()} className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[92vh] flex flex-col overflow-hidden">
-        <div className="bg-gradient-to-r from-brand-orange to-orange-500 text-white p-5 flex items-center justify-between flex-shrink-0">
+        <div className="bg-gradient-to-r from-brand-orange to-pink-500 text-white p-5 flex items-center justify-between flex-shrink-0">
           <div>
             <p className="text-[10px] uppercase tracking-widest text-white/70 font-bold">Editando · {entity}</p>
             <h2 className="font-display font-black text-xl leading-tight">{title}</h2>
@@ -106,8 +106,8 @@ const AdminEditModal: React.FC<Props> = ({ open, onClose, title, entity, item, f
                   </label>
                 ) : f.type === 'color' ? (
                   <div className="flex items-center gap-2">
-                    <input type="color" value={form[f.key] || '#F97316'} onChange={e => setVal(f.key, e.target.value)} className="h-10 w-16 rounded-lg cursor-pointer" />
-                    <input value={form[f.key] || ''} onChange={e => setVal(f.key, e.target.value)} placeholder="#F97316" className="input-field font-mono flex-1" />
+                    <input type="color" value={form[f.key] || '#EC4899'} onChange={e => setVal(f.key, e.target.value)} className="h-10 w-16 rounded-lg cursor-pointer" />
+                    <input value={form[f.key] || ''} onChange={e => setVal(f.key, e.target.value)} placeholder="#EC4899" className="input-field font-mono flex-1" />
                   </div>
                 ) : f.type === 'tags' ? (
                   <input

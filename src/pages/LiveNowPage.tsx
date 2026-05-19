@@ -22,7 +22,7 @@ const CATEGORIES: { id: CategoryFilter; label: string; icon: string }[] = [
 const DEMO_CHAT_MESSAGES = [
   { id: 1, user: 'María_BCN',    avatar: 'https://ui-avatars.com/api/?name=Maria&background=EC4899&color=fff&size=80',  text: '¡Fueguito 🔥🔥 amo este tema!' },
   { id: 2, user: 'CarlosMad',    avatar: 'https://ui-avatars.com/api/?name=Carlos&background=7C3AED&color=fff&size=80', text: '¿Vas a tocar Aventura después?' },
-  { id: 3, user: 'BachataLover', avatar: 'https://ui-avatars.com/api/?name=Bachata&background=F97316&color=fff&size=80', text: 'Saludos desde Cali 🇨🇴' },
+  { id: 3, user: 'BachataLover', avatar: 'https://ui-avatars.com/api/?name=Bachata&background=EC4899&color=fff&size=80', text: 'Saludos desde Cali 🇨🇴' },
   { id: 4, user: 'SalsaQueen',   avatar: 'https://ui-avatars.com/api/?name=Salsa&background=10B981&color=fff&size=80',  text: 'GENIO. Lo mejor del año' },
   { id: 5, user: 'DJsupport',    avatar: 'https://ui-avatars.com/api/?name=DJ&background=EF4444&color=fff&size=80',     text: '🎵🎵🎵 imparable' },
   { id: 6, user: 'Sergio_VLC',   avatar: 'https://ui-avatars.com/api/?name=Sergio&background=06B6D4&color=fff&size=80', text: '¿Cuándo en Valencia?' },
@@ -78,7 +78,7 @@ const LiveNowPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ── HEADER ── */}
-      <section className="bg-gradient-to-r from-red-600 via-pink-600 to-orange-500 px-4 py-5 sm:py-6">
+      <section className="bg-gradient-to-r from-red-600 via-pink-600 to-pink-500 px-4 py-5 sm:py-6">
         <div className="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -151,7 +151,7 @@ const LiveNowPage: React.FC = () => {
                   setFollowing(f => !f);
                   addToast({ message: following ? 'Has dejado de seguir' : '¡Ahora sigues a ' + activeStream.artistName + '!', type: 'success' });
                 }}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${following ? 'bg-gray-900 text-white' : 'bg-brand-orange text-white hover:bg-orange-600'}`}>
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all ${following ? 'bg-gray-900 text-white' : 'bg-brand-orange text-white hover:bg-pink-600'}`}>
                   <Bell className="w-4 h-4" /> {following ? 'Siguiendo' : 'Seguir'}
                 </button>
                 <button onClick={() => navigate(`/artistas/${activeStream.artistId}`)}
@@ -201,7 +201,7 @@ const LiveNowPage: React.FC = () => {
                 disabled={!isAuthenticated}
                 className="flex-1 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-orange disabled:opacity-60" />
               <button onClick={handleSendMessage}
-                className="w-9 h-9 rounded-lg bg-brand-orange text-white flex items-center justify-center hover:bg-orange-600 transition-colors disabled:opacity-50"
+                className="w-9 h-9 rounded-lg bg-brand-orange text-white flex items-center justify-center hover:bg-pink-600 transition-colors disabled:opacity-50"
                 disabled={!chatInput.trim()}>
                 <Send className="w-4 h-4" />
               </button>
@@ -252,7 +252,7 @@ const LiveNowPage: React.FC = () => {
                   <p className="font-bold text-gray-900 text-sm leading-tight line-clamp-2">{stream.title}</p>
                   <p className="text-gray-400 text-xs mt-0.5">{stream.artistName}</p>
                   <div className="flex items-center gap-2 mt-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-wide bg-orange-50 text-brand-orange px-1.5 py-0.5 rounded">{stream.genre}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wide bg-pink-50 text-brand-orange px-1.5 py-0.5 rounded">{stream.genre}</span>
                     <span className="text-[10px] text-gray-400">📍 {stream.city}</span>
                   </div>
                 </div>
@@ -293,7 +293,7 @@ const LiveNowPage: React.FC = () => {
                     <p className="font-bold text-gray-900 text-sm line-clamp-2 mb-1">{s.title}</p>
                     <p className="text-gray-400 text-xs mb-2">{artist?.name}</p>
                     <button onClick={() => addToast({ message: '🔔 Recordatorio activado', type: 'success' })}
-                      className="mt-auto flex items-center justify-center gap-1.5 bg-orange-50 text-brand-orange font-bold text-xs py-2 rounded-lg hover:bg-orange-100 transition-colors">
+                      className="mt-auto flex items-center justify-center gap-1.5 bg-pink-50 text-brand-orange font-bold text-xs py-2 rounded-lg hover:bg-pink-100 transition-colors">
                       <Bell className="w-3.5 h-3.5" /> Recordar ({s.reminders})
                     </button>
                   </div>

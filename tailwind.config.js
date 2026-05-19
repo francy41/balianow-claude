@@ -12,16 +12,25 @@ export default {
       },
       colors: {
         brand: {
-          orange: '#F97316',
-          'orange-dark': '#EA580C',
-          'orange-light': '#FED7AA',
-          black: '#111111',
+          pink: '#EC4899',
+          'pink-dark': '#DB2777',
+          'pink-light': '#FBCFE8',
+          magenta: '#E91E8C',
+          'hot-pink': '#FF1493',
+          black: '#0A0A0A',
+          'dark': '#111111',
           gray: '#F5F5F5',
+          // Legacy aliases for compatibility
+          orange: '#EC4899',
+          'orange-dark': '#DB2777',
+          'orange-light': '#FBCFE8',
         },
-        sidebar: '#111111',
+        sidebar: '#0A0A0A',
       },
       backgroundImage: {
-        'gradient-orange': 'linear-gradient(135deg, #F97316 0%, #EA580C 100%)',
+        'gradient-orange': 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
+        'gradient-pink': 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
+        'gradient-nightlife': 'linear-gradient(135deg, #EC4899 0%, #9333EA 100%)',
       },
       animation: {
         'slide-in': 'slideIn 0.2s ease-out',
@@ -46,7 +55,9 @@ export default {
       boxShadow: {
         'card': '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
         'card-hover': '0 4px 12px rgba(0,0,0,0.12)',
-        'orange': '0 4px 14px rgba(249,115,22,0.35)',
+        'orange': '0 4px 14px rgba(236,72,153,0.35)',
+        'pink': '0 4px 14px rgba(236,72,153,0.35)',
+        'neon': '0 0 20px rgba(236,72,153,0.5), 0 0 40px rgba(236,72,153,0.2)',
       }
     },
   },

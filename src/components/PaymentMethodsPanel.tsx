@@ -18,9 +18,9 @@ const TYPE_INFO: Record<PaymentMethod['type'], { icon: string; label: string }> 
 
 const BRAND_INFO: Record<NonNullable<PaymentMethod['brand']>, { color: string; label: string }> = {
   visa:       { color: 'bg-blue-600',   label: 'VISA' },
-  mastercard: { color: 'bg-orange-500', label: 'Mastercard' },
+  mastercard: { color: 'bg-pink-500', label: 'Mastercard' },
   amex:       { color: 'bg-blue-400',   label: 'Amex' },
-  discover:   { color: 'bg-orange-600', label: 'Discover' },
+  discover:   { color: 'bg-pink-600', label: 'Discover' },
 };
 
 const PaymentMethodsPanel: React.FC<Props> = ({
@@ -112,7 +112,7 @@ const PaymentMethodsPanel: React.FC<Props> = ({
             {(['card', 'paypal', 'stripe'] as const).map(t => (
               <button key={t} onClick={() => setForm({ ...form, type: t })}
                 className={`p-3 rounded-xl border text-center transition-all ${
-                  form.type === t ? 'border-brand-orange bg-orange-50' : 'border-gray-200 bg-white hover:border-brand-orange/50'
+                  form.type === t ? 'border-brand-orange bg-pink-50' : 'border-gray-200 bg-white hover:border-brand-orange/50'
                 }`}>
                 <div className="text-2xl mb-1">{TYPE_INFO[t].icon}</div>
                 <p className="text-sm font-bold text-gray-900">{TYPE_INFO[t].label}</p>

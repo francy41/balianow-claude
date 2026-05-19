@@ -73,7 +73,7 @@ const ServiceDetailPage: React.FC = () => {
               <h3 className="text-gray-900 font-semibold mb-3">Tags</h3>
               <div className="flex flex-wrap gap-2">
                 {service.tags.map(tag => (
-                  <span key={tag} className="bg-orange-50 text-brand-orange border border-orange-100 px-3 py-1 rounded-full text-sm">{tag}</span>
+                  <span key={tag} className="bg-pink-50 text-brand-orange border border-pink-100 px-3 py-1 rounded-full text-sm">{tag}</span>
                 ))}
               </div>
             </div>

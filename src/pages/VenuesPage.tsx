@@ -127,7 +127,7 @@ const SOCIAL_COLORS: Record<string, string> = {
   youtube:    'from-red-500 to-red-600',
   facebook:   'from-blue-500 to-blue-700',
   spotify:    'from-green-500 to-green-600',
-  soundcloud: 'from-orange-500 to-orange-600',
+  soundcloud: 'from-pink-500 to-pink-600',
   tiktok:     'from-gray-900 to-pink-500',
   twitch:     'from-purple-600 to-purple-800',
 };
@@ -284,7 +284,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                 <h3 className="font-display font-bold text-gray-900 mb-3">Servicios & Amenities</h3>
                 <div className="flex flex-wrap gap-2">
                   {venue.amenities.map(a => (
-                    <span key={a} className="bg-orange-50 text-brand-orange border border-orange-100 text-sm font-semibold px-3 py-1 rounded-full">{a}</span>
+                    <span key={a} className="bg-pink-50 text-brand-orange border border-pink-100 text-sm font-semibold px-3 py-1 rounded-full">{a}</span>
                   ))}
                   <span className="bg-gray-50 text-gray-600 border border-gray-100 text-sm px-3 py-1 rounded-full">Capacidad: {venue.capacity}</span>
                   <span className="bg-gray-50 text-gray-600 border border-gray-100 text-sm px-3 py-1 rounded-full">{'€'.repeat(venue.priceRange)}</span>

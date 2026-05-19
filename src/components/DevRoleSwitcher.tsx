@@ -28,7 +28,7 @@ const PROFILES: Profile[] = [
     color: 'bg-brand-orange text-white',
     user: {
       id: 'u_solfa', name: 'Solfa Mende', email: 'solfamende41@gmail.com',
-      avatar: 'https://ui-avatars.com/api/?name=Solfa+Mende&background=F97316&color=fff',
+      avatar: 'https://ui-avatars.com/api/?name=Solfa+Mende&background=EC4899&color=fff',
       role: 'admin', city: 'Madrid',
       isVerified: true, isPremium: true, wallet: 0, notifications: 0,
     },
@@ -65,7 +65,7 @@ const PROFILES: Profile[] = [
     id: 'band', category: 'creator',
     label: 'Orquesta Tropical', desc: 'Banda / Artista · Valencia',
     icon: <Music2 className="w-4 h-4" />,
-    color: 'bg-orange-500 text-white',
+    color: 'bg-pink-500 text-white',
     user: {
       id: 'a3', name: 'Orquesta Tropical', email: 'orquesta@bachasalseros.com',
       avatar: 'https://ui-avatars.com/api/?name=Orquesta+T&background=F59E0B&color=fff',
@@ -170,7 +170,7 @@ const DevRoleSwitcher: React.FC = () => {
                       key={p.id}
                       onClick={() => switchTo(p)}
                       className={`w-full flex items-center gap-2 p-2.5 rounded-xl text-left transition-all mb-0.5 ${
-                        isCurrent ? 'bg-orange-50 border border-brand-orange' : 'hover:bg-gray-50'
+                        isCurrent ? 'bg-pink-50 border border-brand-orange' : 'hover:bg-gray-50'
                       }`}
                     >
                       <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${p.color}`}>

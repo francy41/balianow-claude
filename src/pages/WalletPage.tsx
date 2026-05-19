@@ -130,7 +130,7 @@ const WalletPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-6 bg-orange-50 rounded-2xl p-4 text-center border border-orange-100">
+        <div className="mt-6 bg-pink-50 rounded-2xl p-4 text-center border border-pink-100">
           <p className="text-gray-500 text-xs">
             ¡Ritmo Latino! aplica una comisión del <span className="text-gray-900 font-semibold">15%</span> sobre cada transacción.<br />
             Pagos asegurados con escrow. Liberación tras confirmación del servicio.

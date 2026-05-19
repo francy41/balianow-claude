@@ -47,7 +47,7 @@ const ChatPage: React.FC = () => {
               <button
                 key={conv.id}
                 onClick={() => setActiveConv(conv.id)}
-                className={`w-full flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors text-left border-b border-gray-50 ${activeConvId === conv.id ? 'bg-orange-50 border-r-2 border-brand-orange' : ''}`}
+                className={`w-full flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors text-left border-b border-gray-50 ${activeConvId === conv.id ? 'bg-pink-50 border-r-2 border-brand-orange' : ''}`}
               >
                 <Avatar src={conv.participantAvatar} name={conv.participantName} size="md" />
                 <div className="flex-1 min-w-0">
@@ -150,7 +150,7 @@ const ChatWindow: React.FC<{
               <div className={`max-w-xs lg:max-w-sm ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
                 {msg.type === 'offer' && msg.offer ? (
                   <div className="bg-white rounded-2xl border-2 border-brand-orange/40 shadow-sm overflow-hidden w-72">
-                    <div className="bg-gradient-to-r from-brand-orange to-orange-500 px-4 py-2 flex items-center gap-2">
+                    <div className="bg-gradient-to-r from-brand-orange to-pink-500 px-4 py-2 flex items-center gap-2">
                       <Briefcase className="w-4 h-4 text-white" />
                       <span className="text-white font-bold text-xs uppercase tracking-wide">Oferta personalizada</span>
                     </div>
@@ -220,7 +220,7 @@ const ChatWindow: React.FC<{
           <button
             onClick={() => setShowOfferModal(true)}
             title="Enviar oferta personalizada"
-            className="w-10 h-10 bg-gradient-to-br from-brand-orange to-orange-500 rounded-xl flex items-center justify-center text-white hover:opacity-90 transition-all flex-shrink-0"
+            className="w-10 h-10 bg-gradient-to-br from-brand-orange to-pink-500 rounded-xl flex items-center justify-center text-white hover:opacity-90 transition-all flex-shrink-0"
           >
             <Briefcase className="w-4 h-4" />
           </button>
@@ -292,7 +292,7 @@ const ChatWindow: React.FC<{
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange resize-none"
                 />
               </div>
-              <div className="bg-orange-50 border border-orange-200 rounded-xl p-3">
+              <div className="bg-pink-50 border border-pink-200 rounded-xl p-3">
                 <p className="text-xs text-gray-700 flex items-start gap-2">
                   <Shield className="w-4 h-4 text-brand-orange flex-shrink-0 mt-0.5" />
                   <span>Pago retenido en escrow. La plataforma cobra 15% de comisión al completarse el servicio.</span>

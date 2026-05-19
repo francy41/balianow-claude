@@ -114,7 +114,7 @@ const DEMO_ADMIN: User = {
   id: 'u0',
   name: 'Super Admin',
   email: 'admin@bachasalseros.com',
-  avatar: 'https://ui-avatars.com/api/?name=Super+Admin&background=F97316&color=fff&size=200&bold=true',
+  avatar: 'https://ui-avatars.com/api/?name=Super+Admin&background=EC4899&color=fff&size=200&bold=true',
   role: 'admin',
   city: 'Madrid',
   isVerified: true,
@@ -128,7 +128,7 @@ const SOLFA_ADMIN: User = {
   id: 'u_solfa',
   name: 'Solfa Mende',
   email: 'solfamende41@gmail.com',
-  avatar: 'https://ui-avatars.com/api/?name=Solfa+Mende&background=F97316&color=fff&size=200&bold=true',
+  avatar: 'https://ui-avatars.com/api/?name=Solfa+Mende&background=EC4899&color=fff&size=200&bold=true',
   role: 'admin',
   city: 'Madrid',
   isVerified: true,
@@ -745,7 +745,7 @@ export const usePerformerStore = create<PerformerState>()(
       offers: [
         {
           id: 'of1', performerId: 'a1', clientName: 'Roberto Sanz',
-          clientAvatar: 'https://ui-avatars.com/api/?name=Roberto+Sanz&background=F97316&color=fff',
+          clientAvatar: 'https://ui-avatars.com/api/?name=Roberto+Sanz&background=EC4899&color=fff',
           title: 'DJ para cumpleaños privado', description: '3 horas, repertorio salsa + reggaeton, 60 invitados.',
           proposedPrice: 280, date: '2026-06-05', createdAt: daysAgo(0), status: 'pending'
         },

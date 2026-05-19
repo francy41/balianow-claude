@@ -91,7 +91,7 @@ const VenueMap: React.FC<{
           <button key={s.id}
             onClick={() => s.status !== 'sold-out' && onSelect(s.id)}
             className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg border transition-all ${
-              selected === s.id ? 'border-brand-orange bg-orange-50 text-brand-orange font-bold' :
+              selected === s.id ? 'border-brand-orange bg-pink-50 text-brand-orange font-bold' :
               s.status === 'sold-out' ? 'border-gray-200 bg-gray-50 text-gray-400' :
               'border-gray-200 bg-white text-gray-600 hover:border-brand-orange'
             }`}>

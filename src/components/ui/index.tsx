@@ -56,7 +56,7 @@ export const Avatar: React.FC<AvatarProps> = ({ src, name, size = 'md', isLive, 
   return (
     <div className={`relative flex-shrink-0 ${s[size]} ${className}`}>
       <img src={src} alt={name} className={`${s[size]} rounded-full object-cover ring-2 ${isLive ? 'ring-red-500' : 'ring-gray-200'}`}
-        onError={e => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=F97316&color=fff&size=200`; }} />
+        onError={e => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=EC4899&color=fff&size=200`; }} />
       {isLive && <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-red-500 border-2 border-white rounded-full animate-pulse" />}
     </div>
   );

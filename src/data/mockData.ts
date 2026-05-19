@@ -187,7 +187,7 @@ const avatarUrl = (name: string, bg: string) =>
 
 const coverColors = [
   '7C3AED', 'EC4899', 'F59E0B', '06B6D4', 'EF4444',
-  '10B981', '8B5CF6', 'F97316', '3B82F6', '6366F1'
+  '10B981', '8B5CF6', 'EC4899', '3B82F6', '6366F1'
 ];
 
 const coverUrl = (seed: number) =>
@@ -391,7 +391,7 @@ export const ARTISTS: Artist[] = [
   },
   {
     id: 'a8', name: 'Latin Groove Collective', type: 'band', genre: ['Son', 'Timba', 'Jazz Latino'],
-    avatar: avatarUrl('Latin Groove', 'F97316'), cover: coverUrl(8),
+    avatar: avatarUrl('Latin Groove', 'EC4899'), cover: coverUrl(8),
     city: 'Paris', country: 'Francia', rating: 4.8, reviews: 156, followers: 18300,
     priceFrom: 1800, currency: 'EUR', isLive: false, isVerified: true, isPremium: true,
     bio: 'Colectivo de 8 músicos especializados en son cubano, timba y jazz latino. Actuaciones en festivales internacionales y eventos privados de lujo.',
@@ -687,7 +687,7 @@ export const CATEGORIES = [
   { id: 'c6', name: 'Live Now', icon: '📡', color: '#EF4444', route: '/live' },
   { id: 'c7', name: 'Venues', icon: '🏛️', color: '#10B981', route: '/venues' },
   { id: 'c8', name: 'Servicios', icon: '💼', color: '#8B5CF6', route: '/marketplace' },
-  { id: 'c9', name: 'Clases', icon: '🎓', color: '#F97316', route: '/marketplace?cat=clases' },
+  { id: 'c9', name: 'Clases', icon: '🎓', color: '#EC4899', route: '/marketplace?cat=clases' },
   { id: 'c10', name: 'Mapa', icon: '🗺️', color: '#3B82F6', route: '/mapa' },
 ];
 
@@ -734,7 +734,7 @@ export const SUBSCRIPTION_PLANS = [
   },
   {
     id: 'elite', name: 'Elite', price: 150, currency: 'EUR', period: 'mes',
-    color: 'from-yellow-400 to-orange-500',
+    color: 'from-yellow-400 to-pink-500',
     description: 'Presencia total en el ecosistema',
     features: [
       'Todo lo del plan Pro',

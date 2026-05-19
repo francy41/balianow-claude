@@ -170,7 +170,7 @@ const EventCard: React.FC<{
         )}
         <div className="flex gap-1 flex-wrap mt-2">
           {event.category.slice(0, 2).map(c => (
-            <span key={c} className="text-[10px] bg-orange-50 text-brand-orange px-2 py-0.5 rounded-full font-medium">{c}</span>
+            <span key={c} className="text-[10px] bg-pink-50 text-brand-orange px-2 py-0.5 rounded-full font-medium">{c}</span>
           ))}
         </div>
         <div className="flex items-center justify-between mt-3">
@@ -377,7 +377,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                 <h3 className="font-display font-bold text-gray-900 mb-4">📋 Detalles del evento</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <div className="w-10 h-10 bg-pink-50 rounded-xl flex items-center justify-center flex-shrink-0">
                       <Calendar className="w-5 h-5 text-brand-orange" />
                     </div>
                     <div>
@@ -427,7 +427,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                     {linkedArtists.map(artist => (
                       <div key={artist.id}
                         onClick={() => navigate(`/artistas/${artist.id}`)}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-orange-50 cursor-pointer transition-colors group">
+                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-pink-50 cursor-pointer transition-colors group">
                         <img src={artist.avatar} alt={artist.name} className="w-12 h-12 rounded-xl object-cover ring-2 ring-brand-orange/20 group-hover:ring-brand-orange/50 transition-all" />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
@@ -455,7 +455,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                 <h3 className="font-display font-bold text-gray-900 mb-3">Categorías & Tags</h3>
                 <div className="flex flex-wrap gap-2">
                   {event.category.map(c => (
-                    <span key={c} className="bg-orange-50 text-brand-orange border border-orange-100 text-sm font-semibold px-3 py-1 rounded-full">{c}</span>
+                    <span key={c} className="bg-pink-50 text-brand-orange border border-pink-100 text-sm font-semibold px-3 py-1 rounded-full">{c}</span>
                   ))}
                   {event.isOnline && <span className="bg-blue-50 text-blue-600 border border-blue-100 text-sm font-semibold px-3 py-1 rounded-full">Online</span>}
                   {event.isPremium && <span className="bg-yellow-50 text-yellow-700 border border-yellow-100 text-sm font-semibold px-3 py-1 rounded-full">Premium</span>}
@@ -534,7 +534,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                   </div>
                   {venue && (
                     <button onClick={() => navigate(`/venues/${venue.id}`)}
-                      className="w-full mt-3 flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-orange-50 cursor-pointer transition-colors group">
+                      className="w-full mt-3 flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-pink-50 cursor-pointer transition-colors group">
                       <img src={venue.avatar} alt={venue.name} className="w-10 h-10 rounded-lg object-cover" />
                       <div className="flex-1 text-left">
                         <p className="font-semibold text-gray-900 text-sm">{venue.name}</p>
@@ -641,7 +641,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {artist.genre.slice(0, 3).map(g => (
-                        <span key={g} className="text-[10px] bg-orange-50 text-brand-orange px-2 py-0.5 rounded-full font-medium">{g}</span>
+                        <span key={g} className="text-[10px] bg-pink-50 text-brand-orange px-2 py-0.5 rounded-full font-medium">{g}</span>
                       ))}
                     </div>
                     <button className="w-full mt-3 btn-outline text-xs py-2 flex items-center justify-center gap-1.5">

@@ -27,13 +27,13 @@ const MapPage: React.FC = () => {
       {/* Map placeholder */}
       <div className="flex-1 relative bg-gray-200 overflow-hidden">
         <div className="absolute inset-0" style={{
-          backgroundImage: 'linear-gradient(rgba(249,115,22,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(249,115,22,0.05) 1px, transparent 1px)',
+          backgroundImage: 'linear-gradient(rgba(236,72,153,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(236,72,153,0.05) 1px, transparent 1px)',
           backgroundSize: '40px 40px'
         }} />
 
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
-            <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-brand-orange/30">
+            <div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-brand-orange/30">
               <Navigation className="w-8 h-8 text-brand-orange" />
             </div>
             <p className="text-gray-600 text-sm font-medium">Mapa interactivo</p>
@@ -48,7 +48,7 @@ const MapPage: React.FC = () => {
             style={{ position: 'absolute', left: `${20 + i * 15}%`, top: `${20 + (i % 3) * 20}%` }}
             className="group">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all ${
-              selectedItem === venue.id ? 'bg-brand-orange scale-125' : 'bg-white border-2 border-brand-orange hover:bg-orange-50'
+              selectedItem === venue.id ? 'bg-brand-orange scale-125' : 'bg-white border-2 border-brand-orange hover:bg-pink-50'
             }`}>
               <span className="text-lg">🏛️</span>
             </div>

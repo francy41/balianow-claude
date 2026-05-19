@@ -77,7 +77,7 @@ export const TicketCard: React.FC<{ ticket: Ticket }> = ({ ticket }) => {
   return (
     <div className="bg-white rounded-2xl shadow-card overflow-hidden border border-gray-100">
       {/* Header */}
-      <div className="bg-gradient-to-r from-brand-orange to-orange-500 p-4 text-white">
+      <div className="bg-gradient-to-r from-brand-orange to-pink-500 p-4 text-white">
         <div className="flex items-center justify-between">
           <div>
             <p className="font-black text-lg leading-tight">{ticket.eventTitle}</p>
