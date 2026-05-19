@@ -50,7 +50,7 @@ const CATEGORY_CARDS = [
     name: 'Conciertos y Música en Vivo',
     img: 'https://picsum.photos/seed/concert2024/800/500',
     to: '/eventos?cat=conciertos',
-    btnColor: 'bg-brand-orange',
+    btnColor: 'bg-pink-600',
   },
   {
     name: 'Festivales y Congresos',
@@ -104,7 +104,7 @@ const HeroSlider: React.FC<{ images: HeroSliderImage[] }> = ({ images }) => {
       <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1.5">
         {images.map((_, i) => (
           <button key={i} onClick={() => setCurrent(i)}
-            className={`w-1.5 h-1.5 rounded-full transition-all ${i === current ? 'bg-brand-orange w-4' : 'bg-white/50'}`} />
+            className={`w-1.5 h-1.5 rounded-full transition-all ${i === current ? 'bg-pink-500 w-4' : 'bg-white/50'}`} />
         ))}
       </div>
     </div>
@@ -158,7 +158,7 @@ const HeroSliderFullHeight: React.FC<{ images: HeroSliderImage[] }> = ({ images 
             onClick={() => setCurrent(i)}
             className={`transition-all backdrop-blur-sm rounded-full ${
               i === current
-                ? 'bg-brand-orange w-8 h-2'
+                ? 'bg-pink-500 w-8 h-2'
                 : 'bg-white/40 hover:bg-white/60 w-2 h-2'
             }`}
           />
@@ -540,25 +540,41 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
   const mercadoCats = categories.filter(c => c.section === 'mercado').sort((a, b) => a.display_order - b.display_order);
   const comunidadCats = categories.filter(c => c.section === 'comunidad').sort((a, b) => a.display_order - b.display_order);
 
-  // Color palette for dynamic assignment
-  const colorPalette = [
-    'bg-brand-orange', 'bg-sky-500', 'bg-emerald-500', 'bg-purple-600',
-    'bg-red-500', 'bg-indigo-600', 'bg-cyan-500', 'bg-amber-500',
-    'bg-rose-600', 'bg-lime-500', 'bg-pink-600', 'bg-teal-500',
-    'bg-fuchsia-600', 'bg-blue-500', 'bg-pink-600', 'bg-violet-600'
+  // Premium glossy gradient palette matching BailaNow branding
+  const gradientPalette = [
+    'from-pink-500 to-rose-600',
+    'from-fuchsia-500 to-purple-600',
+    'from-pink-600 to-fuchsia-700',
+    'from-violet-500 to-purple-700',
+    'from-rose-500 to-pink-700',
+    'from-purple-500 to-indigo-600',
+    'from-fuchsia-600 to-pink-500',
+    'from-pink-400 to-rose-600',
+    'from-rose-600 to-fuchsia-600',
+    'from-indigo-500 to-purple-600',
+    'from-fuchsia-500 to-rose-600',
+    'from-violet-600 to-fuchsia-500',
+    'from-pink-500 to-purple-600',
+    'from-rose-500 to-fuchsia-700',
+    'from-purple-600 to-pink-500',
+    'from-fuchsia-400 to-violet-600'
   ];
 
   const CategoryButton: React.FC<{ cat: any; index: number }> = ({ cat, index }) => {
-    const bgColor = colorPalette[index % colorPalette.length];
+    const gradient = gradientPalette[index % gradientPalette.length];
 
     return (
       <button
         onClick={() => navigate(cat.route)}
-        className={`group relative overflow-hidden rounded-3xl p-6 text-white font-bold transition-all hover:scale-110 hover:shadow-2xl h-32 flex flex-col items-center justify-center gap-4 ${bgColor} border-0 shadow-lg hover:shadow-xl`}
+        className={`group relative overflow-hidden rounded-2xl p-5 text-white font-bold transition-all duration-300 hover:scale-105 h-28 sm:h-32 flex flex-col items-center justify-center gap-3 bg-gradient-to-br ${gradient} border border-white/20 shadow-lg hover:shadow-neon`}
+        style={{ backdropFilter: 'blur(10px)' }}
       >
-        <span className="text-5xl group-hover:scale-125 transition-transform duration-300">{cat.icon}</span>
-        <span className="line-clamp-2 text-center text-sm font-bold leading-tight">{cat.name}</span>
-        <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300 rounded-3xl" />
+        {/* Glossy shine effect */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/25 via-transparent to-black/10 rounded-2xl pointer-events-none" />
+        {/* Hover glow */}
+        <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-colors duration-300 rounded-2xl pointer-events-none" />
+        <span className="text-4xl sm:text-5xl group-hover:scale-110 transition-transform duration-300 drop-shadow-lg relative z-10">{cat.icon}</span>
+        <span className="line-clamp-2 text-center text-xs sm:text-sm font-bold leading-tight relative z-10 drop-shadow-md">{cat.name}</span>
       </button>
     );
   };
@@ -567,10 +583,10 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     <section className="mt-8 px-2 sm:px-4">
       {/* Header */}
       <div className="text-center mb-8">
-        <h2 className="font-display font-black text-2xl sm:text-3xl bg-gradient-to-r from-brand-orange to-pink-600 bg-clip-text text-transparent mb-2">
+        <h2 className="font-display font-black text-2xl sm:text-3xl bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-600 bg-clip-text text-transparent mb-2">
           🎉 Baila Now
         </h2>
-        <p className="text-gray-500 text-sm max-w-lg mx-auto">
+        <p className="text-gray-400 text-sm max-w-lg mx-auto">
           Todo lo que amas del baile, en un solo lugar
         </p>
       </div>
@@ -581,7 +597,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
         {mainCats.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <span className="w-3 h-3 rounded-full bg-brand-orange" />
+              <span className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500" />
               <h3 className="font-display font-bold text-sm sm:text-base text-gray-900 uppercase tracking-wider">
                 ⭐ Principales
               </h3>
@@ -598,7 +614,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
         {mercadoCats.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <span className="w-3 h-3 rounded-full bg-brand-orange" />
+              <span className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500" />
               <h3 className="font-display font-bold text-sm sm:text-base text-gray-900 uppercase tracking-wider">
                 🏪 Mercado
               </h3>
@@ -615,7 +631,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
         {comunidadCats.length > 0 && (
           <div className="pb-6">
             <div className="flex items-center gap-2 mb-4">
-              <span className="w-3 h-3 rounded-full bg-brand-orange" />
+              <span className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500" />
               <h3 className="font-display font-bold text-sm sm:text-base text-gray-900 uppercase tracking-wider">
                 💬 Comunidad
               </h3>
