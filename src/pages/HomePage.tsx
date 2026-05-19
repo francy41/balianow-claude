@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp } from 'lucide-react';
+import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack } from 'lucide-react';
 import { ARTISTS, EVENTS, VENUES } from '../data/mockData';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, PLATFORM_COMMISSION_RATE, type HeroSliderImage } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
@@ -68,16 +68,19 @@ const CATEGORY_CARDS = [
 
 // ── RADIO STATIONS ─────────────────────────────────────────────────────────
 const RADIO_STATIONS = [
-  {
-    name: 'Radio Bachata',
-    sub: 'En directo 24/7',
-    img: 'https://picsum.photos/seed/bachata-radio/120/120',
-  },
-  {
-    name: 'Radio Latina Variada',
-    sub: 'En directo 24/7',
-    img: 'https://picsum.photos/seed/latina-radio/120/120',
-  },
+  { id: 'r1', name: 'Bachata FM', sub: 'En directo 24/7', genre: 'Bachata', img: 'https://picsum.photos/seed/bachata-radio/120/120', streamUrl: 'https://stream.bachata.fm/live' },
+  { id: 'r2', name: 'Salsa Caliente', sub: 'En directo 24/7', genre: 'Salsa', img: 'https://picsum.photos/seed/salsa-radio/120/120', streamUrl: 'https://stream.salsa.fm/live' },
+  { id: 'r3', name: 'Reggaeton Mix', sub: 'En directo 24/7', genre: 'Reggaeton', img: 'https://picsum.photos/seed/reggaeton-radio/120/120', streamUrl: 'https://stream.reggaeton.fm/live' },
+  { id: 'r4', name: 'Kizomba Vibes', sub: 'En directo 24/7', genre: 'Kizomba', img: 'https://picsum.photos/seed/kizomba-radio/120/120', streamUrl: 'https://stream.kizomba.fm/live' },
+  { id: 'r5', name: 'Merengue Classic', sub: 'En directo 24/7', genre: 'Merengue', img: 'https://picsum.photos/seed/merengue-radio/120/120', streamUrl: 'https://stream.merengue.fm/live' },
+];
+
+const PLAYLISTS = [
+  { id: 'p1', name: 'Bachata Sensual', tracks: 24, duration: '1h 32m', img: 'https://picsum.photos/seed/playlist-bachata/120/120', color: 'from-pink-500 to-rose-600' },
+  { id: 'p2', name: 'Salsa Pa Bailar', tracks: 30, duration: '2h 05m', img: 'https://picsum.photos/seed/playlist-salsa/120/120', color: 'from-orange-500 to-red-500' },
+  { id: 'p3', name: 'Latin Club Hits', tracks: 18, duration: '1h 10m', img: 'https://picsum.photos/seed/playlist-club/120/120', color: 'from-purple-500 to-fuchsia-600' },
+  { id: 'p4', name: 'Kizomba Chill', tracks: 20, duration: '1h 25m', img: 'https://picsum.photos/seed/playlist-kizomba/120/120', color: 'from-indigo-500 to-purple-600' },
+  { id: 'p5', name: 'Reggaeton Party', tracks: 22, duration: '1h 18m', img: 'https://picsum.photos/seed/playlist-reggaeton/120/120', color: 'from-yellow-500 to-orange-500' },
 ];
 
 // ── HERO SLIDER (Small) ──────────────────────────────────────────────────────────
@@ -132,7 +135,10 @@ const HeroSliderFullHeight: React.FC<{ images: HeroSliderImage[] }> = ({ images 
         style={{ width: `${images.length * 100}%`, transform: `translateX(-${(current * 100) / images.length}%)` }}
       >
         {images.map(img => (
-          <img key={img.id} src={img.url} alt={img.alt} className="h-full object-cover flex-shrink-0 w-full" />
+          <img key={img.id} src={img.url} alt={img.alt}
+            className="h-full object-cover flex-shrink-0"
+            style={{ width: `${100 / images.length}%` }}
+          />
         ))}
       </div>
 
@@ -179,7 +185,7 @@ interface CategoryWithImage extends Category {
 // ── DEFAULT CATEGORIES (Fallback) ────────────────────────────────────────
 const DEFAULT_CATEGORIES: CategoryWithImage[] = [
   { id: '1', name: 'Explorador', icon: '🧭', slug: 'explorador', route: '/explorar', section: 'main', color_start: '#EC407A', color_mid: '#FF1493', color_end: '#C2185B', shadow_color: 'rgba(236, 64, 122, 0.4)', display_order: 1, active: true, image_url: 'https://picsum.photos/seed/explorer2024/800/400' },
-  { id: '2', name: 'Localidades', icon: '📍', slug: 'localidades', route: '/venues', section: 'main', color_start: '#F06292', color_mid: '#FF69B4', color_end: '#EC407A', shadow_color: 'rgba(240, 98, 146, 0.4)', display_order: 2, active: true, image_url: 'https://picsum.photos/seed/venues2024/800/400' },
+  { id: '2', name: 'Ciudades', icon: '🌆', slug: 'ciudades', route: '/venues', section: 'main', color_start: '#F06292', color_mid: '#FF69B4', color_end: '#EC407A', shadow_color: 'rgba(240, 98, 146, 0.4)', display_order: 2, active: true, image_url: 'https://picsum.photos/seed/cities2024/800/400' },
   { id: '3', name: 'Eventos', icon: '🎉', slug: 'eventos', route: '/eventos', section: 'main', color_start: '#D81B60', color_mid: '#F50057', color_end: '#C2185B', shadow_color: 'rgba(216, 27, 96, 0.4)', display_order: 3, active: true, image_url: 'https://picsum.photos/seed/events2024/800/400' },
   { id: '4', name: 'Artistas', icon: '🎧', slug: 'artistas', route: '/artistas', section: 'main', color_start: '#FF6B9D', color_mid: '#FF1493', color_end: '#EC407A', shadow_color: 'rgba(255, 107, 157, 0.4)', display_order: 4, active: true, image_url: 'https://picsum.photos/seed/artists2024/800/400' },
   { id: '5', name: 'Bailarines', icon: '💃', slug: 'bailarines', route: '/artistas?tipo=dancer', section: 'main', color_start: '#E91E63', color_mid: '#F06292', color_end: '#F48FB1', shadow_color: 'rgba(233, 30, 99, 0.4)', display_order: 5, active: true, image_url: 'https://picsum.photos/seed/dancers2024/800/400' },
@@ -197,6 +203,7 @@ const DEFAULT_CATEGORIES: CategoryWithImage[] = [
   { id: '17', name: 'Abiertos Ahora', icon: '🟢', slug: 'abiertos-ahora', route: '/venues?open=true', section: 'main', color_start: '#10B981', color_mid: '#059669', color_end: '#047857', shadow_color: 'rgba(16, 185, 129, 0.4)', display_order: 9, active: true, image_url: 'https://picsum.photos/seed/opennow2024/800/400' },
   { id: '18', name: 'En Directo', icon: '🔴', slug: 'en-directo', route: '/live', section: 'main', color_start: '#EF4444', color_mid: '#DC2626', color_end: '#B91C1C', shadow_color: 'rgba(239, 68, 68, 0.4)', display_order: 10, active: true, image_url: 'https://picsum.photos/seed/livenow2024/800/400' },
   { id: '19', name: 'Afiliados RRPP', icon: '🤝', slug: 'afiliados', route: '/afiliados', section: 'mercado', color_start: '#8B5CF6', color_mid: '#7C3AED', color_end: '#6D28D9', shadow_color: 'rgba(139, 92, 246, 0.4)', display_order: 5, active: true, image_url: 'https://picsum.photos/seed/affiliates2024/800/400' },
+  { id: '20', name: 'Promociónate', icon: '📢', slug: 'promocionate', route: '/promocionate', section: 'main', color_start: '#F97316', color_mid: '#EC4899', color_end: '#D946EF', shadow_color: 'rgba(249, 115, 22, 0.4)', display_order: 11, active: true, image_url: 'https://picsum.photos/seed/promote2024/800/400' },
 ];
 
 // ── ULTRAMODERN SMART SEARCH with AUTOCOMPLETE ────────────────────────────────────────────────
@@ -270,7 +277,7 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
         {/* Search Container */}
         <div className="relative">
           <div className="bg-gradient-to-r from-pink-500/20 via-fuchsia-500/10 to-purple-500/20 backdrop-blur-lg rounded-3xl p-1 shadow-2xl border border-pink-500/30 shadow-pink-500/10">
-            <div className="bg-white/95 backdrop-blur-xl rounded-3xl px-5 sm:px-6 py-4 flex items-center gap-3 group">
+            <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-3xl px-5 sm:px-6 py-4 flex items-center gap-3 group">
               {/* Icon */}
               <div className="text-2xl">🔍</div>
 
@@ -388,12 +395,12 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
               <button
                 key={cat.id}
                 onClick={() => navigate(cat.route)}
-                className="group bg-white rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center gap-2 h-[88px] sm:h-24 border border-gray-100 shadow-sm hover:shadow-lg hover:shadow-pink-500/10 hover:border-pink-200 transition-all duration-300 hover:-translate-y-1"
+                className="group bg-white dark:bg-gray-800/80 rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center gap-2 h-[88px] sm:h-24 border border-pink-200/60 dark:border-pink-500/20 shadow-sm hover:shadow-lg hover:shadow-pink-500/10 hover:border-pink-400 transition-all duration-300 hover:-translate-y-1"
               >
                 <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-pink-50 flex items-center justify-center group-hover:bg-pink-100 transition-colors duration-300">
                   <span className="text-xl sm:text-2xl">{cat.icon}</span>
                 </div>
-                <span className="text-gray-700 text-[10px] sm:text-xs font-semibold leading-tight text-center line-clamp-2 group-hover:text-pink-600 transition-colors">{cat.name}</span>
+                <span className="text-gray-700 dark:text-gray-300 text-[10px] sm:text-xs font-semibold leading-tight text-center line-clamp-2 group-hover:text-pink-600 transition-colors">{cat.name}</span>
               </button>
             ))}
           </div>
@@ -553,12 +560,12 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     return (
       <button
         onClick={() => navigate(cat.route)}
-        className="group bg-white rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center gap-2 h-[88px] sm:h-24 border border-gray-100 shadow-sm hover:shadow-lg hover:shadow-pink-500/10 hover:border-pink-200 transition-all duration-300 hover:-translate-y-1"
+        className="group bg-white dark:bg-gray-800/80 rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center gap-2 h-[88px] sm:h-24 border border-pink-200/60 dark:border-pink-500/20 shadow-sm hover:shadow-lg hover:shadow-pink-500/10 hover:border-pink-400 transition-all duration-300 hover:-translate-y-1"
       >
         <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-pink-50 flex items-center justify-center group-hover:bg-pink-100 transition-colors duration-300">
           <span className="text-xl sm:text-2xl">{cat.icon}</span>
         </div>
-        <span className="text-gray-700 text-[10px] sm:text-xs font-semibold leading-tight text-center line-clamp-2 group-hover:text-pink-600 transition-colors">{cat.name}</span>
+        <span className="text-gray-700 dark:text-gray-300 text-[10px] sm:text-xs font-semibold leading-tight text-center line-clamp-2 group-hover:text-pink-600 transition-colors">{cat.name}</span>
       </button>
     );
   };
@@ -567,7 +574,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     <section className="mt-4 px-2 sm:px-4">
       {/* Header */}
       <div className="text-center mb-5">
-        <h2 className="font-display font-black text-xl sm:text-2xl text-gray-900 mb-1">
+        <h2 className="font-display font-black text-xl sm:text-2xl text-gray-900 dark:text-white mb-1">
           💃 <span className="text-pink-600">Baila</span> Now
         </h2>
         <p className="text-gray-400 text-xs sm:text-sm max-w-lg mx-auto">
@@ -628,6 +635,67 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
           </div>
         )}
       </div>
+    </section>
+  );
+};
+
+// ── REUSABLE SECTION WITH SEARCH BAR ────────────────────────────────
+interface HomeSectionProps {
+  title: string;
+  subtitle?: string;
+  searchPlaceholder?: string;
+  gradient?: boolean;
+  actionLabel?: string;
+  onAction?: () => void;
+  onSearch?: (q: string) => void;
+  className?: string;
+  children: (searchQuery: string) => React.ReactNode;
+}
+
+const HomeSectionWithSearch: React.FC<HomeSectionProps> = ({
+  title, subtitle, searchPlaceholder, gradient, actionLabel, onAction, onSearch, className = '', children
+}) => {
+  const [q, setQ] = useState('');
+
+  return (
+    <section className={`mx-4 mt-10 ${className}`}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-1">
+        <h2 className={`font-display font-black text-lg uppercase tracking-wide ${
+          gradient ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 bg-clip-text text-transparent' : 'text-gray-900 dark:text-white'
+        }`}>
+          {title}
+        </h2>
+        {actionLabel && onAction && (
+          <button onClick={onAction} className="text-pink-500 text-sm font-bold hover:underline flex items-center gap-1">
+            {actionLabel} <ArrowRight className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+      {subtitle && <p className="text-gray-400 text-xs sm:text-sm mb-3">{subtitle}</p>}
+
+      {/* Mini search bar */}
+      {searchPlaceholder && (
+        <div className="relative mb-4">
+          <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 focus-within:border-pink-400 focus-within:bg-white dark:focus-within:bg-gray-700 transition-all">
+            <span className="text-gray-400 text-sm">🔍</span>
+            <input
+              type="text"
+              value={q}
+              onChange={e => setQ(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && q.trim() && onSearch) onSearch(q); }}
+              placeholder={searchPlaceholder}
+              className="flex-1 bg-transparent outline-none text-gray-700 dark:text-gray-200 text-xs sm:text-sm placeholder-gray-400"
+            />
+            {q && (
+              <button onClick={() => setQ('')} className="text-gray-400 hover:text-gray-600 text-xs">✕</button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Content */}
+      {children(q.toLowerCase())}
     </section>
   );
 };
@@ -775,73 +843,161 @@ const HomePage: React.FC = () => {
   const myPendingOrders = isBuyer ? transactions.filter(t => t.clientId === user.id && t.status === 'pending') : [];
   const [search, setSearch] = useState('');
   const [playing, setPlaying] = useState<number | null>(null);
+  const [radiosOpen, setRadiosOpen] = useState(false);
+  const [playlistsOpen, setPlaylistsOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] dark:text-gray-100 transition-colors duration-300">
 
-      {/* ── RADIO BAR (TOP) ── */}
+      {/* ── RADIOS & PLAYLISTS (collapsed headers, expand on +) ── */}
       {isModuleOn('radio') && (
-      <section className="mx-4 mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {RADIO_STATIONS.map((station, i) => (
-          <div key={i} className="card-white flex items-center gap-3 p-3 rounded-xl hover:shadow-md transition-all cursor-pointer group">
-            <img
-              src={station.img}
-              alt={station.name}
-              className="w-12 h-12 rounded-lg object-cover flex-shrink-0 bg-gray-200 group-hover:scale-105 transition-transform"
-            />
-            <div className="flex-1 min-w-0">
-              <p className="font-bold text-gray-900 text-xs">{station.name}</p>
-              <p className="text-gray-400 text-[10px] flex items-center gap-1 mt-0.5">
-                <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse flex-shrink-0" />
-                {station.sub}
-              </p>
+      <section className="mx-4 mt-4 grid grid-cols-2 gap-3">
+        {/* RADIOS */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <button
+            onClick={() => setRadiosOpen(v => !v)}
+            className="w-full bg-gradient-to-r from-gray-900 to-gray-800 px-3 py-2.5 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-2">
+              <Radio className="w-3.5 h-3.5 text-pink-400" />
+              <span className="text-white font-bold text-xs">Radios</span>
+              <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
             </div>
-            <button
-              onClick={() => setPlaying(playing === i ? null : i)}
-              className="w-8 h-8 rounded-full bg-gradient-to-r from-brand-orange to-pink-500 text-white flex items-center justify-center hover:scale-110 transition-transform flex-shrink-0 shadow-sm"
-            >
-              {playing === i
-                ? <Pause className="w-3.5 h-3.5" />
-                : <Play className="w-3.5 h-3.5 fill-current ml-0.5" />}
-            </button>
-          </div>
-        ))}
+            <Plus className={`w-3.5 h-3.5 text-white/60 transition-transform duration-300 ${radiosOpen ? 'rotate-45' : ''}`} />
+          </button>
+          {radiosOpen && (
+            <div className="divide-y divide-gray-50 max-h-[220px] overflow-y-auto animate-[fadeIn_0.2s_ease]" style={{ scrollbarWidth: 'thin' }}>
+              {RADIO_STATIONS.map((station, i) => (
+                <button
+                  key={station.id}
+                  onClick={() => setPlaying(playing === i ? null : i)}
+                  className={`w-full flex items-center gap-2.5 p-2.5 hover:bg-pink-50/50 transition-all text-left ${playing === i ? 'bg-pink-50 border-l-2 border-pink-500' : ''}`}
+                >
+                  <img src={station.img} alt={station.name} className="w-9 h-9 rounded-lg object-cover flex-shrink-0 bg-gray-200" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-gray-900 text-[11px] truncate">{station.name}</p>
+                    <p className="text-gray-400 text-[9px] flex items-center gap-1">
+                      {playing === i && <span className="w-1 h-1 bg-red-500 rounded-full animate-pulse" />}
+                      {station.genre}
+                    </p>
+                  </div>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                    playing === i ? 'bg-pink-500 text-white shadow-md shadow-pink-500/30' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}>
+                    {playing === i
+                      ? <Pause className="w-3 h-3" />
+                      : <Play className="w-3 h-3 ml-0.5" />}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* PLAYLISTS */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <button
+            onClick={() => setPlaylistsOpen(v => !v)}
+            className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 px-3 py-2.5 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-2">
+              <ListMusic className="w-3.5 h-3.5 text-white" />
+              <span className="text-white font-bold text-xs">Playlists</span>
+            </div>
+            <Plus className={`w-3.5 h-3.5 text-white/60 transition-transform duration-300 ${playlistsOpen ? 'rotate-45' : ''}`} />
+          </button>
+          {playlistsOpen && (
+            <div className="divide-y divide-gray-50 max-h-[220px] overflow-y-auto animate-[fadeIn_0.2s_ease]" style={{ scrollbarWidth: 'thin' }}>
+              {PLAYLISTS.map((pl, idx) => (
+                <button
+                  key={pl.id}
+                  onClick={() => setPlaying(playing === 100 + idx ? null : 100 + idx)}
+                  className={`w-full flex items-center gap-2.5 p-2.5 hover:bg-purple-50/50 transition-all text-left ${
+                    playing === 100 + idx ? 'bg-purple-50 border-l-2 border-purple-500' : ''
+                  }`}
+                >
+                  <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${pl.color} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                    <ListMusic className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-gray-900 text-[11px] truncate">{pl.name}</p>
+                    <p className="text-gray-400 text-[9px]">{pl.tracks} tracks · {pl.duration}</p>
+                  </div>
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
+                    playing === 100 + idx ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}>
+                    {playing === 100 + idx
+                      ? <Pause className="w-3 h-3" />
+                      : <Play className="w-3 h-3 ml-0.5" />}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </section>
       )}
 
-      {/* ── HERO — Full Height with Slider ── */}
-      <section className="mx-4 mt-4 rounded-3xl overflow-hidden bg-black relative" style={{ minHeight: '400px' }}>
+      {/* ── PERSISTENT MINI PLAYER (when playing) ── */}
+      {playing !== null && (
+        <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-pink-500/20 px-4 py-2 flex items-center gap-3 backdrop-blur-xl shadow-2xl">
+          <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-700">
+            {playing < 100 && RADIO_STATIONS[playing] && (
+              <img src={RADIO_STATIONS[playing].img} alt="" className="w-full h-full object-cover" />
+            )}
+            {playing >= 100 && PLAYLISTS[playing - 100] && (
+              <div className={`w-full h-full bg-gradient-to-br ${PLAYLISTS[playing - 100].color} flex items-center justify-center`}>
+                <ListMusic className="w-5 h-5 text-white" />
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white font-bold text-xs truncate">
+              {playing < 100 ? RADIO_STATIONS[playing]?.name : PLAYLISTS[playing - 100]?.name}
+            </p>
+            <p className="text-white/50 text-[10px] flex items-center gap-1">
+              {playing < 100 ? (
+                <><span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" /> En directo</>
+              ) : (
+                <>{PLAYLISTS[playing - 100]?.tracks} tracks</>
+              )}
+            </p>
+          </div>
+          {/* Controls */}
+          <div className="flex items-center gap-1">
+            <button className="p-1.5 text-white/50 hover:text-white transition-colors">
+              <SkipBack className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setPlaying(null)}
+              className="w-9 h-9 rounded-full bg-pink-500 text-white flex items-center justify-center hover:bg-pink-600 transition-all shadow-lg shadow-pink-500/30"
+            >
+              <Pause className="w-4 h-4" />
+            </button>
+            <button className="p-1.5 text-white/50 hover:text-white transition-colors">
+              <SkipForward className="w-4 h-4" />
+            </button>
+          </div>
+          <button className="p-1.5 text-white/50 hover:text-white transition-colors hidden sm:block">
+            <Volume2 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setPlaying(null)}
+            className="p-1 text-white/30 hover:text-white transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
+      {/* ── HERO BANNER — clean slider, no text overlay ── */}
+      <section className="mx-4 mt-4 rounded-2xl sm:rounded-3xl overflow-hidden bg-black relative h-[140px] sm:h-[220px] lg:h-[350px]">
         <div className="absolute inset-0">
           {heroSliderImages.length > 0 && (
             <div className="h-full">
               <HeroSliderFullHeight images={heroSliderImages} />
             </div>
           )}
-        </div>
-        {/* Video Overlay */}
-        <div className="absolute inset-0 hidden lg:flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300 bg-black/40">
-          {heroMedia.type === 'youtube' ? (() => {
-            const id = getYouTubeId(heroMedia.url);
-            if (!id) return null;
-            const params = new URLSearchParams({
-              autoplay: '1',
-              mute: '1',
-              loop: '1',
-              playlist: id,
-              controls: '0',
-              modestbranding: '1',
-              rel: '0',
-            });
-            return (
-              <iframe
-                src={`https://www.youtube.com/embed/${id}?${params.toString()}&playsinline=1`}
-                title="Hero video"
-                className="w-full h-full"
-                allow="autoplay; encrypted-media; picture-in-picture"
-                allowFullScreen
-              />
-            );
-          })() : null}
         </div>
       </section>
 
@@ -982,131 +1138,126 @@ const HomePage: React.FC = () => {
       {/* ── EN DIRECTO AHORA ── */}
       <LiveNowHomeSection navigate={navigate} />
 
-      {/* ── LOCALIDADES ── */}
-      <section className="mx-4 mt-10">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-display font-black text-lg text-gray-900">📍 Localidades</h2>
-          <button onClick={() => navigate('/venues')} className="text-brand-orange text-sm font-semibold flex items-center gap-1">
-            Ver más <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          {VENUES.slice(0, 5).map(v => (
-            <button key={v.id} onClick={() => navigate(`/venues/${v.id}`)}
-              className="card-white rounded-xl overflow-hidden text-left hover:shadow-card-hover transition-all">
-              <img src={v.cover} alt={v.name} className="w-full h-24 object-cover" />
-              <div className="p-3">
-                <p className="text-gray-900 font-semibold text-xs truncate">{v.name}</p>
-                <p className="text-gray-400 text-[10px] flex items-center gap-1 mt-0.5">
-                  <MapPin className="w-3 h-3" />{v.city}
-                </p>
-                <div className="flex items-center gap-1 mt-1">
-                  <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                  <span className="text-xs text-gray-600 font-medium">{v.rating}</span>
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-      </section>
-
-      {/* ── DONDE SALIR A BAILAR EN LA CIUDAD ── */}
+      {/* ── DONDE BAILAR EN LA CIUDAD ── */}
       {isModuleOn('cities') && (
-      <section className="mx-4 mt-10">
-        <div className="section-head mb-4">
-          <div>
-            <h2 className="font-display font-black text-lg bg-gradient-to-r from-pink-500 to-fuchsia-600 bg-clip-text text-transparent uppercase tracking-wide">
-              🌆 Descubre Ciudades
-            </h2>
-            <p className="text-gray-400 text-sm mt-0.5">Las mejores ciudades para bailar y vivir la noche latina</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {CITIES.map(city => (
-            <button
-              key={city.name}
-              onClick={() => navigate(`/venues?city=${city.name}`)}
-              className="relative rounded-2xl overflow-hidden group shadow-lg hover:shadow-xl hover:shadow-pink-500/20 transition-all duration-500"
-              style={{ height: 180 }}
-            >
-              <img
-                src={city.img}
-                alt={city.name}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-              />
-              {/* Gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-              {/* Glow border on hover */}
-              <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-pink-500/50 transition-all duration-300" />
-              {/* Monument emoji */}
-              <div className="absolute top-3 left-3 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl shadow-lg">
-                {city.monument}
-              </div>
-              {/* Top-right badge */}
-              <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                📍 Explorar
-              </div>
-              {/* Bottom info */}
-              <div className="absolute bottom-3 left-3 right-3 text-left">
-                <p className="text-white font-display font-bold text-base sm:text-lg leading-tight drop-shadow-lg">{city.name}</p>
-                <p className="text-white/70 text-[10px] font-medium mt-0.5">{city.landmark}</p>
-                <div className="flex items-center gap-2 mt-1.5">
-                  <span className="bg-pink-500/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{city.venues} venues</span>
-                  <span className="bg-fuchsia-500/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{city.events} eventos</span>
+      <HomeSectionWithSearch
+        title="💃 Donde Bailar en la Ciudad"
+        subtitle="Encuentra los mejores locales y eventos en tu ciudad"
+        searchPlaceholder="Buscar ciudad, local, zona..."
+        gradient
+        onSearch={(q) => navigate(`/venues?city=${encodeURIComponent(q)}`)}
+      >
+        {(searchQ) => {
+          const filtered = searchQ
+            ? CITIES.filter(c => c.name.toLowerCase().includes(searchQ.toLowerCase()))
+            : CITIES;
+          return (
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {filtered.map(city => (
+                <button
+                  key={city.name}
+                  onClick={() => navigate(`/venues?city=${city.name}`)}
+                  className="relative rounded-2xl overflow-hidden group shadow-lg hover:shadow-xl hover:shadow-pink-500/20 transition-all duration-500"
+                  style={{ height: 180 }}
+                >
+                  <img src={city.img} alt={city.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                  <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-pink-500/50 transition-all duration-300" />
+                  <div className="absolute top-3 left-3 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl shadow-lg">
+                    {city.monument}
+                  </div>
+                  <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    📍 Explorar
+                  </div>
+                  <div className="absolute bottom-3 left-3 right-3 text-left">
+                    <p className="text-white font-display font-bold text-base sm:text-lg leading-tight drop-shadow-lg">{city.name}</p>
+                    <p className="text-white/70 text-[10px] font-medium mt-0.5">{city.landmark}</p>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      <span className="bg-pink-500/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{city.venues} venues</span>
+                      <span className="bg-fuchsia-500/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{city.events} eventos</span>
+                    </div>
+                  </div>
+                </button>
+              ))}
+              <button
+                onClick={() => navigate('/venues')}
+                className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-pink-300 hover:border-pink-500 hover:bg-pink-50 transition-all group"
+                style={{ height: 180 }}
+              >
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-all shadow-lg shadow-pink-500/30">
+                  <ArrowRight className="w-5 h-5 text-white" />
                 </div>
-              </div>
-            </button>
-          ))}
-          <button
-            onClick={() => navigate('/venues')}
-            className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-pink-300 hover:border-pink-500 hover:bg-pink-50 transition-all group"
-            style={{ height: 180 }}
-          >
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-all shadow-lg shadow-pink-500/30">
-              <ArrowRight className="w-5 h-5 text-white" />
+                <p className="text-pink-600 text-xs font-bold text-center px-2 uppercase tracking-wide">Ver Todas</p>
+              </button>
             </div>
-            <p className="text-pink-600 text-xs font-bold text-center px-2 uppercase tracking-wide">Ver Todas</p>
-          </button>
-        </div>
-      </section>
+          );
+        }}
+      </HomeSectionWithSearch>
       )}
 
       {/* ── ARTISTAS Y BAILARINES ── */}
       {isModuleOn('artists') && (
-      <section className="mx-4 mt-10">
-        <div className="section-head mb-4">
-          <h2 className="font-display font-black text-lg bg-gradient-to-r from-pink-500 to-fuchsia-600 bg-clip-text text-transparent uppercase tracking-wide">
-            🎧 Artistas y Bailarines
-          </h2>
-          <button onClick={() => navigate('/artistas')} className="text-pink-500 text-sm font-bold hover:underline flex items-center gap-1">
-            Ver Todos <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          {ARTISTS.slice(0, 6).map(artist => (
-            <ArtistCard key={artist.id} artist={artist} onClick={() => navigate(`/artistas/${artist.id}`)} />
-          ))}
-        </div>
-      </section>
+      <HomeSectionWithSearch
+        title="🎧 Artistas y Bailarines"
+        subtitle="DJs, cantantes, bailarines y mas talento latino"
+        searchPlaceholder="Buscar artista, DJ, bailarin, genero..."
+        gradient
+        actionLabel="Ver Todos"
+        onAction={() => navigate('/artistas')}
+        onSearch={(q) => navigate(`/artistas?q=${encodeURIComponent(q)}`)}
+      >
+        {(searchQ) => {
+          const filtered = searchQ
+            ? ARTISTS.filter(a => a.name.toLowerCase().includes(searchQ.toLowerCase()) || a.genre.some(g => g.toLowerCase().includes(searchQ.toLowerCase())) || a.city.toLowerCase().includes(searchQ.toLowerCase()))
+            : ARTISTS;
+          return (
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {filtered.slice(0, 6).map(artist => (
+                <ArtistCard key={artist.id} artist={artist} onClick={() => navigate(`/artistas/${artist.id}`)} />
+              ))}
+              {searchQ && filtered.length === 0 && (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-3xl mb-2">🔍</p>
+                  <p className="text-gray-400 text-sm">No encontramos artistas para "{searchQ}"</p>
+                </div>
+              )}
+            </div>
+          );
+        }}
+      </HomeSectionWithSearch>
       )}
 
-      {/* ── PRÓXIMOS EVENTOS (CTA module) ── */}
+      {/* ── PRÓXIMOS EVENTOS ── */}
       {isModuleOn('cta') && (
-      <section className="mx-4 mt-10 mb-12">
-        <div className="section-head mb-4">
-          <h2 className="font-display font-black text-lg text-gray-900 uppercase tracking-wide">
-            Próximos Eventos
-          </h2>
-          <button onClick={() => navigate('/eventos')} className="text-brand-orange text-sm font-bold hover:underline flex items-center gap-1">
-            Ver Todos <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-          {EVENTS.slice(0, 6).map(event => (
-            <EventCard key={event.id} event={event} onClick={() => navigate(`/eventos/${event.id}`)} />
-          ))}
-        </div>
-      </section>
+      <HomeSectionWithSearch
+        title="🎉 Proximos Eventos"
+        subtitle="Conciertos, festivales, sociales y mas"
+        searchPlaceholder="Buscar evento, ciudad, tipo..."
+        actionLabel="Ver Todos"
+        onAction={() => navigate('/eventos')}
+        onSearch={(q) => navigate(`/eventos?q=${encodeURIComponent(q)}`)}
+        className="mb-12"
+      >
+        {(searchQ) => {
+          const filtered = searchQ
+            ? EVENTS.filter(e => e.title.toLowerCase().includes(searchQ.toLowerCase()) || e.city.toLowerCase().includes(searchQ.toLowerCase()) || e.category.some(c => c.toLowerCase().includes(searchQ.toLowerCase())))
+            : EVENTS;
+          return (
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {filtered.slice(0, 6).map(event => (
+                <EventCard key={event.id} event={event} onClick={() => navigate(`/eventos/${event.id}`)} />
+              ))}
+              {searchQ && filtered.length === 0 && (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-3xl mb-2">🔍</p>
+                  <p className="text-gray-400 text-sm">No encontramos eventos para "{searchQ}"</p>
+                </div>
+              )}
+            </div>
+          );
+        }}
+      </HomeSectionWithSearch>
       )}
     </div>
   );

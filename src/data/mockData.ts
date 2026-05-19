@@ -611,6 +611,262 @@ export const SERVICES: Service[] = [
   },
 ];
 
+// ── PROMOTION SERVICES (Promociónate) ────────────────────────────────────
+export interface PromoSeller {
+  id: string;
+  name: string;
+  avatar: string;
+  isVerified: boolean;
+  isPro: boolean;
+  rating: number;
+  reviews: number;
+  orders: number;
+  responseTime: string;
+  memberSince: string;
+  bio: string;
+  socialProof: {
+    platform: string;
+    handle: string;
+    followers: number;
+    monthlyReach: number;
+    icon: string;
+  }[];
+  metricsScreenshots: string[];
+}
+
+export interface PromoService {
+  id: string;
+  sellerId: string;
+  sellerName: string;
+  sellerAvatar: string;
+  title: string;
+  description: string;
+  category: 'redes-sociales' | 'spotify-playlists' | 'prensa-blogs' | 'video-promo' | 'influencers';
+  categoryLabel: string;
+  platforms: { name: string; icon: string; accounts: number; totalFollowers: number }[];
+  price: number;
+  currency: string;
+  deliveryDays: number;
+  rating: number;
+  reviews: number;
+  orders: number;
+  cover: string;
+  tags: string[];
+  includes: string[];
+  extras: { label: string; price: number }[];
+  platformFee: number;
+}
+
+export const PROMO_SELLERS: PromoSeller[] = [
+  {
+    id: 'ps1', name: 'Latino Viral Media', avatar: avatarUrl('Latino Viral', 'EC4899'),
+    isVerified: true, isPro: true, rating: 4.9, reviews: 347, orders: 1280,
+    responseTime: '< 1 hora', memberSince: '2023',
+    bio: 'Agencia de marketing digital especializada en la escena latina. Gestionamos más de 30 páginas en Facebook, Instagram, TikTok y YouTube con más de 2M de seguidores combinados.',
+    socialProof: [
+      { platform: 'Facebook', handle: '@LatinoViralMedia', followers: 850000, monthlyReach: 3200000, icon: '📘' },
+      { platform: 'Instagram', handle: '@latinoviral', followers: 420000, monthlyReach: 1800000, icon: '📸' },
+      { platform: 'TikTok', handle: '@latinoviralmedia', followers: 560000, monthlyReach: 5400000, icon: '🎵' },
+      { platform: 'YouTube', handle: '@LatinoViralTV', followers: 180000, monthlyReach: 920000, icon: '▶️' },
+    ],
+    metricsScreenshots: [coverUrl(60), coverUrl(61), coverUrl(62)],
+  },
+  {
+    id: 'ps2', name: 'BachaSalseros Official', avatar: avatarUrl('BachaSalseros', 'D81B60'),
+    isVerified: true, isPro: true, rating: 5.0, reviews: 512, orders: 2100,
+    responseTime: '< 30 min', memberSince: '2022',
+    bio: 'La cuenta oficial de BachaSalseros. Publicamos tu contenido en todas nuestras redes con alcance masivo en la comunidad latina de baile.',
+    socialProof: [
+      { platform: 'TikTok', handle: '@bachasalseros', followers: 320000, monthlyReach: 4800000, icon: '🎵' },
+      { platform: 'YouTube', handle: '@BachaSalserosTV', followers: 145000, monthlyReach: 780000, icon: '▶️' },
+      { platform: 'Facebook', handle: '@BachaSalseros', followers: 680000, monthlyReach: 2100000, icon: '📘' },
+      { platform: 'Instagram', handle: '@bachasalseros', followers: 390000, monthlyReach: 1500000, icon: '📸' },
+    ],
+    metricsScreenshots: [coverUrl(63), coverUrl(64)],
+  },
+  {
+    id: 'ps3', name: 'Madrid Bachata Oficial', avatar: avatarUrl('Madrid Bachata', 'F59E0B'),
+    isVerified: true, isPro: false, rating: 4.8, reviews: 189, orders: 670,
+    responseTime: '< 2 horas', memberSince: '2023',
+    bio: 'La comunidad de bachata más grande de Madrid. Publicamos eventos, artistas y contenido de baile para toda la comunidad madrileña.',
+    socialProof: [
+      { platform: 'Instagram', handle: '@madridbachata', followers: 185000, monthlyReach: 890000, icon: '📸' },
+      { platform: 'Facebook', handle: '@MadridBachataOficial', followers: 230000, monthlyReach: 1100000, icon: '📘' },
+      { platform: 'TikTok', handle: '@madridbachata', followers: 95000, monthlyReach: 1200000, icon: '🎵' },
+    ],
+    metricsScreenshots: [coverUrl(65)],
+  },
+  {
+    id: 'ps4', name: 'DJ Playlist Master', avatar: avatarUrl('Playlist Master', '8B5CF6'),
+    isVerified: true, isPro: true, rating: 4.7, reviews: 278, orders: 890,
+    responseTime: '< 4 horas', memberSince: '2022',
+    bio: 'Curador de playlists en Spotify con más de 500K oyentes mensuales combinados. Especializado en bachata, salsa, reggaetón y latin urban.',
+    socialProof: [
+      { platform: 'Spotify', handle: 'Bachata Sensual Hits', followers: 180000, monthlyReach: 520000, icon: '🎧' },
+      { platform: 'Spotify', handle: 'Salsa Brava Mix', followers: 95000, monthlyReach: 280000, icon: '🎧' },
+      { platform: 'Spotify', handle: 'Latin Urban Fire', followers: 230000, monthlyReach: 670000, icon: '🎧' },
+    ],
+    metricsScreenshots: [coverUrl(66), coverUrl(67)],
+  },
+  {
+    id: 'ps5', name: 'Baila Conmigo Studio', avatar: avatarUrl('Baila Conmigo', '06B6D4'),
+    isVerified: true, isPro: false, rating: 4.9, reviews: 156, orders: 430,
+    responseTime: '< 3 horas', memberSince: '2024',
+    bio: 'Productora audiovisual especializada en contenido de baile latino. Creamos reels, TikToks y videos promocionales virales para artistas y escuelas.',
+    socialProof: [
+      { platform: 'Instagram', handle: '@bailaconmigostudio', followers: 78000, monthlyReach: 450000, icon: '📸' },
+      { platform: 'TikTok', handle: '@bailaconmigo', followers: 210000, monthlyReach: 3200000, icon: '🎵' },
+      { platform: 'YouTube', handle: '@BailaConmigoStudio', followers: 45000, monthlyReach: 180000, icon: '▶️' },
+    ],
+    metricsScreenshots: [coverUrl(68), coverUrl(69)],
+  },
+];
+
+export const PROMO_SERVICES: PromoService[] = [
+  {
+    id: 'promo1', sellerId: 'ps1', sellerName: 'Latino Viral Media', sellerAvatar: avatarUrl('Latino Viral', 'EC4899'),
+    title: 'Pack Viral — Publicación en 10 Facebook + 8 Instagram + 6 TikTok + 8 YouTube',
+    description: 'Tu evento, canción o contenido publicado en nuestras 32 cuentas de redes sociales con más de 2 millones de seguidores combinados. Incluye diseño de artes, copy optimizado para cada plataforma, programación en horarios de máximo alcance y reporte de métricas a las 72h.',
+    category: 'redes-sociales', categoryLabel: 'Redes Sociales',
+    platforms: [
+      { name: 'Facebook', icon: '📘', accounts: 10, totalFollowers: 850000 },
+      { name: 'Instagram', icon: '📸', accounts: 8, totalFollowers: 420000 },
+      { name: 'TikTok', icon: '🎵', accounts: 6, totalFollowers: 560000 },
+      { name: 'YouTube', icon: '▶️', accounts: 8, totalFollowers: 180000 },
+    ],
+    price: 89, currency: 'EUR', deliveryDays: 3,
+    rating: 4.9, reviews: 347, orders: 1280, cover: coverUrl(70),
+    tags: ['Viral', 'Multi-plataforma', '32 cuentas', '2M+ seguidores', 'Reporte métricas'],
+    includes: ['Publicación en 32 cuentas', 'Diseño de artes incluido', 'Copy optimizado', 'Horarios peak', 'Reporte métricas 72h', 'Soporte prioritario'],
+    extras: [
+      { label: 'Story/Reel adicional en todas las cuentas', price: 35 },
+      { label: 'Video promocional 30s', price: 55 },
+      { label: 'Campaña 7 días (3 publicaciones)', price: 149 },
+    ],
+    platformFee: 15,
+  },
+  {
+    id: 'promo2', sellerId: 'ps2', sellerName: 'BachaSalseros Official', sellerAvatar: avatarUrl('BachaSalseros', 'D81B60'),
+    title: 'Publícate en BachaSalseros — TikTok, YouTube, Facebook e Instagram',
+    description: 'Tu contenido publicado en todas las cuentas oficiales de BachaSalseros. Alcanza directamente a la comunidad latina de baile más activa. Ideal para artistas, DJs, escuelas de baile y organizadores de eventos.',
+    category: 'redes-sociales', categoryLabel: 'Redes Sociales',
+    platforms: [
+      { name: 'TikTok', icon: '🎵', accounts: 1, totalFollowers: 320000 },
+      { name: 'YouTube', icon: '▶️', accounts: 1, totalFollowers: 145000 },
+      { name: 'Facebook', icon: '📘', accounts: 1, totalFollowers: 680000 },
+      { name: 'Instagram', icon: '📸', accounts: 1, totalFollowers: 390000 },
+    ],
+    price: 5, currency: 'EUR', deliveryDays: 1,
+    rating: 5.0, reviews: 512, orders: 2100, cover: coverUrl(71),
+    tags: ['Oficial', 'Comunidad baile', '1.5M seguidores', 'Entrega rápida', 'Desde 5€'],
+    includes: ['Post en 4 plataformas', 'Diseño incluido', 'Hashtags optimizados', 'Mención en stories'],
+    extras: [
+      { label: 'Pin en portada 24h', price: 10 },
+      { label: 'Reel/TikTok dedicado', price: 25 },
+      { label: 'Newsletter a 50K suscriptores', price: 45 },
+    ],
+    platformFee: 15,
+  },
+  {
+    id: 'promo3', sellerId: 'ps3', sellerName: 'Madrid Bachata Oficial', sellerAvatar: avatarUrl('Madrid Bachata', 'F59E0B'),
+    title: 'Promoción Madrid Bachata — Alcance local garantizado',
+    description: 'Tu evento o academia publicada en las cuentas de Madrid Bachata Oficial. Público ultra-segmentado: bailarines y amantes de la bachata en Madrid y alrededores. Máxima conversión para eventos locales.',
+    category: 'redes-sociales', categoryLabel: 'Redes Sociales',
+    platforms: [
+      { name: 'Instagram', icon: '📸', accounts: 1, totalFollowers: 185000 },
+      { name: 'Facebook', icon: '📘', accounts: 1, totalFollowers: 230000 },
+      { name: 'TikTok', icon: '🎵', accounts: 1, totalFollowers: 95000 },
+    ],
+    price: 8, currency: 'EUR', deliveryDays: 1,
+    rating: 4.8, reviews: 189, orders: 670, cover: coverUrl(72),
+    tags: ['Madrid', 'Local', 'Bachata', 'Eventos', 'Alta conversión'],
+    includes: ['Post en 3 plataformas', 'Story con enlace', 'Geolocalización Madrid', 'Reporte alcance'],
+    extras: [
+      { label: 'Destacado en stories 48h', price: 12 },
+      { label: 'Pack semanal (3 posts)', price: 18 },
+    ],
+    platformFee: 15,
+  },
+  {
+    id: 'promo4', sellerId: 'ps4', sellerName: 'DJ Playlist Master', sellerAvatar: avatarUrl('Playlist Master', '8B5CF6'),
+    title: 'Agrega tu canción a playlist Spotify — +100K oyentes mensuales',
+    description: 'Tu canción añadida a nuestras playlists de Spotify con más de 500K oyentes mensuales combinados. Permanencia mínima de 30 días. Ideal para artistas de bachata, salsa, reggaetón y latin urban que quieren crecer en streams.',
+    category: 'spotify-playlists', categoryLabel: 'Spotify & Playlists',
+    platforms: [
+      { name: 'Spotify', icon: '🎧', accounts: 3, totalFollowers: 505000 },
+    ],
+    price: 25, currency: 'EUR', deliveryDays: 2,
+    rating: 4.7, reviews: 278, orders: 890, cover: coverUrl(73),
+    tags: ['Spotify', 'Playlist', '100K+ oyentes', '30 días', 'Streams reales'],
+    includes: ['Inclusión en 1 playlist', '30 días mínimo', 'Reporte de streams', 'Feedback editorial', 'Promoción cruzada redes'],
+    extras: [
+      { label: 'Inclusión en 3 playlists simultáneas', price: 55 },
+      { label: 'Permanencia 90 días', price: 45 },
+      { label: 'Artículo blog + playlist', price: 35 },
+    ],
+    platformFee: 15,
+  },
+  {
+    id: 'promo5', sellerId: 'ps5', sellerName: 'Baila Conmigo Studio', sellerAvatar: avatarUrl('Baila Conmigo', '06B6D4'),
+    title: 'Video Promocional Viral — Reel + TikTok + YouTube Short',
+    description: 'Creamos un video promocional profesional de tu evento, escuela o marca. Editado con efectos trending, música con licencia y optimizado para viralizarse. Publicación en nuestras cuentas incluida.',
+    category: 'video-promo', categoryLabel: 'Video Promocional',
+    platforms: [
+      { name: 'Instagram', icon: '📸', accounts: 1, totalFollowers: 78000 },
+      { name: 'TikTok', icon: '🎵', accounts: 1, totalFollowers: 210000 },
+      { name: 'YouTube', icon: '▶️', accounts: 1, totalFollowers: 45000 },
+    ],
+    price: 45, currency: 'EUR', deliveryDays: 5,
+    rating: 4.9, reviews: 156, orders: 430, cover: coverUrl(74),
+    tags: ['Video', 'Viral', 'Reel', 'TikTok', 'Profesional'],
+    includes: ['Video 15-60s', 'Edición profesional', 'Música con licencia', 'Publicación en 3 cuentas', '2 revisiones', 'Archivo original'],
+    extras: [
+      { label: 'Versión larga (2-3 min)', price: 75 },
+      { label: 'Subtítulos en 3 idiomas', price: 20 },
+      { label: 'Pack 3 videos temáticos', price: 99 },
+    ],
+    platformFee: 15,
+  },
+  {
+    id: 'promo6', sellerId: 'ps1', sellerName: 'Latino Viral Media', sellerAvatar: avatarUrl('Latino Viral', 'EC4899'),
+    title: 'Campaña Influencer Latino — 5 Micro-influencers',
+    description: 'Tu marca o evento promocionada por 5 micro-influencers latinos (10K-50K seguidores cada uno). Contenido auténtico, alto engagement. Reporte completo con métricas de alcance, interacciones y conversiones.',
+    category: 'influencers', categoryLabel: 'Influencers',
+    platforms: [
+      { name: 'Instagram', icon: '📸', accounts: 5, totalFollowers: 175000 },
+      { name: 'TikTok', icon: '🎵', accounts: 5, totalFollowers: 220000 },
+    ],
+    price: 199, currency: 'EUR', deliveryDays: 7,
+    rating: 4.8, reviews: 93, orders: 210, cover: coverUrl(75),
+    tags: ['Influencers', 'Micro', 'Alto engagement', 'Contenido auténtico', 'Reporte'],
+    includes: ['5 influencers', 'Post + stories cada uno', 'Contenido original', 'Brief personalizado', 'Reporte métricas', 'Derechos de uso'],
+    extras: [
+      { label: '10 influencers en vez de 5', price: 299 },
+      { label: 'Video reel por influencer', price: 150 },
+    ],
+    platformFee: 15,
+  },
+  {
+    id: 'promo7', sellerId: 'ps2', sellerName: 'BachaSalseros Official', sellerAvatar: avatarUrl('BachaSalseros', 'D81B60'),
+    title: 'Artículo destacado en Blog + Newsletter BachaSalseros',
+    description: 'Artículo dedicado en el blog de BachaSalseros con distribución a nuestra newsletter de 50.000 suscriptores activos. SEO optimizado, enlace permanente. Ideal para lanzamientos, academias y eventos grandes.',
+    category: 'prensa-blogs', categoryLabel: 'Prensa & Blogs',
+    platforms: [
+      { name: 'Blog', icon: '📝', accounts: 1, totalFollowers: 85000 },
+      { name: 'Newsletter', icon: '📧', accounts: 1, totalFollowers: 50000 },
+    ],
+    price: 35, currency: 'EUR', deliveryDays: 3,
+    rating: 4.9, reviews: 124, orders: 380, cover: coverUrl(76),
+    tags: ['Blog', 'SEO', 'Newsletter', '50K suscriptores', 'Enlace permanente'],
+    includes: ['Artículo 500+ palabras', 'SEO optimizado', 'Newsletter 50K', '3 imágenes', 'Enlace permanente', 'Compartido en redes'],
+    extras: [
+      { label: 'Entrevista en video para YouTube', price: 55 },
+      { label: 'Banner sidebar 30 días', price: 25 },
+    ],
+    platformFee: 15,
+  },
+];
+
 // ── LIVE STREAMS ───────────────────────────────────────────────────────────
 export const LIVE_STREAMS: LiveStream[] = [
   {

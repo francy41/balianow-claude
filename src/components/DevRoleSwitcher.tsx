@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Music2, User, X, Settings, MapPin, Sparkles, Building, Headphones, Mic } from 'lucide-react';
+import { Shield, Music2, User, X, Settings, Sparkles, Building, Headphones, Mic, Moon, Sun } from 'lucide-react';
 import { useAuthStore, useUIStore, type UserRole } from '../store/appStore';
 
 interface Profile {
@@ -20,7 +20,6 @@ interface Profile {
 }
 
 const PROFILES: Profile[] = [
-  // ── Admin ───────────────────────────────────────────────
   {
     id: 'admin', category: 'admin',
     label: 'Super Admin', desc: 'Solfa Mende · panel global',
@@ -34,7 +33,6 @@ const PROFILES: Profile[] = [
     },
     goto: '/admin',
   },
-  // ── Vendedores / Creators ──────────────────────────────
   {
     id: 'dj', category: 'creator',
     label: 'DJ Mambo King', desc: 'DJ · Madrid',
@@ -100,7 +98,6 @@ const PROFILES: Profile[] = [
     },
     goto: '/dashboard',
   },
-  // ── Comprador ──────────────────────────────────────────
   {
     id: 'fan', category: 'fan',
     label: 'Carlos (Fan)', desc: 'Comprador · Mis pedidos',
@@ -124,9 +121,11 @@ const CATEGORIES = [
 
 const DevRoleSwitcher: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
-  const { addToast } = useUIStore();
+  const { user, isAuthenticated } = useAuthStore();
+  const { addToast, darkMode, toggleDarkMode } = useUIStore();
   const [open, setOpen] = useState(false);
+
+  const isAdmin = isAuthenticated && user?.role === 'admin';
 
   const switchTo = (p: Profile) => {
     useAuthStore.setState({ user: p.user, isAuthenticated: true });
@@ -137,28 +136,49 @@ const DevRoleSwitcher: React.FC = () => {
 
   return (
     <>
-      {/* Floating button */}
+      {/* Dark Mode Toggle — visible to ALL users */}
       <button
-        onClick={() => setOpen(v => !v)}
-        className="fixed bottom-24 lg:bottom-4 right-4 z-[60] bg-gray-900 hover:bg-black text-white rounded-full shadow-2xl px-4 py-2.5 flex items-center gap-2 text-xs font-bold"
-        title="Cambiar de usuario rápidamente"
+        onClick={toggleDarkMode}
+        className="fixed bottom-24 lg:bottom-4 right-4 z-[60] w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 border-2 border-pink-500/30 hover:border-pink-500 hover:scale-110 active:scale-95"
+        style={{
+          background: darkMode
+            ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
+            : 'linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%)',
+        }}
+        title={darkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
       >
-        <Settings className="w-4 h-4" />
-        <span className="hidden sm:inline">DEV · {user?.role || 'guest'}</span>
+        {darkMode
+          ? <Sun className="w-5 h-5 text-yellow-400" />
+          : <Moon className="w-5 h-5 text-purple-500" />
+        }
       </button>
 
-      {/* Panel */}
-      {open && (
-        <div className="fixed bottom-40 lg:bottom-20 right-4 z-[60] w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden max-h-[60vh] flex flex-col">
+      {/* Admin button — only for superadmin */}
+      {isAdmin && (
+        <button
+          onClick={() => setOpen(v => !v)}
+          className="fixed bottom-24 lg:bottom-4 right-[4.5rem] z-[60] bg-gray-900 hover:bg-black text-white rounded-full shadow-2xl px-4 py-2.5 flex items-center gap-2 text-xs font-bold"
+          title="Panel Superadmin"
+        >
+          <Settings className="w-4 h-4" />
+          <span className="hidden sm:inline">ADMIN</span>
+        </button>
+      )}
+
+      {/* Admin Panel */}
+      {isAdmin && open && (
+        <div className="fixed bottom-40 lg:bottom-20 right-4 z-[60] w-80 bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden max-h-[60vh] flex flex-col">
           <div className="bg-gray-900 text-white p-3 flex items-center justify-between flex-shrink-0">
             <div>
-              <p className="text-[10px] uppercase tracking-widest text-white/60 font-bold">Modo desarrollo</p>
-              <p className="text-sm font-bold">Cambiar de usuario</p>
+              <p className="text-[10px] uppercase tracking-widest text-white/60 font-bold">Superadmin</p>
+              <p className="text-sm font-bold">Panel de Control</p>
             </div>
             <button onClick={() => setOpen(false)} className="text-white/60 hover:text-white">
               <X className="w-4 h-4" />
             </button>
           </div>
+
+          {/* User Switcher */}
           <div className="p-2 overflow-y-auto flex-1" style={{ scrollbarWidth: 'thin' }}>
             {CATEGORIES.map(cat => (
               <div key={cat.id} className="mb-2 last:mb-0">
@@ -170,7 +190,7 @@ const DevRoleSwitcher: React.FC = () => {
                       key={p.id}
                       onClick={() => switchTo(p)}
                       className={`w-full flex items-center gap-2 p-2.5 rounded-xl text-left transition-all mb-0.5 ${
-                        isCurrent ? 'bg-pink-50 border border-brand-orange' : 'hover:bg-gray-50'
+                        isCurrent ? 'bg-pink-50 dark:bg-pink-900/30 border border-brand-orange' : 'hover:bg-gray-50 dark:hover:bg-gray-800'
                       }`}
                     >
                       <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${p.color}`}>
@@ -178,10 +198,10 @@ const DevRoleSwitcher: React.FC = () => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <p className="text-sm font-bold text-gray-900 truncate">{p.label}</p>
+                          <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{p.label}</p>
                           {p.user.isPremium && <span className="text-[8px] bg-yellow-400 text-yellow-900 px-1 rounded font-black">PRO</span>}
                         </div>
-                        <p className="text-[10px] text-gray-500 truncate">{p.desc}</p>
+                        <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">{p.desc}</p>
                       </div>
                       {isCurrent && <span className="text-[10px] bg-brand-orange text-white px-1.5 py-0.5 rounded-full font-bold">ACTUAL</span>}
                     </button>
@@ -190,8 +210,8 @@ const DevRoleSwitcher: React.FC = () => {
               </div>
             ))}
           </div>
-          <div className="border-t border-gray-100 p-2.5 bg-gray-50 text-[10px] text-gray-400 text-center flex-shrink-0">
-            Click → cambias de rol al instante
+          <div className="border-t border-gray-100 dark:border-gray-700 p-2.5 bg-gray-50 dark:bg-gray-800 text-[10px] text-gray-400 text-center flex-shrink-0">
+            Solo visible para Superadmin
           </div>
         </div>
       )}
