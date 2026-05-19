@@ -387,24 +387,6 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
           )}
         </div>
 
-        {/* Quick Categories Grid */}
-        <div className="mt-8">
-          <p className="text-xs font-bold text-gray-600 uppercase tracking-wide mb-4 px-2">Explora por categoría</p>
-          <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
-            {categories.slice(0, 8).map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => navigate(cat.route)}
-                className="group bg-white dark:bg-gray-800/80 rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center gap-2 h-[88px] sm:h-24 border border-pink-200/60 dark:border-pink-500/20 shadow-sm hover:shadow-lg hover:shadow-pink-500/10 hover:border-pink-400 transition-all duration-300 hover:-translate-y-1"
-              >
-                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-pink-50 flex items-center justify-center group-hover:bg-pink-100 transition-colors duration-300">
-                  <span className="text-xl sm:text-2xl">{cat.icon}</span>
-                </div>
-                <span className="text-gray-700 dark:text-gray-300 text-[10px] sm:text-xs font-semibold leading-tight text-center line-clamp-2 group-hover:text-pink-600 transition-colors">{cat.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
     </section>
   );
