@@ -105,7 +105,9 @@
       "Bash(node supabase/run-schema.mjs payments-schema.sql)",
       "Bash(node supabase/run-schema.mjs fix-payments.sql)",
       "Bash(node supabase/run-schema.mjs fix-policies.sql)",
-      "Bash(node supabase/deploy-functions.mjs)"
+      "Bash(node supabase/deploy-functions.mjs)",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(tee build.log)"
     ]
   }
 }
