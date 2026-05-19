@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack } from 'lucide-react';
 import { ARTISTS, EVENTS, VENUES } from '../data/mockData';
-import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, PLATFORM_COMMISSION_RATE, type HeroSliderImage } from '../store/appStore';
+import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, PLATFORM_COMMISSION_RATE, type HeroSliderImage, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
 import { Avatar, StarRating, SearchBar } from '../components/ui';
 
@@ -177,34 +177,16 @@ const HeroSliderFullHeight: React.FC<{ images: HeroSliderImage[] }> = ({ images 
   );
 };
 
-// Category interface with images
-interface CategoryWithImage extends Category {
+// ── DYNAMIC CATEGORIES SECTION (reads from store, managed by superadmin) ──
+// Category interface with images — kept for search autocomplete compatibility
+interface CategoryWithImage extends HomeCategory {
   image_url?: string;
+  slug?: string;
+  color_start?: string; color_mid?: string; color_end?: string; shadow_color?: string;
 }
 
-// ── DEFAULT CATEGORIES (Fallback) ────────────────────────────────────────
-const DEFAULT_CATEGORIES: CategoryWithImage[] = [
-  { id: '1', name: 'Explorador', icon: '🧭', slug: 'explorador', route: '/explorar', section: 'main', color_start: '#EC407A', color_mid: '#FF1493', color_end: '#C2185B', shadow_color: 'rgba(236, 64, 122, 0.4)', display_order: 1, active: true, image_url: 'https://picsum.photos/seed/explorer2024/800/400' },
-  { id: '2', name: 'Ciudades', icon: '🌆', slug: 'ciudades', route: '/venues', section: 'main', color_start: '#F06292', color_mid: '#FF69B4', color_end: '#EC407A', shadow_color: 'rgba(240, 98, 146, 0.4)', display_order: 2, active: true, image_url: 'https://picsum.photos/seed/cities2024/800/400' },
-  { id: '3', name: 'Eventos', icon: '🎉', slug: 'eventos', route: '/eventos', section: 'main', color_start: '#D81B60', color_mid: '#F50057', color_end: '#C2185B', shadow_color: 'rgba(216, 27, 96, 0.4)', display_order: 3, active: true, image_url: 'https://picsum.photos/seed/events2024/800/400' },
-  { id: '4', name: 'Artistas', icon: '🎧', slug: 'artistas', route: '/artistas', section: 'main', color_start: '#FF6B9D', color_mid: '#FF1493', color_end: '#EC407A', shadow_color: 'rgba(255, 107, 157, 0.4)', display_order: 4, active: true, image_url: 'https://picsum.photos/seed/artists2024/800/400' },
-  { id: '5', name: 'Bailarines', icon: '💃', slug: 'bailarines', route: '/artistas?tipo=dancer', section: 'main', color_start: '#E91E63', color_mid: '#F06292', color_end: '#F48FB1', shadow_color: 'rgba(233, 30, 99, 0.4)', display_order: 5, active: true, image_url: 'https://picsum.photos/seed/dancers2024/800/400' },
-  { id: '6', name: 'Marketplace', icon: '🏪', slug: 'marketplace', route: '/marketplace', section: 'main', color_start: '#AD1457', color_mid: '#E91E63', color_end: '#C2185B', shadow_color: 'rgba(173, 20, 87, 0.4)', display_order: 6, active: true, image_url: 'https://picsum.photos/seed/marketplace2024/800/400' },
-  { id: '20', name: 'Promociónate', icon: '📢', slug: 'promocionate', route: '/promocionate', section: 'main', color_start: '#F97316', color_mid: '#EC4899', color_end: '#D946EF', shadow_color: 'rgba(249, 115, 22, 0.4)', display_order: 7, active: true, image_url: 'https://picsum.photos/seed/promote2024/800/400' },
-  { id: '7', name: 'Clases en vivo', icon: '🎥', slug: 'clases-vivo', route: '/live', section: 'main', color_start: '#FF6B9D', color_mid: '#FF1493', color_end: '#FF69B4', shadow_color: 'rgba(255, 107, 157, 0.4)', display_order: 8, active: true, image_url: 'https://picsum.photos/seed/classes2024/800/400' },
-  { id: '8', name: 'Comunidad', icon: '💬', slug: 'comunidad', route: '/chat', section: 'main', color_start: '#E91E63', color_mid: '#F06292', color_end: '#AD1457', shadow_color: 'rgba(233, 30, 99, 0.4)', display_order: 8, active: true, image_url: 'https://picsum.photos/seed/community2024/800/400' },
-  { id: '9', name: 'Ruta de Hoy', icon: '📍', slug: 'ruta-hoy', route: '/eventos?type=featured', section: 'mercado', color_start: '#FF5252', color_mid: '#FF1493', color_end: '#FF1493', shadow_color: 'rgba(255, 82, 82, 0.4)', display_order: 1, active: true, image_url: 'https://picsum.photos/seed/route2024/800/400' },
-  { id: '10', name: 'Proyectos', icon: '🚀', slug: 'proyectos', route: '/marketplace?cat=Producción', section: 'mercado', color_start: '#FF6B9D', color_mid: '#F06292', color_end: '#F06292', shadow_color: 'rgba(255, 107, 157, 0.4)', display_order: 2, active: true, image_url: 'https://picsum.photos/seed/projects2024/800/400' },
-  { id: '11', name: 'Clasesenvivo', icon: '🎬', slug: 'clasesenvivo', route: '/live', section: 'mercado', color_start: '#E91E63', color_mid: '#AD1457', color_end: '#AD1457', shadow_color: 'rgba(233, 30, 99, 0.4)', display_order: 3, active: true, image_url: 'https://picsum.photos/seed/live2024/800/400' },
-  { id: '12', name: 'Ofertas', icon: '⭐', slug: 'ofertas', route: '/eventos?featured=true', section: 'mercado', color_start: '#D81B60', color_mid: '#C2185B', color_end: '#C2185B', shadow_color: 'rgba(216, 27, 96, 0.4)', display_order: 4, active: true, image_url: 'https://picsum.photos/seed/offers2024/800/400' },
-  { id: '13', name: 'Anuncios', icon: '📢', slug: 'anuncios', route: '/chat', section: 'comunidad', color_start: '#FF1493', color_mid: '#FF69B4', color_end: '#FF69B4', shadow_color: 'rgba(255, 20, 147, 0.4)', display_order: 1, active: true, image_url: 'https://picsum.photos/seed/announcements2024/800/400' },
-  { id: '14', name: 'Academia', icon: '🎓', slug: 'academia', route: '/marketplace?cat=Clases', section: 'comunidad', color_start: '#F06292', color_mid: '#EC407A', color_end: '#EC407A', shadow_color: 'rgba(240, 98, 146, 0.4)', display_order: 2, active: true, image_url: 'https://picsum.photos/seed/academy2024/800/400' },
-  { id: '15', name: 'Comunidad', icon: '👥', slug: 'comunidad-users', route: '/chat', section: 'comunidad', color_start: '#EC407A', color_mid: '#E91E63', color_end: '#E91E63', shadow_color: 'rgba(236, 64, 122, 0.4)', display_order: 3, active: true, image_url: 'https://picsum.photos/seed/communityusers2024/800/400' },
-  { id: '16', name: 'Chat', icon: '💬', slug: 'chat', route: '/chat', section: 'comunidad', color_start: '#AD1457', color_mid: '#D81B60', color_end: '#D81B60', shadow_color: 'rgba(173, 20, 87, 0.4)', display_order: 4, active: true, image_url: 'https://picsum.photos/seed/chat2024/800/400' },
-  { id: '17', name: 'Abiertos Ahora', icon: '🟢', slug: 'abiertos-ahora', route: '/venues?open=true', section: 'main', color_start: '#10B981', color_mid: '#059669', color_end: '#047857', shadow_color: 'rgba(16, 185, 129, 0.4)', display_order: 9, active: false, image_url: 'https://picsum.photos/seed/opennow2024/800/400' },
-  { id: '18', name: 'En Directo', icon: '🔴', slug: 'en-directo', route: '/live', section: 'main', color_start: '#EF4444', color_mid: '#DC2626', color_end: '#B91C1C', shadow_color: 'rgba(239, 68, 68, 0.4)', display_order: 10, active: false, image_url: 'https://picsum.photos/seed/livenow2024/800/400' },
-  { id: '19', name: 'Afiliados RRPP', icon: '🤝', slug: 'afiliados', route: '/afiliados', section: 'mercado', color_start: '#8B5CF6', color_mid: '#7C3AED', color_end: '#6D28D9', shadow_color: 'rgba(139, 92, 246, 0.4)', display_order: 5, active: false, image_url: 'https://picsum.photos/seed/affiliates2024/800/400' },
-];
+// Thin shim so the search autocomplete (which types against CategoryWithImage[]) still compiles
+const DEFAULT_CATEGORIES: CategoryWithImage[] = [];
 
 // ── ULTRAMODERN SMART SEARCH with AUTOCOMPLETE ────────────────────────────────────────────────
 const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> = ({ navigate, categories }) => {
@@ -492,53 +474,13 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
 
 // ── DYNAMIC CATEGORIES SECTION ────────────────────────────────────────
 const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => {
-  const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
+  const { homeCategories } = useSiteConfigStore();
+  const active = homeCategories.filter(c => c.active);
+  const mainCats    = active.filter(c => c.section === 'main').sort((a, b) => a.display_order - b.display_order);
+  const mercadoCats = active.filter(c => c.section === 'mercado').sort((a, b) => a.display_order - b.display_order);
+  const comunidadCats = active.filter(c => c.section === 'comunidad').sort((a, b) => a.display_order - b.display_order);
 
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch('https://lpwwdjujxwxdvyoznehp.supabase.co/rest/v1/categories?select=*&order=section.asc,display_order.asc&active=eq.true', {
-          headers: {
-            'apikey': 'sb_publishable_Kn08qRlITmDXEcMpATB-7Q_GE5MHvvP',
-            'Content-Type': 'application/json',
-          },
-        });
-        const data = await response.json();
-        if (data && Array.isArray(data) && data.length > 0) {
-          setCategories(data);
-        }
-      } catch (error) {
-        console.error('Error fetching categories from Supabase:', error);
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  const mainCats = categories.filter(c => c.section === 'main').sort((a, b) => a.display_order - b.display_order);
-  const mercadoCats = categories.filter(c => c.section === 'mercado').sort((a, b) => a.display_order - b.display_order);
-  const comunidadCats = categories.filter(c => c.section === 'comunidad').sort((a, b) => a.display_order - b.display_order);
-
-  // Premium glossy gradient palette matching BailaNow branding
-  const gradientPalette = [
-    'from-pink-500 to-rose-600',
-    'from-fuchsia-500 to-purple-600',
-    'from-pink-600 to-fuchsia-700',
-    'from-violet-500 to-purple-700',
-    'from-rose-500 to-pink-700',
-    'from-purple-500 to-indigo-600',
-    'from-fuchsia-600 to-pink-500',
-    'from-pink-400 to-rose-600',
-    'from-rose-600 to-fuchsia-600',
-    'from-indigo-500 to-purple-600',
-    'from-fuchsia-500 to-rose-600',
-    'from-violet-600 to-fuchsia-500',
-    'from-pink-500 to-purple-600',
-    'from-rose-500 to-fuchsia-700',
-    'from-purple-600 to-pink-500',
-    'from-fuchsia-400 to-violet-600'
-  ];
-
-  const CategoryButton: React.FC<{ cat: any; index: number }> = ({ cat }) => {
+  const CategoryButton: React.FC<{ cat: HomeCategory; index: number }> = ({ cat }) => {
     return (
       <button
         onClick={() => navigate(cat.route)}

@@ -9,7 +9,7 @@ import {
   ChevronRight, ArrowUpRight, ArrowDownRight, Clock,
   Wifi, Globe, Bell, Database, Server, FileText
 } from 'lucide-react';
-import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useAdminOverridesStore, PLATFORM_COMMISSION_RATE, type HeroMediaType, type CommissionSource, type HeroSliderImage } from '../store/appStore';
+import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useAdminOverridesStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_CATEGORIES, type HeroMediaType, type CommissionSource, type HeroSliderImage, type HomeCategory } from '../store/appStore';
 import AdminCMS from '../components/AdminCMS';
 import AdminMediaManager from '../components/AdminMediaManager';
 import AdminEditModal, { type EditField } from '../components/AdminEditModal';
@@ -388,631 +388,238 @@ const OverviewSection: React.FC<{ addToast: Function }> = ({ addToast }) => (
 );
 
 // ── 2. CATEGORÍAS ──────────────────────────────────────────────────────────
-interface Category {
-  id: string;
-  name: string;
-  icon: string;
-  slug: string;
-  route: string;
-  section: 'main' | 'mercado' | 'comunidad';
-  color_start: string;
-  color_mid: string;
-  color_end: string;
-  shadow_color: string;
-  display_order: number;
-  active: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
 
 const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['main']));
+  const { homeCategories, setHomeCategories } = useSiteConfigStore();
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editData, setEditData] = useState<Partial<Category>>({});
+  const [editData, setEditData] = useState<Partial<HomeCategory>>({});
   const [showNewForm, setShowNewForm] = useState(false);
-  const [dragId, setDragId] = useState<string | null>(null);
-  const [newCategory, setNewCategory] = useState<Partial<Category & { image_url?: string; border_radius?: number; shadow_intensity?: number; hover_effect?: string }>>({
-    name: '',
-    icon: '🎉',
-    slug: '',
-    route: '/',
-    section: 'main',
-    color_start: '#EC407A',
-    color_mid: '#FF1493',
-    color_end: '#C2185B',
-    active: true,
-    display_order: 1,
-    image_url: '',
-    border_radius: 12,
-    shadow_intensity: 1,
-    hover_effect: 'scale',
+  const [newCat, setNewCat] = useState<Omit<HomeCategory, 'id'>>({
+    name: '', icon: '🎉', route: '/', section: 'main', display_order: 99, active: true,
   });
 
-  // Fetch categories from Supabase
-  const fetchCategories = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('https://lpwwdjujxwxdvyoznehp.supabase.co/rest/v1/categories?select=*&order=section.asc,display_order.asc', {
-        headers: {
-          'apikey': 'sb_publishable_Kn08qRlITmDXEcMpATB-7Q_GE5MHvvP',
-          'Content-Type': 'application/json',
-        },
-      });
-      const data = await response.json();
-      setCategories(data || []);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      addToast({ message: 'Error al cargar categorías', type: 'error' });
-    }
-    setLoading(false);
+  const save = (updated: HomeCategory[]) => setHomeCategories(updated);
+
+  const toggleActive = (id: string) => {
+    save(homeCategories.map(c => c.id === id ? { ...c, active: !c.active } : c));
   };
 
-  // Load on mount
-  React.useEffect(() => {
-    fetchCategories();
-  }, []);
-
-  // Update category in Supabase
-  const handleSaveCategory = async (id: string, updates: Partial<Category>) => {
-    try {
-      const response = await fetch(`https://lpwwdjujxwxdvyoznehp.supabase.co/rest/v1/categories?id=eq.${id}`, {
-        method: 'PATCH',
-        headers: {
-          'apikey': 'sb_publishable_Kn08qRlITmDXEcMpATB-7Q_GE5MHvvP',
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer sb_publishable_Kn08qRlITmDXEcMpATB-7Q_GE5MHvvP`,
-        },
-        body: JSON.stringify(updates),
-      });
-      if (response.ok) {
-        setEditingId(null);
-        addToast({ message: 'Categoría actualizada', type: 'success' });
-        fetchCategories();
-      } else {
-        addToast({ message: 'Error al guardar categoría', type: 'error' });
-      }
-    } catch (error) {
-      console.error('Error updating category:', error);
-      addToast({ message: 'Error al guardar cambios', type: 'error' });
-    }
+  const deleteCategory = (id: string) => {
+    if (!confirm('¿Eliminar esta categoría del home?')) return;
+    save(homeCategories.filter(c => c.id !== id));
+    addToast({ message: 'Categoría eliminada', type: 'info' });
   };
 
-  // Delete category
-  const handleDeleteCategory = async (id: string) => {
-    if (!confirm('¿Estás seguro de que deseas eliminar esta categoría?')) return;
-    try {
-      const response = await fetch(`https://lpwwdjujxwxdvyoznehp.supabase.co/rest/v1/categories?id=eq.${id}`, {
-        method: 'DELETE',
-        headers: {
-          'apikey': 'sb_publishable_Kn08qRlITmDXEcMpATB-7Q_GE5MHvvP',
-          'Content-Type': 'application/json',
-        },
-      });
-      if (response.ok) {
-        addToast({ message: 'Categoría eliminada', type: 'success' });
-        fetchCategories();
-      } else {
-        addToast({ message: 'Error al eliminar categoría', type: 'error' });
-      }
-    } catch (error) {
-      console.error('Error deleting category:', error);
-      addToast({ message: 'Error al eliminar', type: 'error' });
-    }
+  const moveCategory = (id: string, dir: -1 | 1) => {
+    const section = homeCategories.find(c => c.id === id)?.section;
+    const sectionCats = [...homeCategories.filter(c => c.section === section)].sort((a, b) => a.display_order - b.display_order);
+    const idx = sectionCats.findIndex(c => c.id === id);
+    const newIdx = idx + dir;
+    if (newIdx < 0 || newIdx >= sectionCats.length) return;
+    const updated = [...homeCategories];
+    const aOrder = sectionCats[idx].display_order;
+    const bOrder = sectionCats[newIdx].display_order;
+    const ai = updated.findIndex(c => c.id === sectionCats[idx].id);
+    const bi = updated.findIndex(c => c.id === sectionCats[newIdx].id);
+    updated[ai] = { ...updated[ai], display_order: bOrder };
+    updated[bi] = { ...updated[bi], display_order: aOrder };
+    save(updated);
   };
 
-  // Add new category
-  const handleAddCategory = async () => {
-    if (!newCategory.name || !newCategory.slug) {
-      addToast({ message: 'Nombre y slug son requeridos', type: 'error' });
-      return;
-    }
-    try {
-      const response = await fetch('https://lpwwdjujxwxdvyoznehp.supabase.co/rest/v1/categories', {
-        method: 'POST',
-        headers: {
-          'apikey': 'sb_publishable_Kn08qRlITmDXEcMpATB-7Q_GE5MHvvP',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newCategory),
-      });
-      if (response.ok) {
-        addToast({ message: 'Categoría creada', type: 'success' });
-        setShowNewForm(false);
-        setNewCategory({
-          name: '',
-          icon: '🎉',
-          slug: '',
-          route: '/',
-          section: 'main',
-          color_start: '#EC407A',
-          color_mid: '#FF1493',
-          color_end: '#C2185B',
-          active: true,
-          display_order: 1,
-        });
-        fetchCategories();
-      } else {
-        const error = await response.json();
-        addToast({ message: error.message || 'Error al crear categoría', type: 'error' });
-      }
-    } catch (error) {
-      console.error('Error creating category:', error);
-      addToast({ message: 'Error al crear categoría', type: 'error' });
-    }
+  const saveEdit = () => {
+    if (!editData.name?.trim()) { addToast({ message: 'El nombre es requerido', type: 'error' }); return; }
+    save(homeCategories.map(c => c.id === editingId ? { ...c, ...editData } : c));
+    setEditingId(null);
+    addToast({ message: 'Categoría actualizada', type: 'success' });
   };
 
-  const categoryBySection = {
-    main: categories.filter(c => c.section === 'main'),
-    mercado: categories.filter(c => c.section === 'mercado'),
-    comunidad: categories.filter(c => c.section === 'comunidad'),
+  const addCategory = () => {
+    if (!newCat.name.trim() || !newCat.route.trim()) {
+      addToast({ message: 'Nombre y ruta son requeridos', type: 'error' }); return;
+    }
+    const id = Date.now().toString();
+    save([...homeCategories, { ...newCat, id }]);
+    setShowNewForm(false);
+    setNewCat({ name: '', icon: '🎉', route: '/', section: 'main', display_order: 99, active: true });
+    addToast({ message: `"${newCat.name}" añadida al home`, type: 'success' });
   };
 
-  const SectionCard: React.FC<{ section: 'main' | 'mercado' | 'comunidad'; title: string }> = ({ section, title }) => {
-    const isExpanded = expandedSections.has(section);
+  const resetToDefault = () => {
+    if (!confirm('¿Restaurar las categorías por defecto? Se perderán los cambios.')) return;
+    save(DEFAULT_HOME_CATEGORIES);
+    addToast({ message: 'Categorías restauradas', type: 'success' });
+  };
+
+  const SECTION_LABELS: Record<string, string> = { main: '⭐ Principales', mercado: '🏪 Mercado', comunidad: '💬 Comunidad' };
+
+  const CatRow: React.FC<{ cat: HomeCategory; sectionCats: HomeCategory[] }> = ({ cat, sectionCats }) => {
+    const idx = sectionCats.findIndex(c => c.id === cat.id);
+    const isEditing = editingId === cat.id;
     return (
-    <div className="card-white mb-4 overflow-hidden">
-      <button
-        onClick={() => {
-          const newSet = new Set(expandedSections);
-          if (newSet.has(section)) {
-            newSet.delete(section);
-          } else {
-            newSet.add(section);
-          }
-          setExpandedSections(newSet);
-        }}
-        className="w-full p-4 flex items-center justify-between hover:bg-gray-50"
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-brand-orange/10 text-brand-orange flex items-center justify-center font-bold text-sm">
-            {categoryBySection[section].length}
-          </div>
-          <div className="text-left">
-            <h3 className="font-bold text-gray-900">{title}</h3>
-            <p className="text-gray-400 text-xs">{categoryBySection[section].length} categorías</p>
-          </div>
-        </div>
-        <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
-      </button>
-
-      {isExpanded && (
-        <div className="border-t border-gray-100 p-4 space-y-4">
-          {categoryBySection[section].map(cat => (
-            <div
-              key={cat.id}
-              draggable
-              onDragStart={() => setDragId(cat.id)}
-              onDragOver={e => e.preventDefault()}
-              onDrop={() => {
-                if (dragId && dragId !== cat.id) {
-                  const dragCat = categories.find(c => c.id === dragId);
-                  const dropCat = cat;
-                  if (dragCat && dropCat) {
-                    // Swap display_order
-                    handleSaveCategory(dragCat.id, { display_order: dropCat.display_order });
-                    handleSaveCategory(dropCat.id, { display_order: dragCat.display_order });
-                  }
-                }
-                setDragId(null);
-              }}
-              className={`p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border transition-all cursor-grab active:cursor-grabbing ${dragId === cat.id ? 'border-pink-400 bg-pink-50 opacity-60' : 'border-gray-100 hover:border-pink-300'}`}
-            >
-              {editingId === cat.id ? (
-                // Edit mode
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs font-medium text-gray-600">Nombre</label>
-                      <input
-                        type="text"
-                        value={editData.name || ''}
-                        onChange={e => setEditData({ ...editData, name: e.target.value })}
-                        className="input w-full"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-600">Ícono</label>
-                      <input
-                        type="text"
-                        value={editData.icon || ''}
-                        onChange={e => setEditData({ ...editData, icon: e.target.value })}
-                        className="input w-full"
-                        maxLength={2}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs font-medium text-gray-600">Slug</label>
-                      <input
-                        type="text"
-                        value={editData.slug || ''}
-                        onChange={e => setEditData({ ...editData, slug: e.target.value })}
-                        className="input w-full"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-600">Ruta</label>
-                      <input
-                        type="text"
-                        value={editData.route || ''}
-                        onChange={e => setEditData({ ...editData, route: e.target.value })}
-                        className="input w-full"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Color pickers with preview */}
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="text-xs font-medium text-gray-600">Color inicio</label>
-                      <div className="flex gap-2">
-                        <input
-                          type="color"
-                          value={editData.color_start || '#EC407A'}
-                          onChange={e => setEditData({ ...editData, color_start: e.target.value })}
-                          className="w-10 h-10 rounded cursor-pointer"
-                        />
-                        <input
-                          type="text"
-                          value={editData.color_start || ''}
-                          onChange={e => setEditData({ ...editData, color_start: e.target.value })}
-                          className="input text-xs flex-1"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-600">Color medio</label>
-                      <div className="flex gap-2">
-                        <input
-                          type="color"
-                          value={editData.color_mid || '#FF1493'}
-                          onChange={e => setEditData({ ...editData, color_mid: e.target.value })}
-                          className="w-10 h-10 rounded cursor-pointer"
-                        />
-                        <input
-                          type="text"
-                          value={editData.color_mid || ''}
-                          onChange={e => setEditData({ ...editData, color_mid: e.target.value })}
-                          className="input text-xs flex-1"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-600">Color fin</label>
-                      <div className="flex gap-2">
-                        <input
-                          type="color"
-                          value={editData.color_end || '#C2185B'}
-                          onChange={e => setEditData({ ...editData, color_end: e.target.value })}
-                          className="w-10 h-10 rounded cursor-pointer"
-                        />
-                        <input
-                          type="text"
-                          value={editData.color_end || ''}
-                          onChange={e => setEditData({ ...editData, color_end: e.target.value })}
-                          className="input text-xs flex-1"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Image URL */}
-                  <div>
-                    <label className="text-xs font-medium text-gray-600">Imagen de fondo (URL)</label>
-                    <input
-                      type="text"
-                      value={(editData as any).image_url || ''}
-                      onChange={e => setEditData({ ...editData, image_url: e.target.value } as any)}
-                      className="input w-full"
-                      placeholder="https://ejemplo.com/imagen.jpg"
-                    />
-                  </div>
-
-                  {/* Visual controls */}
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="text-xs font-medium text-gray-600">Border Radius</label>
-                      <input
-                        type="range" min="0" max="30" step="1"
-                        value={(editData as any).border_radius || 12}
-                        onChange={e => setEditData({ ...editData, border_radius: parseInt(e.target.value) } as any)}
-                        className="w-full accent-pink-500"
-                      />
-                      <span className="text-[10px] text-gray-400">{(editData as any).border_radius || 12}px</span>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-600">Sombra</label>
-                      <input
-                        type="range" min="0" max="5" step="1"
-                        value={(editData as any).shadow_intensity || 1}
-                        onChange={e => setEditData({ ...editData, shadow_intensity: parseInt(e.target.value) } as any)}
-                        className="w-full accent-pink-500"
-                      />
-                      <span className="text-[10px] text-gray-400">Nivel {(editData as any).shadow_intensity || 1}</span>
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-600">Efecto Hover</label>
-                      <select
-                        value={(editData as any).hover_effect || 'scale'}
-                        onChange={e => setEditData({ ...editData, hover_effect: e.target.value } as any)}
-                        className="input w-full text-xs"
-                      >
-                        <option value="scale">Zoom</option>
-                        <option value="lift">Elevar</option>
-                        <option value="glow">Brillo</option>
-                        <option value="none">Ninguno</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  {/* Preview */}
-                  <div>
-                    <label className="text-xs font-medium text-gray-600 mb-1 block">Vista previa:</label>
-                    <div
-                      className="px-4 py-3 text-white font-bold text-center w-full flex items-center justify-center gap-2"
-                      style={{
-                        background: (editData as any).image_url
-                          ? `linear-gradient(135deg, ${editData.color_start}CC, ${editData.color_end}CC), url(${(editData as any).image_url}) center/cover`
-                          : `linear-gradient(135deg, ${editData.color_start}, ${editData.color_mid}, ${editData.color_end})`,
-                        borderRadius: `${(editData as any).border_radius || 12}px`,
-                        boxShadow: `0 ${((editData as any).shadow_intensity || 1) * 4}px ${((editData as any).shadow_intensity || 1) * 10}px ${editData.shadow_color || 'rgba(0,0,0,0.2)'}`,
-                      }}
-                    >
-                      <span className="text-2xl">{editData.icon}</span> {editData.name}
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3">
-                    <div>
-                      <label className="text-xs font-medium text-gray-600">Orden</label>
-                      <input
-                        type="number"
-                        value={editData.display_order || 1}
-                        onChange={e => setEditData({ ...editData, display_order: parseInt(e.target.value) })}
-                        className="input w-full"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-medium text-gray-600">Sección</label>
-                      <select
-                        value={editData.section || 'main'}
-                        onChange={e => setEditData({ ...editData, section: e.target.value as any })}
-                        className="input w-full text-xs"
-                      >
-                        <option value="main">Principal</option>
-                        <option value="mercado">Mercado</option>
-                        <option value="comunidad">Comunidad</option>
-                      </select>
-                    </div>
-                    <div className="flex items-end">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={editData.active}
-                          onChange={e => setEditData({ ...editData, active: e.target.checked })}
-                          className="w-4 h-4 accent-pink-500"
-                        />
-                        <span className="text-xs font-medium text-gray-600">Activa</span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleSaveCategory(cat.id, editData)}
-                      className="flex-1 btn-orange text-sm"
-                    >
-                      Guardar
-                    </button>
-                    <button
-                      onClick={() => setEditingId(null)}
-                      className="flex-1 btn-white text-sm"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                // View mode
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-4 flex-1">
-                    {/* Mini preview */}
-                    <div
-                      className="w-14 h-14 rounded-xl flex items-center justify-center text-white text-xl flex-shrink-0"
-                      style={{
-                        background: (cat as any).image_url
-                          ? `linear-gradient(135deg, ${cat.color_start}CC, ${cat.color_end}CC), url(${(cat as any).image_url}) center/cover`
-                          : `linear-gradient(135deg, ${cat.color_start}, ${cat.color_end})`,
-                        borderRadius: `${(cat as any).border_radius || 12}px`,
-                      }}
-                    >
-                      {cat.icon}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-bold text-gray-900">{cat.name}</p>
-                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold ${cat.active ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-500'}`}>
-                          {cat.active ? 'Activa' : 'Inactiva'}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-400 mt-0.5">{cat.slug} • {cat.route} • Orden: {cat.display_order}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="w-3 h-3 rounded-full" style={{ background: cat.color_start }} />
-                        <div className="w-3 h-3 rounded-full" style={{ background: cat.color_mid }} />
-                        <div className="w-3 h-3 rounded-full" style={{ background: cat.color_end }} />
-                        <span className="text-[10px] text-gray-400 ml-1">↕ Arrastra para reordenar</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex gap-1 flex-shrink-0">
-                    <button
-                      onClick={() => {
-                        // Duplicate
-                        const dup = { ...cat, name: cat.name + ' (copia)', slug: cat.slug + '-copy', display_order: cat.display_order + 1 };
-                        delete (dup as any).id;
-                        handleAddCategory();
-                      }}
-                      className="p-2 hover:bg-gray-100 text-gray-400 rounded-lg"
-                      title="Duplicar"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => {
-                        setEditingId(cat.id);
-                        setEditData(cat);
-                      }}
-                      className="p-2 hover:bg-pink-50 text-pink-500 rounded-lg"
-                      title="Editar"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteCategory(cat.id)}
-                      className="p-2 hover:bg-red-50 text-red-500 rounded-lg"
-                      title="Eliminar"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-    );
-  };
-
-  return (
-    <div>
-      <PageHeader
-        title="Categorías"
-        subtitle="Diseña y gestiona todas las categorías de la plataforma"
-        action={
-          <Button
-            variant="orange"
-            icon={<Plus className="w-4 h-4" />}
-            onClick={() => setShowNewForm(!showNewForm)}
-          >
-            Nueva categoría
-          </Button>
-        }
-      />
-
-      {showNewForm && (
-        <div className="card-white p-6 mb-6 bg-gradient-to-r from-brand-orange/5 to-transparent border-l-4 border-brand-orange">
-          <h3 className="font-bold text-gray-900 mb-4">Nueva categoría</h3>
+      <div className={`rounded-xl border p-3 transition-all ${cat.active ? 'border-gray-200 bg-white' : 'border-gray-100 bg-gray-50 opacity-60'}`}>
+        {isEditing ? (
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-medium text-gray-600">Nombre *</label>
-                <input
-                  type="text"
-                  value={newCategory.name || ''}
-                  onChange={e => setNewCategory({ ...newCategory, name: e.target.value })}
-                  placeholder="Ej: Explorador"
-                  className="input w-full"
-                />
+            <div className="grid grid-cols-4 gap-2">
+              <div className="col-span-1">
+                <label className="text-[10px] font-bold text-gray-500 uppercase">Ícono</label>
+                <input value={editData.icon || ''} onChange={e => setEditData(d => ({ ...d, icon: e.target.value }))}
+                  className="input w-full text-center text-lg" maxLength={2} />
               </div>
-              <div>
-                <label className="text-xs font-medium text-gray-600">Ícono</label>
-                <input
-                  type="text"
-                  value={newCategory.icon || ''}
-                  onChange={e => setNewCategory({ ...newCategory, icon: e.target.value })}
-                  placeholder="🎉"
-                  maxLength={2}
-                  className="input w-full"
-                />
+              <div className="col-span-3">
+                <label className="text-[10px] font-bold text-gray-500 uppercase">Nombre</label>
+                <input value={editData.name || ''} onChange={e => setEditData(d => ({ ...d, name: e.target.value }))}
+                  className="input w-full" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-xs font-medium text-gray-600">Slug *</label>
-                <input
-                  type="text"
-                  value={newCategory.slug || ''}
-                  onChange={e => setNewCategory({ ...newCategory, slug: e.target.value })}
-                  placeholder="explorador"
-                  className="input w-full"
-                />
+                <label className="text-[10px] font-bold text-gray-500 uppercase">Ruta</label>
+                <input value={editData.route || ''} onChange={e => setEditData(d => ({ ...d, route: e.target.value }))}
+                  className="input w-full text-xs font-mono" placeholder="/eventos" />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-600">Sección</label>
-                <select
-                  value={newCategory.section || 'main'}
-                  onChange={e => setNewCategory({ ...newCategory, section: e.target.value as any })}
-                  className="input w-full"
-                >
-                  <option value="main">Main (Principal)</option>
+                <label className="text-[10px] font-bold text-gray-500 uppercase">Sección</label>
+                <select value={editData.section || 'main'} onChange={e => setEditData(d => ({ ...d, section: e.target.value as any }))}
+                  className="input w-full text-xs">
+                  <option value="main">Principal</option>
                   <option value="mercado">Mercado</option>
                   <option value="comunidad">Comunidad</option>
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="text-xs font-medium text-gray-600">Color inicio</label>
-                <div className="flex gap-2">
-                  <input
-                    type="color"
-                    value={newCategory.color_start || '#EC407A'}
-                    onChange={e => setNewCategory({ ...newCategory, color_start: e.target.value })}
-                    className="w-10 h-10 rounded cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={newCategory.color_start || ''}
-                    onChange={e => setNewCategory({ ...newCategory, color_start: e.target.value })}
-                    className="input text-xs flex-1"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-gray-600">Color medio</label>
-                <div className="flex gap-2">
-                  <input
-                    type="color"
-                    value={newCategory.color_mid || '#FF1493'}
-                    onChange={e => setNewCategory({ ...newCategory, color_mid: e.target.value })}
-                    className="w-10 h-10 rounded cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={newCategory.color_mid || ''}
-                    onChange={e => setNewCategory({ ...newCategory, color_mid: e.target.value })}
-                    className="input text-xs flex-1"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="text-xs font-medium text-gray-600">Color fin</label>
-                <div className="flex gap-2">
-                  <input
-                    type="color"
-                    value={newCategory.color_end || '#C2185B'}
-                    onChange={e => setNewCategory({ ...newCategory, color_end: e.target.value })}
-                    className="w-10 h-10 rounded cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={newCategory.color_end || ''}
-                    onChange={e => setNewCategory({ ...newCategory, color_end: e.target.value })}
-                    className="input text-xs flex-1"
-                  />
-                </div>
-              </div>
+            {/* Live preview */}
+            <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+              <div className="w-10 h-10 rounded-full bg-pink-50 border border-pink-200 flex items-center justify-center text-xl">{editData.icon}</div>
+              <span className="text-xs font-bold text-gray-700">{editData.name}</span>
+              <span className="text-[10px] text-gray-400 font-mono ml-auto">{editData.route}</span>
             </div>
             <div className="flex gap-2">
-              <button onClick={handleAddCategory} className="flex-1 btn-orange">
-                Crear categoría
+              <button onClick={saveEdit} className="flex-1 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold text-sm rounded-lg py-2">Guardar</button>
+              <button onClick={() => setEditingId(null)} className="flex-1 border border-gray-200 text-gray-600 font-bold text-sm rounded-lg py-2">Cancelar</button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            {/* Icon preview */}
+            <div className="w-10 h-10 rounded-full bg-pink-50 border border-pink-100 flex items-center justify-center text-xl flex-shrink-0">{cat.icon}</div>
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-sm text-gray-900">{cat.name}</p>
+              <p className="text-[11px] text-gray-400 font-mono truncate">{cat.route}</p>
+            </div>
+            {/* Status badge */}
+            <button onClick={() => toggleActive(cat.id)}
+              className={`text-[10px] font-bold px-2 py-1 rounded-full flex-shrink-0 transition-all ${cat.active ? 'bg-green-100 text-green-700 hover:bg-red-100 hover:text-red-600' : 'bg-gray-100 text-gray-500 hover:bg-green-100 hover:text-green-700'}`}>
+              {cat.active ? '✓ Activa' : '○ Oculta'}
+            </button>
+            {/* Reorder */}
+            <div className="flex flex-col gap-0.5 flex-shrink-0">
+              <button onClick={() => moveCategory(cat.id, -1)} disabled={idx === 0}
+                className="p-0.5 text-gray-300 hover:text-pink-500 disabled:opacity-20 transition-colors text-xs">▲</button>
+              <button onClick={() => moveCategory(cat.id, 1)} disabled={idx === sectionCats.length - 1}
+                className="p-0.5 text-gray-300 hover:text-pink-500 disabled:opacity-20 transition-colors text-xs">▼</button>
+            </div>
+            {/* Actions */}
+            <div className="flex gap-1 flex-shrink-0">
+              <button onClick={() => { setEditingId(cat.id); setEditData(cat); }}
+                className="p-1.5 hover:bg-pink-50 text-pink-400 hover:text-pink-600 rounded-lg transition-all">
+                <Edit className="w-3.5 h-3.5" />
               </button>
-              <button onClick={() => setShowNewForm(false)} className="flex-1 btn-white">
+              <button onClick={() => deleteCategory(cat.id)}
+                className="p-1.5 hover:bg-red-50 text-red-400 hover:text-red-600 rounded-lg transition-all">
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const activeCount = homeCategories.filter(c => c.active).length;
+
+  return (
+    <div>
+      <PageHeader
+        title="Categorías del Home"
+        subtitle={`${activeCount} categorías visibles · Los cambios se aplican al instante en el homepage`}
+        action={
+          <div className="flex gap-2">
+            <button onClick={resetToDefault} className="border border-gray-200 text-gray-600 text-sm font-bold px-3 py-2 rounded-lg hover:bg-gray-50 flex items-center gap-1.5">
+              <RefreshCw className="w-3.5 h-3.5" /> Restaurar
+            </button>
+            <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => setShowNewForm(v => !v)}>
+              Nueva categoría
+            </Button>
+          </div>
+        }
+      />
+
+      {/* Live preview strip */}
+      <div className="card-white p-4 mb-5">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Vista previa — así se ve en el home</p>
+        <div className="flex flex-wrap gap-2">
+          {homeCategories.filter(c => c.active).sort((a, b) => {
+            const sOrder = { main: 0, mercado: 1, comunidad: 2 };
+            return (sOrder[a.section] - sOrder[b.section]) || (a.display_order - b.display_order);
+          }).map(cat => (
+            <div key={cat.id} className="flex flex-col items-center gap-1 w-16">
+              <div className="w-10 h-10 rounded-full bg-pink-50 border border-pink-200 flex items-center justify-center text-lg">{cat.icon}</div>
+              <span className="text-[9px] text-gray-600 font-semibold text-center leading-tight line-clamp-2">{cat.name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* New category form */}
+      {showNewForm && (
+        <div className="card-white p-5 mb-5 border-l-4 border-pink-500 bg-pink-50/30">
+          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><Plus className="w-4 h-4 text-pink-500" /> Nueva categoría</h3>
+          <div className="space-y-3">
+            <div className="grid grid-cols-4 gap-2">
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase">Ícono</label>
+                <input value={newCat.icon} onChange={e => setNewCat(d => ({ ...d, icon: e.target.value }))}
+                  className="input w-full text-center text-xl" maxLength={2} />
+              </div>
+              <div className="col-span-3">
+                <label className="text-[10px] font-bold text-gray-500 uppercase">Nombre *</label>
+                <input value={newCat.name} onChange={e => setNewCat(d => ({ ...d, name: e.target.value }))}
+                  placeholder="Ej: Festivales" className="input w-full" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase">Ruta *</label>
+                <input value={newCat.route} onChange={e => setNewCat(d => ({ ...d, route: e.target.value }))}
+                  placeholder="/eventos?cat=festivales" className="input w-full text-xs font-mono" />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase">Sección</label>
+                <select value={newCat.section} onChange={e => setNewCat(d => ({ ...d, section: e.target.value as any }))}
+                  className="input w-full text-xs">
+                  <option value="main">⭐ Principal</option>
+                  <option value="mercado">🏪 Mercado</option>
+                  <option value="comunidad">💬 Comunidad</option>
+                </select>
+              </div>
+            </div>
+            {/* Preview */}
+            {newCat.name && (
+              <div className="flex items-center gap-3 p-2 bg-white rounded-lg border border-pink-200">
+                <div className="w-10 h-10 rounded-full bg-pink-50 border border-pink-200 flex items-center justify-center text-xl">{newCat.icon}</div>
+                <div>
+                  <p className="font-bold text-sm text-gray-900">{newCat.name}</p>
+                  <p className="text-[11px] text-gray-400 font-mono">{newCat.route}</p>
+                </div>
+                <span className="ml-auto text-[10px] bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full font-bold capitalize">{newCat.section}</span>
+              </div>
+            )}
+            <div className="flex gap-2">
+              <button onClick={addCategory} className="flex-1 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold text-sm rounded-xl py-2.5">
+                Agregar al home
+              </button>
+              <button onClick={() => setShowNewForm(false)} className="flex-1 border border-gray-200 text-gray-600 font-bold text-sm rounded-xl py-2.5">
                 Cancelar
               </button>
             </div>
@@ -1020,18 +627,33 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
         </div>
       )}
 
-      {loading ? (
-        <div className="card-white p-8 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-200 border-t-brand-orange" />
-          <p className="text-gray-400 mt-2">Cargando categorías...</p>
-        </div>
-      ) : (
-        <div>
-          <SectionCard section="main" title="📌 Principal" />
-          <SectionCard section="mercado" title="🏪 Mercado" />
-          <SectionCard section="comunidad" title="💬 Comunidad" />
-        </div>
-      )}
+      {/* Categories by section */}
+      {(['main', 'mercado', 'comunidad'] as const).map(section => {
+        const sectionCats = homeCategories.filter(c => c.section === section).sort((a, b) => a.display_order - b.display_order);
+        const activeInSection = sectionCats.filter(c => c.active).length;
+        return (
+          <div key={section} className="card-white mb-4 overflow-hidden">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-pink-50 border border-pink-200 flex items-center justify-center font-black text-sm text-pink-500">
+                  {activeInSection}
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm">{SECTION_LABELS[section]}</h3>
+                  <p className="text-[11px] text-gray-400">{activeInSection} activas · {sectionCats.length - activeInSection} ocultas</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-3 space-y-2">
+              {sectionCats.length === 0 ? (
+                <p className="text-center text-gray-400 text-sm py-4">Sin categorías en esta sección</p>
+              ) : (
+                sectionCats.map(cat => <CatRow key={cat.id} cat={cat} sectionCats={sectionCats} />)
+              )}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };
