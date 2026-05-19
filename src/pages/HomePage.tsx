@@ -907,62 +907,51 @@ const HomePage: React.FC = () => {
       <section className="mx-4 mt-10">
         <div className="section-head mb-4">
           <div>
-            <h2 className="font-display font-black text-lg text-gray-900 uppercase tracking-wide">
-              Donde Salir a Bailar en la Ciudad
+            <h2 className="font-display font-black text-lg bg-gradient-to-r from-pink-500 to-fuchsia-600 bg-clip-text text-transparent uppercase tracking-wide">
+              🌆 Descubre Ciudades
             </h2>
-            <p className="text-gray-400 text-sm mt-0.5">Explora las mejores ciudades del mundo latino por su comunidad.</p>
+            <p className="text-gray-400 text-sm mt-0.5">Las mejores ciudades para bailar y vivir la noche latina</p>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-3">
-          {/* Row 1: 3 cities */}
-          {CITIES.slice(0, 3).map(city => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          {CITIES.map(city => (
             <button
               key={city.name}
               onClick={() => navigate(`/venues?city=${city.name}`)}
-              className="relative rounded-2xl overflow-hidden group"
-              style={{ height: 160 }}
+              className="relative rounded-2xl overflow-hidden group shadow-lg hover:shadow-xl hover:shadow-pink-500/20 transition-all duration-500"
+              style={{ height: 180 }}
             >
               <img
                 src={city.img}
                 alt={city.name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 to-black/10" />
-              <div className="absolute bottom-3 left-3 text-left">
-                <p className="text-white font-display font-bold text-base leading-tight">{city.name}</p>
-                <p className="text-white/70 text-xs mt-0.5">{city.venues} Localidades • {city.events} Eventos</p>
+              {/* Pink gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-pink-900/20 to-transparent" />
+              {/* Glow border on hover */}
+              <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-pink-500/50 transition-all duration-300" />
+              <div className="absolute bottom-3 left-3 right-3 text-left">
+                <p className="text-white font-display font-bold text-base sm:text-lg leading-tight drop-shadow-lg">{city.name}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="bg-pink-500/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{city.venues} venues</span>
+                  <span className="bg-fuchsia-500/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{city.events} eventos</span>
+                </div>
               </div>
-            </button>
-          ))}
-          {/* Row 2: 2 cities + ver más */}
-          {CITIES.slice(3, 5).map(city => (
-            <button
-              key={city.name}
-              onClick={() => navigate(`/venues?city=${city.name}`)}
-              className="relative rounded-2xl overflow-hidden group"
-              style={{ height: 160 }}
-            >
-              <img
-                src={city.img}
-                alt={city.name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 to-black/10" />
-              <div className="absolute bottom-3 left-3 text-left">
-                <p className="text-white font-display font-bold text-base leading-tight">{city.name}</p>
-                <p className="text-white/70 text-xs mt-0.5">{city.venues} Localidades • {city.events} Eventos</p>
+              {/* Top badge */}
+              <div className="absolute top-2 right-2 bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                📍 Explorar
               </div>
             </button>
           ))}
           <button
             onClick={() => navigate('/venues')}
-            className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 hover:border-brand-orange transition-all group"
-            style={{ height: 160 }}
+            className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-pink-300 hover:border-pink-500 hover:bg-pink-50 transition-all group"
+            style={{ height: 180 }}
           >
-            <div className="w-10 h-10 rounded-full bg-brand-orange/10 group-hover:bg-brand-orange/20 flex items-center justify-center mb-2 transition-all">
-              <ArrowRight className="w-5 h-5 text-brand-orange" />
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-all shadow-lg shadow-pink-500/30">
+              <ArrowRight className="w-5 h-5 text-white" />
             </div>
-            <p className="text-brand-orange text-xs font-bold text-center px-2 uppercase tracking-wide">Ver Más Ciudades</p>
+            <p className="text-pink-600 text-xs font-bold text-center px-2 uppercase tracking-wide">Ver Todas</p>
           </button>
         </div>
       </section>
@@ -972,10 +961,10 @@ const HomePage: React.FC = () => {
       {isModuleOn('artists') && (
       <section className="mx-4 mt-10">
         <div className="section-head mb-4">
-          <h2 className="font-display font-black text-lg text-gray-900 uppercase tracking-wide">
-            Artistas y Bailarines
+          <h2 className="font-display font-black text-lg bg-gradient-to-r from-pink-500 to-fuchsia-600 bg-clip-text text-transparent uppercase tracking-wide">
+            🎧 Artistas y Bailarines
           </h2>
-          <button onClick={() => navigate('/artistas')} className="text-brand-orange text-sm font-bold hover:underline flex items-center gap-1">
+          <button onClick={() => navigate('/artistas')} className="text-pink-500 text-sm font-bold hover:underline flex items-center gap-1">
             Ver Todos <ArrowRight className="w-4 h-4" />
           </button>
         </div>
