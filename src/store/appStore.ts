@@ -296,6 +296,18 @@ export const useSiteConfigStore = create<SiteConfigState>()(
     }),
     {
       name: 'bailanow-site-config-v2',
+      version: 1,
+      migrate: (persistedState: any, version: number) => {
+        // Force reset to defaults if there's any issue with persisted state
+        if (!persistedState || !persistedState.homeCategories || persistedState.homeCategories.length === 0) {
+          console.log('📦 SiteConfig: Initializing with defaults (no valid persisted state)');
+          return {
+            ...(persistedState || {}),
+            homeCategories: DEFAULT_HOME_CATEGORIES,
+          };
+        }
+        return persistedState;
+      },
     }
   )
 );
