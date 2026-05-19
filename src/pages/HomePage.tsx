@@ -480,6 +480,18 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
   const mercadoCats = active.filter(c => c.section === 'mercado').sort((a, b) => a.display_order - b.display_order);
   const comunidadCats = active.filter(c => c.section === 'comunidad').sort((a, b) => a.display_order - b.display_order);
 
+  // Diagnostic logging
+  if (typeof window !== 'undefined') {
+    console.log('🏠 HomePage Categories Debug:', {
+      total: homeCategories.length,
+      active: active.length,
+      mainCats: mainCats.length,
+      mercadoCats: mercadoCats.length,
+      comunidadCats: comunidadCats.length,
+      categories: homeCategories.slice(0, 5).map(c => ({ name: c.name, active: c.active, section: c.section }))
+    });
+  }
+
   const CategoryButton: React.FC<{ cat: HomeCategory; index: number }> = ({ cat }) => {
     return (
       <button
