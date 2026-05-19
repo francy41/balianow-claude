@@ -295,12 +295,7 @@ export const useSiteConfigStore = create<SiteConfigState>()(
         set({ commissions: DEFAULT_COMMISSIONS }),
     }),
     {
-      name: 'ritmolatino-site-config',
-      version: 7,
-      migrate: (state: any) => ({
-        ...state,
-        homeCategories: DEFAULT_HOME_CATEGORIES,
-      }),
+      name: 'bailanow-site-config-v2',
     }
   )
 );
