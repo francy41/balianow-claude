@@ -20,7 +20,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
     section: 'EXPLORADOR',
     items: [
       { label: 'Explorador',   icon: <Compass className="w-4 h-4" />,    to: '/explorar' },
-      { label: 'Localidades',  icon: <MapPin className="w-4 h-4" />,     to: '/venues' },
+      { label: 'Ciudades',      icon: <MapPin className="w-4 h-4" />,     to: '/venues' },
       { label: 'Eventos',      icon: <Calendar className="w-4 h-4" />,   to: '/eventos' },
       { label: 'Artistas',     icon: <Music2 className="w-4 h-4" />,     to: '/artistas' },
       { label: 'Bailarines',   icon: <Users className="w-4 h-4" />,      to: '/artistas?tipo=dancer' },
@@ -47,6 +47,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { label: 'Clases en vivo',icon: <Video className="w-4 h-4" />,      to: '/live' },
       { label: 'Ofertas',       icon: <Gift className="w-4 h-4" />,       to: '/marketplace?cat=ofertas' },
       { label: 'Afiliados RRPP', icon: <Briefcase className="w-4 h-4" />, to: '/afiliados' },
+      { label: 'Promociónate', icon: <Megaphone className="w-4 h-4" />, to: '/promocionate' },
     ],
   },
   {

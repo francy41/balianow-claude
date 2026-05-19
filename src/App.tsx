@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useState } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/layout/Navbar';
 import Sidebar from './components/layout/Sidebar';
@@ -26,6 +26,7 @@ const AuthPage         = lazy(() => import('./pages/AuthPage'));
 const AdminPage        = lazy(() => import('./pages/AdminPage'));
 const ProfilePage      = lazy(() => import('./pages/ProfilePage'));
 const AffiliatePage    = lazy(() => import('./pages/AffiliatePage'));
+const PromocionatePage = lazy(() => import('./pages/PromocionatePage'));
 
 // Error boundary
 class ErrorBoundary extends React.Component<
@@ -65,10 +66,17 @@ const App: React.FC = () => {
   useSupabaseAuthListener();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Initialize dark mode from localStorage on mount
+  useEffect(() => {
+    if (localStorage.getItem('bailanow-dark') === 'true') {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
   return (
     <BrowserRouter>
       <ErrorBoundary>
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] transition-colors duration-300">
           {/* Sidebar — fixed left, hidden on mobile until toggled */}
           <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
@@ -99,6 +107,7 @@ const App: React.FC = () => {
                   <Route path="/subscripciones"   element={<SubscriptionsPage />} />
                   <Route path="/auth"             element={<AuthPage />} />
                   <Route path="/afiliados"        element={<AffiliatePage />} />
+                  <Route path="/promocionate"     element={<PromocionatePage />} />
                   <Route path="/admin"            element={<AdminPage />} />
                   <Route path="/admin/:section"   element={<AdminPage />} />
                   <Route path="*"                 element={<Navigate to="/" replace />} />

@@ -14,7 +14,17 @@
     overflow-x: hidden;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s, color 0.3s;
   }
+
+  /* ── DARK MODE BASE ── */
+  .dark body,
+  html.dark body {
+    background-color: #0a0a0a;
+    color: #e5e5e5;
+  }
+  html.dark ::-webkit-scrollbar-track { background: #1a1a1a; }
+  html.dark ::selection { background: rgba(236,72,153,0.3); color: #fff; }
 
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: #f1f1f1; }
@@ -31,6 +41,10 @@
     background: #ffffff;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  html.dark .card-white {
+    background: #1a1a2e;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
   }
 
   /* ── PREMIUM BUTTONS ── */
@@ -114,4 +128,103 @@
 
   /* Safe area for mobile */
   .pb-nav { padding-bottom: 72px; }
+
+  /* ── DARK MODE OVERRIDES ── */
+  html.dark .btn-ghost {
+    @apply text-gray-400 hover:bg-gray-800 hover:text-gray-200;
+  }
+  html.dark .input-field {
+    @apply bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500 focus:border-pink-500;
+  }
+  html.dark .admin-table th { @apply text-gray-500 border-gray-700; }
+  html.dark .admin-table td { @apply border-gray-800 text-gray-300; }
+  html.dark .admin-table tr:hover td { @apply bg-gray-800/50; }
+  html.dark .section-title { @apply text-white; }
+  html.dark .skeleton {
+    background: linear-gradient(90deg, #1a1a2e 25%, #16213e 50%, #1a1a2e 75%);
+    background-size: 600px 100%;
+  }
+
+}
+
+/* ══════════════════════════════════════════════════════
+   DARK MODE: GLOBAL OVERRIDES
+   Using attribute selectors to avoid Tailwind circular deps
+   ══════════════════════════════════════════════════════ */
+
+/* Text colors → white/light */
+html.dark [class*="text-gray-900"],
+html.dark [class*="text-gray-800"] {
+  color: #f5f5f5 !important;
+}
+html.dark [class*="text-gray-700"] {
+  color: #e5e5e5 !important;
+}
+html.dark [class*="text-gray-600"] {
+  color: #d4d4d4 !important;
+}
+html.dark [class*="text-gray-500"] {
+  color: #a3a3a3 !important;
+}
+
+/* Backgrounds */
+html.dark [class*="bg-gray-50"] {
+  background-color: #1a1a2e !important;
+}
+html.dark [class*="bg-gray-100"] {
+  background-color: #1f1f3a !important;
+}
+html.dark [class*="bg-white"]:not([class*="text-white"]):not(button[class*="bg-gradient"]):not([class*="btn-"]) {
+  background-color: #1a1a2e !important;
+}
+
+/* Borders */
+html.dark [class*="border-gray-100"],
+html.dark [class*="border-gray-200"] {
+  border-color: #2a2a4a !important;
+}
+html.dark [class*="border-gray-300"] {
+  border-color: #3a3a5a !important;
+}
+
+/* Pink accents vibrant in dark */
+html.dark [class*="bg-pink-50"] {
+  background-color: rgba(236, 72, 153, 0.1) !important;
+}
+
+/* Tags / badges in dark */
+html.dark [class*="bg-green-100"] { background-color: rgba(34, 197, 94, 0.15) !important; }
+html.dark [class*="text-green-700"] { color: #4ade80 !important; }
+html.dark [class*="bg-red-100"] { background-color: rgba(239, 68, 68, 0.15) !important; }
+html.dark [class*="text-red-600"] { color: #f87171 !important; }
+html.dark [class*="bg-yellow-100"] { background-color: rgba(234, 179, 8, 0.15) !important; }
+html.dark [class*="text-yellow-700"] { color: #fbbf24 !important; }
+html.dark [class*="bg-blue-100"] { background-color: rgba(59, 130, 246, 0.15) !important; }
+html.dark [class*="text-blue-700"] { color: #60a5fa !important; }
+html.dark [class*="bg-purple-100"] { background-color: rgba(168, 85, 247, 0.15) !important; }
+html.dark [class*="text-purple-700"] { color: #c084fc !important; }
+
+/* Shadows softer in dark */
+html.dark [class*="shadow-"] {
+  --tw-shadow-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Hover states */
+html.dark [class*="hover\:bg-gray-50"]:hover {
+  background-color: #252545 !important;
+}
+html.dark [class*="hover\:bg-gray-100"]:hover {
+  background-color: #2a2a4a !important;
+}
+
+/* Placeholder text */
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #6b7280 !important;
+}
+
+/* Dividers */
+html.dark [class*="divide-gray-100"] > :not([hidden]) ~ :not([hidden]),
+html.dark [class*="divide-gray-200"] > :not([hidden]) ~ :not([hidden]) {
+  border-color: #2a2a4a !important;
 }
