@@ -201,9 +201,9 @@ const DEFAULT_CATEGORIES: CategoryWithImage[] = [
   { id: '14', name: 'Academia', icon: '🎓', slug: 'academia', route: '/marketplace?cat=Clases', section: 'comunidad', color_start: '#F06292', color_mid: '#EC407A', color_end: '#EC407A', shadow_color: 'rgba(240, 98, 146, 0.4)', display_order: 2, active: true, image_url: 'https://picsum.photos/seed/academy2024/800/400' },
   { id: '15', name: 'Comunidad', icon: '👥', slug: 'comunidad-users', route: '/chat', section: 'comunidad', color_start: '#EC407A', color_mid: '#E91E63', color_end: '#E91E63', shadow_color: 'rgba(236, 64, 122, 0.4)', display_order: 3, active: true, image_url: 'https://picsum.photos/seed/communityusers2024/800/400' },
   { id: '16', name: 'Chat', icon: '💬', slug: 'chat', route: '/chat', section: 'comunidad', color_start: '#AD1457', color_mid: '#D81B60', color_end: '#D81B60', shadow_color: 'rgba(173, 20, 87, 0.4)', display_order: 4, active: true, image_url: 'https://picsum.photos/seed/chat2024/800/400' },
-  { id: '17', name: 'Abiertos Ahora', icon: '🟢', slug: 'abiertos-ahora', route: '/venues?open=true', section: 'main', color_start: '#10B981', color_mid: '#059669', color_end: '#047857', shadow_color: 'rgba(16, 185, 129, 0.4)', display_order: 9, active: true, image_url: 'https://picsum.photos/seed/opennow2024/800/400' },
-  { id: '18', name: 'En Directo', icon: '🔴', slug: 'en-directo', route: '/live', section: 'main', color_start: '#EF4444', color_mid: '#DC2626', color_end: '#B91C1C', shadow_color: 'rgba(239, 68, 68, 0.4)', display_order: 10, active: true, image_url: 'https://picsum.photos/seed/livenow2024/800/400' },
-  { id: '19', name: 'Afiliados RRPP', icon: '🤝', slug: 'afiliados', route: '/afiliados', section: 'mercado', color_start: '#8B5CF6', color_mid: '#7C3AED', color_end: '#6D28D9', shadow_color: 'rgba(139, 92, 246, 0.4)', display_order: 5, active: true, image_url: 'https://picsum.photos/seed/affiliates2024/800/400' },
+  { id: '17', name: 'Abiertos Ahora', icon: '🟢', slug: 'abiertos-ahora', route: '/venues?open=true', section: 'main', color_start: '#10B981', color_mid: '#059669', color_end: '#047857', shadow_color: 'rgba(16, 185, 129, 0.4)', display_order: 9, active: false, image_url: 'https://picsum.photos/seed/opennow2024/800/400' },
+  { id: '18', name: 'En Directo', icon: '🔴', slug: 'en-directo', route: '/live', section: 'main', color_start: '#EF4444', color_mid: '#DC2626', color_end: '#B91C1C', shadow_color: 'rgba(239, 68, 68, 0.4)', display_order: 10, active: false, image_url: 'https://picsum.photos/seed/livenow2024/800/400' },
+  { id: '19', name: 'Afiliados RRPP', icon: '🤝', slug: 'afiliados', route: '/afiliados', section: 'mercado', color_start: '#8B5CF6', color_mid: '#7C3AED', color_end: '#6D28D9', shadow_color: 'rgba(139, 92, 246, 0.4)', display_order: 5, active: false, image_url: 'https://picsum.photos/seed/affiliates2024/800/400' },
 ];
 
 // ── ULTRAMODERN SMART SEARCH with AUTOCOMPLETE ────────────────────────────────────────────────
@@ -552,6 +552,18 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     );
   };
 
+  const VerTodasBtn: React.FC<{ to: string }> = ({ to }) => (
+    <button
+      onClick={() => navigate(to)}
+      className="group flex flex-col items-center justify-center h-[88px] sm:h-24 rounded-xl border-2 border-dashed border-pink-300 hover:border-pink-500 hover:bg-pink-50 dark:hover:bg-pink-950/30 transition-all duration-300"
+    >
+      <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-pink-500/30">
+        <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+      </div>
+      <span className="text-pink-500 text-[10px] sm:text-xs font-black mt-2 uppercase tracking-wide">Ver Todas</span>
+    </button>
+  );
+
   return (
     <section className="mt-4 px-2 sm:px-4">
       {/* Header */}
@@ -579,6 +591,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
               {mainCats.map((cat, idx) => (
                 <CategoryButton key={cat.id} cat={cat} index={idx} />
               ))}
+              <VerTodasBtn to="/explorar" />
             </div>
           </div>
         )}
@@ -596,6 +609,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
               {mercadoCats.map((cat, idx) => (
                 <CategoryButton key={cat.id} cat={cat} index={mainCats.length + idx} />
               ))}
+              <VerTodasBtn to="/marketplace" />
             </div>
           </div>
         )}
@@ -613,6 +627,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
               {comunidadCats.map((cat, idx) => (
                 <CategoryButton key={cat.id} cat={cat} index={mainCats.length + mercadoCats.length + idx} />
               ))}
+              <VerTodasBtn to="/chat" />
             </div>
           </div>
         )}
@@ -649,8 +664,14 @@ const HomeSectionWithSearch: React.FC<HomeSectionProps> = ({
           {title}
         </h2>
         {actionLabel && onAction && (
-          <button onClick={onAction} className="text-pink-500 text-sm font-bold hover:underline flex items-center gap-1">
-            {actionLabel} <ArrowRight className="w-4 h-4" />
+          <button
+            onClick={onAction}
+            className="group flex items-center gap-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 hover:from-pink-600 hover:to-fuchsia-700 text-white text-xs font-black px-3 py-1.5 rounded-full shadow-md shadow-pink-500/25 hover:scale-105 transition-all"
+          >
+            <span>{actionLabel}</span>
+            <div className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center">
+              <ArrowRight className="w-2.5 h-2.5" />
+            </div>
           </button>
         )}
       </div>
