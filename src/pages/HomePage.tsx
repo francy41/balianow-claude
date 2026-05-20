@@ -476,9 +476,15 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
 const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => {
   const { homeCategories } = useSiteConfigStore();
   const active = homeCategories.filter(c => c.active);
-  const mainCats    = active.filter(c => c.section === 'main').sort((a, b) => a.display_order - b.display_order);
-  const mercadoCats = active.filter(c => c.section === 'mercado').sort((a, b) => a.display_order - b.display_order);
-  const comunidadCats = active.filter(c => c.section === 'comunidad').sort((a, b) => a.display_order - b.display_order);
+  const sectionOrder: Record<HomeCategory['section'], number> = {
+    main: 0,
+    mercado: 1,
+    comunidad: 2,
+  };
+  const visibleCats = [...active].sort((a, b) => {
+    const bySection = sectionOrder[a.section] - sectionOrder[b.section];
+    return bySection !== 0 ? bySection : a.display_order - b.display_order;
+  });
 
   const CategoryButton: React.FC<{ cat: HomeCategory; index: number }> = ({ cat }) => {
     return (
@@ -507,9 +513,8 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
       </div>
 
       {/* Main Categories Grid */}
-      <div className="space-y-6">
-        {/* Main Categories - 4 columnas */}
-        {mainCats.length > 0 && (
+      <div className="space-y-6 pb-6">
+        {visibleCats.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-4">
               <span className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500" />
@@ -518,42 +523,8 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
               </h3>
             </div>
             <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
-              {mainCats.map((cat, idx) => (
+              {visibleCats.map((cat, idx) => (
                 <CategoryButton key={cat.id} cat={cat} index={idx} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* MERCADO Section */}
-        {mercadoCats.length > 0 && (
-          <div>
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500" />
-              <h3 className="font-display font-bold text-sm sm:text-base text-gray-900 uppercase tracking-wider">
-                🏪 Mercado
-              </h3>
-            </div>
-            <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
-              {mercadoCats.map((cat, idx) => (
-                <CategoryButton key={cat.id} cat={cat} index={mainCats.length + idx} />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* COMUNIDAD Section */}
-        {comunidadCats.length > 0 && (
-          <div className="pb-6">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500" />
-              <h3 className="font-display font-bold text-sm sm:text-base text-gray-900 uppercase tracking-wider">
-                💬 Comunidad
-              </h3>
-            </div>
-            <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
-              {comunidadCats.map((cat, idx) => (
-                <CategoryButton key={cat.id} cat={cat} index={mainCats.length + mercadoCats.length + idx} />
               ))}
             </div>
           </div>
