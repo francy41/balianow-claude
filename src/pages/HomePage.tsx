@@ -1058,12 +1058,14 @@ const HomePage: React.FC = () => {
         subtitle="Encuentra los mejores locales y eventos en tu ciudad"
         searchPlaceholder="Buscar ciudad, local, zona..."
         gradient
+        actionLabel="Ver Todas"
+        onAction={() => navigate('/venues')}
         onSearch={(q) => navigate(`/venues?city=${encodeURIComponent(q)}`)}
       >
         {(searchQ) => {
           const filtered = searchQ
             ? CITIES.filter(c => c.name.toLowerCase().includes(searchQ.toLowerCase()))
-            : CITIES;
+            : CITIES.slice(0, 9);
           return (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {filtered.map(city => (
