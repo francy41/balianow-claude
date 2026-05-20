@@ -26,6 +26,16 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PASSWORD_RE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
 const ALLOWED_ROLES: UserRole[] = ['user', 'dj', 'dancer', 'artist', 'venue', 'vendor'];
 
+const CITIES = [
+  'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Bilbao', 'Málaga',
+  'Zaragoza', 'Murcia', 'Palma', 'Las Palmas', 'Tenerife', 'Alicante',
+  'Córdoba', 'Valladolid', 'Vigo', 'Gijón', 'Granada', 'A Coruña',
+  'Vitoria', 'Oviedo', 'Pamplona', 'Santander', 'Almería', 'Burgos',
+  'Miami', 'Nueva York', 'Los Ángeles', 'Ciudad de México', 'Bogotá',
+  'Buenos Aires', 'Lima', 'Santiago', 'Caracas', 'La Habana',
+  'Londres', 'París', 'Berlín', 'Ámsterdam', 'Bruselas',
+];
+
 // ── Google SVG Icon ──────────────────────────────────────────────────────────
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" className="w-5 h-5 flex-shrink-0" aria-hidden="true">
@@ -72,6 +82,8 @@ const AuthPage: React.FC = () => {
   const [regEmail, setRegEmail] = useState('');
   const [regCity, setRegCity] = useState('');
   const [regPassword, setRegPassword] = useState('');
+  const [cityOpen, setCityOpen] = useState(false);
+  const [citySearch, setCitySearch] = useState('');
 
   // Forgot password
   const [forgotEmail, setForgotEmail] = useState('');
@@ -412,8 +424,44 @@ const AuthPage: React.FC = () => {
                   value={regName} onChange={e => setRegName(e.target.value)} icon={<User className="w-4 h-4" />} />
                 <Input label="Email *" type="email" placeholder="tu@email.com"
                   value={regEmail} onChange={e => setRegEmail(e.target.value)} icon={<Mail className="w-4 h-4" />} />
-                <Input label="Ciudad" type="text" placeholder="Madrid, Barcelona..."
-                  value={regCity} onChange={e => setRegCity(e.target.value)} icon={<MapPin className="w-4 h-4" />} />
+                {/* City combobox */}
+                <div className="relative">
+                  <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1">Ciudad</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                      <MapPin className="w-4 h-4" />
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Escribe o selecciona tu ciudad..."
+                      value={citySearch || regCity}
+                      onFocus={() => { setCityOpen(true); setCitySearch(''); }}
+                      onChange={e => { setCitySearch(e.target.value); setRegCity(e.target.value); setCityOpen(true); }}
+                      onBlur={() => setTimeout(() => setCityOpen(false), 150)}
+                      className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
+                    />
+                  </div>
+                  {cityOpen && (
+                    <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg max-h-48 overflow-y-auto">
+                      {CITIES.filter(c => c.toLowerCase().includes((citySearch || regCity).toLowerCase()))
+                        .map(city => (
+                          <button
+                            key={city}
+                            type="button"
+                            onMouseDown={() => { setRegCity(city); setCitySearch(''); setCityOpen(false); }}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-pink-50 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            {city}
+                          </button>
+                        ))}
+                      {CITIES.filter(c => c.toLowerCase().includes((citySearch || regCity).toLowerCase())).length === 0 && (
+                        <div className="px-4 py-2 text-xs text-gray-400">
+                          Presiona Enter para usar "{citySearch || regCity}"
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
 
                 <div className="relative">
                   <Input label="Contraseña *" type={showPassword ? 'text' : 'password'}
