@@ -107,7 +107,8 @@
       "Bash(node supabase/run-schema.mjs fix-policies.sql)",
       "Bash(node supabase/deploy-functions.mjs)",
       "Bash(echo \"Exit: $?\")",
-      "Bash(tee build.log)"
+      "Bash(tee build.log)",
+      "Bash(curl -s https://bailanow.com/)"
     ]
   }
 }

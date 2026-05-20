@@ -1168,3 +1168,56 @@ export const useCartStore = create<CartState>()(
     { name: 'bailanow-promo-cart', version: 1 }
   )
 );
+
+// ── ORDERS STORE (Mis Pedidos) ────────────────────────────────────────────
+export interface Order {
+  id: string;
+  createdAt: string;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  paymentProvider: string;
+  total: number;
+  items: {
+    serviceId: string;
+    title: string;
+    sellerName: string;
+    sellerAvatar: string;
+    price: number;
+  }[];
+  sellerBreakdown: {
+    sellerId: string;
+    sellerName: string;
+    sellerAvatar: string;
+    gross: number;
+    commission: number;
+    net: number;
+  }[];
+}
+
+interface OrdersState {
+  orders: Order[];
+  addOrder: (order: Omit<Order, 'id' | 'createdAt' | 'status'>) => Order;
+  updateStatus: (id: string, status: Order['status']) => void;
+  clearOrders: () => void;
+}
+
+export const useOrdersStore = create<OrdersState>()(
+  persist(
+    (set, get) => ({
+      orders: [],
+      addOrder: (order) => {
+        const newOrder: Order = {
+          ...order,
+          id: `order_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          createdAt: new Date().toISOString(),
+          status: 'confirmed',
+        };
+        set(s => ({ orders: [newOrder, ...s.orders] }));
+        return newOrder;
+      },
+      updateStatus: (id, status) =>
+        set(s => ({ orders: s.orders.map(o => o.id === id ? { ...o, status } : o) })),
+      clearOrders: () => set({ orders: [] }),
+    }),
+    { name: 'bailanow-orders', version: 1 }
+  )
+);

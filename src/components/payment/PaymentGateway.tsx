@@ -7,7 +7,7 @@ import {
   X, CreditCard, Wallet, ShieldCheck, ChevronDown, ChevronUp,
   CheckCircle, Lock, Sparkles, ArrowRight,
 } from 'lucide-react';
-import { useAuthStore, useUIStore, useCartStore } from '../../store/appStore';
+import { useAuthStore, useUIStore, useCartStore, useOrdersStore } from '../../store/appStore';
 import { calcSellerBreakdown, fmtEur, createStripePaymentIntent } from '../../lib/payments';
 import type { SellerPayout, PaymentItem } from '../../lib/payments';
 import StripePayment from './StripePayment';
@@ -91,6 +91,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
   const { user } = useAuthStore();
   const { addToast } = useUIStore();
   const cart = useCartStore();
+  const ordersStore = useOrdersStore();
 
   const [method, setMethod] = useState<PayMethod>('card');
   const [showBreakdown, setShowBreakdown] = useState(false);
@@ -148,6 +149,19 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
     setCompletedBreakdown(breakdown);
     setCompleted(true);
     setCompletedProvider(provider);
+    // Guardar la orden en el store de pedidos
+    ordersStore.addOrder({
+      paymentProvider: provider,
+      total: subtotal,
+      items: items.map(i => ({
+        serviceId: i.serviceId,
+        title: i.title,
+        sellerName: i.sellerName,
+        sellerAvatar: i.sellerAvatar,
+        price: i.price + i.extras.filter(e => e.selected).reduce((s, e) => s + e.price, 0),
+      })),
+      sellerBreakdown: breakdown,
+    });
     cart.clearCart();
     addToast({ message: '¡Pago completado! Los vendedores han sido notificados.', type: 'success' });
   };
