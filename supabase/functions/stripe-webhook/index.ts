@@ -6,7 +6,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') ?? '', {
   apiVersion: '2023-10-16',
@@ -19,17 +19,27 @@ const supabase = createClient(
 );
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  const corsH = getCorsHeaders(req);
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsH });
 
+  // Stripe webhooks come from Stripe servers, not browsers — no need for CORS,
+  // but we still validate the signature before processing anything.
   const signature = req.headers.get('stripe-signature');
   const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET') ?? '';
+
+  if (!webhookSecret) {
+    console.error('[stripe-webhook] STRIPE_WEBHOOK_SECRET not configured');
+    return new Response(JSON.stringify({ error: 'Server misconfiguration' }), { status: 500 });
+  }
+
   const body = await req.text();
 
   let event: Stripe.Event;
   try {
     event = await stripe.webhooks.constructEventAsync(body, signature!, webhookSecret);
   } catch (err) {
-    console.error('Webhook signature failed:', err);
+    // Only log the type, not the full error (may contain key material)
+    console.error('[stripe-webhook] Signature verification failed');
     return new Response(JSON.stringify({ error: 'Invalid signature' }), { status: 400 });
   }
 
@@ -90,6 +100,6 @@ serve(async (req) => {
   }
 
   return new Response(JSON.stringify({ received: true }), {
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsH, 'Content-Type': 'application/json' },
   });
 });

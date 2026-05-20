@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { safeSocialUrl } from '../lib/security';
 import { useNavigate } from 'react-router-dom';
 import {
   Edit3, MapPin, Mail, Phone, Globe, Instagram, Youtube, Facebook,
@@ -92,10 +93,13 @@ const ProfilePage: React.FC = () => {
                 <Globe className="w-4 h-4 text-brand-orange" /> Redes sociales
               </h3>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {socials.map(([k, v]) => (
+                {socials.map(([k, v]) => {
+                  const url = safeSocialUrl(k, v);
+                  if (!url) return null;
+                  return (
                   <a key={k}
-                    href={String(v).startsWith('http') ? String(v) : `https://${k}.com/${String(v).replace('@', '')}`}
-                    target="_blank" rel="noreferrer"
+                    href={url}
+                    target="_blank" rel="noopener noreferrer"
                     className="card-white rounded-xl p-3 flex items-center gap-2 hover:shadow-md transition-all">
                     <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${SOCIAL_COLORS[k]} text-white flex items-center justify-center flex-shrink-0`}>
                       {SOCIAL_ICONS[k]}
@@ -105,7 +109,8 @@ const ProfilePage: React.FC = () => {
                       <p className="text-xs text-gray-700 truncate">{String(v)}</p>
                     </div>
                   </a>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

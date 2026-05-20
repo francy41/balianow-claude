@@ -15,11 +15,19 @@ const ROLES: { id: UserRole; label: string; icon: string; desc: string; badge?: 
   { id: 'vendor',  label: 'Vendedor',              icon: '🏪', desc: 'Vende servicios, cursos y productos latinos', badge: 'NUEVO' },
 ];
 
+// ── Validation helpers ───────────────────────────────────────────────────────
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+// Min 8 chars, at least one letter + one number
+const PASSWORD_RE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+const ALLOWED_ROLES: UserRole[] = ['user', 'dj', 'dancer', 'artist', 'venue', 'vendor'];
+
 const AuthPage: React.FC = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const initialTab = params.get('tab') === 'register' ? 'register' : 'login';
-  const initialRole = (params.get('role') as UserRole) || 'user';
+  // Validate role from URL param — fall back to 'user' if unknown
+  const rawRole = params.get('role') as UserRole;
+  const initialRole: UserRole = ALLOWED_ROLES.includes(rawRole) ? rawRole : 'user';
 
   const [tab, setTab] = useState<'login' | 'register'>(initialTab);
   const [showPassword, setShowPassword] = useState(false);
@@ -36,33 +44,63 @@ const AuthPage: React.FC = () => {
   const { addToast } = useUIStore();
 
   const handleLogin = async () => {
-    if (!loginEmail || !loginPassword) { addToast({ message: 'Completa todos los campos', type: 'error' }); return; }
+    const email = loginEmail.trim().toLowerCase();
+    if (!email || !loginPassword) {
+      addToast({ message: 'Completa todos los campos', type: 'error' });
+      return;
+    }
+    if (!EMAIL_RE.test(email)) {
+      addToast({ message: 'El email no es válido', type: 'error' });
+      return;
+    }
     // Try Supabase first, fall back to demo login
-    const supa = await supabaseLogin(loginEmail, loginPassword);
+    const supa = await supabaseLogin(email, loginPassword);
     if (supa.success) {
       addToast({ message: '¡Bienvenido de vuelta!', type: 'success' });
-      navigate('/dashboard');
+      // Redirect back to the page the user was trying to visit, or dashboard
+      const redirect = params.get('redirect');
+      navigate(redirect && redirect.startsWith('/') ? redirect : '/dashboard');
       return;
     }
     // Fallback to demo
-    const ok = await login(loginEmail, loginPassword);
+    const ok = await login(email, loginPassword);
     if (ok) {
       addToast({ message: '¡Bienvenido! (modo demo)', type: 'success' });
       navigate('/dashboard');
+    } else {
+      addToast({ message: 'Email o contraseña incorrectos', type: 'error' });
     }
   };
 
   const handleRegister = async () => {
-    if (!regName || !regEmail || !regPassword) { addToast({ message: 'Completa todos los campos requeridos', type: 'error' }); return; }
+    const email = regEmail.trim().toLowerCase();
+    const name  = regName.trim().slice(0, 100);
+
+    if (!name || !email || !regPassword) {
+      addToast({ message: 'Completa todos los campos requeridos', type: 'error' });
+      return;
+    }
+    if (!EMAIL_RE.test(email)) {
+      addToast({ message: 'El email no es válido', type: 'error' });
+      return;
+    }
+    if (!PASSWORD_RE.test(regPassword)) {
+      addToast({ message: 'La contraseña debe tener al menos 8 caracteres, una letra y un número', type: 'error' });
+      return;
+    }
+    if (!ALLOWED_ROLES.includes(selectedRole)) {
+      addToast({ message: 'Tipo de cuenta no válido', type: 'error' });
+      return;
+    }
     // Try Supabase first
-    const supa = await supabaseRegister(regEmail, regPassword, { name: regName, role: selectedRole, city: regCity || 'Madrid' });
+    const supa = await supabaseRegister(email, regPassword, { name, role: selectedRole, city: regCity.trim() || 'Madrid' });
     if (supa.success) {
       addToast({ message: '¡Cuenta creada! Revisa tu email para confirmar.', type: 'success' });
       navigate('/dashboard');
       return;
     }
     // Fallback to demo
-    const ok = await register({ name: regName, email: regEmail, city: regCity || 'Madrid', role: selectedRole, password: regPassword });
+    const ok = await register({ name, email, city: regCity.trim() || 'Madrid', role: selectedRole, password: regPassword });
     if (ok) {
       addToast({ message: '¡Cuenta creada! (modo demo)', type: 'success' });
       navigate('/dashboard');

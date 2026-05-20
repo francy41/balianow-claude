@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { safeSocialUrl } from '../lib/security';
 import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Wallet, BookOpen, Calendar as CalIcon, Video, Briefcase,
@@ -84,13 +85,17 @@ const DashboardPage: React.FC = () => {
                 {user.bio && <p className="text-gray-600 text-sm mt-2 max-w-2xl">{user.bio}</p>}
                 {user.socials && Object.values(user.socials).some(v => v) && (
                   <div className="flex gap-2 mt-2">
-                    {Object.entries(user.socials).filter(([, v]) => v).map(([k, v]) => (
-                      <a key={k} href={String(v).startsWith('http') ? String(v) : `https://${k}.com/${String(v).replace('@', '')}`}
-                        target="_blank" rel="noreferrer"
-                        className="text-[10px] bg-gray-100 hover:bg-brand-orange hover:text-white text-gray-700 font-bold px-2 py-0.5 rounded transition-colors uppercase">
-                        {k}
-                      </a>
-                    ))}
+                    {Object.entries(user.socials).filter(([, v]) => v).map(([k, v]) => {
+                      const url = safeSocialUrl(k, v);
+                      if (!url) return null;
+                      return (
+                        <a key={k} href={url}
+                          target="_blank" rel="noopener noreferrer"
+                          className="text-[10px] bg-gray-100 hover:bg-brand-orange hover:text-white text-gray-700 font-bold px-2 py-0.5 rounded transition-colors uppercase">
+                          {k}
+                        </a>
+                      );
+                    })}
                   </div>
                 )}
                 <p className="text-[11px] text-gray-400 mt-2">

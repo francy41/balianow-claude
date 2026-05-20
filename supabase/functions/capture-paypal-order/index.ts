@@ -5,6 +5,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getCorsHeaders } from '../_shared/cors.ts';
+import { checkRateLimit } from '../_shared/rateLimit.ts';
 
 const PAYPAL_BASE = Deno.env.get('PAYPAL_ENV') === 'production'
   ? 'https://api-m.paypal.com'
@@ -36,6 +37,11 @@ async function getPayPalToken(): Promise<string> {
 serve(async (req) => {
   const corsH = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsH });
+
+  // ── RATE LIMIT ─────────────────────────────────────────────
+  // Captures are more sensitive — limit to 5/min per IP
+  const rl = checkRateLimit(req, { max: 5, windowMs: 60_000, keyPrefix: 'cap' });
+  if (!rl.ok) return rl.response;
 
   // ── AUTH CHECK ─────────────────────────────────────────────
   const authHeader = req.headers.get('Authorization');

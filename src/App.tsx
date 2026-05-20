@@ -4,6 +4,7 @@ import Navbar from './components/layout/Navbar';
 import Sidebar from './components/layout/Sidebar';
 import BottomNav from './components/layout/BottomNav';
 import CookieBanner from './components/CookieBanner';
+import ProtectedRoute from './components/ProtectedRoute';
 import { ToastContainer, FullPageLoader } from './components/ui';
 import { useSupabaseAuthListener } from './hooks/useSupabaseAuth';
 
@@ -110,17 +111,18 @@ const App: React.FC = () => {
                   <Route path="/venues"              element={<VenuesPage />} />
                   <Route path="/venues/:id"          element={<VenuesPage />} />
                   <Route path="/mapa"                element={<MapPage />} />
-                  <Route path="/chat"                element={<ChatPage />} />
-                  <Route path="/dashboard"           element={<DashboardPage />} />
-                  <Route path="/perfil"              element={<ProfilePage />} />
-                  <Route path="/wallet"              element={<WalletPage />} />
-                  <Route path="/subscripciones"      element={<SubscriptionsPage />} />
+                  <Route path="/chat"                element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+                  <Route path="/dashboard"           element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+                  <Route path="/perfil"              element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+                  <Route path="/wallet"              element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
+                  <Route path="/subscripciones"      element={<ProtectedRoute><SubscriptionsPage /></ProtectedRoute>} />
                   <Route path="/auth"                element={<AuthPage />} />
-                  <Route path="/afiliados"           element={<AffiliatePage />} />
+                  <Route path="/afiliados"           element={<ProtectedRoute><AffiliatePage /></ProtectedRoute>} />
                   <Route path="/vendedores"          element={<VendedoresPage />} />
                   <Route path="/promocionate"        element={<PromocionatePage />} />
-                  <Route path="/admin"               element={<AdminPage />} />
-                  <Route path="/admin/:section"      element={<AdminPage />} />
+                  {/* Admin routes — requiredRole guard redirects silently to /dashboard if wrong role */}
+                  <Route path="/admin"               element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
+                  <Route path="/admin/:section"      element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
 
                   {/* ── Payment success (Stripe redirect) ── */}
                   <Route path="/pago-exitoso"        element={<PagoExitosoPage />} />
