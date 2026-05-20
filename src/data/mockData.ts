@@ -545,6 +545,460 @@ export const VENUES: Venue[] = [
     amenities: ['Música en Vivo', 'Bar Cubano', 'Clases Incluidas', 'VIP Lounge'],
     lat: 48.8566, lng: 2.3522
   },
+
+  // ── MADRID (reales) ─────────────────────────────────────────
+  {
+    id: 'v8', name: 'El Son Madrid', type: 'club',
+    city: 'Madrid', address: 'Calle de los Caños del Peral 2, Madrid',
+    cover: coverUrl(40), avatar: avatarUrl('El Son', 'DC2626'),
+    rating: 4.7, reviews: 1120, capacity: 400, isOpen: true,
+    openHours: 'Jue-Dom: 23:00 – 06:00', isPremium: true, priceRange: 3,
+    description: 'Icónico club de salsa en el corazón de Madrid, junto a los Teatros del Canal. Noches temáticas de salsa, bachata y merengue con los mejores DJs de la escena latina madrileña.',
+    amenities: ['Pista de Baile', 'Bar Premium', 'DJ Booth', 'VIP Lounge', 'Clases Previas'],
+    lat: 40.4192, lng: -3.7106
+  },
+  {
+    id: 'v9', name: 'Azúcar Madrid', type: 'club',
+    city: 'Madrid', address: 'Calle Atocha 107, Madrid',
+    cover: coverUrl(41), avatar: avatarUrl('Azucar Madrid', 'B45309'),
+    rating: 4.6, reviews: 876, capacity: 350, isOpen: true,
+    openHours: 'Jue-Dom: 22:30 – 06:00', isPremium: false, priceRange: 2,
+    description: 'Uno de los clubs de salsa más emblemáticos de Madrid, activo desde los 90. Mezcla perfecta de música cubana, salsa neoyorquina y ritmos caribeños en pleno centro.',
+    amenities: ['Pista Grande', 'Bar', 'Shows en Vivo', 'Clases de Salsa', 'Reservas'],
+    lat: 40.4127, lng: -3.6994
+  },
+  {
+    id: 'v10', name: 'Tropical House Madrid', type: 'bar',
+    city: 'Madrid', address: 'Calle Mesón de Paredes 57, Madrid',
+    cover: coverUrl(42), avatar: avatarUrl('Tropical House', '059669'),
+    rating: 4.5, reviews: 432, capacity: 150, isOpen: true,
+    openHours: 'Mar-Dom: 20:00 – 04:00', isPremium: false, priceRange: 2,
+    description: 'Bar tropical en el corazón de Lavapiés con música latina en vivo los fines de semana. Ambiente multicultural, mojitos auténticos y ritmos de salsa, cumbia y reggaeton.',
+    amenities: ['Música en Vivo', 'Bar', 'Terraza Interior', 'Cócteles Tropicales'],
+    lat: 40.4106, lng: -3.7038
+  },
+  {
+    id: 'v11', name: 'Magangué Club Madrid', type: 'club',
+    city: 'Madrid', address: 'Calle Arenal 11, Madrid',
+    cover: coverUrl(43), avatar: avatarUrl('Magangue', 'D97706'),
+    rating: 4.4, reviews: 298, capacity: 200, isOpen: false,
+    openHours: 'Vie-Sáb: 23:00 – 06:00', isPremium: false, priceRange: 2,
+    description: 'Club colombiano auténtico en Madrid. Cumbia, vallenato, salsa caleña y champeta en un ambiente festivo y lleno de color. El sabor de Colombia en el centro de Madrid.',
+    amenities: ['Pista de Baile', 'Bar', 'DJ Colombiano', 'Shows Folclóricos'],
+    lat: 40.4155, lng: -3.7092
+  },
+
+  // ── VALENCIA (reales) ───────────────────────────────────────
+  {
+    id: 'v12', name: 'Noches de Salsa Valencia', type: 'club',
+    city: 'Valencia', address: 'Avenida de Ecuador 69, Valencia',
+    cover: coverUrl(44), avatar: avatarUrl('Noches Salsa', '7C3AED'),
+    rating: 4.8, reviews: 654, capacity: 300, isOpen: true,
+    openHours: 'Jue-Dom: 22:00 – 05:30', isPremium: true, priceRange: 2,
+    description: 'La referencia de la salsa en Valencia. Clases gratuitas antes de la fiesta, DJs residentes internacionales y shows en vivo cada mes. La mejor pista de baile de la ciudad.',
+    amenities: ['Clases Gratuitas', 'DJ Internacional', 'Shows Mensuales', 'Bar', 'Parking Cercano'],
+    lat: 39.4840, lng: -0.3770
+  },
+  {
+    id: 'v13', name: 'Tropicana Valencia', type: 'club',
+    city: 'Valencia', address: 'Calle Músico Peydró 11, Valencia',
+    cover: coverUrl(45), avatar: avatarUrl('Tropicana VLC', 'EC4899'),
+    rating: 4.5, reviews: 387, capacity: 250, isOpen: true,
+    openHours: 'Vie-Dom: 23:00 – 06:00', isPremium: false, priceRange: 2,
+    description: 'Club latino con más de 15 años de historia en Valencia. Salsa, bachata, merengue y reggaeton. Ambiente familiar y festivo, ideal para grupos y despedidas de soltero.',
+    amenities: ['Pista de Baile', 'Bar', 'Zona VIP', 'Fotomatón', 'Guardarropa'],
+    lat: 39.4700, lng: -0.3780
+  },
+  {
+    id: 'v14', name: 'La Bora Bora Valencia', type: 'lounge',
+    city: 'Valencia', address: 'Paseo Neptuno 30, Valencia',
+    cover: coverUrl(46), avatar: avatarUrl('Bora Bora', '0891B2'),
+    rating: 4.6, reviews: 512, capacity: 400, isOpen: true,
+    openHours: 'Jue-Dom: 22:00 – 06:00', isPremium: true, priceRange: 3,
+    description: 'Emblemático club de playa en la Malvarrosa con música latina y electrónica. Famoso por sus noches temáticas de salsa y bachata frente al Mediterráneo.',
+    amenities: ['Playa Privada', 'Terraza', 'Bar Premium', 'DJ Internacional', 'Zona Chill Out'],
+    lat: 39.4780, lng: -0.3290
+  },
+
+  // ── PARIS (reales) ──────────────────────────────────────────
+  {
+    id: 'v15', name: 'La Pachanga Paris', type: 'club',
+    city: 'Paris', address: '8 Rue Vandamme, 75014 Paris',
+    cover: coverUrl(47), avatar: avatarUrl('La Pachanga', 'BE185D'),
+    rating: 4.7, reviews: 892, capacity: 250, isOpen: true,
+    openHours: 'Vie-Sáb: 22:30 – 05:00', isPremium: true, priceRange: 3,
+    description: 'El club de salsa y son cubano más popular del 14ème arrondissement. Ambiente íntimo y auténtico, con clases de iniciación antes de cada noche de baile. Reconocido por los bailarines latinos de toda Europa.',
+    amenities: ['Clases de Iniciación', 'Bar', 'DJ Cubano', 'Pista de Madera', 'Reservas Online'],
+    lat: 48.8390, lng: 2.3230
+  },
+  {
+    id: 'v16', name: 'Le Balajo', type: 'club',
+    city: 'Paris', address: '9 Rue de Lappe, 75011 Paris',
+    cover: coverUrl(48), avatar: avatarUrl('Le Balajo', 'C2410C'),
+    rating: 4.8, reviews: 1456, capacity: 500, isOpen: true,
+    openHours: 'Jue-Dom: 21:00 – 05:00', isPremium: true, priceRange: 3,
+    description: 'Sala histórica del París bohemio fundada en 1936. Noches de salsa, bachata y mambo en una sala con historia. Edith Piaf y Django Reinhardt actuaron aquí. Hoy, uno de los mejores clubs de baile de París.',
+    amenities: ['Historia & Arte', 'Pista Grande', 'Bar', 'Shows en Vivo', 'VIP Tables'],
+    lat: 48.8540, lng: 2.3710
+  },
+  {
+    id: 'v17', name: 'Cubana Café Paris', type: 'bar',
+    city: 'Paris', address: '47 Rue Vavin, 75006 Paris',
+    cover: coverUrl(49), avatar: avatarUrl('Cubana Cafe', '15803D'),
+    rating: 4.6, reviews: 743, capacity: 180, isOpen: true,
+    openHours: 'Lun-Dom: 18:00 – 02:00', isPremium: false, priceRange: 2,
+    description: 'Bar restaurante cubano en Montparnasse con música en vivo todas las noches. Son, rumba y salsa desde las 21h. Cócteles cubanos auténticos y cocina caribeña.',
+    amenities: ['Música en Vivo', 'Restaurante', 'Bar de Ron', 'Terraza', 'Reservas'],
+    lat: 48.8460, lng: 2.3270
+  },
+
+  // ── LONDON (reales) ─────────────────────────────────────────
+  {
+    id: 'v18', name: 'La Pollera Colorá', type: 'club',
+    city: 'London', address: '61-65 Great Queen St, London WC2B 5BZ',
+    cover: coverUrl(50), avatar: avatarUrl('La Pollera', 'DC2626'),
+    rating: 4.7, reviews: 1234, capacity: 400, isOpen: true,
+    openHours: 'Jue-Dom: 22:00 – 05:00', isPremium: true, priceRange: 3,
+    description: 'El club de salsa y bachata más famoso de Londres, en el corazón de Covent Garden. Clases de iniciación incluidas en la entrada, DJ residente y noches temáticas. La escena latina de Londres pasa por aquí.',
+    amenities: ['Clases Incluidas', 'DJ Residente', 'Bar Latino', 'Zona VIP', 'Coat Check'],
+    lat: 51.5128, lng: -0.1215
+  },
+  {
+    id: 'v19', name: 'Salsa Temple London', type: 'club',
+    city: 'London', address: '101-103 Great Eastern St, London EC2A 3JD',
+    cover: coverUrl(51), avatar: avatarUrl('Salsa Temple', '5B21B6'),
+    rating: 4.6, reviews: 876, capacity: 350, isOpen: true,
+    openHours: 'Vie-Sáb: 21:00 – 04:00', isPremium: false, priceRange: 2,
+    description: 'Club de salsa en Shoreditch con ambiente vibrante y mezcla de estilos: salsa on1, on2, caleña y cubana. Clases cada semana, socials y workshops con artistas internacionales.',
+    amenities: ['Workshops', 'Social Baile', 'Bar', 'Clases Semanales', 'DJ Internacional'],
+    lat: 51.5264, lng: -0.0814
+  },
+  {
+    id: 'v20', name: 'Paradise Superclub London', type: 'club',
+    city: 'London', address: '139-141 Grosvenor Rd, London SW1V 3JZ',
+    cover: coverUrl(52), avatar: avatarUrl('Paradise London', 'D97706'),
+    rating: 4.5, reviews: 567, capacity: 600, isOpen: false,
+    openHours: 'Sáb-Dom: 23:00 – 06:00', isPremium: true, priceRange: 4,
+    description: 'Superclub junto al Támesis con noches latinas los fines de semana. Bachata sensual, salsa y reggaeton en una sala de clase mundial con sistema de sonido de última generación.',
+    amenities: ['Sistema Sonido Pro', 'Terraza Río', 'Bar Premium', 'VIP Tables', 'Photobooth'],
+    lat: 51.4839, lng: -0.1428
+  },
+
+  // ── SANTO DOMINGO (reales) ───────────────────────────────────
+  {
+    id: 'v21', name: 'Jet Set Club', type: 'club',
+    city: 'Santo Domingo', address: 'Avenida Independencia, Santo Domingo, RD',
+    cover: coverUrl(53), avatar: avatarUrl('Jet Set', 'B91C1C'),
+    rating: 4.9, reviews: 2341, capacity: 800, isOpen: true,
+    openHours: 'Jue-Dom: 22:00 – 06:00', isPremium: true, priceRange: 3,
+    description: 'La discoteca más famosa de la República Dominicana y referencia del merengue y la bachata en el Caribe. Artistas de talla internacional actúan regularmente. Ambiente eléctrico y auténtico dominicano.',
+    amenities: ['Shows en Vivo', 'Artistas Internacionales', 'Bar Premium', 'VIP Lounge', 'Estacionamiento'],
+    lat: 18.4861, lng: -69.9312
+  },
+  {
+    id: 'v22', name: 'Merengue Club Zona Colonial', type: 'bar',
+    city: 'Santo Domingo', address: 'Calle Las Damas, Zona Colonial, Santo Domingo',
+    cover: coverUrl(54), avatar: avatarUrl('Merengue Club', 'D97706'),
+    rating: 4.7, reviews: 934, capacity: 200, isOpen: true,
+    openHours: 'Mar-Dom: 20:00 – 04:00', isPremium: false, priceRange: 2,
+    description: 'Bar y club en el corazón histórico de la Zona Colonial. Merengue típico en vivo, bachata romántica y un ambiente bohemio rodeado de historia colonial. El lugar favorito de turistas y locales.',
+    amenities: ['Merengue en Vivo', 'Bar de Ron', 'Patio Colonial', 'Exposición Arte', 'Tours Culturales'],
+    lat: 18.4740, lng: -69.8851
+  },
+  {
+    id: 'v23', name: 'Afrika Club Santo Domingo', type: 'club',
+    city: 'Santo Domingo', address: 'Avenida George Washington, Santo Domingo',
+    cover: coverUrl(55), avatar: avatarUrl('Afrika Club', '064E3B'),
+    rating: 4.6, reviews: 678, capacity: 500, isOpen: false,
+    openHours: 'Vie-Sáb: 23:00 – 06:00', isPremium: true, priceRange: 3,
+    description: 'Club nocturno frente al Malecón con vistas al Caribe. Mezcla de afrobeat, merengue, dembow y salsa. Terrazas con brisa marina y ambiente inigualable en una de las mejores ubicaciones de Santo Domingo.',
+    amenities: ['Vista al Mar', 'Terraza', 'Bar', 'DJ Residente', 'Zona VIP'],
+    lat: 18.4721, lng: -69.9003
+  },
+
+  // ── BUENOS AIRES (reales) ────────────────────────────────────
+  {
+    id: 'v24', name: 'Club Gricel', type: 'club',
+    city: 'Buenos Aires', address: 'La Rioja 1180, San Cristóbal, Buenos Aires',
+    cover: coverUrl(56), avatar: avatarUrl('Club Gricel', '1E40AF'),
+    rating: 4.9, reviews: 3456, capacity: 500, isOpen: true,
+    openHours: 'Vie-Dom: 22:30 – 06:00', isPremium: true, priceRange: 2,
+    description: 'La milonga más emblemática de Buenos Aires desde 1941. Tango en su estado más puro en una sala art déco perfectamente conservada. Punto de encuentro obligado para los amantes del tango de todo el mundo.',
+    amenities: ['Pista de Madera', 'Orquesta en Vivo', 'Bar Clásico', 'Clases', 'Cabeceo Tradicional'],
+    lat: -34.6186, lng: -58.4028
+  },
+  {
+    id: 'v25', name: 'La Viruta Tango Club', type: 'club',
+    city: 'Buenos Aires', address: 'Armenia 1366, Palermo, Buenos Aires',
+    cover: coverUrl(57), avatar: avatarUrl('La Viruta', 'BE185D'),
+    rating: 4.8, reviews: 2187, capacity: 400, isOpen: true,
+    openHours: 'Mié-Dom: 22:00 – 06:00', isPremium: true, priceRange: 2,
+    description: 'La milonga joven más popular de Buenos Aires en Palermo. Tango, salsa y folklore en un ambiente festivo. Clases antes de cada milonga, DJ y orquestas en vivo los fines de semana.',
+    amenities: ['Clases Previas', 'DJ & Orquesta', 'Bar', 'Vestuarios', 'Zona Descanso'],
+    lat: -34.5887, lng: -58.4330
+  },
+  {
+    id: 'v26', name: 'La Catedral Milonga', type: 'club',
+    city: 'Buenos Aires', address: 'Sarmiento 4006, Almagro, Buenos Aires',
+    cover: coverUrl(58), avatar: avatarUrl('La Catedral', '92400E'),
+    rating: 4.7, reviews: 1567, capacity: 300, isOpen: true,
+    openHours: 'Mar-Dom: 21:00 – 05:00', isPremium: false, priceRange: 1,
+    description: 'Milonga alternativa y bohemia en un antiguo almacén de Almagro. Famosa por su ambiente inclusivo, su mezcla de tango queer y tradicional, y sus shows artísticos. Sala cinematográfica y galería de arte.',
+    amenities: ['Arte & Cultura', 'Bar', 'Cine', 'Galería', 'Ambiente Inclusivo'],
+    lat: -34.6092, lng: -58.4286
+  },
+  {
+    id: 'v27', name: 'La Glorieta de Belgrano', type: 'rooftop',
+    city: 'Buenos Aires', address: 'Echeverría 2202, Belgrano, Buenos Aires',
+    cover: coverUrl(59), avatar: avatarUrl('La Glorieta', '15803D'),
+    rating: 4.9, reviews: 4231, capacity: 600, isOpen: true,
+    openHours: 'Sáb-Dom: 18:00 – 23:00 (verano)', isPremium: false, priceRange: 1,
+    description: 'Glorieta al aire libre en el Parque General Belgrano donde los porteños bailan tango gratis cada fin de semana. Un fenómeno social y cultural único en el mundo. Gratuito, popular e ineludible.',
+    amenities: ['Entrada Gratuita', 'Al Aire Libre', 'DJ & Orquesta', 'Clases Gratis', 'Fotogénico'],
+    lat: -34.5534, lng: -58.4583
+  },
+
+  // ── CALI (reales) ────────────────────────────────────────────
+  {
+    id: 'v28', name: 'La Topa Tolondra', type: 'club',
+    city: 'Cali', address: 'Calle 5a #38-71, Cali, Colombia',
+    cover: coverUrl(60), avatar: avatarUrl('Topa Tolondra', 'B91C1C'),
+    rating: 4.9, reviews: 2876, capacity: 600, isOpen: true,
+    openHours: 'Jue-Dom: 21:00 – 05:00', isPremium: true, priceRange: 2,
+    description: 'La sala de salsa caleña más famosa del mundo. Referencia absoluta de la salsa "a la caleña" desde los años 70. Escenario de los mejores salseros del mundo, ambiente auténtico e inigualable en el corazón de Cali.',
+    amenities: ['Historia Salsera', 'Shows en Vivo', 'Bar de Aguardiente', 'Pista Legendaria', 'DJ Caleño'],
+    lat: 3.4516, lng: -76.5320
+  },
+  {
+    id: 'v29', name: 'Siboney Salsa Club', type: 'club',
+    city: 'Cali', address: 'Parque de Alameda, Cali, Colombia',
+    cover: coverUrl(61), avatar: avatarUrl('Siboney', 'D97706'),
+    rating: 4.8, reviews: 1923, capacity: 400, isOpen: true,
+    openHours: 'Vie-Dom: 20:00 – 05:00', isPremium: false, priceRange: 1,
+    description: 'Club de salsa caleña fundado en 1981 junto al Parque de Alameda. Uno de los reductos más auténticos de la salsa en Cali, con DJs especializados en salsa "dura" y oldschool. Ambiente popular y festivo.',
+    amenities: ['Salsa Dura', 'DJ Old School', 'Bar', 'Ambiente Popular', 'Historia 1981'],
+    lat: 3.4563, lng: -76.5225
+  },
+  {
+    id: 'v30', name: 'Mala Maña Salsa Bar', type: 'bar',
+    city: 'Cali', address: 'Carrera 4 #9-59, Cali, Colombia',
+    cover: coverUrl(62), avatar: avatarUrl('Mala Mana', '7C3AED'),
+    rating: 4.6, reviews: 567, capacity: 150, isOpen: true,
+    openHours: 'Mar-Dom: 20:00 – 04:00', isPremium: false, priceRange: 1,
+    description: 'Bar de salsa íntimo en el centro de Cali. Especializado en salsa dura, son cubano y boleros. Ambiente de barrio auténtico con DJs que conocen la historia de cada disco.',
+    amenities: ['Salsa Dura', 'Son Cubano', 'Bar de Tragos', 'DJ Especialista', 'Ambiente Íntimo'],
+    lat: 3.4509, lng: -76.5314
+  },
+
+  // ── MIAMI (reales) ───────────────────────────────────────────
+  {
+    id: 'v31', name: 'Hoy Como Ayer', type: 'bar',
+    city: 'Miami', address: '2212 SW 8th St, Miami, FL 33135',
+    cover: coverUrl(63), avatar: avatarUrl('Hoy Como Ayer', '065F46'),
+    rating: 4.8, reviews: 3421, capacity: 200, isOpen: true,
+    openHours: 'Mar-Dom: 21:00 – 04:00', isPremium: true, priceRange: 2,
+    description: 'Bar cubano legendario en la Calle Ocho de Miami, el corazón de la Pequeña Habana. Son cubano, mambo y salsa en vivo casi todas las noches. Ambiente bohemio y autenticidad cubana a tope.',
+    amenities: ['Son Cubano en Vivo', 'Bar de Ron', 'Patio', 'Shows Nocturnos', 'Historia Cubana'],
+    lat: 25.7650, lng: -80.2290
+  },
+  {
+    id: 'v32', name: "Mango's Tropical Cafe", type: 'restaurant',
+    city: 'Miami', address: '900 Ocean Drive, Miami Beach, FL 33139',
+    cover: coverUrl(64), avatar: avatarUrl('Mangos Miami', 'EC4899'),
+    rating: 4.6, reviews: 5678, capacity: 500, isOpen: true,
+    openHours: 'Lun-Dom: 11:00 – 05:00', isPremium: true, priceRange: 3,
+    description: 'Icono de Ocean Drive con shows de salsa y bachata en vivo. Bailarines profesionales, DJs y ambiente tropical las 24 horas. El spot más fotografiado de Miami Beach y parada obligada del turismo latino.',
+    amenities: ['Shows 24h', 'Bailarines Pro', 'Restaurante', 'Bar Tropical', 'Terraza Ocean Drive'],
+    lat: 25.7819, lng: -80.1304
+  },
+  {
+    id: 'v33', name: 'Ball & Chain', type: 'bar',
+    city: 'Miami', address: '1513 SW 8th St, Miami, FL 33135',
+    cover: coverUrl(65), avatar: avatarUrl('Ball Chain', 'B45309'),
+    rating: 4.7, reviews: 2134, capacity: 350, isOpen: true,
+    openHours: 'Mié-Dom: 19:00 – 03:00', isPremium: true, priceRange: 3,
+    description: 'Histórico bar de la Calle Ocho reabierto en 2014. Billie Holiday y Chet Baker actuaron aquí en los años 30. Hoy, salsa, jazz latino y mambo en vivo. Tropicalísimo jardín al aire libre.',
+    amenities: ['Jardín Tropical', 'Música en Vivo', 'Bar Premium', 'Historia Art Déco', 'Cócteles Craft'],
+    lat: 25.7660, lng: -80.2230
+  },
+
+  // ── LA HABANA (reales) ───────────────────────────────────────
+  {
+    id: 'v34', name: 'Café Cantante Mi Habana', type: 'club',
+    city: 'La Habana', address: 'Av. Paseo esq. 39, Vedado, La Habana, Cuba',
+    cover: coverUrl(66), avatar: avatarUrl('Cafe Cantante', '065F46'),
+    rating: 4.9, reviews: 4532, capacity: 600, isOpen: true,
+    openHours: 'Mar-Dom: 22:00 – 05:00', isPremium: true, priceRange: 1,
+    description: 'El club de salsa más famoso de La Habana, bajo el Teatro Nacional. Timba cubana, son y salsa con las mejores orquestas de Cuba. Ambiente callejero, auténtico y lleno de energía caribeña inimitable.',
+    amenities: ['Orquestas en Vivo', 'Timba Cubana', 'Bar de Ron', 'Pista Enorme', 'Shows Nocturnos'],
+    lat: 23.1296, lng: -82.3891
+  },
+  {
+    id: 'v35', name: 'Casa de la Música Miramar', type: 'club',
+    city: 'La Habana', address: 'Av. 35 #3308, Miramar, La Habana, Cuba',
+    cover: coverUrl(67), avatar: avatarUrl('Casa Musica', 'DC2626'),
+    rating: 4.8, reviews: 3210, capacity: 800, isOpen: true,
+    openHours: 'Lun-Dom: 21:00 – 04:00', isPremium: false, priceRange: 1,
+    description: 'Sala de conciertos y club en Miramar con las mejores orquestas de timba y salsa de Cuba. Artistas como NG La Banda, Charanga Habanera e Isaac Delgado actúan regularmente. Experiencia cubana única.',
+    amenities: ['Conciertos Diarios', 'Orquestas Cubanas', 'Bar', 'Zona VIP', 'Comida Cubana'],
+    lat: 23.1024, lng: -82.4110
+  },
+
+  // ── BOGOTÁ (reales) ──────────────────────────────────────────
+  {
+    id: 'v36', name: 'Galería Café Libro', type: 'bar',
+    city: 'Bogotá', address: 'Carrera 11A No. 93-42, Bogotá, Colombia',
+    cover: coverUrl(68), avatar: avatarUrl('Galeria Cafe', '5B21B6'),
+    rating: 4.7, reviews: 1876, capacity: 250, isOpen: true,
+    openHours: 'Lun-Sáb: 18:00 – 03:00', isPremium: true, priceRange: 3,
+    description: 'Emblemático bar cultural en la Zona Rosa de Bogotá. Salsa, jazz latino y rock en vivo en un ambiente de galería de arte. Punto de encuentro de artistas, intelectuales y noctámbulos bogotanos.',
+    amenities: ['Arte & Cultura', 'Música en Vivo', 'Bar Premium', 'Galería Arte', 'Zona Chill'],
+    lat: 4.6762, lng: -74.0479
+  },
+  {
+    id: 'v37', name: 'Quiebra Canto Bogotá', type: 'club',
+    city: 'Bogotá', address: 'Calle 88 #13A-51, Bogotá, Colombia',
+    cover: coverUrl(69), avatar: avatarUrl('Quiebra Canto', 'B91C1C'),
+    rating: 4.6, reviews: 987, capacity: 300, isOpen: true,
+    openHours: 'Jue-Sáb: 21:00 – 04:00', isPremium: false, priceRange: 2,
+    description: 'Club de salsa caleña en el norte de Bogotá. Ambiente norteño con ritmo sureño. DJs especializados en salsa dura, old school y romantica. Shows de parejas profesionales los viernes.',
+    amenities: ['Salsa Caleña', 'Shows de Parejas', 'Bar', 'DJ Especialista', 'Clases Previas'],
+    lat: 4.6769, lng: -74.0491
+  },
+
+  // ── MEDELLÍN (reales) ────────────────────────────────────────
+  {
+    id: 'v38', name: 'Son Havana Medellín', type: 'club',
+    city: 'Medellín', address: 'El Poblado, Medellín, Colombia',
+    cover: coverUrl(70), avatar: avatarUrl('Son Havana', '065F46'),
+    rating: 4.8, reviews: 1234, capacity: 300, isOpen: true,
+    openHours: 'Mié-Dom: 21:00 – 05:00', isPremium: true, priceRange: 2,
+    description: 'Club de son cubano y salsa en el glamuroso barrio de El Poblado. Ambiente habanero trasplantado a Medellín. Orquesta en vivo los fines de semana, DJs especializados entre semana y cócteles cubanos.',
+    amenities: ['Son Cubano', 'Orquesta Live', 'Bar Cubano', 'VIP Lounge', 'Patio Exterior'],
+    lat: 6.2087, lng: -75.5747
+  },
+  {
+    id: 'v39', name: 'El Tibiri Laureles', type: 'bar',
+    city: 'Medellín', address: 'Circular 73 con 74, Laureles, Medellín',
+    cover: coverUrl(71), avatar: avatarUrl('El Tibiri', 'D97706'),
+    rating: 4.7, reviews: 876, capacity: 200, isOpen: true,
+    openHours: 'Jue-Sáb: 20:00 – 04:00', isPremium: false, priceRange: 1,
+    description: 'Bar de salsa clásico en el barrio Laureles. El preferido de los medellinenses para bailar salsa caleña y colombiana. Ambiente descomplicado y auténtico, con DJs que conocen cada canción de memoria.',
+    amenities: ['Salsa Colombiana', 'Bar', 'Ambiente Local', 'DJ Clásico', 'Zona Fumadores'],
+    lat: 6.2357, lng: -75.5921
+  },
+
+  // ── NEW YORK (reales) ────────────────────────────────────────
+  {
+    id: 'v40', name: 'SOB\'s — Sounds of Brazil', type: 'club',
+    city: 'New York', address: '204 Varick St, New York, NY 10014',
+    cover: coverUrl(72), avatar: avatarUrl('SOBs NY', '1E40AF'),
+    rating: 4.8, reviews: 5432, capacity: 350, isOpen: true,
+    openHours: 'Mié-Dom: 20:00 – 04:00', isPremium: true, priceRange: 3,
+    description: 'Legendario club de música latina en el West Village de Manhattan, abierto desde 1983. Salsa, samba, reggae y world music en vivo. Artistas como Celia Cruz, Tito Puente y Marc Anthony han actuado aquí.',
+    amenities: ['Historia Legendaria', 'Shows en Vivo', 'Bar', 'Restaurante', 'VIP Tables'],
+    lat: 40.7278, lng: -74.0064
+  },
+  {
+    id: 'v41', name: 'Copacabana NYC', type: 'club',
+    city: 'New York', address: '560 W 34th St, New York, NY 10001',
+    cover: coverUrl(73), avatar: avatarUrl('Copacabana NY', 'BE185D'),
+    rating: 4.6, reviews: 3210, capacity: 700, isOpen: true,
+    openHours: 'Vie-Sáb: 22:00 – 05:00', isPremium: true, priceRange: 4,
+    description: 'El histórico club Copacabana de Nueva York, ahora en Hell\'s Kitchen. Noches de salsa, bachata y reggaeton con los mejores DJs latinos de la ciudad. Shows espectaculares y ambiente de gala.',
+    amenities: ['Shows Espectaculares', 'DJ Latinos Top', 'Bar Premium', 'VIP Tables', 'Dress Code'],
+    lat: 40.7534, lng: -74.0022
+  },
+
+  // ── BERLIN (reales) ──────────────────────────────────────────
+  {
+    id: 'v42', name: 'SalsaFuego Berlin', type: 'club',
+    city: 'Berlin', address: 'Schlesische Str. 38, 10997 Berlin',
+    cover: coverUrl(74), avatar: avatarUrl('SalsaFuego', 'EC4899'),
+    rating: 4.7, reviews: 1098, capacity: 300, isOpen: true,
+    openHours: 'Vie-Sáb: 22:00 – 06:00', isPremium: false, priceRange: 2,
+    description: 'El principal club de salsa y bachata de Berlín en el barrio de Kreuzberg. Clases gratuitas antes de cada noche, DJs residentes e internacionales. La escena latina de Berlín tiene su epicentro aquí.',
+    amenities: ['Clases Gratuitas', 'DJ Internacional', 'Bar', 'Ambiente Multicultural', 'Terraza'],
+    lat: 52.4998, lng: 13.4461
+  },
+  {
+    id: 'v43', name: 'Havanna Bar Berlin', type: 'bar',
+    city: 'Berlin', address: 'Hauptstraße 30, 10827 Berlin (Schöneberg)',
+    cover: coverUrl(75), avatar: avatarUrl('Havanna Berlin', '15803D'),
+    rating: 4.6, reviews: 876, capacity: 250, isOpen: true,
+    openHours: 'Jue-Dom: 21:00 – 05:00', isPremium: false, priceRange: 2,
+    description: 'Bar cubano en Schöneberg con ambiente tropical auténtico. Salsa, son y reggaeton desde las 21h. Conocido por sus noches de salsa \'Havanna\' con clases incluidas. El lugar latino de referencia de Berlín.',
+    amenities: ['Ambiente Cubano', 'Clases de Salsa', 'Bar Tropical', 'DJ Residente', 'Noches Temáticas'],
+    lat: 52.4817, lng: 13.3559
+  },
+
+  // ── CIUDAD DE MÉXICO (reales) ─────────────────────────────────
+  {
+    id: 'v44', name: 'El Salón Los Ángeles', type: 'club',
+    city: 'Ciudad de México', address: 'Lerdo 206, Guerrero, Ciudad de México',
+    cover: coverUrl(76), avatar: avatarUrl('Salon Angeles', 'B45309'),
+    rating: 4.9, reviews: 6543, capacity: 800, isOpen: true,
+    openHours: 'Sáb-Dom: 18:00 – 03:00', isPremium: true, priceRange: 1,
+    description: 'El salón de baile más antiguo y famoso de México, abierto desde 1937. Mambo, danzón, salsa y cumbia en una sala art déco perfectamente conservada. Cuna del danzón moderno y referencia mundial de la danza popular mexicana.',
+    amenities: ['Historia 1937', 'Danzón en Vivo', 'Orquesta', 'Bar Clásico', 'Clase Magistral'],
+    lat: 19.4470, lng: -99.1487
+  },
+  {
+    id: 'v45', name: 'Mama Rumba', type: 'club',
+    city: 'Ciudad de México', address: 'Querétaro 230, Roma Norte, Ciudad de México',
+    cover: coverUrl(77), avatar: avatarUrl('Mama Rumba', 'DC2626'),
+    rating: 4.7, reviews: 2341, capacity: 400, isOpen: true,
+    openHours: 'Mié-Sáb: 21:00 – 04:00', isPremium: true, priceRange: 3,
+    description: 'Club de salsa y música cubana en la Colonia Roma. Shows en vivo con las mejores orquestas de salsa de México. Ambiente tropical y sofisticado a la vez. El preferido de la clase media alta chilanga para bailar.',
+    amenities: ['Shows en Vivo', 'Orquesta Mexicana', 'Bar Premium', 'VIP Tables', 'Parking'],
+    lat: 19.4180, lng: -99.1590
+  },
+
+  // ── BARCELONA (real adicional) ────────────────────────────────
+  {
+    id: 'v46', name: 'Antilla BCN Latin Club', type: 'club',
+    city: 'Barcelona', address: 'Carrer Aragó 141-143, Barcelona',
+    cover: coverUrl(78), avatar: avatarUrl('Antilla BCN', '7C3AED'),
+    rating: 4.8, reviews: 2876, capacity: 500, isOpen: true,
+    openHours: 'Jue-Dom: 22:30 – 06:00', isPremium: true, priceRange: 3,
+    description: 'El club de salsa más grande y famoso de Barcelona desde 1992. Dos pistas de baile, shows en vivo cada semana, clases de iniciación incluidas y los mejores DJs de salsa y bachata de España.',
+    amenities: ['2 Pistas de Baile', 'Clases Incluidas', 'Shows Semanales', 'Bar', 'VIP Lounge'],
+    lat: 41.3838, lng: 2.1570
+  },
+
+  // ── SEVILLA (real adicional) ──────────────────────────────────
+  {
+    id: 'v47', name: 'La Carbonería Sevilla', type: 'bar',
+    city: 'Sevilla', address: 'Calle Levíes 18, Sevilla',
+    cover: coverUrl(79), avatar: avatarUrl('La Carboneria', 'C2410C'),
+    rating: 4.8, reviews: 4321, capacity: 300, isOpen: true,
+    openHours: 'Lun-Dom: 20:00 – 03:00', isPremium: false, priceRange: 1,
+    description: 'Bar cultural legendario del Barrio de Santa Cruz. Flamenco en vivo gratuito casi cada noche. Patio andaluz, ambiente bohemio y fusión de flamenco, sevillanas y música latina en el corazón de Sevilla.',
+    amenities: ['Flamenco Gratuito', 'Patio Andaluz', 'Bar', 'Arte & Cultura', 'Historia Sevillana'],
+    lat: 37.3890, lng: -5.9880
+  },
+
+  // ── CARACAS (reales) ─────────────────────────────────────────
+  {
+    id: 'v48', name: 'El Maní es Así', type: 'club',
+    city: 'Caracas', address: 'Av. Principal de Las Mercedes, Caracas, Venezuela',
+    cover: coverUrl(80), avatar: avatarUrl('El Mani', 'D97706'),
+    rating: 4.7, reviews: 1543, capacity: 400, isOpen: true,
+    openHours: 'Jue-Sáb: 22:00 – 05:00', isPremium: true, priceRange: 2,
+    description: 'El club de salsa más famoso de Caracas en el elegante barrio de Las Mercedes. Salsa venezolana, bailable y orquestas en vivo. El lugar donde la élite caraqueña viene a bailar y las grandes orquestas venezolanas actúan.',
+    amenities: ['Orquesta Venezolana', 'Shows en Vivo', 'Bar Premium', 'VIP Tables', 'Ambiente Elegante'],
+    lat: 10.4806, lng: -66.8465
+  },
+  {
+    id: 'v49', name: 'Juan Sebastián Bar', type: 'bar',
+    city: 'Caracas', address: 'El Rosal, Caracas, Venezuela',
+    cover: coverUrl(81), avatar: avatarUrl('Juan Sebastian', '5B21B6'),
+    rating: 4.6, reviews: 987, capacity: 250, isOpen: true,
+    openHours: 'Mié-Sáb: 20:00 – 04:00', isPremium: false, priceRange: 2,
+    description: 'Bar de jazz y salsa en El Rosal, el corazón financiero y nocturno de Caracas. Conocido por sus noches de jazz latino, salsa y bossa nova en vivo. Ambiente sofisticado y acogedor.',
+    amenities: ['Jazz Latino', 'Salsa en Vivo', 'Bar', 'Ambiente Sofisticado', 'Reservas'],
+    lat: 10.4905, lng: -66.8548
+  },
 ];
 
 // ── SERVICES ───────────────────────────────────────────────────────────────

@@ -37,11 +37,23 @@ const COMMUNITY_POSTS = [
 
 // ── CITIES ────────────────────────────────────────────────────────────────
 const CITIES = [
-  { name: 'Madrid',    venues: 12, events: 8,  img: 'https://picsum.photos/seed/madrid2024/800/400',    monument: '🏛️', landmark: 'Puerta de Alcalá' },
-  { name: 'Barcelona', venues: 8,  events: 5,  img: 'https://picsum.photos/seed/barcelona2024/800/400', monument: '⛪', landmark: 'Sagrada Familia' },
-  { name: 'Valencia',  venues: 5,  events: 3,  img: 'https://picsum.photos/seed/valencia2024/800/400',  monument: '🏟️', landmark: 'Ciudad de las Artes' },
-  { name: 'Medellín',  venues: 6,  events: 4,  img: 'https://picsum.photos/seed/medellin2024/800/400',  monument: '🌺', landmark: 'Plaza Botero' },
-  { name: 'Cali',      venues: 9,  events: 6,  img: 'https://picsum.photos/seed/cali2024/800/400',      monument: '💃', landmark: 'Capital de la Salsa' },
+  { name: 'Madrid',           venues: 16, events: 8,  img: 'https://picsum.photos/seed/madrid2024/800/400',         monument: '🏛️', landmark: 'Puerta de Alcalá' },
+  { name: 'Cali',             venues: 11, events: 6,  img: 'https://picsum.photos/seed/cali2024/800/400',           monument: '💃', landmark: 'Capital Mundial de la Salsa' },
+  { name: 'Buenos Aires',     venues: 10, events: 7,  img: 'https://picsum.photos/seed/buenosaires2024/800/400',    monument: '🥩', landmark: 'La Boca & Tango' },
+  { name: 'La Habana',        venues: 8,  events: 5,  img: 'https://picsum.photos/seed/habana2024/800/400',         monument: '🎺', landmark: 'Malecón Habanero' },
+  { name: 'Barcelona',        venues: 9,  events: 5,  img: 'https://picsum.photos/seed/barcelona2024/800/400',      monument: '⛪', landmark: 'Sagrada Familia' },
+  { name: 'Santo Domingo',    venues: 7,  events: 4,  img: 'https://picsum.photos/seed/santodomingo2024/800/400',   monument: '🌴', landmark: 'Zona Colonial' },
+  { name: 'Miami',            venues: 7,  events: 5,  img: 'https://picsum.photos/seed/miami2024/800/400',          monument: '🌅', landmark: 'Calle Ocho – Little Havana' },
+  { name: 'Medellín',         venues: 6,  events: 4,  img: 'https://picsum.photos/seed/medellin2024/800/400',       monument: '🌺', landmark: 'Plaza Botero' },
+  { name: 'Paris',            venues: 7,  events: 4,  img: 'https://picsum.photos/seed/paris2024/800/400',          monument: '🗼', landmark: 'Torre Eiffel' },
+  { name: 'Valencia',         venues: 7,  events: 3,  img: 'https://picsum.photos/seed/valencia2024/800/400',       monument: '🏟️', landmark: 'Ciudad de las Artes' },
+  { name: 'New York',         venues: 6,  events: 4,  img: 'https://picsum.photos/seed/newyork2024/800/400',        monument: '🗽', landmark: 'El Barrio – Spanish Harlem' },
+  { name: 'Ciudad de México', venues: 6,  events: 4,  img: 'https://picsum.photos/seed/mexicocity2024/800/400',     monument: '🏛️', landmark: 'Teotihuacán' },
+  { name: 'London',           venues: 5,  events: 3,  img: 'https://picsum.photos/seed/london2024/800/400',         monument: '🎡', landmark: 'London Eye' },
+  { name: 'Bogotá',           venues: 5,  events: 3,  img: 'https://picsum.photos/seed/bogota2024/800/400',         monument: '🏔️', landmark: 'Monserrate' },
+  { name: 'Berlin',           venues: 4,  events: 2,  img: 'https://picsum.photos/seed/berlin2024/800/400',         monument: '🐻', landmark: 'Puerta de Brandeburgo' },
+  { name: 'Caracas',          venues: 4,  events: 2,  img: 'https://picsum.photos/seed/caracas2024/800/400',        monument: '⛰️', landmark: 'El Ávila' },
+  { name: 'Sevilla',          venues: 4,  events: 3,  img: 'https://picsum.photos/seed/sevilla2024/800/400',        monument: '💃', landmark: 'Alcázar de Sevilla' },
 ];
 
 // ── CATEGORIES ────────────────────────────────────────────────────────────
