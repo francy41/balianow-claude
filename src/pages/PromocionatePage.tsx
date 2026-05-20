@@ -818,56 +818,41 @@ const PromocionatePage: React.FC = () => {
           ))}
         </div>
 
-        {/* ── CART SUMMARY BAR — visible debajo de los filtros ── */}
+        {/* ── BOTÓN CARRITO — inline debajo de los filtros ── */}
         {cart.items.length > 0 && (
-          <div className="mt-4 rounded-2xl overflow-hidden shadow-xl shadow-purple-500/20 border border-purple-500/30"
-               style={{ background: 'linear-gradient(135deg, #1a0a2e 0%, #2d1060 50%, #1a0a2e 100%)' }}>
-            <div className="flex items-center gap-3 px-4 py-3">
-              {/* Icono carrito */}
-              <div className="relative flex-shrink-0">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-purple-500/40">
-                  <ShoppingCart className="w-5 h-5 text-white" />
-                </div>
-                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full text-[10px] font-black flex items-center justify-center text-white shadow-md">
-                  {cart.items.length}
-                </span>
+          <button
+            onClick={() => setCartOpen(true)}
+            className="mt-4 w-full bg-gradient-to-r from-purple-600 via-fuchsia-600 to-purple-600 text-white rounded-2xl shadow-2xl shadow-purple-500/30 px-5 py-3.5 flex items-center gap-4 hover:scale-[1.02] active:scale-[0.98] transition-all"
+          >
+            {/* Icono + badge */}
+            <div className="relative flex-shrink-0">
+              <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center">
+                <ShoppingCart className="w-6 h-6 text-white" />
               </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <p className="text-white font-black text-sm leading-none">Mi reserva</p>
-                <p className="text-purple-300 text-[11px] mt-0.5 truncate">
-                  {cart.items.map(i => i.sellerName).join(', ')}
-                </p>
-              </div>
-
-              {/* Total */}
-              <div className="text-right flex-shrink-0 mr-2">
-                <p className="text-[10px] text-purple-300 uppercase font-bold tracking-wide">Total</p>
-                <p className="text-white font-black text-lg leading-none">€{cart.getTotal().toFixed(2)}</p>
-              </div>
-
-              {/* Botón ver carrito */}
-              <button
-                onClick={() => setCartOpen(true)}
-                className="flex-shrink-0 bg-gradient-to-r from-pink-500 to-fuchsia-600 hover:from-pink-600 hover:to-fuchsia-700 text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-lg shadow-pink-500/30 transition-all hover:scale-105 flex items-center gap-2"
-              >
-                <span>Ver carrito</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              <span className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-[11px] font-black flex items-center justify-center text-white shadow-lg border-2 border-white/30">
+                {cart.items.length}
+              </span>
             </div>
 
-            {/* Mini items strip */}
-            <div className="flex gap-2 px-4 pb-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-              {cart.items.map(item => (
-                <div key={item.id} className="flex-shrink-0 flex items-center gap-1.5 bg-white/10 rounded-lg px-2.5 py-1.5">
-                  <img src={item.sellerAvatar} alt={item.sellerName} className="w-5 h-5 rounded-full object-cover" />
-                  <span className="text-white/80 text-[10px] font-semibold max-w-[80px] truncate">{item.title}</span>
-                  <span className="text-fuchsia-300 text-[10px] font-black">€{item.price}</span>
-                </div>
-              ))}
+            {/* Texto */}
+            <div className="flex-1 text-left">
+              <p className="text-white/70 text-[10px] uppercase font-bold tracking-wide">Mi reserva</p>
+              <p className="text-white font-black text-base leading-none">
+                {cart.items.length} producto{cart.items.length > 1 ? 's' : ''} · listo{cart.items.length > 1 ? 's' : ''} para pagar
+              </p>
             </div>
-          </div>
+
+            {/* Total + flecha */}
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <div className="text-right">
+                <p className="text-white/60 text-[10px] uppercase font-bold">Total</p>
+                <p className="text-white font-black text-xl leading-none">€{cart.getTotal().toFixed(2)}</p>
+              </div>
+              <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
+                <ArrowRight className="w-4 h-4 text-white" />
+              </div>
+            </div>
+          </button>
         )}
 
         {/* Top Sellers */}
