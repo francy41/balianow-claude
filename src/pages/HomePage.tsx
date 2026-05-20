@@ -887,11 +887,11 @@ const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-[#0a0a0a] dark:text-gray-100 transition-colors duration-300">
 
-      {/* ── RADIOS, PLAYLISTS & RUTA DE HOY ── */}
+      {/* ── RADIOS & PLAYLISTS ── */}
       {isModuleOn('radio') && (
-      <section className="mx-4 mt-4 grid grid-cols-3 gap-2">
+      <section className="mx-4 mt-4 grid grid-cols-2 gap-2">
         {/* RADIOS */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
           <button
             onClick={() => setRadiosOpen(v => !v)}
             className="w-full bg-gradient-to-r from-gray-900 to-gray-800 px-3 py-2.5 flex items-center justify-between"
@@ -904,27 +904,25 @@ const HomePage: React.FC = () => {
             <Plus className={`w-3.5 h-3.5 text-white/60 transition-transform duration-300 ${radiosOpen ? 'rotate-45' : ''}`} />
           </button>
           {radiosOpen && (
-            <div className="divide-y divide-gray-50 max-h-[220px] overflow-y-auto animate-[fadeIn_0.2s_ease]" style={{ scrollbarWidth: 'thin' }}>
+            <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[220px] overflow-y-auto animate-[fadeIn_0.2s_ease]" style={{ scrollbarWidth: 'thin' }}>
               {RADIO_STATIONS.map((station, i) => (
                 <button
                   key={station.id}
                   onClick={() => setPlaying(playing === i ? null : i)}
-                  className={`w-full flex items-center gap-2.5 p-2.5 hover:bg-pink-50/50 transition-all text-left ${playing === i ? 'bg-pink-50 border-l-2 border-pink-500' : ''}`}
+                  className={`w-full flex items-center gap-2.5 p-2.5 hover:bg-pink-50/50 dark:hover:bg-pink-900/10 transition-all text-left ${playing === i ? 'bg-pink-50 dark:bg-pink-900/20 border-l-2 border-pink-500' : ''}`}
                 >
                   <img src={station.img} alt={station.name} className="w-9 h-9 rounded-lg object-cover flex-shrink-0 bg-gray-200" />
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-gray-900 text-[11px] truncate">{station.name}</p>
+                    <p className="font-bold text-gray-900 dark:text-white text-[11px] truncate">{station.name}</p>
                     <p className="text-gray-400 text-[9px] flex items-center gap-1">
                       {playing === i && <span className="w-1 h-1 bg-red-500 rounded-full animate-pulse" />}
                       {station.genre}
                     </p>
                   </div>
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-                    playing === i ? 'bg-pink-500 text-white shadow-md shadow-pink-500/30' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                    playing === i ? 'bg-pink-500 text-white shadow-md shadow-pink-500/30' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200'
                   }`}>
-                    {playing === i
-                      ? <Pause className="w-3 h-3" />
-                      : <Play className="w-3 h-3 ml-0.5" />}
+                    {playing === i ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
                   </div>
                 </button>
               ))}
@@ -933,7 +931,7 @@ const HomePage: React.FC = () => {
         </div>
 
         {/* PLAYLISTS */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
           <button
             onClick={() => setPlaylistsOpen(v => !v)}
             className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 px-3 py-2.5 flex items-center justify-between"
@@ -945,72 +943,71 @@ const HomePage: React.FC = () => {
             <Plus className={`w-3.5 h-3.5 text-white/60 transition-transform duration-300 ${playlistsOpen ? 'rotate-45' : ''}`} />
           </button>
           {playlistsOpen && (
-            <div className="divide-y divide-gray-50 max-h-[220px] overflow-y-auto animate-[fadeIn_0.2s_ease]" style={{ scrollbarWidth: 'thin' }}>
+            <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[220px] overflow-y-auto animate-[fadeIn_0.2s_ease]" style={{ scrollbarWidth: 'thin' }}>
               {PLAYLISTS.map((pl, idx) => (
                 <button
                   key={pl.id}
                   onClick={() => setPlaying(playing === 100 + idx ? null : 100 + idx)}
-                  className={`w-full flex items-center gap-2.5 p-2.5 hover:bg-purple-50/50 transition-all text-left ${
-                    playing === 100 + idx ? 'bg-purple-50 border-l-2 border-purple-500' : ''
+                  className={`w-full flex items-center gap-2.5 p-2.5 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-all text-left ${
+                    playing === 100 + idx ? 'bg-purple-50 dark:bg-purple-900/20 border-l-2 border-purple-500' : ''
                   }`}
                 >
                   <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${pl.color} flex items-center justify-center flex-shrink-0 shadow-sm`}>
                     <ListMusic className="w-4 h-4 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-gray-900 text-[11px] truncate">{pl.name}</p>
+                    <p className="font-bold text-gray-900 dark:text-white text-[11px] truncate">{pl.name}</p>
                     <p className="text-gray-400 text-[9px]">{pl.tracks} tracks · {pl.duration}</p>
                   </div>
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-                    playing === 100 + idx ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                    playing === 100 + idx ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200'
                   }`}>
-                    {playing === 100 + idx
-                      ? <Pause className="w-3 h-3" />
-                      : <Play className="w-3 h-3 ml-0.5" />}
+                    {playing === 100 + idx ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
                   </div>
                 </button>
               ))}
             </div>
           )}
         </div>
+      </section>
+      )}
 
-        {/* RUTA DE HOY — compact panel */}
+      {/* ── RUTA DE HOY — siempre visible, debajo de radio/playlist ── */}
+      {isModuleOn('ruta') && (
+      <section className="mx-4 mt-2">
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
-          <button
-            onClick={() => navigate('/comunidad')}
-            className="w-full bg-gradient-to-r from-brand-orange to-pink-500 px-3 py-2.5 flex items-center justify-between"
-          >
+          {/* Header */}
+          <div className="bg-gradient-to-r from-brand-orange to-pink-500 px-4 py-2.5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-[13px]">🔥</span>
-              <span className="text-white font-bold text-xs">Ruta de Hoy</span>
+              <span className="text-sm">🔥</span>
+              <span className="text-white font-black text-xs tracking-wide">Ruta de Hoy</span>
+              <span className="bg-white/20 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">En vivo</span>
             </div>
-            <ChevronRight className="w-3.5 h-3.5 text-white/70" />
-          </button>
-          <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[220px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
-            {COMMUNITY_POSTS.filter(p => p.status === 'APROBADO').slice(0, 5).map((post) => (
+            <button onClick={() => navigate('/comunidad')} className="flex items-center gap-0.5 text-white/80 hover:text-white text-[10px] font-bold transition-colors">
+              Ver todos <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
+          {/* Posts en horizontal scroll */}
+          <div className="flex gap-0 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+            {COMMUNITY_POSTS.filter(p => p.status === 'APROBADO').slice(0, 5).map((post, idx, arr) => (
               <button
                 key={post.id}
                 onClick={() => navigate(`/comunidad?post=${post.id}`)}
-                className="w-full flex items-start gap-2 p-2.5 hover:bg-orange-50/50 dark:hover:bg-orange-900/10 transition-all text-left"
+                className={`flex-shrink-0 flex items-start gap-2 p-3 hover:bg-orange-50/60 dark:hover:bg-orange-900/10 transition-all text-left ${idx < arr.length - 1 ? 'border-r border-gray-100 dark:border-gray-800' : ''}`}
+                style={{ minWidth: 170, maxWidth: 180 }}
               >
                 <img
-                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(post.user)}&background=EC4899&color=fff&size=60&bold=true&rounded=true`}
+                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(post.user)}&background=F97316&color=fff&size=60&bold=true&rounded=true`}
                   alt={post.user}
-                  className="w-7 h-7 rounded-full flex-shrink-0 mt-0.5"
+                  className="w-8 h-8 rounded-full flex-shrink-0"
                 />
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-gray-900 dark:text-white text-[10px] truncate">{post.user}</p>
-                  <p className="text-gray-500 dark:text-gray-400 text-[9px] line-clamp-2 leading-tight">{post.fullText}</p>
-                  <p className="text-[8px] text-brand-orange font-semibold mt-0.5">📍 {post.location}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-[9px] line-clamp-2 leading-snug mt-0.5">{post.fullText}</p>
+                  <p className="text-[8px] text-brand-orange font-bold mt-1">📍 {post.location}</p>
                 </div>
               </button>
             ))}
-            <button
-              onClick={() => navigate('/comunidad')}
-              className="w-full py-2 text-[10px] font-bold text-brand-orange hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-colors flex items-center justify-center gap-1"
-            >
-              Ver todos <ChevronRight className="w-2.5 h-2.5" />
-            </button>
           </div>
         </div>
       </section>

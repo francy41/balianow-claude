@@ -321,12 +321,29 @@ const MediaPanel: React.FC = () => {
     cms.snapshot('media', `Subir ${files.length} archivos`);
     Array.from(files).forEach(file => {
       const isVideo = file.type.startsWith('video/');
-      const url = URL.createObjectURL(file);
-      cms.addMedia({
-        type: isVideo ? 'video' : 'image',
-        url, name: file.name,
-        folder, size: file.size, mimeType: file.type,
-      });
+      if (isVideo) {
+        // Videos: use object URL (too large for base64/localStorage)
+        const url = URL.createObjectURL(file);
+        cms.addMedia({ type: 'video', url, name: file.name, folder, size: file.size, mimeType: file.type });
+      } else {
+        // Images: convert to base64 so they persist after reload
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const maxW = 1200, maxH = 900;
+            const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+            const canvas = document.createElement('canvas');
+            canvas.width  = Math.round(img.width  * scale);
+            canvas.height = Math.round(img.height * scale);
+            canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const base64 = canvas.toDataURL('image/jpeg', 0.85);
+            cms.addMedia({ type: 'image', url: base64, name: file.name, folder, size: file.size, mimeType: file.type });
+          };
+          img.src = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
+      }
     });
     addToast({ message: `${files.length} archivo(s) subidos a "${folder}"`, type: 'success' });
   };
