@@ -1110,16 +1110,6 @@ const HomePage: React.FC = () => {
                   </div>
                 </button>
               ))}
-              <button
-                onClick={() => navigate('/venues')}
-                className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-pink-300 hover:border-pink-500 hover:bg-pink-50 transition-all group"
-                style={{ height: 180 }}
-              >
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-all shadow-lg shadow-pink-500/30">
-                  <ArrowRight className="w-5 h-5 text-white" />
-                </div>
-                <p className="text-pink-600 text-xs font-bold text-center px-2 uppercase tracking-wide">Ver Todas</p>
-              </button>
             </div>
           );
         }}
