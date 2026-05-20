@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "homepage": "https://francy41.github.io/balianow-claude",
+  "homepage": "https://bailanow.com",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
