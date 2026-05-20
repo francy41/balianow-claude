@@ -98,96 +98,49 @@ const SPONSORS = [
   },
 ];
 
-// ── SPONSORS SLIDER ───────────────────────────────────────────────────────
+// ── SPONSORS SLIDER (compact) ─────────────────────────────────────────────
 const SponsorsSlider: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = ({ navigate }) => {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-
-  // Mouse drag scroll
-  const onMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setStartX(e.pageX - (trackRef.current?.offsetLeft ?? 0));
-    setScrollLeft(trackRef.current?.scrollLeft ?? 0);
-  };
-  const onMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !trackRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - (trackRef.current.offsetLeft ?? 0);
-    trackRef.current.scrollLeft = scrollLeft - (x - startX);
-  };
-  const onMouseUp = () => setIsDragging(false);
-
   const shown = SPONSORS.slice(0, 5);
-
   return (
     <section className="mt-3 px-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-2.5">
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-pink-500 to-fuchsia-600" />
-          <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
-            Patrocinadores
-          </span>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-1.5">
+          <div className="w-1 h-3 rounded-full bg-gradient-to-b from-pink-500 to-fuchsia-600" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Patrocinadores</span>
         </div>
-        <button
-          onClick={() => navigate('/venues')}
-          className="flex items-center gap-1 text-[11px] font-bold text-pink-500 hover:text-fuchsia-500 transition-colors"
-        >
-          Ver todos <ChevronRight className="w-3 h-3" />
+        <button onClick={() => navigate('/venues')} className="flex items-center gap-0.5 text-[10px] font-bold text-pink-500 hover:text-fuchsia-500 transition-colors">
+          Ver todos <ChevronRight className="w-2.5 h-2.5" />
         </button>
       </div>
-
-      {/* Scrollable track */}
-      <div
-        ref={trackRef}
-        className="flex gap-3 overflow-x-auto pb-1 scroll-smooth"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', cursor: isDragging ? 'grabbing' : 'grab' }}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseUp}
-      >
+      <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
         {shown.map((sp) => (
           <button
             key={sp.id}
             onClick={() => navigate(sp.link)}
-            className="flex-shrink-0 flex flex-col items-center gap-2 group"
-            style={{ minWidth: 88 }}
+            className="flex-shrink-0 flex flex-col items-center gap-1 group"
+            style={{ minWidth: 56 }}
           >
-            {/* Logo circle */}
             <div
-              className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300 border-2 border-white/10"
-              style={{ boxShadow: `0 4px 20px ${sp.color}40` }}
+              className="w-10 h-10 rounded-xl overflow-hidden shadow-md group-hover:scale-110 transition-transform duration-200 border border-white/20"
+              style={{ boxShadow: `0 2px 10px ${sp.color}35` }}
             >
               <img src={sp.logo} alt={sp.name} className="w-full h-full object-cover" />
-              {/* Glow ring on hover */}
-              <div
-                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                style={{ border: `2px solid ${sp.color}`, boxShadow: `inset 0 0 12px ${sp.color}60` }}
-              />
             </div>
-            {/* Name */}
-            <span className="text-[10px] font-bold text-gray-600 dark:text-gray-400 text-center leading-tight max-w-[80px] line-clamp-2 group-hover:text-pink-500 transition-colors">
+            <span className="text-[9px] font-semibold text-gray-500 dark:text-gray-500 text-center leading-tight max-w-[54px] line-clamp-1 group-hover:text-pink-500 transition-colors">
               {sp.name}
             </span>
           </button>
         ))}
-
-        {/* "Ver todos" tile */}
+        {/* Ver todos tile */}
         <button
           onClick={() => navigate('/venues')}
-          className="flex-shrink-0 flex flex-col items-center gap-2 group"
-          style={{ minWidth: 88 }}
+          className="flex-shrink-0 flex flex-col items-center gap-1 group"
+          style={{ minWidth: 56 }}
         >
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500/10 to-fuchsia-600/10 border-2 border-dashed border-pink-500/40 flex items-center justify-center group-hover:border-pink-500 group-hover:bg-pink-500/20 transition-all duration-300">
-            <div className="text-center">
-              <div className="text-pink-500 text-lg font-black leading-none">+</div>
-              <div className="text-pink-400 text-[8px] font-bold leading-tight">{SPONSORS.length - 5}<br/>más</div>
-            </div>
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500/10 to-fuchsia-600/10 border border-dashed border-pink-400/50 flex items-center justify-center group-hover:bg-pink-500/20 transition-all duration-200">
+            <span className="text-pink-500 text-xs font-black">+{SPONSORS.length - 5}</span>
           </div>
-          <span className="text-[10px] font-bold text-pink-500 text-center">Ver todos</span>
+          <span className="text-[9px] font-bold text-pink-500 text-center">Ver todos</span>
         </button>
       </div>
     </section>
@@ -934,9 +887,9 @@ const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-[#0a0a0a] dark:text-gray-100 transition-colors duration-300">
 
-      {/* ── RADIOS & PLAYLISTS (collapsed headers, expand on +) ── */}
+      {/* ── RADIOS, PLAYLISTS & RUTA DE HOY ── */}
       {isModuleOn('radio') && (
-      <section className="mx-4 mt-4 grid grid-cols-2 gap-3">
+      <section className="mx-4 mt-4 grid grid-cols-3 gap-2">
         {/* RADIOS */}
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <button
@@ -1020,6 +973,46 @@ const HomePage: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* RUTA DE HOY — compact panel */}
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+          <button
+            onClick={() => navigate('/comunidad')}
+            className="w-full bg-gradient-to-r from-brand-orange to-pink-500 px-3 py-2.5 flex items-center justify-between"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-[13px]">🔥</span>
+              <span className="text-white font-bold text-xs">Ruta de Hoy</span>
+            </div>
+            <ChevronRight className="w-3.5 h-3.5 text-white/70" />
+          </button>
+          <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[220px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+            {COMMUNITY_POSTS.filter(p => p.status === 'APROBADO').slice(0, 5).map((post) => (
+              <button
+                key={post.id}
+                onClick={() => navigate(`/comunidad?post=${post.id}`)}
+                className="w-full flex items-start gap-2 p-2.5 hover:bg-orange-50/50 dark:hover:bg-orange-900/10 transition-all text-left"
+              >
+                <img
+                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(post.user)}&background=EC4899&color=fff&size=60&bold=true&rounded=true`}
+                  alt={post.user}
+                  className="w-7 h-7 rounded-full flex-shrink-0 mt-0.5"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-gray-900 dark:text-white text-[10px] truncate">{post.user}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-[9px] line-clamp-2 leading-tight">{post.fullText}</p>
+                  <p className="text-[8px] text-brand-orange font-semibold mt-0.5">📍 {post.location}</p>
+                </div>
+              </button>
+            ))}
+            <button
+              onClick={() => navigate('/comunidad')}
+              className="w-full py-2 text-[10px] font-bold text-brand-orange hover:bg-orange-50 dark:hover:bg-orange-900/10 transition-colors flex items-center justify-center gap-1"
+            >
+              Ver todos <ChevronRight className="w-2.5 h-2.5" />
+            </button>
+          </div>
+        </div>
       </section>
       )}
 
@@ -1091,11 +1084,6 @@ const HomePage: React.FC = () => {
 
       {/* ── ULTRAMODERN SMART SEARCH ── */}
       <UltraModernSearchSection navigate={navigate} categories={DEFAULT_CATEGORIES} />
-
-      {/* ── RUTA DE HOY SLIDER ── */}
-      {isModuleOn('ruta') && (
-        <RutaDeHoySlider navigate={navigate} posts={COMMUNITY_POSTS} />
-      )}
 
       {/* ── PANEL SUPERADMIN ── */}
       {isAdmin && adminStats && isModuleOn('admin-panel') && (
