@@ -6,12 +6,13 @@ import type { UserRole } from '../store/appStore';
 import { Button, Input } from '../components/ui';
 import { supabaseLogin, supabaseRegister } from '../hooks/useSupabaseAuth';
 
-const ROLES: { id: UserRole; label: string; icon: string; desc: string }[] = [
+const ROLES: { id: UserRole; label: string; icon: string; desc: string; badge?: string }[] = [
   { id: 'user',    label: 'Fanático / Asistente', icon: '🎉', desc: 'Descubre eventos y artistas' },
   { id: 'dj',      label: 'DJ',                   icon: '🎧', desc: 'Promociona tus sets y consigue bookings' },
   { id: 'dancer',  label: 'Bailarín/a',            icon: '💃', desc: 'Muestra tu arte y consigue shows' },
   { id: 'artist',  label: 'Artista / Banda',       icon: '🎺', desc: 'Publica tus servicios y actúa' },
   { id: 'venue',   label: 'Venue / Local',         icon: '🏛️', desc: 'Gestiona tu espacio y eventos' },
+  { id: 'vendor',  label: 'Vendedor',              icon: '🏪', desc: 'Vende servicios, cursos y productos latinos', badge: 'NUEVO' },
 ];
 
 const AuthPage: React.FC = () => {
@@ -193,7 +194,14 @@ const AuthPage: React.FC = () => {
                     >
                       <span className="text-2xl">{role.icon}</span>
                       <div className="flex-1">
-                        <p className="text-gray-800 font-semibold text-sm">{role.label}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-gray-800 font-semibold text-sm">{role.label}</p>
+                          {role.badge && (
+                            <span className="text-[9px] font-black bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white px-1.5 py-0.5 rounded-full">
+                              {role.badge}
+                            </span>
+                          )}
+                        </div>
                         <p className="text-gray-400 text-xs">{role.desc}</p>
                       </div>
                       {selectedRole === role.id && (

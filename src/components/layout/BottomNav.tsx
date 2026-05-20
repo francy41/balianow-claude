@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, Calendar, Store, PlaySquare, User } from 'lucide-react';
+import { Home, Search, Calendar, Megaphone, PlaySquare, User } from 'lucide-react';
 import { useAuthStore } from '../../store/appStore';
 import { Avatar } from '../ui';
 
@@ -11,9 +11,9 @@ const BottomNav: React.FC = () => {
   const tabs = [
     { to: '/',       icon: <Home className="w-5 h-5" />,       label: 'Inicio' },
     { to: '/explorar', icon: <Search className="w-5 h-5" />,   label: 'Explorar' },
-    { to: '/eventos',    icon: <Calendar className="w-5 h-5" />,    label: 'Eventos' },
-    { to: '/vendedores', icon: <Store className="w-5 h-5" />,      label: 'Vendedores' },
-    { to: '/live',       icon: <PlaySquare className="w-5 h-5" />, label: 'Live', dot: true },
+    { to: '/eventos',      icon: <Calendar className="w-5 h-5" />,    label: 'Eventos' },
+    { to: '/promocionate', icon: <Megaphone className="w-5 h-5" />, label: 'Promo', dot: true },
+    { to: '/live',         icon: <PlaySquare className="w-5 h-5" />, label: 'Live', dot: true },
     {
       to: isAuthenticated ? '/dashboard' : '/auth',
       icon: isAuthenticated && user
