@@ -196,7 +196,6 @@ const AdminPage: React.FC = () => {
           <Lock className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Acceso restringido</h2>
           <p className="text-gray-400 mb-6">Solo administradores pueden acceder a este panel.</p>
-          <p className="text-gray-400 text-sm mb-4">Demo: inicia sesión con <span className="font-mono bg-gray-100 px-2 py-0.5 rounded">admin@bachasalseros.com</span></p>
           <Button variant="orange" onClick={() => navigate('/auth')}>Iniciar Sesión</Button>
         </div>
       </div>
