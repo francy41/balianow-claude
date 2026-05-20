@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack } from 'lucide-react';
+import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram } from 'lucide-react';
 import { ARTISTS, EVENTS, VENUES } from '../data/mockData';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, type HeroSliderImage, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
@@ -703,12 +703,12 @@ const HomeSectionWithSearch: React.FC<HomeSectionProps> = ({
         {actionLabel && onAction && (
           <button
             onClick={onAction}
-            className="group flex items-center gap-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 hover:from-pink-600 hover:to-fuchsia-700 text-white text-xs font-black px-3 py-1.5 rounded-full shadow-md shadow-pink-500/25 hover:scale-105 transition-all"
+            className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform"
           >
-            <span>{actionLabel}</span>
-            <div className="w-4 h-4 rounded-full bg-white/20 flex items-center justify-center">
-              <ArrowRight className="w-2.5 h-2.5" />
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-pink-500/30 group-hover:shadow-pink-500/50 transition-shadow">
+              <ArrowRight className="w-4 h-4 text-white" />
             </div>
+            <span className="text-[9px] font-black uppercase tracking-widest text-pink-500">{actionLabel}</span>
           </button>
         )}
       </div>
@@ -760,13 +760,11 @@ const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
           </span>
           <h2 className="font-display font-black text-lg text-gray-900">Locales Abiertos Ahora</h2>
         </div>
-        <button onClick={() => navigate('/venues?open=true')}
-          className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold px-4 py-2 rounded-full flex items-center gap-1.5 shadow-lg shadow-emerald-500/30 transition-all hover:scale-105">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-          </span>
-          Ver Todos
+        <button onClick={() => navigate('/venues?open=true')} className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+            <ArrowRight className="w-4 h-4 text-white" />
+          </div>
+          <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">Ver Todos</span>
         </button>
       </div>
       <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
@@ -819,13 +817,11 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => (
         </span>
         <h2 className="font-display font-black text-lg text-gray-900">En Directo Ahora</h2>
       </div>
-      <button onClick={() => navigate('/live')}
-        className="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-full flex items-center gap-1.5 shadow-lg shadow-red-500/30 transition-all hover:scale-105">
-        <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-        </span>
-        Ver todos
+      <button onClick={() => navigate('/live')} className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform">
+        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/30">
+          <ArrowRight className="w-4 h-4 text-white" />
+        </div>
+        <span className="text-[9px] font-black uppercase tracking-widest text-red-500">Ver Todos</span>
       </button>
     </div>
     <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
@@ -889,87 +885,102 @@ const HomePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-[#0a0a0a] dark:text-gray-100 transition-colors duration-300">
 
-      {/* ── RADIOS & PLAYLISTS ── */}
+      {/* ── RADIOS · PLAYLISTS · REDES SOCIALES ── */}
       {isModuleOn('radio') && (
-      <section className="mx-4 mt-4 grid grid-cols-2 gap-2">
-        {/* RADIOS */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
-          <button
-            onClick={() => setRadiosOpen(v => !v)}
-            className="w-full bg-gradient-to-r from-gray-900 to-gray-800 px-3 py-2.5 flex items-center justify-between"
-          >
-            <div className="flex items-center gap-2">
-              <Radio className="w-3.5 h-3.5 text-pink-400" />
-              <span className="text-white font-bold text-xs">Radios</span>
-              <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-            </div>
-            <Plus className={`w-3.5 h-3.5 text-white/60 transition-transform duration-300 ${radiosOpen ? 'rotate-45' : ''}`} />
-          </button>
-          {radiosOpen && (
-            <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[220px] overflow-y-auto animate-[fadeIn_0.2s_ease]" style={{ scrollbarWidth: 'thin' }}>
-              {RADIO_STATIONS.map((station, i) => (
-                <button
-                  key={station.id}
-                  onClick={() => setPlaying(playing === i ? null : i)}
-                  className={`w-full flex items-center gap-2.5 p-2.5 hover:bg-pink-50/50 dark:hover:bg-pink-900/10 transition-all text-left ${playing === i ? 'bg-pink-50 dark:bg-pink-900/20 border-l-2 border-pink-500' : ''}`}
-                >
-                  <img src={station.img} alt={station.name} className="w-9 h-9 rounded-lg object-cover flex-shrink-0 bg-gray-200" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-gray-900 dark:text-white text-[11px] truncate">{station.name}</p>
-                    <p className="text-gray-400 text-[9px] flex items-center gap-1">
-                      {playing === i && <span className="w-1 h-1 bg-red-500 rounded-full animate-pulse" />}
-                      {station.genre}
-                    </p>
-                  </div>
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-                    playing === i ? 'bg-pink-500 text-white shadow-md shadow-pink-500/30' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200'
-                  }`}>
-                    {playing === i ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
+      <section className="mx-4 mt-4 space-y-2">
+        {/* Fila 1: Radio + Playlist (cabeceras compactas, se expanden al tocar) */}
+        <div className="grid grid-cols-2 gap-2">
+          {/* RADIOS */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+            <button onClick={() => setRadiosOpen(v => !v)}
+              className="w-full bg-gradient-to-r from-gray-900 to-gray-800 px-2.5 py-1.5 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Radio className="w-3 h-3 text-pink-400" />
+                <span className="text-white font-bold text-[11px]">Radios</span>
+                <span className="w-1 h-1 bg-red-500 rounded-full animate-pulse" />
+              </div>
+              <Plus className={`w-3 h-3 text-white/60 transition-transform duration-300 ${radiosOpen ? 'rotate-45' : ''}`} />
+            </button>
+            {radiosOpen && (
+              <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[180px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+                {RADIO_STATIONS.map((station, i) => (
+                  <button key={station.id} onClick={() => setPlaying(playing === i ? null : i)}
+                    className={`w-full flex items-center gap-2 p-2 hover:bg-pink-50/50 dark:hover:bg-pink-900/10 transition-all text-left ${playing === i ? 'bg-pink-50 dark:bg-pink-900/20 border-l-2 border-pink-500' : ''}`}>
+                    <img src={station.img} alt={station.name} className="w-7 h-7 rounded-lg object-cover flex-shrink-0 bg-gray-200" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-gray-900 dark:text-white text-[10px] truncate">{station.name}</p>
+                      <p className="text-gray-400 text-[8px]">{station.genre}</p>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${playing === i ? 'bg-pink-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
+                      {playing === i ? <Pause className="w-2.5 h-2.5" /> : <Play className="w-2.5 h-2.5 ml-0.5" />}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* PLAYLISTS */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+            <button onClick={() => setPlaylistsOpen(v => !v)}
+              className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 px-2.5 py-1.5 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <ListMusic className="w-3 h-3 text-white" />
+                <span className="text-white font-bold text-[11px]">Playlists</span>
+              </div>
+              <Plus className={`w-3 h-3 text-white/60 transition-transform duration-300 ${playlistsOpen ? 'rotate-45' : ''}`} />
+            </button>
+            {playlistsOpen && (
+              <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[180px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
+                {PLAYLISTS.map((pl, idx) => (
+                  <button key={pl.id} onClick={() => setPlaying(playing === 100 + idx ? null : 100 + idx)}
+                    className={`w-full flex items-center gap-2 p-2 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-all text-left ${playing === 100 + idx ? 'bg-purple-50 dark:bg-purple-900/20 border-l-2 border-purple-500' : ''}`}>
+                    <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${pl.color} flex items-center justify-center flex-shrink-0`}>
+                      <ListMusic className="w-3 h-3 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-gray-900 dark:text-white text-[10px] truncate">{pl.name}</p>
+                      <p className="text-gray-400 text-[8px]">{pl.tracks} tracks</p>
+                    </div>
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${playing === 100 + idx ? 'bg-purple-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
+                      {playing === 100 + idx ? <Pause className="w-2.5 h-2.5" /> : <Play className="w-2.5 h-2.5 ml-0.5" />}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* PLAYLISTS */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
-          <button
-            onClick={() => setPlaylistsOpen(v => !v)}
-            className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 px-3 py-2.5 flex items-center justify-between"
-          >
-            <div className="flex items-center gap-2">
-              <ListMusic className="w-3.5 h-3.5 text-white" />
-              <span className="text-white font-bold text-xs">Playlists</span>
-            </div>
-            <Plus className={`w-3.5 h-3.5 text-white/60 transition-transform duration-300 ${playlistsOpen ? 'rotate-45' : ''}`} />
-          </button>
-          {playlistsOpen && (
-            <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[220px] overflow-y-auto animate-[fadeIn_0.2s_ease]" style={{ scrollbarWidth: 'thin' }}>
-              {PLAYLISTS.map((pl, idx) => (
-                <button
-                  key={pl.id}
-                  onClick={() => setPlaying(playing === 100 + idx ? null : 100 + idx)}
-                  className={`w-full flex items-center gap-2.5 p-2.5 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-all text-left ${
-                    playing === 100 + idx ? 'bg-purple-50 dark:bg-purple-900/20 border-l-2 border-purple-500' : ''
-                  }`}
-                >
-                  <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${pl.color} flex items-center justify-center flex-shrink-0 shadow-sm`}>
-                    <ListMusic className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-gray-900 dark:text-white text-[11px] truncate">{pl.name}</p>
-                    <p className="text-gray-400 text-[9px]">{pl.tracks} tracks · {pl.duration}</p>
-                  </div>
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all ${
-                    playing === 100 + idx ? 'bg-purple-500 text-white shadow-md shadow-purple-500/30' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 hover:bg-gray-200'
-                  }`}>
-                    {playing === 100 + idx ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
+        {/* Fila 2: Redes sociales del proyecto */}
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm px-3 py-2 flex items-center justify-between">
+          <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Síguenos</span>
+          <div className="flex items-center gap-2">
+            {/* YouTube */}
+            <a href="https://youtube.com/@bailanow" target="_blank" rel="noopener noreferrer"
+              className="w-7 h-7 rounded-lg bg-red-500 hover:bg-red-600 flex items-center justify-center transition-all hover:scale-110 shadow-sm shadow-red-500/30">
+              <Youtube className="w-3.5 h-3.5 text-white" />
+            </a>
+            {/* Instagram */}
+            <a href="https://instagram.com/bailanow" target="_blank" rel="noopener noreferrer"
+              className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 hover:opacity-90 flex items-center justify-center transition-all hover:scale-110 shadow-sm shadow-pink-500/30">
+              <Instagram className="w-3.5 h-3.5 text-white" />
+            </a>
+            {/* TikTok */}
+            <a href="https://tiktok.com/@bailanow" target="_blank" rel="noopener noreferrer"
+              className="w-7 h-7 rounded-lg bg-gray-900 hover:bg-black flex items-center justify-center transition-all hover:scale-110 shadow-sm">
+              <svg className="w-3.5 h-3.5 text-white fill-white" viewBox="0 0 24 24">
+                <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/>
+              </svg>
+            </a>
+            {/* Facebook */}
+            <a href="https://facebook.com/bailanow" target="_blank" rel="noopener noreferrer"
+              className="w-7 h-7 rounded-lg bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-all hover:scale-110 shadow-sm shadow-blue-500/30">
+              <svg className="w-3.5 h-3.5 text-white fill-white" viewBox="0 0 24 24">
+                <path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.41 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.88v2.27h3.32l-.53 3.49h-2.79V24C19.62 23.1 24 18.1 24 12.07z"/>
+              </svg>
+            </a>
+          </div>
         </div>
       </section>
       )}
