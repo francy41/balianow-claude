@@ -22,6 +22,178 @@ interface Category {
   active: boolean;
 }
 
+// ── SPONSORS ─────────────────────────────────────────────────────────────
+const SPONSORS = [
+  {
+    id: 'sp1',
+    name: 'Madrid Bachata',
+    tagline: 'El congreso #1 de bachata en Madrid',
+    logo: 'https://ui-avatars.com/api/?name=MB&background=E11D48&color=fff&size=120&bold=true&font-size=0.45&rounded=true',
+    color: '#E11D48',
+    link: '/venues?city=Madrid',
+    badge: '🏆 Patrocinador',
+  },
+  {
+    id: 'sp2',
+    name: 'Azúcar Disco',
+    tagline: 'La noche latina más caliente de Valencia',
+    logo: 'https://ui-avatars.com/api/?name=AD&background=D97706&color=fff&size=120&bold=true&font-size=0.45&rounded=true',
+    color: '#D97706',
+    link: '/venues/v6',
+    badge: '⭐ Destacado',
+  },
+  {
+    id: 'sp3',
+    name: 'El Son Madrid',
+    tagline: 'Salsa & Bachata en el corazón de Madrid',
+    logo: 'https://ui-avatars.com/api/?name=ES&background=7C3AED&color=fff&size=120&bold=true&font-size=0.45&rounded=true',
+    color: '#7C3AED',
+    link: '/venues/v8',
+    badge: '🎵 Club Oficial',
+  },
+  {
+    id: 'sp4',
+    name: 'La Topa Tolondra',
+    tagline: 'El templo de la salsa caleña desde los 70',
+    logo: 'https://ui-avatars.com/api/?name=LT&background=059669&color=fff&size=120&bold=true&font-size=0.45&rounded=true',
+    color: '#059669',
+    link: '/venues/v28',
+    badge: '💃 Leyenda Caleña',
+  },
+  {
+    id: 'sp5',
+    name: 'Le Balajo Paris',
+    tagline: 'La sala más histórica de París desde 1936',
+    logo: 'https://ui-avatars.com/api/?name=LB&background=EC4899&color=fff&size=120&bold=true&font-size=0.45&rounded=true',
+    color: '#EC4899',
+    link: '/venues/v16',
+    badge: '🗼 París',
+  },
+  {
+    id: 'sp6',
+    name: 'Café Cantante',
+    tagline: 'La timba cubana más auténtica de La Habana',
+    logo: 'https://ui-avatars.com/api/?name=CC&background=0891B2&color=fff&size=120&bold=true&font-size=0.45&rounded=true',
+    color: '#0891B2',
+    link: '/venues/v34',
+    badge: '🎺 La Habana',
+  },
+  {
+    id: 'sp7',
+    name: 'SOB\'s New York',
+    tagline: 'Sounds of Brazil — leyenda latina del West Village',
+    logo: 'https://ui-avatars.com/api/?name=SB&background=1E40AF&color=fff&size=120&bold=true&font-size=0.45&rounded=true',
+    color: '#1E40AF',
+    link: '/venues/v40',
+    badge: '🗽 New York',
+  },
+  {
+    id: 'sp8',
+    name: 'Jet Set Club',
+    tagline: 'La discoteca más famosa de República Dominicana',
+    logo: 'https://ui-avatars.com/api/?name=JS&background=B91C1C&color=fff&size=120&bold=true&font-size=0.45&rounded=true',
+    color: '#B91C1C',
+    link: '/venues/v21',
+    badge: '🌴 Santo Domingo',
+  },
+];
+
+// ── SPONSORS SLIDER ───────────────────────────────────────────────────────
+const SponsorsSlider: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = ({ navigate }) => {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+
+  // Mouse drag scroll
+  const onMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    setStartX(e.pageX - (trackRef.current?.offsetLeft ?? 0));
+    setScrollLeft(trackRef.current?.scrollLeft ?? 0);
+  };
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !trackRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - (trackRef.current.offsetLeft ?? 0);
+    trackRef.current.scrollLeft = scrollLeft - (x - startX);
+  };
+  const onMouseUp = () => setIsDragging(false);
+
+  const shown = SPONSORS.slice(0, 5);
+
+  return (
+    <section className="mt-3 px-4">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-2.5">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-4 rounded-full bg-gradient-to-b from-pink-500 to-fuchsia-600" />
+          <span className="text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">
+            Patrocinadores
+          </span>
+        </div>
+        <button
+          onClick={() => navigate('/venues')}
+          className="flex items-center gap-1 text-[11px] font-bold text-pink-500 hover:text-fuchsia-500 transition-colors"
+        >
+          Ver todos <ChevronRight className="w-3 h-3" />
+        </button>
+      </div>
+
+      {/* Scrollable track */}
+      <div
+        ref={trackRef}
+        className="flex gap-3 overflow-x-auto pb-1 scroll-smooth"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', cursor: isDragging ? 'grabbing' : 'grab' }}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
+      >
+        {shown.map((sp) => (
+          <button
+            key={sp.id}
+            onClick={() => navigate(sp.link)}
+            className="flex-shrink-0 flex flex-col items-center gap-2 group"
+            style={{ minWidth: 88 }}
+          >
+            {/* Logo circle */}
+            <div
+              className="relative w-16 h-16 rounded-2xl overflow-hidden shadow-lg group-hover:shadow-xl group-hover:scale-105 transition-all duration-300 border-2 border-white/10"
+              style={{ boxShadow: `0 4px 20px ${sp.color}40` }}
+            >
+              <img src={sp.logo} alt={sp.name} className="w-full h-full object-cover" />
+              {/* Glow ring on hover */}
+              <div
+                className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{ border: `2px solid ${sp.color}`, boxShadow: `inset 0 0 12px ${sp.color}60` }}
+              />
+            </div>
+            {/* Name */}
+            <span className="text-[10px] font-bold text-gray-600 dark:text-gray-400 text-center leading-tight max-w-[80px] line-clamp-2 group-hover:text-pink-500 transition-colors">
+              {sp.name}
+            </span>
+          </button>
+        ))}
+
+        {/* "Ver todos" tile */}
+        <button
+          onClick={() => navigate('/venues')}
+          className="flex-shrink-0 flex flex-col items-center gap-2 group"
+          style={{ minWidth: 88 }}
+        >
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500/10 to-fuchsia-600/10 border-2 border-dashed border-pink-500/40 flex items-center justify-center group-hover:border-pink-500 group-hover:bg-pink-500/20 transition-all duration-300">
+            <div className="text-center">
+              <div className="text-pink-500 text-lg font-black leading-none">+</div>
+              <div className="text-pink-400 text-[8px] font-bold leading-tight">{SPONSORS.length - 5}<br/>más</div>
+            </div>
+          </div>
+          <span className="text-[10px] font-bold text-pink-500 text-center">Ver todos</span>
+        </button>
+      </div>
+    </section>
+  );
+};
+
 // ── COMMUNITY POSTS (Ruta de Hoy) ────────────────────────────────────────
 const COMMUNITY_POSTS = [
   { id: 1, user: 'Elena García', fullText: 'Primera vez en Madrid, busca un local donde bailar bachata esta noche. ¡Alguien que me recomiende el mejor lugar!', location: 'Madrid', category: 'localidades', status: 'APROBADO', time: 'Hace 15 min' },
@@ -913,6 +1085,9 @@ const HomePage: React.FC = () => {
           )}
         </div>
       </section>
+
+      {/* ── SPONSORS SLIDER ── */}
+      <SponsorsSlider navigate={navigate} />
 
       {/* ── ULTRAMODERN SMART SEARCH ── */}
       <UltraModernSearchSection navigate={navigate} categories={DEFAULT_CATEGORIES} />
