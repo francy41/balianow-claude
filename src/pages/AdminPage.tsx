@@ -9,7 +9,7 @@ import {
   ChevronRight, ArrowUpRight, ArrowDownRight, Clock,
   Wifi, Globe, Bell, Database, Server, FileText
 } from 'lucide-react';
-import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useAdminOverridesStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_CATEGORIES, type HeroMediaType, type CommissionSource, type HeroSliderImage, type HomeCategory } from '../store/appStore';
+import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useAdminOverridesStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_CATEGORIES, type HeroMediaType, type CommissionSource, type HeroSliderImage, type HomeCategory, type Sponsor } from '../store/appStore';
 import AdminCMS from '../components/AdminCMS';
 import AdminMediaManager from '../components/AdminMediaManager';
 import AdminEditModal, { type EditField } from '../components/AdminEditModal';
@@ -21,11 +21,13 @@ type AdminSection =
   | 'overview' | 'categorias' | 'media' | 'radio' | 'usuarios' | 'localidades'
   | 'suscripciones' | 'artistas' | 'bailarinas' | 'eventos' | 'mercado'
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
-  | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms';
+  | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms'
+  | 'patrocinadores';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
   { id: 'cms',            label: 'CMS · Constructor',       icon: <Palette className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'patrocinadores', label: 'Patrocinadores',          icon: <Star className="w-4 h-4" />, badge: 'NEW' },
   { id: 'categorias',     label: 'Categorías',              icon: <Tag className="w-4 h-4" /> },
   { id: 'media',          label: 'Media Manager',           icon: <Palette className="w-4 h-4" />, badge: 'NEW' },
   { id: 'radio',          label: 'Radio Online',            icon: <Radio className="w-4 h-4" />, badge: '2 live' },
@@ -276,6 +278,7 @@ const AdminPage: React.FC = () => {
         {active === 'disputas'       && <DisputasSection addToast={addToast} />}
         {active === 'seguridad'      && <SeguridadSection />}
         {active === 'resenas'        && <ResenasSection addToast={addToast} />}
+        {active === 'patrocinadores' && <PatrocinadoresSection addToast={addToast} />}
       </main>
 
       {/* Modal de edición global */}
@@ -2288,6 +2291,282 @@ const ResenasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
             <div className="flex flex-col gap-1 flex-shrink-0">
               {r.status !== 'approved' && <button onClick={() => addToast({ message: 'Reseña aprobada', type: 'success' })} className="p-1.5 hover:bg-green-50 rounded-lg text-green-500"><CheckCircle className="w-4 h-4" /></button>}
               <button onClick={() => addToast({ message: 'Reseña eliminada', type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ── PATROCINADORES SECTION ────────────────────────────────────────────────
+const BADGE_OPTIONS = ['🏆 Patrocinador','⭐ Destacado','🎵 Club Oficial','💃 Leyenda','🗼 Internacional','🌴 Caribe','🗽 USA','🎺 Cuba','🔥 Premium','🌟 VIP'];
+const COLOR_PRESETS = ['#E11D48','#D97706','#7C3AED','#059669','#EC4899','#0891B2','#1E40AF','#B91C1C','#F97316','#8B5CF6'];
+
+const PatrocinadoresSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const { sponsors, addSponsor, updateSponsor, removeSponsor, toggleActive } = useSponsorsStore();
+  const [showForm, setShowForm] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [linkMode, setLinkMode] = useState<'venue' | 'artist' | 'custom'>('venue');
+  const [form, setForm] = useState<Partial<Sponsor>>({
+    name: '', tagline: '', logo: '', color: '#E11D48', link: '', badge: '🏆 Patrocinador',
+    type: 'venue', active: true, isPremium: false, city: '', website: '', phone: '', email: '', description: '',
+  });
+
+  const setF = (k: keyof Sponsor, v: any) => setForm(p => ({ ...p, [k]: v }));
+
+  const openNew = () => { setEditId(null); setForm({ name:'', tagline:'', logo:'', color:'#E11D48', link:'', badge:'🏆 Patrocinador', type:'venue', active:true, isPremium:false, city:'', website:'', phone:'', email:'', description:'' }); setShowForm(true); };
+  const openEdit = (sp: Sponsor) => { setEditId(sp.id); setForm(sp); setShowForm(true); };
+
+  const handleSave = () => {
+    if (!form.name?.trim()) { addToast({ message: 'El nombre es obligatorio', type: 'error' }); return; }
+    if (!form.link?.trim()) { addToast({ message: 'El enlace es obligatorio', type: 'error' }); return; }
+    if (editId) {
+      updateSponsor(editId, form as Partial<Sponsor>);
+      addToast({ message: 'Patrocinador actualizado ✓', type: 'success' });
+    } else {
+      addSponsor(form as Omit<Sponsor, 'id' | 'createdAt'>);
+      addToast({ message: 'Patrocinador añadido ✓', type: 'success' });
+    }
+    setShowForm(false);
+  };
+
+  const handleLogoFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const size = 200;
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d')!;
+        const minSide = Math.min(img.width, img.height);
+        const sx = (img.width - minSide) / 2, sy = (img.height - minSide) / 2;
+        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+        setF('logo', canvas.toDataURL('image/jpeg', 0.88));
+      };
+      img.src = ev.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const logoRef = React.useRef<HTMLInputElement>(null);
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div>
+          <h2 className="text-xl font-black text-gray-900">🏆 Patrocinadores</h2>
+          <p className="text-gray-500 text-sm">{sponsors.filter(s => s.active).length} activos · {sponsors.length} total</p>
+        </div>
+        <button onClick={openNew} className="btn-orange flex items-center gap-2">
+          <Plus className="w-4 h-4" /> Nuevo Patrocinador
+        </button>
+      </div>
+
+      {/* Form Modal */}
+      {showForm && (
+        <div className="fixed inset-0 z-[80] bg-black/60 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
+          <div onClick={e => e.stopPropagation()} className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
+            <div className="bg-gradient-to-r from-brand-orange to-pink-500 p-5 rounded-t-3xl flex items-center justify-between">
+              <h3 className="text-white font-black text-lg">{editId ? '✏️ Editar Patrocinador' : '➕ Nuevo Patrocinador'}</h3>
+              <button onClick={() => setShowForm(false)} className="text-white/80 hover:text-white"><XCircle className="w-5 h-5" /></button>
+            </div>
+            <div className="p-6 space-y-5">
+
+              {/* Preview */}
+              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
+                <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg border-2 border-white flex-shrink-0"
+                  style={{ boxShadow: `0 4px 16px ${form.color}50` }}>
+                  {form.logo
+                    ? <img src={form.logo} alt="logo" className="w-full h-full object-cover" />
+                    : <div className="w-full h-full flex items-center justify-center text-2xl" style={{ background: form.color }}>
+                        <span className="text-white font-black text-lg">{(form.name || 'S')[0]}</span>
+                      </div>
+                  }
+                </div>
+                <div>
+                  <p className="font-black text-gray-900">{form.name || 'Nombre del patrocinador'}</p>
+                  <p className="text-gray-500 text-sm">{form.tagline || 'Descripción corta'}</p>
+                  <span className="text-xs bg-gray-200 px-2 py-0.5 rounded-full">{form.badge}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Nombre */}
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-bold text-gray-700 mb-1 block">Nombre *</label>
+                  <input value={form.name || ''} onChange={e => setF('name', e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange" placeholder="Ej: Madrid Bachata Festival" />
+                </div>
+                {/* Tagline */}
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-bold text-gray-700 mb-1 block">Tagline / Descripción corta *</label>
+                  <input value={form.tagline || ''} onChange={e => setF('tagline', e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange" placeholder="El congreso #1 de bachata en Madrid" />
+                </div>
+                {/* Logo */}
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-bold text-gray-700 mb-1 block">Logo</label>
+                  <div className="flex gap-2">
+                    <input value={form.logo?.startsWith('data:') ? '' : (form.logo || '')} onChange={e => setF('logo', e.target.value)} className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange" placeholder="https://... o sube una imagen" />
+                    <button onClick={() => logoRef.current?.click()} className="flex items-center gap-1.5 border border-gray-300 text-gray-600 rounded-xl px-3 py-2 text-sm hover:bg-gray-50 whitespace-nowrap">
+                      <Eye className="w-3.5 h-3.5" /> Subir
+                    </button>
+                    <input ref={logoRef} type="file" accept="image/*" className="hidden" onChange={handleLogoFile} />
+                  </div>
+                </div>
+                {/* Color */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 mb-1 block">Color de marca</label>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {COLOR_PRESETS.map(c => (
+                      <button key={c} onClick={() => setF('color', c)} className="w-7 h-7 rounded-full border-2 transition-all hover:scale-110"
+                        style={{ background: c, borderColor: form.color === c ? '#000' : 'transparent' }} />
+                    ))}
+                    <input type="color" value={form.color || '#E11D48'} onChange={e => setF('color', e.target.value)} className="w-8 h-8 rounded-full border cursor-pointer" />
+                  </div>
+                </div>
+                {/* Badge */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 mb-1 block">Badge / Etiqueta</label>
+                  <select value={form.badge || ''} onChange={e => setF('badge', e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
+                    {BADGE_OPTIONS.map(b => <option key={b} value={b}>{b}</option>)}
+                  </select>
+                </div>
+                {/* Tipo */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 mb-1 block">Tipo de patrocinador</label>
+                  <select value={form.type || 'venue'} onChange={e => setF('type', e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
+                    <option value="venue">🏠 Local / Venue</option>
+                    <option value="artist">🎧 Artista / DJ</option>
+                    <option value="event">🎉 Evento</option>
+                    <option value="brand">🏢 Marca / Empresa</option>
+                  </select>
+                </div>
+                {/* Ciudad */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 mb-1 block">Ciudad</label>
+                  <input value={form.city || ''} onChange={e => setF('city', e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange" placeholder="Madrid, Cali, Miami..." />
+                </div>
+                {/* Enlace */}
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-bold text-gray-700 mb-2 block">Enlace al hacer clic</label>
+                  <div className="flex gap-2 mb-2">
+                    {(['venue','artist','custom'] as const).map(m => (
+                      <button key={m} onClick={() => { setLinkMode(m); if (m==='venue') setF('link','/venues'); else if (m==='artist') setF('link','/artistas'); }}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all ${linkMode===m ? 'bg-brand-orange text-white border-brand-orange' : 'border-gray-200 text-gray-600 hover:border-brand-orange'}`}>
+                        {m==='venue' ? '🏠 Local' : m==='artist' ? '🎧 Artista' : '🔗 URL personalizada'}
+                      </button>
+                    ))}
+                  </div>
+                  {linkMode === 'venue' && (
+                    <select onChange={e => setF('link', `/venues/${e.target.value}`)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
+                      <option value="">— Selecciona un local —</option>
+                      {VENUES.map(v => <option key={v.id} value={v.id}>{v.name} · {v.city}</option>)}
+                    </select>
+                  )}
+                  {linkMode === 'artist' && (
+                    <select onChange={e => setF('link', `/artistas/${e.target.value}`)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
+                      <option value="">— Selecciona un artista —</option>
+                      {ARTISTS.map(a => <option key={a.id} value={a.id}>{a.name} · {a.city}</option>)}
+                    </select>
+                  )}
+                  {linkMode === 'custom' && (
+                    <input value={form.link || ''} onChange={e => setF('link', e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange" placeholder="/venues, /artistas, https://..." />
+                  )}
+                </div>
+                {/* Contacto */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 mb-1 block">Email de contacto</label>
+                  <input value={form.email || ''} onChange={e => setF('email', e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange" placeholder="hola@ejemplo.com" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-700 mb-1 block">Teléfono</label>
+                  <input value={form.phone || ''} onChange={e => setF('phone', e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange" placeholder="+34 600 000 000" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-bold text-gray-700 mb-1 block">Web del patrocinador</label>
+                  <input value={form.website || ''} onChange={e => setF('website', e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange" placeholder="https://..." />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-bold text-gray-700 mb-1 block">Descripción completa</label>
+                  <textarea value={form.description || ''} onChange={e => setF('description', e.target.value)} rows={3} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange resize-none" placeholder="Descripción del local, artista o marca..." />
+                </div>
+                {/* Flags */}
+                <div className="flex items-center gap-6">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={!!form.active} onChange={e => setF('active', e.target.checked)} className="w-4 h-4 accent-brand-orange" />
+                    <span className="text-sm font-semibold text-gray-700">Activo (visible)</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={!!form.isPremium} onChange={e => setF('isPremium', e.target.checked)} className="w-4 h-4 accent-yellow-500" />
+                    <span className="text-sm font-semibold text-gray-700">Premium</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setShowForm(false)} className="flex-1 border border-gray-200 text-gray-600 font-bold py-2.5 rounded-xl hover:bg-gray-50 transition-all">Cancelar</button>
+                <button onClick={handleSave} className="flex-1 btn-orange">
+                  {editId ? 'Guardar cambios' : 'Añadir Patrocinador'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* List */}
+      <div className="space-y-3">
+        {sponsors.length === 0 && (
+          <div className="text-center py-16 text-gray-400">
+            <div className="text-5xl mb-3">🏆</div>
+            <p className="font-bold">Aún no hay patrocinadores</p>
+            <p className="text-sm">Pulsa "Nuevo Patrocinador" para añadir el primero</p>
+          </div>
+        )}
+        {sponsors.map(sp => (
+          <div key={sp.id} className={`card-white p-4 flex items-center gap-4 ${!sp.active ? 'opacity-50' : ''}`}>
+            {/* Logo */}
+            <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-md flex-shrink-0 border-2 border-white" style={{ boxShadow: `0 4px 14px ${sp.color}40` }}>
+              {sp.logo
+                ? <img src={sp.logo} alt={sp.name} className="w-full h-full object-cover" />
+                : <div className="w-full h-full flex items-center justify-center text-xl font-black text-white" style={{ background: sp.color }}>{sp.name[0]}</div>
+              }
+            </div>
+            {/* Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="font-black text-gray-900 text-sm">{sp.name}</p>
+                <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded-full text-gray-600">{sp.badge}</span>
+                {sp.isPremium && <span className="text-[10px] bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-bold">PRO</span>}
+                {sp.active
+                  ? <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">● Activo</span>
+                  : <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold">Inactivo</span>
+                }
+              </div>
+              <p className="text-gray-500 text-xs mt-0.5 truncate">{sp.tagline}</p>
+              <div className="flex items-center gap-3 mt-1 text-[10px] text-gray-400">
+                {sp.city && <span>📍 {sp.city}</span>}
+                <span>🔗 {sp.link}</span>
+                <span className="capitalize">Tipo: {sp.type}</span>
+              </div>
+            </div>
+            {/* Actions */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button onClick={() => toggleActive(sp.id)} title={sp.active ? 'Desactivar' : 'Activar'}
+                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${sp.active ? 'bg-green-100 text-green-600 hover:bg-green-200' : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}`}>
+                {sp.active ? <CheckCircle className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+              <button onClick={() => openEdit(sp)} className="w-8 h-8 rounded-xl bg-blue-50 text-blue-500 hover:bg-blue-100 flex items-center justify-center transition-all">
+                <Edit className="w-4 h-4" />
+              </button>
+              <button onClick={() => { removeSponsor(sp.id); addToast({ message: 'Patrocinador eliminado', type: 'error' }); }}
+                className="w-8 h-8 rounded-xl bg-red-50 text-red-400 hover:bg-red-100 flex items-center justify-center transition-all">
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
           </div>
         ))}

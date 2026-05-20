@@ -31,6 +31,7 @@ const AuthPage          = lazy(() => import('./pages/AuthPage'));
 const AdminPage         = lazy(() => import('./pages/AdminPage'));
 const ProfilePage       = lazy(() => import('./pages/ProfilePage'));
 const AffiliatePage     = lazy(() => import('./pages/AffiliatePage'));
+const VendedoresPage    = lazy(() => import('./pages/VendedoresPage'));
 const PromocionatePage  = lazy(() => import('./pages/PromocionatePage'));
 const PagoExitosoPage   = lazy(() => import('./pages/PagoExitosoPage'));
 const LegalPage         = lazy(() => import('./pages/LegalPage'));
@@ -116,6 +117,7 @@ const App: React.FC = () => {
                   <Route path="/subscripciones"      element={<SubscriptionsPage />} />
                   <Route path="/auth"                element={<AuthPage />} />
                   <Route path="/afiliados"           element={<AffiliatePage />} />
+                  <Route path="/vendedores"          element={<VendedoresPage />} />
                   <Route path="/promocionate"        element={<PromocionatePage />} />
                   <Route path="/admin"               element={<AdminPage />} />
                   <Route path="/admin/:section"      element={<AdminPage />} />

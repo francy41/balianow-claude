@@ -1221,3 +1221,64 @@ export const useOrdersStore = create<OrdersState>()(
     { name: 'bailanow-orders', version: 1 }
   )
 );
+
+// ── SPONSORS STORE ────────────────────────────────────────────────────────
+export interface Sponsor {
+  id: string;
+  name: string;
+  tagline: string;
+  logo: string;
+  color: string;
+  link: string;
+  badge: string;
+  type: 'venue' | 'artist' | 'event' | 'brand';
+  refId?: string;       // id del venue/artista vinculado
+  active: boolean;
+  createdAt: string;
+  isPremium: boolean;
+  city?: string;
+  website?: string;
+  phone?: string;
+  email?: string;
+  description?: string;
+}
+
+interface SponsorsState {
+  sponsors: Sponsor[];
+  addSponsor: (sp: Omit<Sponsor, 'id' | 'createdAt'>) => Sponsor;
+  updateSponsor: (id: string, updates: Partial<Sponsor>) => void;
+  removeSponsor: (id: string) => void;
+  toggleActive: (id: string) => void;
+}
+
+// Sponsors iniciales (los que estaban en mockData)
+const INITIAL_SPONSORS: Sponsor[] = [
+  { id: 'sp1', name: 'Madrid Bachata', tagline: 'El congreso #1 de bachata en Madrid', logo: 'https://ui-avatars.com/api/?name=MB&background=E11D48&color=fff&size=120&bold=true&rounded=true', color: '#E11D48', link: '/venues?city=Madrid', badge: '🏆 Patrocinador', type: 'brand', active: true, createdAt: '2025-01-01', isPremium: true, city: 'Madrid' },
+  { id: 'sp2', name: 'Azúcar Disco', tagline: 'La noche latina más caliente de Valencia', logo: 'https://ui-avatars.com/api/?name=AD&background=D97706&color=fff&size=120&bold=true&rounded=true', color: '#D97706', link: '/venues/v6', badge: '⭐ Destacado', type: 'venue', refId: 'v6', active: true, createdAt: '2025-01-01', isPremium: true, city: 'Valencia' },
+  { id: 'sp3', name: 'El Son Madrid', tagline: 'Salsa & Bachata en el corazón de Madrid', logo: 'https://ui-avatars.com/api/?name=ES&background=7C3AED&color=fff&size=120&bold=true&rounded=true', color: '#7C3AED', link: '/venues/v8', badge: '🎵 Club Oficial', type: 'venue', refId: 'v8', active: true, createdAt: '2025-01-01', isPremium: true, city: 'Madrid' },
+  { id: 'sp4', name: 'La Topa Tolondra', tagline: 'El templo de la salsa caleña desde los 70', logo: 'https://ui-avatars.com/api/?name=LT&background=059669&color=fff&size=120&bold=true&rounded=true', color: '#059669', link: '/venues/v28', badge: '💃 Leyenda Caleña', type: 'venue', refId: 'v28', active: true, createdAt: '2025-01-01', isPremium: false, city: 'Cali' },
+  { id: 'sp5', name: 'Le Balajo Paris', tagline: 'La sala más histórica de París desde 1936', logo: 'https://ui-avatars.com/api/?name=LB&background=EC4899&color=fff&size=120&bold=true&rounded=true', color: '#EC4899', link: '/venues/v16', badge: '🗼 París', type: 'venue', refId: 'v16', active: true, createdAt: '2025-01-01', isPremium: true, city: 'Paris' },
+  { id: 'sp6', name: 'Café Cantante', tagline: 'La timba cubana más auténtica de La Habana', logo: 'https://ui-avatars.com/api/?name=CC&background=0891B2&color=fff&size=120&bold=true&rounded=true', color: '#0891B2', link: '/venues/v34', badge: '🎺 La Habana', type: 'venue', refId: 'v34', active: false, createdAt: '2025-01-01', isPremium: false, city: 'La Habana' },
+  { id: 'sp7', name: "SOB's New York", tagline: 'Sounds of Brazil — leyenda latina del West Village', logo: 'https://ui-avatars.com/api/?name=SB&background=1E40AF&color=fff&size=120&bold=true&rounded=true', color: '#1E40AF', link: '/venues/v40', badge: '🗽 New York', type: 'venue', refId: 'v40', active: true, createdAt: '2025-01-01', isPremium: true, city: 'New York' },
+  { id: 'sp8', name: 'Jet Set Club', tagline: 'La discoteca más famosa de República Dominicana', logo: 'https://ui-avatars.com/api/?name=JS&background=B91C1C&color=fff&size=120&bold=true&rounded=true', color: '#B91C1C', link: '/venues/v21', badge: '🌴 Santo Domingo', type: 'venue', refId: 'v21', active: true, createdAt: '2025-01-01', isPremium: false, city: 'Santo Domingo' },
+];
+
+export const useSponsorsStore = create<SponsorsState>()(
+  persist(
+    (set) => ({
+      sponsors: INITIAL_SPONSORS,
+      addSponsor: (sp) => {
+        const newSp: Sponsor = { ...sp, id: `sp_${Date.now()}`, createdAt: new Date().toISOString() };
+        set(s => ({ sponsors: [...s.sponsors, newSp] }));
+        return newSp;
+      },
+      updateSponsor: (id, updates) =>
+        set(s => ({ sponsors: s.sponsors.map(sp => sp.id === id ? { ...sp, ...updates } : sp) })),
+      removeSponsor: (id) =>
+        set(s => ({ sponsors: s.sponsors.filter(sp => sp.id !== id) })),
+      toggleActive: (id) =>
+        set(s => ({ sponsors: s.sponsors.map(sp => sp.id === id ? { ...sp, active: !sp.active } : sp) })),
+    }),
+    { name: 'bailanow-sponsors', version: 1 }
+  )
+);
