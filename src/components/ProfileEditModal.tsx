@@ -38,9 +38,25 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
     if (!file.type.startsWith('image/')) {
       addToast({ message: 'Solo imágenes (jpg, png, webp...)', type: 'error' }); return;
     }
-    const url = URL.createObjectURL(file);
-    setForm(prev => ({ ...prev, [field]: url }));
-    addToast({ message: `${field === 'avatar' ? 'Foto de perfil' : 'Portada'} cargada`, type: 'success' });
+    // Resize + convert to base64 so it persists in localStorage after reload
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = field === 'avatar' ? 400 : 1200;
+        const maxH = field === 'avatar' ? 400 : 400;
+        const scale = Math.min(maxW / img.width, maxH / img.height, 1);
+        const canvas = document.createElement('canvas');
+        canvas.width  = Math.round(img.width  * scale);
+        canvas.height = Math.round(img.height * scale);
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const base64 = canvas.toDataURL('image/jpeg', 0.82);
+        setForm(prev => ({ ...prev, [field]: base64 }));
+        addToast({ message: `${field === 'avatar' ? 'Foto de perfil' : 'Portada'} cargada ✓`, type: 'success' });
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSave = () => {
