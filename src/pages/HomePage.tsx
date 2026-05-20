@@ -1295,63 +1295,6 @@ const HomePage: React.FC = () => {
       </HomeSectionWithSearch>
       )}
 
-      {/* ── VENDEDORES DESTACADOS ── */}
-      {isModuleOn('artists') && (
-      <HomeSectionWithSearch
-        title="🏪 Vendedores Destacados"
-        subtitle="Servicios, clases, DJ sets y más del talento latino"
-        searchPlaceholder="Buscar vendedor, servicio, ciudad..."
-        gradient
-        actionLabel="Ver Todos"
-        onAction={() => navigate('/vendedores')}
-        onSearch={(q) => navigate(`/vendedores?q=${encodeURIComponent(q)}`)}
-      >
-        {(searchQ) => {
-          const filtered = searchQ
-            ? ARTISTS.filter(a => a.name.toLowerCase().includes(searchQ.toLowerCase()) || a.city.toLowerCase().includes(searchQ.toLowerCase()))
-            : ARTISTS.filter(a => a.isPremium || a.completedBookings > 200);
-          return (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {filtered.slice(0, 8).map(artist => (
-                <button
-                  key={artist.id}
-                  onClick={() => navigate(`/artistas/${artist.id}`)}
-                  className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border border-gray-100 dark:border-gray-700 transition-all hover:-translate-y-1 group text-left"
-                >
-                  <div className="relative">
-                    <img src={artist.avatar} alt={artist.name} className="w-full h-24 object-cover group-hover:scale-105 transition-transform duration-500" />
-                    {artist.isPremium && (
-                      <span className="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-[8px] font-black px-1.5 py-0.5 rounded">PRO</span>
-                    )}
-                    {artist.isVerified && (
-                      <span className="absolute top-2 right-2 text-blue-400 text-sm">✓</span>
-                    )}
-                  </div>
-                  <div className="p-2.5">
-                    <p className="font-bold text-gray-900 dark:text-white text-xs truncate">{artist.name}</p>
-                    <p className="text-gray-400 text-[10px] truncate">{artist.genre[0]} · {artist.city}</p>
-                    <div className="flex items-center justify-between mt-1.5">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                        <span className="text-[10px] font-semibold text-gray-700 dark:text-gray-300">{artist.rating}</span>
-                      </div>
-                      <span className="text-[10px] font-bold text-pink-500">desde €{artist.priceFrom}</span>
-                    </div>
-                  </div>
-                </button>
-              ))}
-              {searchQ && filtered.length === 0 && (
-                <div className="col-span-full text-center py-8">
-                  <p className="text-3xl mb-2">🔍</p>
-                  <p className="text-gray-400 text-sm">Sin resultados para "{searchQ}"</p>
-                </div>
-              )}
-            </div>
-          );
-        }}
-      </HomeSectionWithSearch>
-      )}
-
       {/* ── PRÓXIMOS EVENTOS ── */}
       {isModuleOn('cta') && (
       <HomeSectionWithSearch
