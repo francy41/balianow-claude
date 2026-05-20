@@ -1,15 +1,31 @@
 {
-  "name": "¡Ritmo Latino! — BachaSalseros",
-  "short_name": "RitmoLatino",
-  "description": "El ecosistema latino #1: artistas, DJs, eventos, venues, livestreams y marketplace.",
+  "name": "BailaNow — El ecosistema latino #1",
+  "short_name": "BailaNow",
+  "description": "Contrata DJs, artistas y bailarines. Descubre eventos, venues y marketplace 100% latino.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#F5F5F5",
-  "theme_color": "#F97316",
+  "background_color": "#0a0a0a",
+  "theme_color": "#EC4899",
   "lang": "es",
   "categories": ["entertainment", "music", "social", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Explorar",
+      "short_name": "Explorar",
+      "description": "Explora artistas y eventos",
+      "url": "/explorar",
+      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Promociónate",
+      "short_name": "Promo",
+      "description": "Servicios de promoción",
+      "url": "/promocionate",
+      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192" }]
+    }
+  ],
   "icons": [
     {
       "src": "/icon-192.svg",

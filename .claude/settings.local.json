@@ -108,7 +108,8 @@
       "Bash(node supabase/deploy-functions.mjs)",
       "Bash(echo \"Exit: $?\")",
       "Bash(tee build.log)",
-      "Bash(curl -s https://bailanow.com/)"
+      "Bash(curl -s https://bailanow.com/)",
+      "Bash(ls -la .env*)"
     ]
   }
 }

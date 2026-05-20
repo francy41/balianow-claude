@@ -1,7 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://lpwwdjujxwxdvyoznehp.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_Kn08qRlITmDXEcMpATB-7Q_GE5MHvvP';
+// Env vars (set in .env.local and Vercel) — fallback to direct value for compatibility
+const SUPABASE_URL =
+  (import.meta.env.VITE_SUPABASE_URL as string) ||
+  'https://lpwwdjujxwxdvyoznehp.supabase.co';
+
+const SUPABASE_ANON_KEY =
+  (import.meta.env.VITE_SUPABASE_ANON_KEY as string) ||
+  'sb_publishable_Kn08qRlITmDXEcMpATB-7Q_GE5MHvvP';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
