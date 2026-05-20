@@ -4,13 +4,14 @@
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 const PAYPAL_BASE = Deno.env.get('PAYPAL_ENV') === 'production'
   ? 'https://api-m.paypal.com'
   : 'https://api-m.sandbox.paypal.com';
 
-const supabase = createClient(
+// Service role for writing transactions after verified capture
+const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 );
@@ -18,40 +19,114 @@ const supabase = createClient(
 async function getPayPalToken(): Promise<string> {
   const clientId = Deno.env.get('PAYPAL_CLIENT_ID') ?? '';
   const clientSecret = Deno.env.get('PAYPAL_CLIENT_SECRET') ?? '';
+  if (!clientId || !clientSecret) throw new Error('PayPal credentials not configured');
   const res = await fetch(`${PAYPAL_BASE}/v1/oauth2/token`, {
     method: 'POST',
-    headers: { 'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: {
+      'Authorization': `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
     body: 'grant_type=client_credentials',
   });
-  return (await res.json()).access_token;
+  const data = await res.json();
+  if (!data.access_token) throw new Error('Failed to get PayPal token');
+  return data.access_token;
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  const corsH = getCorsHeaders(req);
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsH });
 
+  // ── AUTH CHECK ─────────────────────────────────────────────
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return new Response(JSON.stringify({ error: 'No autorizado' }), {
+      status: 401, headers: { ...corsH, 'Content-Type': 'application/json' },
+    });
+  }
+
+  const supabaseUser = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+    { global: { headers: { Authorization: authHeader } } }
+  );
+
+  const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
+  if (authError || !user) {
+    return new Response(JSON.stringify({ error: 'No autorizado' }), {
+      status: 401, headers: { ...corsH, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // ── INPUT VALIDATION ───────────────────────────────────────
+  let body: { orderId?: unknown; userId?: unknown; sellerBreakdown?: unknown };
   try {
-    const { orderId, userId, sellerBreakdown } = await req.json();
+    body = await req.json();
+  } catch {
+    return new Response(JSON.stringify({ error: 'Cuerpo de solicitud inválido' }), {
+      status: 400, headers: { ...corsH, 'Content-Type': 'application/json' },
+    });
+  }
+
+  const { orderId, userId, sellerBreakdown } = body;
+
+  // Validate orderId format (PayPal order IDs are alphanumeric)
+  if (typeof orderId !== 'string' || !/^[A-Z0-9]{8,20}$/.test(orderId)) {
+    return new Response(JSON.stringify({ error: 'ID de orden inválido' }), {
+      status: 400, headers: { ...corsH, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Ensure userId matches authenticated user (prevent IDOR)
+  if (typeof userId !== 'string' || userId !== user.id) {
+    return new Response(JSON.stringify({ error: 'No autorizado' }), {
+      status: 403, headers: { ...corsH, 'Content-Type': 'application/json' },
+    });
+  }
+
+  if (!Array.isArray(sellerBreakdown)) {
+    return new Response(JSON.stringify({ error: 'Datos de distribución inválidos' }), {
+      status: 400, headers: { ...corsH, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // ── CAPTURE ────────────────────────────────────────────────
+  try {
     const token = await getPayPalToken();
 
-    // Capturar el pago
     const capture = await fetch(`${PAYPAL_BASE}/v2/checkout/orders/${orderId}/capture`, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
     });
     const captureData = await capture.json();
 
     if (!capture.ok || captureData.status !== 'COMPLETED') {
-      throw new Error(captureData.message || 'Error al capturar pago PayPal');
+      console.error('[capture-paypal-order] Capture failed:', captureData.name);
+      return new Response(
+        JSON.stringify({ error: 'El pago no pudo ser completado. Inténtalo de nuevo.' }),
+        { status: 400, headers: { ...corsH, 'Content-Type': 'application/json' } }
+      );
     }
 
     const purchaseUnit = captureData.purchase_units?.[0];
     const captureId = purchaseUnit?.payments?.captures?.[0]?.id;
     const amount = parseFloat(purchaseUnit?.payments?.captures?.[0]?.amount?.value ?? '0');
 
-    // Registrar en Supabase
-    await supabase.from('transactions').insert({
+    // Verify the custom_id matches our user (set during order creation)
+    if (purchaseUnit?.custom_id && purchaseUnit.custom_id !== user.id) {
+      console.error('[capture-paypal-order] custom_id mismatch');
+      return new Response(JSON.stringify({ error: 'No autorizado' }), {
+        status: 403, headers: { ...corsH, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Registrar en Supabase usando service role (operación privilegiada post-captura verificada)
+    await supabaseAdmin.from('transactions').insert({
       id: captureId,
-      user_id: userId,
+      user_id: user.id, // use server-verified user.id, NOT body userId
       amount,
       currency: 'eur',
       status: 'completed',
@@ -61,23 +136,25 @@ serve(async (req) => {
       created_at: new Date().toISOString(),
     });
 
-    // Distribuir pagos a vendedores (actualizar wallets)
+    // Distribuir pagos a vendedores
     for (const seller of sellerBreakdown) {
-      await supabase.rpc('add_to_wallet', {
-        p_user_id: seller.sellerId,
-        p_amount: seller.net,
-      });
+      if (typeof seller?.sellerId === 'string' && typeof seller?.net === 'number') {
+        await supabaseAdmin.rpc('add_to_wallet', {
+          p_user_id: seller.sellerId,
+          p_amount: seller.net,
+        });
+      }
     }
 
     return new Response(
-      JSON.stringify({ success: true, captureId, status: captureData.status, sellerBreakdown }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ success: true, captureId, status: captureData.status }),
+      { headers: { ...corsH, 'Content-Type': 'application/json' } }
     );
   } catch (err) {
-    console.error('capture-paypal-order error:', err);
+    console.error('[capture-paypal-order] Error:', err instanceof Error ? err.message : err);
     return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : 'Error interno' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'Error al completar el pago. Inténtalo de nuevo.' }),
+      { status: 500, headers: { ...corsH, 'Content-Type': 'application/json' } }
     );
   }
 });

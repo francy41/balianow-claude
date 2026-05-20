@@ -1,15 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Env vars (set in .env.local and Vercel) — fallback to direct value for compatibility
-const SUPABASE_URL =
-  (import.meta.env.VITE_SUPABASE_URL as string) ||
-  'https://lpwwdjujxwxdvyoznehp.supabase.co';
+// Env vars must be set in .env.local (dev) and Vercel/hosting env (prod)
+// Never hardcode these values here — they would be bundled into the public JS
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
-const SUPABASE_ANON_KEY =
-  (import.meta.env.VITE_SUPABASE_ANON_KEY as string) ||
-  'sb_publishable_Kn08qRlITmDXEcMpATB-7Q_GE5MHvvP';
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.warn('[BailaNow] Missing Supabase env vars — check .env.local');
+}
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient(
+  SUPABASE_URL ?? '',
+  SUPABASE_ANON_KEY ?? ''
+);
 
 // ── AUTH HELPERS ─────────────────────────────────────────────
 export const authService = {
@@ -43,7 +46,7 @@ export const authService = {
   },
 
   updateProfile: async (userId: string, updates: Record<string, unknown>) => {
-    const { data, error } = await supabase.from('profiles').update(updates).eq('id', visibleId(userId));
+    const { data, error } = await supabase.from('profiles').update(updates).eq('id', userId);
     return { data, error };
   },
 
@@ -51,8 +54,6 @@ export const authService = {
     return supabase.auth.onAuthStateChange(callback);
   },
 };
-
-function visibleId(id: string) { return id; }
 
 // ── CRUD HELPERS ─────────────────────────────────────────────
 type Table = 'artists' | 'venues' | 'events' | 'services' | 'bookings' | 'reviews' | 'tickets' | 'messages' | 'favorites' | 'site_config' | 'profiles' | 'categories';

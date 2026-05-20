@@ -126,56 +126,40 @@ const AuthPage: React.FC = () => {
                 <button className="text-brand-orange text-xs hover:text-brand-orange-dark">¿Olvidaste tu contraseña?</button>
               </div>
 
-              {/* Quick access buttons */}
-              <div className="border border-gray-100 rounded-2xl overflow-hidden">
-                <p className="text-gray-400 text-xs font-semibold text-center py-2 bg-gray-50 border-b border-gray-100">
-                  ⚡ Acceso rápido
-                </p>
-                <button
-                  onClick={async () => {
-                    setLoginEmail('solfamende41@gmail.com');
-                    setLoginPassword('Solfa11111111@');
-                    const ok = await login('solfamende41@gmail.com', 'Solfa11111111@');
-                    if (ok) { addToast({ message: '¡Bienvenida, Super Admin!', type: 'success' }); navigate('/admin'); }
-                  }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-pink-50 transition-colors border-b border-gray-50"
-                >
-                  <div className="w-8 h-8 rounded-full bg-brand-orange flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-xs font-black">SM</span>
-                  </div>
-                  <div className="text-left flex-1">
-                    <p className="text-gray-800 text-xs font-bold">Solfa Mende — Super Admin</p>
-                    <p className="text-gray-400 text-[10px]">Click aquí para entrar directo al panel admin</p>
-                  </div>
-                  <span className="text-[10px] bg-brand-orange text-white px-2 py-0.5 rounded-full font-bold">ADMIN</span>
-                </button>
-                <button
-                  onClick={() => { setLoginEmail('dj@bachasalseros.com'); setLoginPassword('demo'); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50"
-                >
-                  <div className="w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-xs font-black">DJ</span>
-                  </div>
-                  <div className="text-left flex-1">
-                    <p className="text-gray-800 text-xs font-bold">DJ Mambo King — Artista</p>
-                    <p className="text-gray-400 text-[10px]">dj@bachasalseros.com</p>
-                  </div>
-                  <span className="text-[10px] bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full font-bold">DJ</span>
-                </button>
-                <button
-                  onClick={() => { setLoginEmail('carlos@bachasalseros.com'); setLoginPassword('demo'); }}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0">
-                    <span className="text-white text-xs font-black">CR</span>
-                  </div>
-                  <div className="text-left flex-1">
-                    <p className="text-gray-800 text-xs font-bold">Carlos Rodríguez — Fan</p>
-                    <p className="text-gray-400 text-[10px]">carlos@bachasalseros.com</p>
-                  </div>
-                  <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold">FAN</span>
-                </button>
-              </div>
+              {/* Quick access — demo accounts only, no real credentials */}
+              {import.meta.env.DEV && (
+                <div className="border border-gray-100 rounded-2xl overflow-hidden">
+                  <p className="text-gray-400 text-xs font-semibold text-center py-2 bg-gray-50 border-b border-gray-100">
+                    ⚡ Demo (solo en desarrollo)
+                  </p>
+                  <button
+                    onClick={() => { setLoginEmail('dj@bachasalseros.com'); setLoginPassword('demo'); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors border-b border-gray-50"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-xs font-black">DJ</span>
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className="text-gray-800 text-xs font-bold">DJ Mambo King — Artista</p>
+                      <p className="text-gray-400 text-[10px]">Cuenta demo · contraseña: demo</p>
+                    </div>
+                    <span className="text-[10px] bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full font-bold">DJ</span>
+                  </button>
+                  <button
+                    onClick={() => { setLoginEmail('carlos@bachasalseros.com'); setLoginPassword('demo'); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-xs font-black">CR</span>
+                    </div>
+                    <div className="text-left flex-1">
+                      <p className="text-gray-800 text-xs font-bold">Carlos Rodríguez — Fan</p>
+                      <p className="text-gray-400 text-[10px]">Cuenta demo · contraseña: demo</p>
+                    </div>
+                    <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold">FAN</span>
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
