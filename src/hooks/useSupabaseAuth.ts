@@ -3,9 +3,7 @@ import { supabase, authService } from '../lib/supabase';
 import { useAuthStore } from '../store/appStore';
 import type { User } from '../store/appStore';
 
-/**
- * Maps a Supabase profile row to our app User type.
- */
+// ── Profile mapper ─────────────────────────────────────────────────────────
 function mapProfile(profile: any, supaId: string): User {
   return {
     id: supaId,
@@ -27,37 +25,95 @@ function mapProfile(profile: any, supaId: string): User {
   };
 }
 
-/**
- * Hook: listens to Supabase auth state and syncs with Zustand store.
- * Place <SupabaseAuthProvider /> once in App.tsx.
- */
+// ── Resolve user after a Supabase session ──────────────────────────────────
+// Handles both email/password users and OAuth (Google) users.
+// Google users: Supabase auto-creates auth.users, DB trigger creates profiles row.
+// We retry a few times since the trigger may have slight delay.
+async function resolveUser(supaId: string, email: string, oauthMeta?: {
+  name?: string;
+  avatar?: string;
+}): Promise<User | null> {
+  // Try to fetch existing profile (up to 3 attempts for trigger delay)
+  for (let i = 0; i < 3; i++) {
+    const { data: profile } = await authService.getProfile(supaId);
+    if (profile) return mapProfile(profile, supaId);
+    // Wait 800ms between attempts (trigger propagation)
+    if (i < 2) await new Promise(r => setTimeout(r, 800));
+  }
+
+  // Profile not found (trigger may not exist yet) — create it manually
+  const fallback = {
+    id: supaId,
+    name: oauthMeta?.name || email.split('@')[0],
+    email,
+    avatar: oauthMeta?.avatar || '',
+    role: 'user',
+    city: 'Madrid',
+    is_verified: true,
+    is_premium: false,
+    wallet: 0,
+    notifications: 0,
+    socials: {},
+  };
+
+  const { error } = await supabase.from('profiles').upsert(fallback, { onConflict: 'id' });
+  if (!error) return mapProfile(fallback, supaId);
+
+  return null;
+}
+
+// ── Auth state listener (App-level, runs once) ─────────────────────────────
 export function useSupabaseAuthListener() {
   const { updateUser } = useAuthStore();
 
   useEffect(() => {
-    // Check existing session on mount
+    // Restore existing session on mount
     const init = async () => {
       const session = await authService.getSession();
       if (session?.user) {
-        const { data: profile } = await authService.getProfile(session.user.id);
-        if (profile) {
-          const user = mapProfile(profile, session.user.id);
-          useAuthStore.setState({ user, isAuthenticated: true, isLoading: false });
-        }
+        const meta = session.user.user_metadata;
+        const user = await resolveUser(
+          session.user.id,
+          session.user.email ?? '',
+          { name: meta?.full_name || meta?.name, avatar: meta?.avatar_url || meta?.picture }
+        );
+        if (user) useAuthStore.setState({ user, isAuthenticated: true, isLoading: false });
+      } else {
+        useAuthStore.setState({ isLoading: false });
       }
     };
     init();
 
-    // Listen for auth changes (login, logout, token refresh)
+    // Listen for all auth events
     const { data: { subscription } } = authService.onAuthChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        const { data: profile } = await authService.getProfile(session.user.id);
-        if (profile) {
-          const user = mapProfile(profile, session.user.id);
-          useAuthStore.setState({ user, isAuthenticated: true, isLoading: false });
-        }
+      if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
+        const meta = session.user.user_metadata;
+        const user = await resolveUser(
+          session.user.id,
+          session.user.email ?? '',
+          { name: meta?.full_name || meta?.name, avatar: meta?.avatar_url || meta?.picture }
+        );
+        if (user) useAuthStore.setState({ user, isAuthenticated: true, isLoading: false });
+
       } else if (event === 'SIGNED_OUT') {
         useAuthStore.setState({ user: null, isAuthenticated: false, isLoading: false });
+
+      } else if (event === 'PASSWORD_RECOVERY') {
+        // User clicked the reset link in their email — redirect to the reset form
+        // The session is set temporarily so they can call updateUser
+        useAuthStore.setState({ isLoading: false });
+
+      } else if (event === 'USER_UPDATED') {
+        // After password update or email confirmation
+        if (session?.user) {
+          const meta = session.user.user_metadata;
+          const user = await resolveUser(
+            session.user.id,
+            session.user.email ?? '',
+            { name: meta?.full_name || meta?.name, avatar: meta?.avatar_url }
+          );
+          if (user) useAuthStore.setState({ user, isAuthenticated: true, isLoading: false });
+        }
       }
     });
 
@@ -65,39 +121,86 @@ export function useSupabaseAuthListener() {
   }, []);
 }
 
-/**
- * Supabase-powered login (replaces mock).
- */
-export async function supabaseLogin(email: string, password: string): Promise<{ success: boolean; error?: string }> {
+// ── Public auth functions ──────────────────────────────────────────────────
+
+/** Email + password login. Returns success flag. */
+export async function supabaseLogin(
+  email: string,
+  password: string
+): Promise<{ success: boolean; error?: string; needsVerification?: boolean }> {
   const { data, error } = await authService.signIn(email, password);
-  if (error) return { success: false, error: error.message };
-  if (data.user) {
-    const { data: profile } = await authService.getProfile(data.user.id);
-    if (profile) {
-      const user = mapProfile(profile, data.user.id);
-      useAuthStore.setState({ user, isAuthenticated: true, isLoading: false });
+  if (error) {
+    // Supabase returns this when email_confirm is required
+    if (error.message?.toLowerCase().includes('email not confirmed')) {
+      return { success: false, error: error.message, needsVerification: true };
     }
+    return { success: false, error: error.message };
+  }
+  if (data.user) {
+    const meta = data.user.user_metadata;
+    const user = await resolveUser(
+      data.user.id,
+      data.user.email ?? '',
+      { name: meta?.full_name || meta?.name, avatar: meta?.avatar_url }
+    );
+    if (user) useAuthStore.setState({ user, isAuthenticated: true, isLoading: false });
   }
   return { success: true };
 }
 
-/**
- * Supabase-powered register.
- */
+/** Trigger Google OAuth redirect. */
+export async function supabaseLoginWithGoogle(): Promise<{ success: boolean; error?: string }> {
+  const { error } = await authService.signInWithGoogle();
+  if (error) return { success: false, error: error.message };
+  // Redirect happens automatically — browser navigates away
+  return { success: true };
+}
+
+/** Register new user. Returns needsVerification=true when email confirm is on. */
 export async function supabaseRegister(
   email: string,
   password: string,
   meta?: { name?: string; role?: string; city?: string }
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: boolean; error?: string; needsVerification?: boolean }> {
   const { data, error } = await authService.signUp(email, password, meta);
   if (error) return { success: false, error: error.message };
-  // Profile is auto-created via DB trigger
+
+  // Supabase sets identities=[] when confirmation is required
+  const needsVerification =
+    data.user?.identities !== undefined &&
+    data.user.identities.length === 0;
+
+  return { success: true, needsVerification };
+}
+
+/** Send password reset email. */
+export async function supabaseResetPassword(
+  email: string
+): Promise<{ success: boolean; error?: string }> {
+  const { error } = await authService.resetPassword(email);
+  if (error) return { success: false, error: error.message };
   return { success: true };
 }
 
-/**
- * Supabase logout.
- */
+/** Set a new password (used from the reset link page). */
+export async function supabaseUpdatePassword(
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  const { error } = await authService.updatePassword(newPassword);
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+/** Resend the signup confirmation email. */
+export async function supabaseResendVerification(
+  email: string
+): Promise<{ success: boolean; error?: string }> {
+  const { error } = await authService.resendVerification(email);
+  if (error) return { success: false, error: error.message };
+  return { success: true };
+}
+
+/** Sign out and clear local state. */
 export async function supabaseLogout(): Promise<void> {
   await authService.signOut();
   useAuthStore.setState({ user: null, isAuthenticated: false });
