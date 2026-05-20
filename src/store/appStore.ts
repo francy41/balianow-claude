@@ -148,15 +148,18 @@ export const useAuthStore = create<AuthState>()(
   login: async (email: string, password: string) => {
     set({ isLoading: true });
     await new Promise(r => setTimeout(r, 800));
+    // DEMO FALLBACK — only activates when Supabase auth fails (no real credentials stored here)
+    // Real auth goes through supabaseLogin() in useSupabaseAuth.ts
     let user: User;
-    if (email === 'solfamende41@gmail.com' && password === 'Solfa11111111@') {
-      user = SOLFA_ADMIN;
-    } else if (email.includes('admin')) {
+    if (email === DEMO_ADMIN.email && password === 'demo') {
       user = DEMO_ADMIN;
-    } else if (email.includes('dj')) {
+    } else if (email === DEMO_ARTIST.email && password === 'demo') {
       user = DEMO_ARTIST;
-    } else {
+    } else if (email === DEMO_USER.email && password === 'demo') {
       user = DEMO_USER;
+    } else {
+      set({ isLoading: false });
+      return false;
     }
     set({ user, isAuthenticated: true, isLoading: false });
     return true;

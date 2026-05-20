@@ -110,7 +110,8 @@
       "Bash(tee build.log)",
       "Bash(curl -s https://bailanow.com/)",
       "Bash(ls -la .env*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(grep -v \"//.*console\")"
     ]
   }
 }
