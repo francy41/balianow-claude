@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MessageSquare, ShoppingBag, ShoppingCart, CheckCircle, Clock, TrendingUp, Shield, Users, Eye, Send, X, Trash2, CreditCard } from 'lucide-react';
+import { MessageSquare, ShoppingBag, ShoppingCart, CheckCircle, Clock, TrendingUp, Shield, Users, Eye, Send, X, Trash2, CreditCard, ArrowRight } from 'lucide-react';
 import { PROMO_SERVICES, PROMO_SELLERS } from '../data/mockData';
 import type { PromoService, PromoSeller } from '../data/mockData';
 import { useAuthStore, useUIStore, useCartStore } from '../store/appStore';
@@ -818,6 +818,58 @@ const PromocionatePage: React.FC = () => {
           ))}
         </div>
 
+        {/* ── CART SUMMARY BAR — visible debajo de los filtros ── */}
+        {cart.items.length > 0 && (
+          <div className="mt-4 rounded-2xl overflow-hidden shadow-xl shadow-purple-500/20 border border-purple-500/30"
+               style={{ background: 'linear-gradient(135deg, #1a0a2e 0%, #2d1060 50%, #1a0a2e 100%)' }}>
+            <div className="flex items-center gap-3 px-4 py-3">
+              {/* Icono carrito */}
+              <div className="relative flex-shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-purple-500/40">
+                  <ShoppingCart className="w-5 h-5 text-white" />
+                </div>
+                <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full text-[10px] font-black flex items-center justify-center text-white shadow-md">
+                  {cart.items.length}
+                </span>
+              </div>
+
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-black text-sm leading-none">Mi reserva</p>
+                <p className="text-purple-300 text-[11px] mt-0.5 truncate">
+                  {cart.items.map(i => i.sellerName).join(', ')}
+                </p>
+              </div>
+
+              {/* Total */}
+              <div className="text-right flex-shrink-0 mr-2">
+                <p className="text-[10px] text-purple-300 uppercase font-bold tracking-wide">Total</p>
+                <p className="text-white font-black text-lg leading-none">€{cart.getTotal().toFixed(2)}</p>
+              </div>
+
+              {/* Botón ver carrito */}
+              <button
+                onClick={() => setCartOpen(true)}
+                className="flex-shrink-0 bg-gradient-to-r from-pink-500 to-fuchsia-600 hover:from-pink-600 hover:to-fuchsia-700 text-white text-xs font-black px-4 py-2.5 rounded-xl shadow-lg shadow-pink-500/30 transition-all hover:scale-105 flex items-center gap-2"
+              >
+                <span>Ver carrito</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Mini items strip */}
+            <div className="flex gap-2 px-4 pb-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+              {cart.items.map(item => (
+                <div key={item.id} className="flex-shrink-0 flex items-center gap-1.5 bg-white/10 rounded-lg px-2.5 py-1.5">
+                  <img src={item.sellerAvatar} alt={item.sellerName} className="w-5 h-5 rounded-full object-cover" />
+                  <span className="text-white/80 text-[10px] font-semibold max-w-[80px] truncate">{item.title}</span>
+                  <span className="text-fuchsia-300 text-[10px] font-black">€{item.price}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Top Sellers */}
         <div className="mt-6 mb-6">
           <div className="flex items-center justify-between mb-3">
@@ -881,24 +933,30 @@ const PromocionatePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Floating Cart Button */}
+      {/* Sticky cart bar — fixed bottom for mobile when scrolled past the inline bar */}
       {cart.items.length > 0 && (
-        <button
-          onClick={() => setCartOpen(true)}
-          className="fixed bottom-24 lg:bottom-4 left-4 z-[55] bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white rounded-2xl shadow-2xl px-5 py-3 flex items-center gap-3 hover:scale-105 transition-all animate-bounce"
-          style={{ animationDuration: '2s', animationIterationCount: '3' }}
-        >
-          <div className="relative">
-            <ShoppingCart className="w-5 h-5" />
-            <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full text-[10px] font-black flex items-center justify-center">
-              {cart.items.length}
-            </span>
-          </div>
-          <div className="text-left">
-            <p className="text-[10px] opacity-70">Mi reserva</p>
-            <p className="text-sm font-black">€{cart.getTotal().toFixed(2)}</p>
-          </div>
-        </button>
+        <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-[55] px-4 pb-3 lg:hidden pointer-events-none">
+          <button
+            onClick={() => setCartOpen(true)}
+            className="w-full pointer-events-auto bg-gradient-to-r from-purple-700 via-fuchsia-700 to-purple-700 text-white rounded-2xl shadow-2xl px-5 py-3 flex items-center gap-3"
+            style={{ background: 'linear-gradient(90deg,#4f1e8c,#7c2fc0,#4f1e8c)' }}
+          >
+            <div className="relative flex-shrink-0">
+              <ShoppingCart className="w-5 h-5" />
+              <span className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full text-[10px] font-black flex items-center justify-center">
+                {cart.items.length}
+              </span>
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-[10px] opacity-70">Mi reserva · {cart.items.length} servicio{cart.items.length > 1 ? 's' : ''}</p>
+              <p className="text-sm font-black">€{cart.getTotal().toFixed(2)}</p>
+            </div>
+            <div className="flex items-center gap-1 bg-white/20 rounded-xl px-3 py-1.5 flex-shrink-0">
+              <span className="text-xs font-black">Ver carrito</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </div>
+          </button>
+        </div>
       )}
 
       {/* Cart Drawer */}
