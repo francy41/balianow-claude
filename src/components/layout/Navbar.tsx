@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Bell, Globe, ChevronDown, Menu, LogOut, LayoutDashboard, User, Shield, Edit3 } from 'lucide-react';
+import { Search, Bell, Globe, ChevronDown, Menu, LogOut, LayoutDashboard, User, Shield, Edit3, ShoppingCart } from 'lucide-react';
 import ProfileEditModal from '../ProfileEditModal';
-import { useAuthStore, useUIStore } from '../../store/appStore';
+import { useAuthStore, useUIStore, useCartStore } from '../../store/appStore';
 import { Avatar } from '../ui';
 
 interface NavbarProps { onMenuToggle: () => void; }
@@ -20,6 +20,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuthStore();
   const { addToast } = useUIStore();
+  const cart = useCartStore();
   const [lang, setLang] = useState<'ES' | 'EN'>('ES');
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -119,6 +120,20 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
 
         {isAuthenticated && user ? (
           <>
+            {/* Cart button — always visible when logged in */}
+            <button
+              onClick={() => navigate('/promocionate')}
+              className="relative p-2 rounded-lg hover:bg-white/10 text-gray-400 hover:text-fuchsia-400 transition-colors"
+              title="Mi carrito"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              {cart.items.length > 0 && (
+                <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-gradient-to-r from-pink-500 to-fuchsia-500 rounded-full text-[9px] flex items-center justify-center font-black text-white shadow-lg shadow-pink-500/40 animate-pulse">
+                  {cart.items.length > 9 ? '9+' : cart.items.length}
+                </span>
+              )}
+            </button>
+
             {/* Notifications */}
             <button className="relative p-2 rounded-lg hover:bg-white/10 text-gray-400">
               <Bell className="w-4 h-4" />

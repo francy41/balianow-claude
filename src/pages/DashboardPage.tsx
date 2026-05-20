@@ -6,7 +6,7 @@ import {
   TrendingUp, Users, Star, DollarSign, Eye, Play, AlertCircle, CreditCard, Shield
 } from 'lucide-react';
 import {
-  useAuthStore, useUIStore, usePerformerStore, useSiteConfigStore,
+  useAuthStore, useUIStore, usePerformerStore, useSiteConfigStore, useOrdersStore,
   PLATFORM_COMMISSION_RATE, splitAmount, computeCommissionRate,
   type Course, type OfferRequest, type Withdrawal, type PayoutMethod
 } from '../store/appStore';
@@ -926,30 +926,48 @@ const OffersTab: React.FC<{ performerId: string }> = ({ performerId }) => {
 // ── FAN / BUYER DASHBOARD ─────────────────────────────────────────────────
 const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, userName }) => {
   const { transactions, confirmServiceOK } = usePerformerStore();
+  const { orders } = useOrdersStore();
   const { addToast } = useUIStore();
-  const [fanTab, setFanTab] = useState<'orders' | 'payments'>('orders');
-  const myOrders = transactions
+  const navigate = useNavigate();
+  const [fanTab, setFanTab] = useState<'orders' | 'promo' | 'payments'>('orders');
+
+  // Pedidos de escrow (BookingModal)
+  const myEscrowOrders = transactions
     .filter(t => t.clientId === userId)
     .sort((a, b) => +new Date(b.date) - +new Date(a.date));
-  const pendingCount = myOrders.filter(t => t.status === 'pending').length;
+  const pendingCount = myEscrowOrders.filter(t => t.status === 'pending').length;
 
   const confirm = (id: string, concept: string) => {
     confirmServiceOK(id);
     addToast({ message: `Servicio "${concept}" confirmado. Fondos liberados al creador.`, type: 'success' });
   };
 
+  const statusBadge = (status: string) => {
+    if (status === 'confirmed') return <span className="text-[10px] bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase">✅ Confirmado</span>;
+    if (status === 'completed') return <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-bold uppercase">✔ Completado</span>;
+    if (status === 'cancelled') return <span className="text-[10px] bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-bold uppercase">❌ Cancelado</span>;
+    return <span className="text-[10px] bg-yellow-50 text-yellow-700 px-2 py-0.5 rounded-full font-bold uppercase">⏳ Pendiente</span>;
+  };
+
   return (
     <div className="space-y-4">
-      <div className="card-white rounded-2xl p-1.5 flex gap-1">
+      <div className="card-white rounded-2xl p-1.5 flex gap-1 overflow-x-auto">
         <button onClick={() => setFanTab('orders')}
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
             fanTab === 'orders' ? 'bg-brand-orange text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'
           }`}>
           <Briefcase className="w-4 h-4" /> Mis pedidos
           {pendingCount > 0 && <span className="bg-white text-brand-orange text-[10px] font-black px-1.5 py-0.5 rounded-full">{pendingCount}</span>}
         </button>
+        <button onClick={() => setFanTab('promo')}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            fanTab === 'promo' ? 'bg-brand-orange text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'
+          }`}>
+          📢 Promociones
+          {orders.length > 0 && <span className="bg-white text-brand-orange text-[10px] font-black px-1.5 py-0.5 rounded-full">{orders.length}</span>}
+        </button>
         <button onClick={() => setFanTab('payments')}
-          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
             fanTab === 'payments' ? 'bg-brand-orange text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'
           }`}>
           <CreditCard className="w-4 h-4" /> Métodos de pago
@@ -960,6 +978,7 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
         <PaymentMethodsPanel userId={userId} holderDefault={userName} />
       )}
 
+      {/* ── Pedidos de escrow (Reservas directas) ── */}
       {fanTab === 'orders' && (
       <>
       <div className="card-white p-5">
@@ -968,13 +987,14 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
       </div>
 
       <div className="space-y-3">
-        {myOrders.length === 0 && (
+        {myEscrowOrders.length === 0 && (
           <div className="card-white p-12 text-center text-gray-400">
             <Briefcase className="w-10 h-10 mx-auto mb-2 opacity-30" />
-            <p className="text-sm">Aún no tienes pedidos. Explora artistas y eventos.</p>
+            <p className="text-sm mb-3">Aún no tienes pedidos. Explora artistas y eventos.</p>
+            <button onClick={() => navigate('/artistas')} className="btn-orange text-xs">Explorar artistas</button>
           </div>
         )}
-        {myOrders.map(t => (
+        {myEscrowOrders.map(t => (
           <div key={t.id} className="card-white p-5 flex flex-col md:flex-row md:items-center gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 flex-wrap">
@@ -995,6 +1015,74 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
                   Confirmar servicio OK
                 </Button>
                 <button className="text-xs font-semibold text-red-500 hover:underline px-2">Abrir disputa</button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      </>
+      )}
+
+      {/* ── Pedidos de Promociónate (carrito) ── */}
+      {fanTab === 'promo' && (
+      <>
+      <div className="card-white p-5">
+        <h2 className="font-display font-black text-xl text-gray-900 mb-1">📢 Pedidos de Promociónate</h2>
+        <p className="text-gray-400 text-sm">Historial de servicios de promoción contratados vía Promociónate.</p>
+      </div>
+
+      <div className="space-y-3">
+        {orders.length === 0 && (
+          <div className="card-white p-12 text-center text-gray-400">
+            <span className="text-4xl block mb-3">🛒</span>
+            <p className="text-sm mb-3">Aún no has contratado servicios de promoción.</p>
+            <button onClick={() => navigate('/promocionate')} className="btn-orange text-xs">
+              Ver Promociónate
+            </button>
+          </div>
+        )}
+        {orders.map(order => (
+          <div key={order.id} className="card-white p-5 space-y-3">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  {statusBadge(order.status)}
+                  <span className="text-xs text-gray-400 font-mono">#{order.id.slice(-6).toUpperCase()}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {new Date(order.createdAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  {' · '}{order.paymentProvider}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="font-black text-xl text-gray-900">€{order.total.toFixed(2)}</p>
+                <p className="text-[10px] text-gray-400">{order.items.length} servicio{order.items.length > 1 ? 's' : ''}</p>
+              </div>
+            </div>
+            {/* Items */}
+            <div className="space-y-2">
+              {order.items.map((item, idx) => (
+                <div key={idx} className="flex items-center gap-3 bg-gray-50 rounded-xl p-3">
+                  <img src={item.sellerAvatar} alt={item.sellerName} className="w-8 h-8 rounded-full object-cover" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-bold text-gray-900 truncate">{item.title}</p>
+                    <p className="text-[10px] text-gray-400">{item.sellerName}</p>
+                  </div>
+                  <span className="text-xs font-bold text-pink-600">€{item.price.toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+            {/* Seller breakdown */}
+            {order.sellerBreakdown.length > 0 && (
+              <div className="text-xs text-gray-400 border-t border-gray-100 pt-2">
+                <p className="font-bold text-gray-600 mb-1">Distribución:</p>
+                {order.sellerBreakdown.map(s => (
+                  <div key={s.sellerId} className="flex justify-between">
+                    <span>{s.sellerName}</span>
+                    <span className="text-green-600 font-semibold">€{s.net.toFixed(2)} neto</span>
+                  </div>
+                ))}
               </div>
             )}
           </div>
