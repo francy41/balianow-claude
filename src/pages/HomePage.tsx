@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack } from 'lucide-react';
 import { ARTISTS, EVENTS, VENUES } from '../data/mockData';
-import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, PLATFORM_COMMISSION_RATE, type HeroSliderImage, type HomeCategory } from '../store/appStore';
+import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, type HeroSliderImage, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
 import { Avatar, StarRating, SearchBar } from '../components/ui';
 
@@ -100,7 +100,9 @@ const SPONSORS = [
 
 // ── SPONSORS SLIDER (compact) ─────────────────────────────────────────────
 const SponsorsSlider: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = ({ navigate }) => {
-  const shown = SPONSORS.slice(0, 5);
+  const allSponsors = useSponsorsStore(s => s.sponsors);
+  const active = allSponsors.filter(s => s.active);
+  const shown = active.slice(0, 5);
   return (
     <section className="mt-3 px-4">
       <div className="flex items-center justify-between mb-2">
@@ -138,7 +140,7 @@ const SponsorsSlider: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = (
           style={{ minWidth: 56 }}
         >
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500/10 to-fuchsia-600/10 border border-dashed border-pink-400/50 flex items-center justify-center group-hover:bg-pink-500/20 transition-all duration-200">
-            <span className="text-pink-500 text-xs font-black">+{SPONSORS.length - 5}</span>
+            <span className="text-pink-500 text-xs font-black">+{Math.max(0, active.length - 5)}</span>
           </div>
           <span className="text-[9px] font-bold text-pink-500 text-center">Ver todos</span>
         </button>
@@ -823,7 +825,7 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => (
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
           <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
         </span>
-        LIVE
+        Ver todos
       </button>
     </div>
     <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
@@ -1285,6 +1287,63 @@ const HomePage: React.FC = () => {
                 <div className="col-span-full text-center py-8">
                   <p className="text-3xl mb-2">🔍</p>
                   <p className="text-gray-400 text-sm">No encontramos artistas para "{searchQ}"</p>
+                </div>
+              )}
+            </div>
+          );
+        }}
+      </HomeSectionWithSearch>
+      )}
+
+      {/* ── VENDEDORES DESTACADOS ── */}
+      {isModuleOn('artists') && (
+      <HomeSectionWithSearch
+        title="🏪 Vendedores Destacados"
+        subtitle="Servicios, clases, DJ sets y más del talento latino"
+        searchPlaceholder="Buscar vendedor, servicio, ciudad..."
+        gradient
+        actionLabel="Ver Todos"
+        onAction={() => navigate('/vendedores')}
+        onSearch={(q) => navigate(`/vendedores?q=${encodeURIComponent(q)}`)}
+      >
+        {(searchQ) => {
+          const filtered = searchQ
+            ? ARTISTS.filter(a => a.name.toLowerCase().includes(searchQ.toLowerCase()) || a.city.toLowerCase().includes(searchQ.toLowerCase()))
+            : ARTISTS.filter(a => a.isPremium || a.completedBookings > 200);
+          return (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {filtered.slice(0, 8).map(artist => (
+                <button
+                  key={artist.id}
+                  onClick={() => navigate(`/artistas/${artist.id}`)}
+                  className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border border-gray-100 dark:border-gray-700 transition-all hover:-translate-y-1 group text-left"
+                >
+                  <div className="relative">
+                    <img src={artist.avatar} alt={artist.name} className="w-full h-24 object-cover group-hover:scale-105 transition-transform duration-500" />
+                    {artist.isPremium && (
+                      <span className="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-[8px] font-black px-1.5 py-0.5 rounded">PRO</span>
+                    )}
+                    {artist.isVerified && (
+                      <span className="absolute top-2 right-2 text-blue-400 text-sm">✓</span>
+                    )}
+                  </div>
+                  <div className="p-2.5">
+                    <p className="font-bold text-gray-900 dark:text-white text-xs truncate">{artist.name}</p>
+                    <p className="text-gray-400 text-[10px] truncate">{artist.genre[0]} · {artist.city}</p>
+                    <div className="flex items-center justify-between mt-1.5">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <span className="text-[10px] font-semibold text-gray-700 dark:text-gray-300">{artist.rating}</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-pink-500">desde €{artist.priceFrom}</span>
+                    </div>
+                  </div>
+                </button>
+              ))}
+              {searchQ && filtered.length === 0 && (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-3xl mb-2">🔍</p>
+                  <p className="text-gray-400 text-sm">Sin resultados para "{searchQ}"</p>
                 </div>
               )}
             </div>

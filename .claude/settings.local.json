@@ -109,7 +109,8 @@
       "Bash(echo \"Exit: $?\")",
       "Bash(tee build.log)",
       "Bash(curl -s https://bailanow.com/)",
-      "Bash(ls -la .env*)"
+      "Bash(ls -la .env*)",
+      "WebSearch"
     ]
   }
 }
