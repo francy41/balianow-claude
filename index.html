@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes" />
-    <meta name="theme-color" content="#F97316" />
+    <meta name="theme-color" content="#EC4899" />
     <meta name="color-scheme" content="light" />
     <meta name="format-detection" content="telephone=no" />
 
@@ -16,26 +16,32 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="RitmoLatino" />
-    <meta name="application-name" content="RitmoLatino" />
+    <meta name="apple-mobile-web-app-title" content="BailaNow" />
+    <meta name="application-name" content="BailaNow" />
 
     <!-- SEO -->
-    <title>¡Ritmo Latino! — Entretenimiento Latino · DJs · Eventos · Venues</title>
-    <meta name="description" content="El ecosistema latino #1: contrata DJs, artistas, bailarines y venues. Vive eventos, livestreams y marketplace 100% latino." />
-    <meta name="keywords" content="bachata, salsa, kizomba, DJ latino, eventos latinos, latin nightlife, marketplace artistas" />
-    <meta name="author" content="Ritmo Latino" />
+    <title>BailaNow — DJs · Artistas · Eventos · Venues · Bachata · Salsa</title>
+    <meta name="description" content="BailaNow: el ecosistema latino #1. Contrata DJs, artistas y bailarines. Descubre eventos, festivales y venues. Marketplace y livestreams 100% latino." />
+    <meta name="keywords" content="BailaNow, bachata, salsa, kizomba, DJ latino, eventos latinos, latin nightlife, marketplace artistas, bailarines, conciertos latinos, España, Madrid, Barcelona" />
+    <meta name="author" content="BailaNow" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://bailanow.com/" />
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="¡Ritmo Latino! — Entretenimiento Latino" />
-    <meta property="og:description" content="El ecosistema latino #1: DJs, artistas, venues, eventos y livestreams." />
-    <meta property="og:image" content="/icon-512.svg" />
+    <meta property="og:site_name" content="BailaNow" />
+    <meta property="og:url" content="https://bailanow.com/" />
+    <meta property="og:title" content="BailaNow — El ecosistema latino #1" />
+    <meta property="og:description" content="Contrata DJs, artistas y bailarines. Descubre eventos, venues y marketplace 100% latino." />
+    <meta property="og:image" content="https://bailanow.com/icon-512.svg" />
     <meta property="og:locale" content="es_ES" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="¡Ritmo Latino!" />
-    <meta name="twitter:description" content="Marketplace + livestreams 100% latino." />
+    <meta name="twitter:site" content="@bailanow" />
+    <meta name="twitter:title" content="BailaNow — El ecosistema latino #1" />
+    <meta name="twitter:description" content="Contrata DJs, artistas y bailarines. Eventos, venues y marketplace latino." />
+    <meta name="twitter:image" content="https://bailanow.com/icon-512.svg" />
 
     <!-- Preconnect / fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -47,13 +53,13 @@
       body { font-family: Inter, system-ui, sans-serif; overscroll-behavior-y: none; }
       /* Splash mientras carga el bundle JS */
       #root:empty::before {
-        content: '🎵';
+        content: '💃';
         position: fixed; inset: 0;
         display: flex; align-items: center; justify-content: center;
         font-size: 80px;
-        animation: rl-pulse 1.2s ease-in-out infinite;
+        animation: bn-pulse 1.2s ease-in-out infinite;
       }
-      @keyframes rl-pulse {
+      @keyframes bn-pulse {
         0%, 100% { transform: scale(1); opacity: 0.6; }
         50% { transform: scale(1.15); opacity: 1; }
       }

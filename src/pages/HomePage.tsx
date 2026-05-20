@@ -1150,6 +1150,23 @@ const HomePage: React.FC = () => {
         }}
       </HomeSectionWithSearch>
       )}
+
+      {/* ── FOOTER LEGAL ── */}
+      <footer className="mt-10 mx-4 mb-4 pb-2 border-t border-gray-200 dark:border-gray-800 pt-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5">
+            <span className="font-display font-black text-sm text-gray-900 dark:text-white">Baila</span>
+            <span className="font-display font-black text-sm bg-gradient-to-r from-pink-500 to-fuchsia-600 bg-clip-text text-transparent">Now</span>
+            <span className="text-gray-400 text-xs ml-1">© 2025</span>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-gray-400">
+            <a href="/legal/terminos" className="hover:text-pink-500 transition-colors">Términos</a>
+            <a href="/legal/privacidad" className="hover:text-pink-500 transition-colors">Privacidad</a>
+            <a href="/legal/cookies" className="hover:text-pink-500 transition-colors">Cookies</a>
+            <a href="mailto:hola@bailanow.com" className="hover:text-pink-500 transition-colors">Contacto</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
