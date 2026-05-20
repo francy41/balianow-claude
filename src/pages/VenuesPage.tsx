@@ -8,7 +8,7 @@ import { useAuthStore, useUIStore, getYouTubeId } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
 
 const TYPES = ['Todos', 'Club', 'Bar', 'Studio', 'Rooftop', 'Lounge', 'Restaurante'];
-const CITIES = ['Todas', 'Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'Milano'];
+const CITIES = ['Todas', 'Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'London', 'Santo Domingo', 'Buenos Aires', 'Cali', 'Miami', 'La Habana', 'Bogotá', 'Medellín', 'New York', 'Berlin', 'Ciudad de México', 'Caracas'];
 
 const VenuesPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
