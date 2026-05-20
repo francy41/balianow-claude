@@ -35,8 +35,10 @@ const AffiliatePage     = lazy(() => import('./pages/AffiliatePage'));
 const VendedoresPage    = lazy(() => import('./pages/VendedoresPage'));
 const PromocionatePage  = lazy(() => import('./pages/PromocionatePage'));
 const PagoExitosoPage   = lazy(() => import('./pages/PagoExitosoPage'));
-const LegalPage         = lazy(() => import('./pages/LegalPage'));
-const NotFoundPage      = lazy(() => import('./pages/NotFoundPage'));
+const LegalPage           = lazy(() => import('./pages/LegalPage'));
+const NotFoundPage        = lazy(() => import('./pages/NotFoundPage'));
+const AuthCallbackPage    = lazy(() => import('./pages/AuthCallbackPage'));
+const ResetPasswordPage   = lazy(() => import('./pages/ResetPasswordPage'));
 
 // Error boundary
 class ErrorBoundary extends React.Component<
@@ -117,6 +119,9 @@ const App: React.FC = () => {
                   <Route path="/wallet"              element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
                   <Route path="/subscripciones"      element={<ProtectedRoute><SubscriptionsPage /></ProtectedRoute>} />
                   <Route path="/auth"                element={<AuthPage />} />
+                  {/* OAuth & email-link callbacks — no auth guard, Supabase handles the session */}
+                  <Route path="/auth/callback"      element={<AuthCallbackPage />} />
+                  <Route path="/auth/reset"         element={<ResetPasswordPage />} />
                   <Route path="/afiliados"           element={<ProtectedRoute><AffiliatePage /></ProtectedRoute>} />
                   <Route path="/vendedores"          element={<VendedoresPage />} />
                   <Route path="/promocionate"        element={<PromocionatePage />} />

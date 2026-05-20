@@ -16,11 +16,19 @@ export const supabase = createClient(
 
 // ── AUTH HELPERS ─────────────────────────────────────────────
 export const authService = {
-  signUp: async (email: string, password: string, meta?: { name?: string; role?: string }) => {
+  // ── Email / password ──────────────────────────────────────
+  signUp: async (
+    email: string,
+    password: string,
+    meta?: { name?: string; role?: string; city?: string }
+  ) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: meta },
+      options: {
+        data: meta,
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
     return { data, error };
   },
@@ -35,6 +43,45 @@ export const authService = {
     return { error };
   },
 
+  // ── OAuth ─────────────────────────────────────────────────
+  signInWithGoogle: async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      },
+    });
+    return { data, error };
+  },
+
+  // ── Password reset ────────────────────────────────────────
+  resetPassword: async (email: string) => {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset`,
+    });
+    return { data, error };
+  },
+
+  updatePassword: async (newPassword: string) => {
+    const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+    return { data, error };
+  },
+
+  // ── Email verification ────────────────────────────────────
+  resendVerification: async (email: string) => {
+    const { data, error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+    });
+    return { data, error };
+  },
+
+  // ── Session ───────────────────────────────────────────────
   getSession: async () => {
     const { data } = await supabase.auth.getSession();
     return data.session;
