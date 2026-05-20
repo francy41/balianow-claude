@@ -99,6 +99,8 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
   const [intentError, setIntentError] = useState('');
   const [completed, setCompleted] = useState(false);
   const [completedProvider, setCompletedProvider] = useState('');
+  const [completedTotal, setCompletedTotal] = useState(0);
+  const [completedBreakdown, setCompletedBreakdown] = useState<SellerPayout[]>([]);
   const [walletLoading, setWalletLoading] = useState(false);
 
   const items = cart.items;
@@ -131,10 +133,19 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
   }, [open, method]);
 
   useEffect(() => {
-    if (!open) { setCompleted(false); setClientSecret(''); setIntentError(''); }
+    if (!open) {
+      setCompleted(false);
+      setCompletedProvider('');
+      setCompletedTotal(0);
+      setCompletedBreakdown([]);
+      setClientSecret('');
+      setIntentError('');
+    }
   }, [open]);
 
   const handleSuccess = (provider: string) => {
+    setCompletedTotal(subtotal);
+    setCompletedBreakdown(breakdown);
     setCompleted(true);
     setCompletedProvider(provider);
     cart.clearCart();
@@ -158,7 +169,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
 
       <div className="relative bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-2xl max-w-lg w-full max-h-[95vh] overflow-y-auto shadow-2xl">
         {completed ? (
-          <SuccessScreen breakdown={breakdown} total={subtotal} provider={completedProvider} onClose={onClose} />
+          <SuccessScreen breakdown={completedBreakdown} total={completedTotal} provider={completedProvider} onClose={onClose} />
         ) : (
           <>
             {/* ── HEADER ── */}
