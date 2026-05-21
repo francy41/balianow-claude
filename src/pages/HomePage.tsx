@@ -655,17 +655,31 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
       <div className="space-y-6 pb-6">
         {visibleCats.length > 0 && (
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500" />
-              <h3 className="font-display font-bold text-sm sm:text-base text-gray-900 uppercase tracking-wider">
-                ⭐ Principales
-              </h3>
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500" />
+                <h3 className="font-display font-bold text-sm sm:text-base text-gray-900 uppercase tracking-wider">
+                  ⭐ Principales
+                </h3>
+              </div>
+              <button
+                onClick={() => navigate('/explorar')}
+                className="text-xs font-bold text-pink-500 hover:text-pink-600 flex items-center gap-1 transition-colors"
+              >
+                Ver todas →
+              </button>
             </div>
             <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
               {visibleCats.map((cat, idx) => (
                 <CategoryButton key={cat.id} cat={cat} index={idx} />
               ))}
             </div>
+            <button
+              onClick={() => navigate('/explorar')}
+              className="w-full mt-4 py-2.5 rounded-xl border border-pink-200 text-pink-500 hover:bg-pink-50 text-sm font-bold transition-all flex items-center justify-center gap-2"
+            >
+              🔍 Ver todas las categorías
+            </button>
           </div>
         )}
       </div>
