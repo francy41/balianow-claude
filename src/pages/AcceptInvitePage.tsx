@@ -59,7 +59,7 @@ const AcceptInvitePage: React.FC = () => {
       // Update profile role
       const { error: updateErr } = await supabase
         .from('profiles')
-        .update({ role: invitation.role, is_verified: true, updated_at: new Date().toISOString() })
+        .update({ role: invitation.role, verified: true })
         .eq('id', user.id);
 
       if (updateErr) throw updateErr;
