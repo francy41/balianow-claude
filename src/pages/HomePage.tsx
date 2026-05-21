@@ -4,7 +4,7 @@ import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDa
 import { ARTISTS, EVENTS, VENUES } from '../data/mockData';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, type HeroSliderImage, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
-import { Avatar, StarRating, SearchBar } from '../components/ui';
+import { Avatar, StarRating, SearchBar, AppImage } from '../components/ui';
 
 // Category interface
 interface Category {
@@ -277,6 +277,13 @@ const HeroSliderFullHeight: React.FC<{ images: HeroSliderImage[] }> = ({ images 
           <img key={img.id} src={img.url} alt={img.alt}
             className="h-full object-cover flex-shrink-0"
             style={{ width: `${100 / images.length}%` }}
+            loading="eager"
+            onError={e => {
+              const el = e.target as HTMLImageElement;
+              if (!el.src.includes('unsplash')) {
+                el.src = `https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=1400&h=500&fit=crop&q=80`;
+              }
+            }}
           />
         ))}
       </div>
@@ -783,7 +790,7 @@ const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
           <button key={v.id} onClick={() => navigate(`/venues/${v.id}`)}
             className="flex-shrink-0 w-40 sm:w-44 bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:shadow-emerald-500/10 transition-all hover:-translate-y-1 border border-gray-100 dark:border-gray-800 group">
             <div className="relative">
-              <img src={v.cover} alt={v.name} className="w-full h-24 object-cover group-hover:scale-105 transition-transform duration-500" />
+              <AppImage src={v.cover} alt={v.name} fallback="landscape" className="w-full h-24 object-cover group-hover:scale-105 transition-transform duration-500" />
               <div className="absolute top-2 right-2 bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-lg">
                 <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
                 ABIERTO
@@ -839,7 +846,7 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => (
       {LIVE_STREAMS.map(s => (
         <button key={s.id} onClick={() => navigate(`/live/${s.id}`)}
           className="flex-shrink-0 w-32 sm:w-36 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 group relative border-2 border-red-500/30 hover:border-red-500">
-          <img src={s.img} alt={s.name} className="w-full h-44 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-500" />
+          <AppImage src={s.img} alt={s.name} fallback="portrait" className="w-full h-44 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-500" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
           {/* LIVE badge */}
           <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded flex items-center gap-1 shadow-lg animate-pulse">

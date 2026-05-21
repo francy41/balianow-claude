@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { X, Star, CheckCircle, AlertCircle, Info, AlertTriangle, Search } from 'lucide-react';
 import { useUIStore } from '../../store/appStore';
 import type { Toast } from '../../store/appStore';
+export { default as AppImage } from './AppImage';
 
 // ── BUTTON ─────────────────────────────────────────────────────────────────
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
