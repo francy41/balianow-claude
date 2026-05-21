@@ -56,13 +56,19 @@ export interface PayPalOrderResult {
 }
 
 // ─── Edge Function caller ───────────────────────────────────
+import { supabase } from './supabase';
+
 async function callEdgeFunction<T>(fnName: string, body: object): Promise<T> {
+  // Use the user's session token if available, fall back to anon key
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token ?? SUPABASE_ANON_KEY;
+
   const res = await fetch(`${SUPABASE_URL}/functions/v1/${fnName}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'apikey': SUPABASE_ANON_KEY,
-      'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      'Authorization': `Bearer ${token}`,
     },
     body: JSON.stringify(body),
   });
