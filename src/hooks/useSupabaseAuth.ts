@@ -7,22 +7,31 @@ import type { User } from '../store/appStore';
 function mapProfile(profile: any, supaId: string): User {
   return {
     id: supaId,
-    // Support both column naming conventions (new DB vs old)
-    name: profile.full_name || profile.name || '',
-    email: profile.email || '',
-    avatar: profile.avatar_url || profile.avatar || '',
+    name:      profile.full_name   || profile.name   || '',
+    email:     profile.email       || '',
+    avatar:    profile.avatar_url  || profile.avatar  || '',
     coverPhoto: profile.cover_photo || '',
-    bio: profile.bio || '',
-    phone: profile.phone || profile.whatsapp || '',
-    role: (profile.role as any) || 'user',
-    city: profile.location || profile.city || 'Madrid',
-    country: profile.country || '',
-    isVerified: profile.verified ?? profile.is_verified ?? false,
-    isPremium: profile.is_premium || false,
+    bio:       profile.bio         || '',
+    phone:     profile.whatsapp    || profile.phone   || '',
+    role:      (profile.role as any) || 'user',
+    city:      profile.location    || profile.city    || 'Madrid',
+    country:   profile.country     || '',
+    isVerified: profile.verified   ?? profile.is_verified ?? false,
+    isPremium:  profile.is_premium || false,
     subscriptionPlan: profile.subscription_plan || undefined,
-    wallet: parseFloat(profile.wallet_balance ?? profile.wallet ?? 0) || 0,
+    wallet:    parseFloat(profile.wallet_balance ?? profile.wallet ?? 0) || 0,
     notifications: profile.notifications || 0,
-    socials: profile.socials || {},
+    // Map individual social columns back to socials object
+    socials: {
+      instagram:  profile.instagram_url  || profile.socials?.instagram  || '',
+      tiktok:     profile.tiktok_url     || profile.socials?.tiktok     || '',
+      youtube:    profile.youtube_url    || profile.socials?.youtube     || '',
+      website:    profile.website_url    || profile.socials?.website     || '',
+      facebook:   profile.facebook_url   || profile.socials?.facebook    || '',
+      soundcloud: profile.soundcloud_url || profile.socials?.soundcloud  || '',
+      twitch:     profile.twitch_url     || profile.socials?.twitch      || '',
+      spotify:    profile.spotify_url    || profile.socials?.spotify     || '',
+    },
   };
 }
 
@@ -44,13 +53,14 @@ async function resolveUser(supaId: string, email: string, oauthMeta?: {
 
   // Profile not found (trigger may not exist yet) — create it manually
   const fallback = {
-    id: supaId,
-    full_name: oauthMeta?.name || email.split('@')[0],
+    id:           supaId,
+    full_name:    oauthMeta?.name || email.split('@')[0],
     email,
-    avatar_url: oauthMeta?.avatar || '',
-    role: 'user',
-    location: 'Madrid',
-    verified: true,
+    avatar_url:   oauthMeta?.avatar || '',
+    role:         'user',
+    location:     'Madrid',
+    verified:     true,
+    status:       'active',
     wallet_balance: 0,
   };
 
