@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useAdminOverridesStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_CATEGORIES, type HeroMediaType, type CommissionSource, type HeroSliderImage, type HomeCategory, type Sponsor } from '../store/appStore';
 import { supabase } from '../lib/supabase';
+import { saveSiteConfigKey } from '../hooks/useSiteConfig';
 import AdminCMS from '../components/AdminCMS';
 import AdminMediaManager from '../components/AdminMediaManager';
 import AdminEditModal, { type EditField } from '../components/AdminEditModal';
@@ -1490,9 +1491,11 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const fileRef = React.useRef<HTMLInputElement>(null);
   const imgFileRef = React.useRef<HTMLInputElement>(null);
 
-  const saveSlides = (updated: HeroSliderImage[]) => {
+  const saveSlides = async (updated: HeroSliderImage[]) => {
     setSlides(updated);
     setHeroSliderImages(updated);
+    const { error } = await saveSiteConfigKey('hero_slider_images', updated);
+    if (error) addToast({ message: `Error al guardar: ${error}`, type: 'error' });
   };
 
   const addSlide = () => {
@@ -1521,16 +1524,25 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
     saveSlides(arr);
   };
 
-  const handleImgFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImgFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
-      setNewSlideUrl(dataUrl);
-      addToast({ message: `Imagen cargada: ${file.name}`, type: 'success' });
-    };
-    reader.readAsDataURL(file);
+    addToast({ message: 'Subiendo imagen...', type: 'info' });
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `covers/slider-${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from('covers').upload(path, file, { upsert: true });
+      if (upErr) throw upErr;
+      const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(path);
+      setNewSlideUrl(publicUrl);
+      addToast({ message: `Imagen subida: ${file.name}`, type: 'success' });
+    } catch {
+      // Fallback a base64 si falla Storage
+      const reader = new FileReader();
+      reader.onload = (ev) => { setNewSlideUrl(ev.target?.result as string); };
+      reader.readAsDataURL(file);
+      addToast({ message: 'Guardado local (Storage no disponible)', type: 'warning' });
+    }
   };
 
   const handleVideoFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1546,10 +1558,12 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
     reader.readAsDataURL(file);
   };
 
-  const applyOverlay = () => {
+  const applyOverlay = async () => {
     if (!draftUrl.trim()) { addToast({ message: 'Introduce una URL', type: 'error' }); return; }
     if (heroMedia.type === 'youtube' && !getYouTubeId(draftUrl)) { addToast({ message: 'URL de YouTube invalida', type: 'error' }); return; }
+    const updated = { ...heroMedia, url: draftUrl.trim() };
     setHeroMedia({ url: draftUrl.trim() });
+    await saveSiteConfigKey('hero_media', updated);
     addToast({ message: 'Video overlay actualizado', type: 'success' });
   };
 
