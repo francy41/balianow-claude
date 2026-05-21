@@ -397,11 +397,8 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
       <div className="relative">
         {/* Search Container */}
         <div className="relative">
-          <div className="bg-gradient-to-r from-pink-500/20 via-fuchsia-500/10 to-purple-500/20 backdrop-blur-lg rounded-2xl sm:rounded-3xl p-[3px] shadow-xl border border-pink-500/30">
-            <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl px-3 sm:px-6 py-3 sm:py-4 flex items-center gap-2 sm:gap-3">
-              {/* Icon */}
-              <div className="text-lg sm:text-2xl flex-shrink-0">🔍</div>
-
+          <div className="bg-gradient-to-r from-pink-500/20 via-fuchsia-500/10 to-purple-500/20 rounded-2xl sm:rounded-3xl p-[2px] border border-pink-500/30 overflow-hidden">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl px-3 sm:px-5 py-3 flex items-center gap-2">
               {/* Input */}
               <input
                 ref={inputRef}
@@ -414,17 +411,16 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
                 }}
                 onFocus={() => setShowSuggestions(true)}
                 onKeyDown={handleKeyDown}
-                placeholder="Artistas, eventos, venues..."
+                placeholder="🔍 Artistas, eventos, venues..."
                 className="flex-1 bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400 text-sm font-medium min-w-0"
               />
 
               {/* Search Button */}
               <button
                 onClick={() => handleSearch()}
-                className="flex-shrink-0 px-3 sm:px-6 py-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 hover:from-pink-600 hover:to-fuchsia-700 text-white rounded-full font-bold text-xs sm:text-sm hover:shadow-lg hover:shadow-pink-500/30 transition-all"
+                className="flex-shrink-0 px-4 py-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white rounded-xl font-bold text-sm transition-all active:scale-95"
               >
-                <span className="hidden sm:inline">Buscar</span>
-                <span className="sm:hidden">→</span>
+                Buscar
               </button>
             </div>
           </div>
@@ -1094,13 +1090,14 @@ const HomePage: React.FC = () => {
       )}
 
       {/* ── HERO BANNER — clean slider, no text overlay ── */}
-      <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden bg-black relative h-[200px] sm:h-[260px] lg:h-[380px]">
+      <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-pink-900 to-gray-900 relative h-[200px] sm:h-[260px] lg:h-[380px]">
         <div className="absolute inset-0">
-          {heroSliderImages.length > 0 && (
-            <div className="h-full">
-              <HeroSliderFullHeight images={heroSliderImages} />
-            </div>
-          )}
+          <HeroSliderFullHeight images={
+            heroSliderImages.length > 0 ? heroSliderImages : [
+              { id: '1', url: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=1400&h=500&fit=crop&q=80', alt: 'BailaNow - Todo lo que amas del baile latino' },
+              { id: '2', url: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1400&h=500&fit=crop&q=80', alt: 'BailaNow - Encuentra todo el mundo del baile en tus manos' },
+            ]
+          } />
         </div>
       </section>
 

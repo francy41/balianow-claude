@@ -9,11 +9,10 @@ const BottomNav: React.FC = () => {
   const { user, isAuthenticated } = useAuthStore();
 
   const tabs = [
-    { to: '/',       icon: <Home className="w-5 h-5" />,       label: 'Inicio' },
-    { to: '/explorar', icon: <Search className="w-5 h-5" />,   label: 'Explorar' },
-    { to: '/eventos',      icon: <Calendar className="w-5 h-5" />,  label: 'Eventos' },
-    { to: '/venues',       icon: <MapPin className="w-5 h-5" />,    label: 'Ciudades' },
-    { to: '/promocionate', icon: <Megaphone className="w-5 h-5" />, label: 'Promo', dot: true },
+    { to: '/',             icon: <Home className="w-5 h-5" />,     label: 'Inicio' },
+    { to: '/explorar',     icon: <Search className="w-5 h-5" />,   label: 'Explorar' },
+    { to: '/eventos',      icon: <Calendar className="w-5 h-5" />, label: 'Eventos' },
+    { to: '/promocionate', icon: <Megaphone className="w-5 h-5" />,label: 'Promo', dot: true },
     {
       to: isAuthenticated ? '/dashboard' : '/auth',
       icon: isAuthenticated && user
