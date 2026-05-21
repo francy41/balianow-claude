@@ -131,7 +131,6 @@ const AuthPage: React.FC = () => {
     const supa = await supabaseLogin(email, loginPassword);
     if (supa.success) {
       addToast({ message: '¡Bienvenido de vuelta!', type: 'success' });
-      // Redirect admins/superadmins directly to admin panel
       const { user: loggedUser } = useAuthStore.getState();
       if (loggedUser?.role === 'admin' || loggedUser?.role === 'superadmin') {
         navigate('/admin');
@@ -145,7 +144,19 @@ const AuthPage: React.FC = () => {
       setView('verify');
       return;
     }
-    addToast({ message: supa.error ?? 'Email o contraseña incorrectos', type: 'error' });
+    // Demo fallback (local dev / mock users)
+    const ok = await login(email, loginPassword);
+    if (ok) {
+      addToast({ message: '¡Bienvenido!', type: 'success' });
+      const { user: loggedUser } = useAuthStore.getState();
+      if (loggedUser?.role === 'admin' || loggedUser?.role === 'superadmin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
+    } else {
+      addToast({ message: supa.error ?? 'Email o contraseña incorrectos', type: 'error' });
+    }
   };
 
   // ── Register ───────────────────────────────────────────────

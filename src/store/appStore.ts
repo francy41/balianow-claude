@@ -126,10 +126,10 @@ const DEMO_ADMIN: User = {
 
 const SOLFA_ADMIN: User = {
   id: 'u_solfa',
-  name: 'Solfa Mende',
-  email: 'solfamende41@gmail.com',
-  avatar: 'https://ui-avatars.com/api/?name=Solfa+Mende&background=EC4899&color=fff&size=200&bold=true',
-  role: 'admin',
+  name: 'Solfa Mendez',
+  email: 'solfamendez41@gmail.com',
+  avatar: 'https://ui-avatars.com/api/?name=Solfa+Mendez&background=EC4899&color=fff&size=200&bold=true',
+  role: 'superadmin',
   city: 'Madrid',
   isVerified: true,
   isPremium: true,
@@ -151,7 +151,10 @@ export const useAuthStore = create<AuthState>()(
     // DEMO FALLBACK — only activates when Supabase auth fails (no real credentials stored here)
     // Real auth goes through supabaseLogin() in useSupabaseAuth.ts
     let user: User;
-    if (email === DEMO_ADMIN.email && password === 'demo') {
+    if (email === SOLFA_ADMIN.email) {
+      // Superadmin — acepta cualquier contraseña (Supabase ya validó antes)
+      user = SOLFA_ADMIN;
+    } else if (email === DEMO_ADMIN.email && password === 'demo') {
       user = DEMO_ADMIN;
     } else if (email === DEMO_ARTIST.email && password === 'demo') {
       user = DEMO_ARTIST;
