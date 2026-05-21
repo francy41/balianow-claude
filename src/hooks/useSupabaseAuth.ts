@@ -7,19 +7,20 @@ import type { User } from '../store/appStore';
 function mapProfile(profile: any, supaId: string): User {
   return {
     id: supaId,
-    name: profile.name || '',
+    // Support both column naming conventions (new DB vs old)
+    name: profile.full_name || profile.name || '',
     email: profile.email || '',
-    avatar: profile.avatar || '',
+    avatar: profile.avatar_url || profile.avatar || '',
     coverPhoto: profile.cover_photo || '',
     bio: profile.bio || '',
-    phone: profile.phone || '',
-    role: profile.role || 'user',
-    city: profile.city || 'Madrid',
+    phone: profile.phone || profile.whatsapp || '',
+    role: (profile.role as any) || 'user',
+    city: profile.location || profile.city || 'Madrid',
     country: profile.country || '',
-    isVerified: profile.is_verified || false,
+    isVerified: profile.verified ?? profile.is_verified ?? false,
     isPremium: profile.is_premium || false,
     subscriptionPlan: profile.subscription_plan || undefined,
-    wallet: parseFloat(profile.wallet) || 0,
+    wallet: parseFloat(profile.wallet_balance ?? profile.wallet ?? 0) || 0,
     notifications: profile.notifications || 0,
     socials: profile.socials || {},
   };
@@ -44,16 +45,13 @@ async function resolveUser(supaId: string, email: string, oauthMeta?: {
   // Profile not found (trigger may not exist yet) — create it manually
   const fallback = {
     id: supaId,
-    name: oauthMeta?.name || email.split('@')[0],
+    full_name: oauthMeta?.name || email.split('@')[0],
     email,
-    avatar: oauthMeta?.avatar || '',
+    avatar_url: oauthMeta?.avatar || '',
     role: 'user',
-    city: 'Madrid',
-    is_verified: true,
-    is_premium: false,
-    wallet: 0,
-    notifications: 0,
-    socials: {},
+    location: 'Madrid',
+    verified: true,
+    wallet_balance: 0,
   };
 
   const { error } = await supabase.from('profiles').upsert(fallback, { onConflict: 'id' });
