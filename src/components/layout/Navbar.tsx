@@ -32,7 +32,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
     navigate('/');
   };
 
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
   const roleLabel = user ? (ROLE_LABELS[user.role] || user.role) : '';
 
   return (

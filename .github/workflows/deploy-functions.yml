@@ -1,0 +1,39 @@
+name: Deploy Supabase Edge Functions
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'supabase/functions/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Deploy Edge Functions
+        run: |
+          supabase functions deploy create-payment-intent --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase functions deploy create-paypal-order --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase functions deploy capture-paypal-order --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase functions deploy stripe-webhook --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase functions deploy send-admin-invite --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Set Edge Function Secrets
+        run: |
+          supabase secrets set STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }} --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase secrets set STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }} --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase secrets set PAYPAL_CLIENT_ID=${{ secrets.PAYPAL_CLIENT_ID }} --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase secrets set PAYPAL_CLIENT_SECRET=${{ secrets.PAYPAL_CLIENT_SECRET }} --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase secrets set PAYPAL_ENV=production --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase secrets set APP_URL=https://bailanow.com --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+          supabase secrets set RESEND_API_KEY=${{ secrets.RESEND_API_KEY }} --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
