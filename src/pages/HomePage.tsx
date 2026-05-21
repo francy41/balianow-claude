@@ -393,14 +393,14 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
   };
 
   return (
-    <section className="mx-4 mt-6 mb-10">
+    <section className="mx-3 sm:mx-4 mt-4 sm:mt-6 mb-6 sm:mb-10">
       <div className="relative">
         {/* Search Container */}
         <div className="relative">
-          <div className="bg-gradient-to-r from-pink-500/20 via-fuchsia-500/10 to-purple-500/20 backdrop-blur-lg rounded-3xl p-1 shadow-2xl border border-pink-500/30 shadow-pink-500/10">
-            <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-3xl px-5 sm:px-6 py-4 flex items-center gap-3 group">
+          <div className="bg-gradient-to-r from-pink-500/20 via-fuchsia-500/10 to-purple-500/20 backdrop-blur-lg rounded-2xl sm:rounded-3xl p-[3px] shadow-xl border border-pink-500/30">
+            <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl px-3 sm:px-6 py-3 sm:py-4 flex items-center gap-2 sm:gap-3">
               {/* Icon */}
-              <div className="text-2xl">🔍</div>
+              <div className="text-lg sm:text-2xl flex-shrink-0">🔍</div>
 
               {/* Input */}
               <input
@@ -414,16 +414,17 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
                 }}
                 onFocus={() => setShowSuggestions(true)}
                 onKeyDown={handleKeyDown}
-                placeholder="Descubre artistas, eventos, venues..."
-                className="flex-1 bg-transparent outline-none text-gray-900 placeholder-gray-400 text-sm font-medium"
+                placeholder="Artistas, eventos, venues..."
+                className="flex-1 bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400 text-sm font-medium min-w-0"
               />
 
               {/* Search Button */}
               <button
                 onClick={() => handleSearch()}
-                className="px-5 sm:px-6 py-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 hover:from-pink-600 hover:to-fuchsia-700 text-white rounded-full font-bold text-sm hover:shadow-lg hover:shadow-pink-500/30 hover:scale-105 transition-all"
+                className="flex-shrink-0 px-3 sm:px-6 py-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 hover:from-pink-600 hover:to-fuchsia-700 text-white rounded-full font-bold text-xs sm:text-sm hover:shadow-lg hover:shadow-pink-500/30 transition-all"
               >
-                Buscar
+                <span className="hidden sm:inline">Buscar</span>
+                <span className="sm:hidden">→</span>
               </button>
             </div>
           </div>
@@ -765,14 +766,14 @@ const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
   if (openVenues.length === 0) return null;
 
   return (
-    <section className="mx-4 mt-8">
-      <div className="flex items-center justify-between mb-4">
+    <section className="mx-3 sm:mx-4 mt-5 sm:mt-8">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
         <div className="flex items-center gap-2">
           <span className="relative flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
           </span>
-          <h2 className="font-display font-black text-lg text-gray-900">Locales Abiertos Ahora</h2>
+          <h2 className="font-display font-black text-base sm:text-lg text-gray-900 dark:text-white">Locales Abiertos Ahora</h2>
         </div>
         <button onClick={() => navigate('/venues?open=true')} className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform">
           <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
@@ -781,10 +782,10 @@ const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
           <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">Ver Todos</span>
         </button>
       </div>
-      <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+      <div className="flex gap-3 overflow-x-auto pb-3 px-0.5" style={{ scrollbarWidth: 'none' }}>
         {openVenues.slice(0, 6).map(v => (
           <button key={v.id} onClick={() => navigate(`/venues/${v.id}`)}
-            className="flex-shrink-0 w-44 bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:shadow-emerald-500/10 transition-all hover:-translate-y-1 border border-gray-100 group">
+            className="flex-shrink-0 w-40 sm:w-44 bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:shadow-emerald-500/10 transition-all hover:-translate-y-1 border border-gray-100 dark:border-gray-800 group">
             <div className="relative">
               <img src={v.cover} alt={v.name} className="w-full h-24 object-cover group-hover:scale-105 transition-transform duration-500" />
               <div className="absolute top-2 right-2 bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-lg">
@@ -822,14 +823,14 @@ const LIVE_STREAMS = [
 ];
 
 const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => (
-  <section className="mx-4 mt-8">
-    <div className="flex items-center justify-between mb-4">
+  <section className="mx-3 sm:mx-4 mt-5 sm:mt-8">
+    <div className="flex items-center justify-between mb-3 sm:mb-4">
       <div className="flex items-center gap-2">
         <span className="relative flex h-3 w-3">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
           <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
         </span>
-        <h2 className="font-display font-black text-lg text-gray-900">En Directo Ahora</h2>
+        <h2 className="font-display font-black text-base sm:text-lg text-gray-900 dark:text-white">En Directo Ahora</h2>
       </div>
       <button onClick={() => navigate('/live')} className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform">
         <div className="w-9 h-9 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/30">
@@ -838,11 +839,11 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => (
         <span className="text-[9px] font-black uppercase tracking-widest text-red-500">Ver Todos</span>
       </button>
     </div>
-    <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+    <div className="flex gap-3 overflow-x-auto pb-3 px-0.5" style={{ scrollbarWidth: 'none' }}>
       {LIVE_STREAMS.map(s => (
         <button key={s.id} onClick={() => navigate(`/live/${s.id}`)}
-          className="flex-shrink-0 w-36 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 group relative border-2 border-red-500/30 hover:border-red-500">
-          <img src={s.img} alt={s.name} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500" />
+          className="flex-shrink-0 w-32 sm:w-36 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 group relative border-2 border-red-500/30 hover:border-red-500">
+          <img src={s.img} alt={s.name} className="w-full h-44 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-500" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
           {/* LIVE badge */}
           <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded flex items-center gap-1 shadow-lg animate-pulse">
@@ -1093,7 +1094,7 @@ const HomePage: React.FC = () => {
       )}
 
       {/* ── HERO BANNER — clean slider, no text overlay ── */}
-      <section className="mx-4 mt-4 rounded-2xl sm:rounded-3xl overflow-hidden bg-black relative h-[140px] sm:h-[220px] lg:h-[350px]">
+      <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden bg-black relative h-[200px] sm:h-[260px] lg:h-[380px]">
         <div className="absolute inset-0">
           {heroSliderImages.length > 0 && (
             <div className="h-full">

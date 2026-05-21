@@ -99,7 +99,7 @@ const App: React.FC = () => {
           <div className="lg:ml-60">
             <Navbar onMenuToggle={() => setSidebarOpen(s => !s)} />
 
-            <main className="pt-14 pb-20 lg:pb-6 min-h-screen">
+            <main className="pt-14 pb-24 lg:pb-6 min-h-screen">
               <Suspense fallback={<FullPageLoader />}>
                 <Routes>
                   {/* ── Main pages ── */}
