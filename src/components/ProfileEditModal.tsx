@@ -109,54 +109,64 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
     if (!form.name?.trim()) {
       addToast({ message: 'El nombre es obligatorio', type: 'error' }); return;
     }
+
+    // Verify we have a real Supabase session (not demo login)
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      // No real session — just save to local store (demo mode)
+      updateUser(form);
+      addToast({ message: '✅ Perfil actualizado (modo demo)', type: 'success' });
+      onClose();
+      return;
+    }
+
     setSaving(true);
     try {
-      // Map app fields → real DB column names
+      const realId = session.user.id; // Always use the real Supabase auth ID
+
       const dbUpdate: Record<string, any> = {
-        full_name:    form.name,
-        bio:          form.bio || null,
-        location:     form.city || null,
-        country:      form.country || null,
-        whatsapp:     form.phone || null,
-        avatar_url:   form.avatar || null,
-        // Socials as individual columns
-        instagram_url:  form.socials?.instagram || null,
-        tiktok_url:     form.socials?.tiktok    || null,
+        full_name:      form.name,
+        bio:            form.bio          || null,
+        location:       form.city         || null,
+        country:        form.country      || null,
+        whatsapp:       form.phone        || null,
+        avatar_url:     form.avatar       || null,
+        instagram_url:  form.socials?.instagram  || null,
+        tiktok_url:     form.socials?.tiktok     || null,
         youtube_url:    form.socials?.youtube    || null,
         website_url:    form.socials?.website    || null,
         facebook_url:   form.socials?.facebook   || null,
       };
-
-      // Only include cover if changed (may not exist as column)
       if (form.coverPhoto) dbUpdate.cover_photo = form.coverPhoto;
 
       const { error } = await supabase
         .from('profiles')
         .update(dbUpdate)
-        .eq('id', user.id);
+        .eq('id', realId);
 
       if (error) {
-        // If some columns don't exist, retry with minimal set
+        // Retry with minimal set if some columns don't exist yet
         const { error: error2 } = await supabase
           .from('profiles')
           .update({
-            full_name: form.name,
-            bio:       form.bio || null,
-            location:  form.city || null,
-            country:   form.country || null,
-            whatsapp:  form.phone || null,
-            avatar_url: form.avatar || null,
+            full_name:  form.name,
+            bio:        form.bio      || null,
+            location:   form.city     || null,
+            country:    form.country  || null,
+            whatsapp:   form.phone    || null,
+            avatar_url: form.avatar   || null,
           })
-          .eq('id', user.id);
+          .eq('id', realId);
         if (error2) throw error2;
       }
 
-      // Sync local store
-      updateUser(form);
+      // Sync local Zustand store
+      updateUser({ ...form, id: realId });
       addToast({ message: '✅ Perfil guardado correctamente', type: 'success' });
       onClose();
     } catch (err: any) {
-      addToast({ message: `Error al guardar: ${err.message}`, type: 'error' });
+      console.error('Profile save error:', err);
+      addToast({ message: `Error al guardar: ${err.message || 'Error desconocido'}`, type: 'error' });
     } finally {
       setSaving(false);
     }

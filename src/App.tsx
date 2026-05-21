@@ -91,7 +91,7 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <ErrorBoundary>
-        <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] transition-colors duration-300">
+        <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] transition-colors duration-300" style={{ overflowX: 'clip' }}>
           {/* Sidebar — fixed left, hidden on mobile until toggled */}
           <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
