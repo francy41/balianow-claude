@@ -39,6 +39,7 @@ const LegalPage           = lazy(() => import('./pages/LegalPage'));
 const NotFoundPage        = lazy(() => import('./pages/NotFoundPage'));
 const AuthCallbackPage    = lazy(() => import('./pages/AuthCallbackPage'));
 const ResetPasswordPage   = lazy(() => import('./pages/ResetPasswordPage'));
+const AcceptInvitePage    = lazy(() => import('./pages/AcceptInvitePage'));
 
 // Error boundary
 class ErrorBoundary extends React.Component<
@@ -130,6 +131,7 @@ const App: React.FC = () => {
                   <Route path="/admin/:section"      element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
 
                   {/* ── Payment success (Stripe redirect) ── */}
+                  <Route path="/aceptar-invitacion" element={<AcceptInvitePage />} />
                   <Route path="/pago-exitoso"        element={<PagoExitosoPage />} />
 
                   {/* ── Legal pages ── */}

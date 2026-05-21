@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Tag, Radio, Users, MapPin, Crown,
@@ -10,6 +10,7 @@ import {
   Wifi, Globe, Bell, Database, Server, FileText
 } from 'lucide-react';
 import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useAdminOverridesStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_CATEGORIES, type HeroMediaType, type CommissionSource, type HeroSliderImage, type HomeCategory, type Sponsor } from '../store/appStore';
+import { supabase } from '../lib/supabase';
 import AdminCMS from '../components/AdminCMS';
 import AdminMediaManager from '../components/AdminMediaManager';
 import AdminEditModal, { type EditField } from '../components/AdminEditModal';
@@ -22,7 +23,7 @@ type AdminSection =
   | 'suscripciones' | 'artistas' | 'bailarinas' | 'eventos' | 'mercado'
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms'
-  | 'patrocinadores';
+  | 'patrocinadores' | 'administradores';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -49,6 +50,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'disputas',       label: 'Disputas',                icon: <AlertTriangle className="w-4 h-4" />, badge: '5' },
   { id: 'seguridad',      label: 'Seguridad',               icon: <Lock className="w-4 h-4" /> },
   { id: 'resenas',        label: 'Reseñas',                 icon: <Star className="w-4 h-4" />, badge: '12 new' },
+  { id: 'administradores', label: 'Administradores',        icon: <Shield className="w-4 h-4" />, badge: 'SUPER' },
 ];
 
 // ── STAT CARDS DATA ────────────────────────────────────────────────────────
@@ -189,7 +191,8 @@ const AdminPage: React.FC = () => {
   const [editReq, setEditReq] = useState<EditRequest | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  if (!isAuthenticated || user?.role !== 'admin') {
+  const isSuperAdmin = user?.role === 'superadmin';
+  if (!isAuthenticated || !['admin', 'superadmin'].includes(user?.role ?? '')) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center px-6">
@@ -277,7 +280,8 @@ const AdminPage: React.FC = () => {
         {active === 'disputas'       && <DisputasSection addToast={addToast} />}
         {active === 'seguridad'      && <SeguridadSection />}
         {active === 'resenas'        && <ResenasSection addToast={addToast} />}
-        {active === 'patrocinadores' && <PatrocinadoresSection addToast={addToast} />}
+        {active === 'patrocinadores'  && <PatrocinadoresSection addToast={addToast} />}
+        {active === 'administradores' && <AdministradoresSection addToast={addToast} isSuperAdmin={isSuperAdmin} />}
       </main>
 
       {/* Modal de edición global */}
@@ -1885,7 +1889,8 @@ interface SupaProfile {
 }
 
 const ROLE_CONFIG = [
-  { role: 'admin',    label: 'Superadministrador', color: 'bg-red-100 text-red-700', perms: ['Todo', 'Configuración', 'Finanzas', 'Roles'] },
+  { role: 'superadmin', label: 'Superadministrador', color: 'bg-red-100 text-red-700', perms: ['Todo', 'Configuración', 'Finanzas', 'Roles', 'Invitar Admins'] },
+  { role: 'admin',    label: 'Administrador', color: 'bg-orange-100 text-orange-700', perms: ['Panel Admin', 'Usuarios', 'Eventos', 'Artistas'] },
   { role: 'moderator', label: 'Moderador',        color: 'bg-blue-100 text-blue-700', perms: ['Reseñas', 'Disputas', 'Contenido'] },
   { role: 'artist',   label: 'Artista',            color: 'bg-purple-100 text-purple-700', perms: ['Mi perfil', 'Servicios', 'Bookings'] },
   { role: 'dj',       label: 'DJ',                 color: 'bg-pink-100 text-pink-700', perms: ['Mi perfil', 'Sets', 'Bookings'] },
@@ -2569,6 +2574,232 @@ const PatrocinadoresSection: React.FC<{ addToast: Function }> = ({ addToast }) =
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+};
+
+// ── ADMINISTRADORES ────────────────────────────────────────────────────────
+
+interface AdminProfile {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  role: string;
+  created_at: string;
+}
+
+interface AdminInvitation {
+  id: string;
+  email: string;
+  role: string;
+  expires_at: string;
+  used_at: string | null;
+  created_at: string;
+}
+
+const AdministradoresSection: React.FC<{ addToast: Function; isSuperAdmin: boolean }> = ({ addToast, isSuperAdmin }) => {
+  const [admins, setAdmins]             = useState<AdminProfile[]>([]);
+  const [invitations, setInvitations]   = useState<AdminInvitation[]>([]);
+  const [loading, setLoading]           = useState(true);
+  const [inviteEmail, setInviteEmail]   = useState('');
+  const [inviteRole, setInviteRole]     = useState<'admin' | 'superadmin'>('admin');
+  const [sending, setSending]           = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    const [{ data: adminData }, { data: invData }] = await Promise.all([
+      supabase.from('profiles').select('id,name,email,avatar,role,created_at').in('role', ['admin','superadmin']).order('role', { ascending: false }),
+      supabase.from('admin_invitations').select('id,email,role,expires_at,used_at,created_at').order('created_at', { ascending: false }).limit(20),
+    ]);
+    setAdmins(adminData ?? []);
+    setInvitations(invData ?? []);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handleSendInvite = async () => {
+    if (!inviteEmail.trim()) return;
+    setSending(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-admin-invite`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({ email: inviteEmail.trim(), role: inviteRole }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? 'Error');
+      addToast({ type: 'success', message: `✅ Invitación enviada a ${inviteEmail}` });
+      setInviteEmail('');
+      load();
+    } catch (err: any) {
+      addToast({ type: 'error', message: err.message });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleRevokeInvite = async (id: string) => {
+    await supabase.from('admin_invitations').delete().eq('id', id);
+    addToast({ type: 'success', message: 'Invitación revocada' });
+    load();
+  };
+
+  const handleRemoveAdmin = async (adminId: string, adminName: string) => {
+    if (!confirm(`¿Quitar permisos de admin a ${adminName}?`)) return;
+    await supabase.from('profiles').update({ role: 'user' }).eq('id', adminId);
+    addToast({ type: 'success', message: `${adminName} ya no es administrador` });
+    load();
+  };
+
+  const roleBadge = (role: string) =>
+    role === 'superadmin'
+      ? 'bg-red-100 text-red-700 border-red-200'
+      : 'bg-blue-100 text-blue-700 border-blue-200';
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-3 mb-2">
+        <Shield className="w-6 h-6 text-brand-orange" />
+        <div>
+          <h2 className="font-display font-black text-xl text-gray-900">Administradores</h2>
+          <p className="text-gray-400 text-sm">Gestiona el equipo de administración de BailaNow</p>
+        </div>
+      </div>
+
+      {/* Invite form */}
+      {isSuperAdmin && (
+        <div className="card-white rounded-2xl p-6 border border-gray-100 shadow-card">
+          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <Plus className="w-4 h-4 text-brand-orange" /> Invitar nuevo administrador
+          </h3>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <input
+              type="email"
+              value={inviteEmail}
+              onChange={e => setInviteEmail(e.target.value)}
+              placeholder="correo@ejemplo.com"
+              className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/30 focus:border-brand-orange"
+              onKeyDown={e => e.key === 'Enter' && handleSendInvite()}
+            />
+            <select
+              value={inviteRole}
+              onChange={e => setInviteRole(e.target.value as 'admin' | 'superadmin')}
+              className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/30 bg-white"
+            >
+              <option value="admin">Admin</option>
+              <option value="superadmin">Super Admin</option>
+            </select>
+            <button
+              onClick={handleSendInvite}
+              disabled={sending || !inviteEmail.trim()}
+              className="btn-orange text-sm px-5 py-2.5 flex items-center gap-2 disabled:opacity-50"
+            >
+              {sending ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Bell className="w-4 h-4" />}
+              {sending ? 'Enviando...' : 'Invitar por correo'}
+            </button>
+          </div>
+          <p className="text-gray-400 text-xs mt-2">
+            Se enviará un email con un enlace seguro válido por 48 horas.
+          </p>
+        </div>
+      )}
+
+      {/* Current admins */}
+      <div className="card-white rounded-2xl p-6 border border-gray-100 shadow-card">
+        <h3 className="font-bold text-gray-900 mb-4">Equipo actual ({admins.length})</h3>
+        {loading ? (
+          <div className="text-center py-8 text-gray-400">
+            <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2" />
+            Cargando administradores...
+          </div>
+        ) : admins.length === 0 ? (
+          <p className="text-gray-400 text-sm text-center py-4">No se encontraron administradores en la base de datos.</p>
+        ) : (
+          <div className="space-y-3">
+            {admins.map(admin => (
+              <div key={admin.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <img
+                  src={admin.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(admin.name)}&background=EC4899&color=fff&size=80`}
+                  alt={admin.name}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 text-sm truncate">{admin.name}</p>
+                  <p className="text-gray-400 text-xs truncate">{admin.email}</p>
+                </div>
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${roleBadge(admin.role)}`}>
+                  {admin.role === 'superadmin' ? '👑 Superadmin' : '🛡️ Admin'}
+                </span>
+                {isSuperAdmin && (
+                  <button
+                    onClick={() => handleRemoveAdmin(admin.id, admin.name)}
+                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Quitar permisos"
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Pending invitations */}
+      <div className="card-white rounded-2xl p-6 border border-gray-100 shadow-card">
+        <h3 className="font-bold text-gray-900 mb-4">Invitaciones pendientes</h3>
+        {invitations.filter(i => !i.used_at && new Date(i.expires_at) > new Date()).length === 0 ? (
+          <p className="text-gray-400 text-sm text-center py-4">No hay invitaciones pendientes.</p>
+        ) : (
+          <div className="space-y-2">
+            {invitations
+              .filter(i => !i.used_at && new Date(i.expires_at) > new Date())
+              .map(inv => (
+                <div key={inv.id} className="flex items-center gap-3 p-3 bg-yellow-50 rounded-xl border border-yellow-100">
+                  <Bell className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">{inv.email}</p>
+                    <p className="text-xs text-gray-400">
+                      Expira: {new Date(inv.expires_at).toLocaleString('es-ES')} · Rol: <strong>{inv.role}</strong>
+                    </p>
+                  </div>
+                  {isSuperAdmin && (
+                    <button
+                      onClick={() => handleRevokeInvite(inv.id)}
+                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Revocar invitación"
+                    >
+                      <XCircle className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+          </div>
+        )}
+
+        {/* Used invitations */}
+        {invitations.filter(i => i.used_at).length > 0 && (
+          <div className="mt-4">
+            <h4 className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2">Aceptadas</h4>
+            <div className="space-y-1.5">
+              {invitations.filter(i => i.used_at).map(inv => (
+                <div key={inv.id} className="flex items-center gap-2 px-3 py-2 bg-emerald-50 rounded-lg border border-emerald-100 text-xs">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-gray-600">{inv.email}</span>
+                  <span className="ml-auto text-gray-400">Aceptada {new Date(inv.used_at!).toLocaleDateString('es-ES')}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -111,7 +111,11 @@
       "Bash(curl -s https://bailanow.com/)",
       "Bash(ls -la .env*)",
       "WebSearch",
-      "Bash(grep -v \"//.*console\")"
+      "Bash(grep -v \"//.*console\")",
+      "mcp__Claude_in_Chrome__select_browser",
+      "Bash(npx --yes supabase@latest functions deploy create-payment-intent --project-ref lpwwdjujxwxdvyoznehp)",
+      "PowerShell(Get-Item \"$env:TEMP\\\\supabase.exe\" | Select-Object Name, Length, LastWriteTime)",
+      "PowerShell(& \"$env:TEMP\\\\supabase.exe\" --version)"
     ]
   }
 }
