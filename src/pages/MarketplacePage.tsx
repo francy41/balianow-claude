@@ -4,16 +4,38 @@ import { Clock, ShoppingBag } from 'lucide-react';
 import { SERVICES } from '../data/mockData';
 import type { Service } from '../data/mockData';
 import { Avatar, Badge, StarRating, SearchBar, FilterChips, EmptyState, SectionHeader } from '../components/ui';
+import { useAuthStore, useCartStore } from '../store/appStore';
+import PaymentGateway from '../components/payment/PaymentGateway';
 
 const CATEGORIES = ['Todos', 'DJ Set', 'Clases', 'Clases Online', 'Música en Vivo', 'Show Baile', 'Producción', 'Fotografía'];
 const PRICE_RANGES = ['Todos', '< €100', '€100–€500', '€500–€1000', '> €1000'];
 
 const MarketplacePage: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
+  const { addItem, clearCart } = useCartStore();
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState(['Todos']);
   const [selectedPrice, setSelectedPrice] = useState(['Todos']);
   const [sortBy, setSortBy] = useState<'rating' | 'price_asc' | 'price_desc' | 'orders'>('rating');
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+
+  const handleQuickBuy = (service: Service, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isAuthenticated) { navigate('/auth'); return; }
+    clearCart();
+    addItem({
+      serviceId: service.id,
+      sellerId: service.artistId,
+      sellerName: service.artistName,
+      sellerAvatar: service.artistAvatar,
+      title: service.title,
+      price: service.price,
+      extras: [],
+      currency: 'EUR',
+    });
+    setCheckoutOpen(true);
+  };
 
   const filtered = useMemo(() => {
     return SERVICES.filter(s => {
@@ -90,17 +112,21 @@ const MarketplacePage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {filtered.map(service => (
-                <ServiceCard key={service.id} service={service} onClick={() => navigate(`/marketplace/${service.id}`)} />
+                <ServiceCard key={service.id} service={service}
+                  onClick={() => navigate(`/marketplace/${service.id}`)}
+                  onQuickBuy={(e) => handleQuickBuy(service, e)} />
               ))}
             </div>
           )}
         </div>
       </div>
+
+      <PaymentGateway open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
     </div>
   );
 };
 
-const ServiceCard: React.FC<{ service: Service; onClick: () => void }> = ({ service, onClick }) => (
+const ServiceCard: React.FC<{ service: Service; onClick: () => void; onQuickBuy: (e: React.MouseEvent) => void }> = ({ service, onClick, onQuickBuy }) => (
   <div onClick={onClick} className="card-white overflow-hidden cursor-pointer hover:shadow-card-hover hover:scale-[1.02] transition-all duration-300">
     <div className="relative h-44 overflow-hidden">
       <img src={service.cover} alt={service.title} className="w-full h-full object-cover" />
@@ -140,9 +166,14 @@ const ServiceCard: React.FC<{ service: Service; onClick: () => void }> = ({ serv
         </div>
       </div>
 
-      <button onClick={e => { e.stopPropagation(); onClick(); }} className="w-full mt-3 btn-orange text-xs py-2">
-        Ver Servicio
-      </button>
+      <div className="flex gap-2 mt-3">
+        <button onClick={e => { e.stopPropagation(); onClick(); }} className="flex-1 btn-outline text-xs py-2">
+          Ver Servicio
+        </button>
+        <button onClick={onQuickBuy} className="flex-1 btn-orange text-xs py-2">
+          🛒 Contratar
+        </button>
+      </div>
     </div>
   </div>
 );

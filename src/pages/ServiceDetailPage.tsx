@@ -3,23 +3,37 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Clock, ShoppingBag, CheckCircle, Shield, MessageSquare } from 'lucide-react';
 import { SERVICES } from '../data/mockData';
 import { Avatar, StarRating, Badge, Button } from '../components/ui';
-import { useAuthStore, useUIStore } from '../store/appStore';
+import { useAuthStore, useUIStore, useCartStore } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
+import PaymentGateway from '../components/payment/PaymentGateway';
 
 const ServiceDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
+  const { addItem, clearCart } = useCartStore();
   const service = SERVICES.find(s => s.id === id) || SERVICES[0];
-  const [ordering, setOrdering] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   const platform = Math.round(service.price * 0.15);
 
   const handleOrder = () => {
     if (!isAuthenticated) { navigate('/auth'); return; }
-    setBookingOpen(true);
+    // Add this service to cart (clear first for single-item checkout)
+    clearCart();
+    addItem({
+      serviceId: service.id,
+      sellerId: service.artistId,
+      sellerName: service.artistName,
+      sellerAvatar: service.artistAvatar,
+      title: service.title,
+      price: service.price,
+      extras: [],
+      currency: 'EUR',
+    });
+    setCheckoutOpen(true);
   };
 
   return (
@@ -106,7 +120,7 @@ const ServiceDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              <Button variant="orange" className="w-full" loading={ordering} onClick={handleOrder}>
+              <Button variant="orange" className="w-full" onClick={handleOrder}>
                 🛒 Contratar Ahora
               </Button>
 
@@ -139,6 +153,11 @@ const ServiceDetailPage: React.FC = () => {
         defaultConcept={service.title}
         defaultPrice={service.price}
         helperText={`Servicio: ${service.category}`}
+      />
+
+      <PaymentGateway
+        open={checkoutOpen}
+        onClose={() => setCheckoutOpen(false)}
       />
     </div>
   );

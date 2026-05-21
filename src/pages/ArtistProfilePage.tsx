@@ -8,9 +8,10 @@ import {
 } from 'lucide-react';
 import { ARTISTS, LIVE_STREAMS, SOCIAL_NETWORK_URLS } from '../data/mockData';
 import type { Artist, MediaItem, OfferPackage } from '../data/mockData';
-import { useAuthStore, useUIStore, getYouTubeId } from '../store/appStore';
+import { useAuthStore, useUIStore, useCartStore, getYouTubeId } from '../store/appStore';
 import { Avatar, Modal, Button } from '../components/ui';
 import BookingModal from '../components/BookingModal';
+import PaymentGateway from '../components/payment/PaymentGateway';
 
 type TabId = 'about' | 'live' | 'gallery' | 'offers' | 'reviews' | 'availability';
 
@@ -49,7 +50,9 @@ const ArtistProfilePage: React.FC = () => {
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
   const [showCustomOffer, setShowCustomOffer] = useState(false);
   const [customOfferTitle, setCustomOfferTitle] = useState('');
+  const { addItem, clearCart } = useCartStore();
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [bookingPreset, setBookingPreset] = useState<{ concept: string; price: number }>({ concept: '', price: 0 });
   const openBooking = (concept: string, price: number) => {
     setBookingPreset({ concept, price });
@@ -66,7 +69,18 @@ const ArtistProfilePage: React.FC = () => {
 
   const handleBookPackage = (pkg: OfferPackage) => {
     if (!isAuthenticated) { navigate('/auth'); return; }
-    openBooking(`${pkg.name} (${pkg.tier})`, pkg.price);
+    clearCart();
+    addItem({
+      serviceId: `${artist.id}-${pkg.tier}`,
+      sellerId: artist.id,
+      sellerName: artist.name,
+      sellerAvatar: artist.avatar,
+      title: `${pkg.name} (${pkg.tier})`,
+      price: pkg.price,
+      extras: [],
+      currency: 'EUR',
+    });
+    setCheckoutOpen(true);
   };
 
   const handleSendCustomOffer = () => {
@@ -265,6 +279,8 @@ const ArtistProfilePage: React.FC = () => {
         defaultPrice={bookingPreset.price}
         helperText={`Reservando con ${artist.name}. Comunicación 100% por chat interno.`}
       />
+
+      <PaymentGateway open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
     </div>
   );
 };
