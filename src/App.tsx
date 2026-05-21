@@ -7,6 +7,7 @@ import CookieBanner from './components/CookieBanner';
 import ProtectedRoute from './components/ProtectedRoute';
 import { ToastContainer, FullPageLoader } from './components/ui';
 import { useSupabaseAuthListener } from './hooks/useSupabaseAuth';
+import { useCapacitorApp } from './hooks/useCapacitor';
 
 // DevRoleSwitcher — solo en desarrollo
 const DevRoleSwitcher = import.meta.env.DEV
@@ -77,6 +78,7 @@ class ErrorBoundary extends React.Component<
 
 const App: React.FC = () => {
   useSupabaseAuthListener();
+  useCapacitorApp();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Initialize dark mode from localStorage on mount
