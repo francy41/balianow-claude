@@ -10,13 +10,11 @@ export default defineConfig({
     host: true
   },
   build: {
-    // Necesario para Capacitor: sin hash en asset names rompe deep links
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           supabase: ['@supabase/supabase-js'],
-          ui: ['framer-motion', 'lucide-react'],
         },
       },
     },
