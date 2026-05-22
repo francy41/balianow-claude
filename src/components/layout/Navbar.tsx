@@ -94,22 +94,22 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
           </button>
         </div>
 
-        {/* Search */}
-        {searchOpen ? (
-          <div className="flex items-center gap-2">
-            <input autoFocus value={search} onChange={e => setSearch(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') { navigate(`/cerca?q=${search}`); setSearchOpen(false); }
-                if (e.key === 'Escape') setSearchOpen(false);
-              }}
-              placeholder="Buscar..." className="bg-white/10 border border-pink-500/30 text-white placeholder-gray-500 rounded-lg py-1.5 px-3 text-sm w-44 focus:outline-none focus:ring-2 focus:ring-pink-500/50" />
-            <button onClick={() => setSearchOpen(false)} className="text-gray-500 hover:text-gray-300 text-xs">✕</button>
-          </div>
-        ) : (
-          <button onClick={() => setSearchOpen(true)} className="p-2 rounded-lg hover:bg-white/10 text-gray-400">
-            <Search className="w-4 h-4" />
-          </button>
-        )}
+        {/* Search — abre el GlobalSearch global (Ctrl+K) */}
+        <button
+          onClick={() => window.dispatchEvent(new Event('bn:open-search'))}
+          className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-pink-400 border border-white/10 transition-all"
+          title="Buscar (Ctrl+K)"
+        >
+          <Search className="w-3.5 h-3.5" />
+          <span className="text-xs hidden md:inline">Buscar...</span>
+          <span className="text-[10px] hidden md:inline bg-white/10 px-1.5 py-0.5 rounded font-mono">Ctrl K</span>
+        </button>
+        <button
+          onClick={() => window.dispatchEvent(new Event('bn:open-search'))}
+          className="sm:hidden p-2 rounded-lg hover:bg-white/10 text-gray-400"
+        >
+          <Search className="w-4 h-4" />
+        </button>
 
         {isAuthenticated && user ? (
           <>

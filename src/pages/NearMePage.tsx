@@ -4,8 +4,8 @@
  * y muestra venues, eventos, artistas, bailarines y DJs cercanos.
  */
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { MapPin, Navigation, Search, Star, Calendar, Music, Users, X, Map, ChevronRight } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { MapPin, Navigation, Search, Star, Calendar, Music, Users, X, Map, ChevronRight, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { VENUES, EVENTS, ARTISTS } from '../data/mockData';
 
@@ -51,6 +51,7 @@ type Item = {
 
 const NearMePage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [position, setPosition] = useState<[number, number] | null>(null);
   const [city, setCity]         = useState<string>('');
   const [locating, setLocating] = useState(false);
@@ -58,26 +59,43 @@ const NearMePage: React.FC = () => {
   const [items, setItems]       = useState<Item[]>([]);
   const [loading, setLoading]   = useState(true);
   const [showCityPicker, setShowCityPicker] = useState(false);
-  const [radius, setRadius]     = useState<50 | 100 | 500 | 5000>(100);
+  const [gpsError, setGpsError] = useState<string>('');
+  const [radius, setRadius]     = useState<50 | 100 | 500 | 5000>(500);
   const [activeTab, setActiveTab] = useState<'all' | 'venues' | 'events' | 'artists' | 'dancers' | 'djs'>('all');
 
-  // Restore saved city on mount
+  // Initialize position from URL param > localStorage > GPS > picker
   useEffect(() => {
+    const urlCity = searchParams.get('city');
+    if (urlCity && CITY_COORDS[urlCity]) {
+      setCity(urlCity);
+      setPosition(CITY_COORDS[urlCity]);
+      localStorage.setItem('bailanow-near-city', urlCity);
+      return;
+    }
     const saved = localStorage.getItem('bailanow-near-city');
     if (saved && CITY_COORDS[saved]) {
       setCity(saved);
       setPosition(CITY_COORDS[saved]);
-    } else {
-      // Try geolocation silently
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          pos => setPosition([pos.coords.latitude, pos.coords.longitude]),
-          () => setShowCityPicker(true),
-          { timeout: 5000 }
-        );
-      } else setShowCityPicker(true);
+      return;
     }
-  }, []);
+    // No saved city: try silent GPS, fall back to picker
+    if (!navigator.geolocation) {
+      setShowCityPicker(true);
+      setGpsError('Tu navegador no soporta geolocalización');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => { setPosition([pos.coords.latitude, pos.coords.longitude]); setGpsError(''); },
+      err => {
+        const msg = err.code === 1 ? 'Permiso denegado'
+                  : err.code === 2 ? 'GPS no disponible'
+                  : err.code === 3 ? 'Tiempo de espera agotado' : 'Error desconocido';
+        setGpsError(msg);
+        setShowCityPicker(true);
+      },
+      { timeout: 10000, enableHighAccuracy: false, maximumAge: 600000 }
+    );
+  }, [searchParams]);
 
   // Load items from Supabase + fallbacks
   useEffect(() => {
@@ -131,14 +149,30 @@ const NearMePage: React.FC = () => {
     load();
   }, []);
 
-  // Locate user via GPS
+  // Locate user via GPS — con alta precisión
   const handleLocate = () => {
-    if (!navigator.geolocation) return;
-    setLocating(true);
+    if (!navigator.geolocation) {
+      setGpsError('Tu navegador no soporta geolocalización');
+      return;
+    }
+    setLocating(true); setGpsError('');
     navigator.geolocation.getCurrentPosition(
-      pos => { setPosition([pos.coords.latitude, pos.coords.longitude]); setCity(''); localStorage.removeItem('bailanow-near-city'); setLocating(false); setShowCityPicker(false); },
-      () => { setLocating(false); alert('No se pudo obtener tu ubicación. Selecciona una ciudad.'); setShowCityPicker(true); },
-      { timeout: 8000 }
+      pos => {
+        setPosition([pos.coords.latitude, pos.coords.longitude]);
+        setCity('');
+        localStorage.removeItem('bailanow-near-city');
+        setLocating(false);
+        setShowCityPicker(false);
+      },
+      err => {
+        setLocating(false);
+        const msg = err.code === 1 ? '❌ Has denegado el permiso de ubicación. Activa la geolocalización en los ajustes del navegador.'
+                  : err.code === 2 ? '❌ No se pudo obtener tu GPS. Verifica tu conexión.'
+                  : err.code === 3 ? '⏱ Tiempo agotado. Vuelve a intentarlo o selecciona una ciudad.'
+                  : '❌ Error desconocido. Selecciona una ciudad.';
+        setGpsError(msg);
+      },
+      { timeout: 15000, enableHighAccuracy: true, maximumAge: 0 }
     );
   };
 
@@ -232,6 +266,17 @@ const NearMePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ── GPS ERROR BANNER ── */}
+      {gpsError && !position && (
+        <div className="mx-3 mt-3 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700 rounded-2xl flex items-start gap-2">
+          <AlertCircle className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 text-xs">
+            <p className="font-bold text-orange-700 dark:text-orange-300">{gpsError}</p>
+            <p className="text-orange-600 dark:text-orange-400 mt-0.5">Elige una ciudad de abajo o haz clic en "Tu ubicación"</p>
+          </div>
+        </div>
+      )}
 
       {/* ── SEARCH ── */}
       <div className="px-4 py-3 sticky top-14 z-20 bg-gray-50 dark:bg-gray-950">

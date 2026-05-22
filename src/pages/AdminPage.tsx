@@ -258,7 +258,7 @@ const AdminPage: React.FC = () => {
       </aside>
 
       {/* ── MAIN CONTENT ── */}
-      <main className="flex-1 lg:ml-60 p-4 sm:p-6 mt-0">
+      <main className="flex-1 lg:ml-60 p-3 sm:p-6 mt-0 min-w-0 overflow-x-hidden">
         {active === 'overview'       && <OverviewSection addToast={addToast} />}
         {active === 'categorias'     && <CategoriasSection addToast={addToast} />}
         {active === 'media'          && <MediaSection />}
@@ -329,11 +329,27 @@ const StatCard: React.FC<typeof STATS[0]> = ({ label, value, change, up, icon, c
 
 const AdminTable: React.FC<{ headers: string[]; rows: React.ReactNode[][]; }> = ({ headers, rows }) => (
   <div className="card-white overflow-hidden">
-    <div className="overflow-x-auto">
+    {/* Desktop: tabla normal */}
+    <div className="hidden md:block overflow-x-auto">
       <table className="admin-table">
         <thead><tr>{headers.map(h => <th key={h}>{h}</th>)}</tr></thead>
         <tbody>{rows.map((row, i) => <tr key={i}>{row.map((cell, j) => <td key={j}>{cell}</td>)}</tr>)}</tbody>
       </table>
+    </div>
+    {/* Móvil: cards con label+value */}
+    <div className="md:hidden divide-y divide-gray-100 dark:divide-gray-800">
+      {rows.map((row, i) => (
+        <div key={i} className="p-3 space-y-1.5">
+          {row.map((cell, j) => (
+            <div key={j} className="flex items-start gap-2 text-sm">
+              {j < headers.length - 1 && (
+                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 w-20 flex-shrink-0 mt-1">{headers[j]}</span>
+              )}
+              <div className={`flex-1 min-w-0 ${j === headers.length - 1 ? 'pt-1' : ''}`}>{cell}</div>
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   </div>
 );
@@ -787,7 +803,7 @@ const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     } />
     <AdminLocationModal open={showAddVenue} mode="venue" onClose={() => setShowAddVenue(false)} onSaved={() => addToast({ message: '✅ Local guardado en la base de datos', type: 'success' })} />
     <AdminLocationModal open={showAddEvent} mode="event" onClose={() => setShowAddEvent(false)} onSaved={() => addToast({ message: '✅ Evento guardado en la base de datos', type: 'success' })} />
-    <div className="grid grid-cols-3 gap-4 mb-6">
+    <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
       {[{ label: 'Localidades activas', val: '47' }, { label: 'Ciudades', val: '12' }, { label: 'Pendientes aprobación', val: '3' }].map(s => (
         <div key={s.label} className="card-white p-4 text-center"><p className="text-3xl font-black text-brand-orange">{s.val}</p><p className="text-gray-400 text-sm mt-1">{s.label}</p></div>
       ))}
@@ -2215,7 +2231,7 @@ const DisputasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   return (
     <div>
       <PageHeader title="Disputas" subtitle="Gestiona los conflictos entre compradores y vendedores" />
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
         {[{ l: 'Abiertas', v: 2, c: 'text-red-600' }, { l: 'En revisión', v: 2, c: 'text-yellow-600' }, { l: 'Resueltas', v: 1, c: 'text-green-600' }].map(s => (
           <div key={s.l} className="card-white p-4 text-center"><p className={`text-3xl font-black ${s.c}`}>{s.v}</p><p className="text-gray-400 text-sm">{s.l}</p></div>
         ))}
@@ -2323,7 +2339,7 @@ const ResenasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   return (
     <div>
       <PageHeader title="Reseñas" subtitle="Modera las reseñas de la plataforma" />
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
         {[{ l: 'Aprobadas', v: 3, c: 'text-green-600' }, { l: 'Pendientes', v: 2, c: 'text-yellow-600' }, { l: 'Spam', v: 1, c: 'text-red-600' }].map(s => (
           <div key={s.l} className="card-white p-4 text-center"><p className={`text-3xl font-black ${s.c}`}>{s.v}</p><p className="text-gray-400 text-sm">{s.l}</p></div>
         ))}

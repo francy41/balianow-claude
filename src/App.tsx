@@ -5,6 +5,7 @@ import Sidebar from './components/layout/Sidebar';
 import BottomNav from './components/layout/BottomNav';
 import CookieBanner from './components/CookieBanner';
 import ProtectedRoute from './components/ProtectedRoute';
+import GlobalSearch from './components/GlobalSearch';
 import { ToastContainer, FullPageLoader } from './components/ui';
 import { useSupabaseAuthListener } from './hooks/useSupabaseAuth';
 import { useSiteConfigLoader } from './hooks/useSiteConfig';
@@ -80,6 +81,7 @@ const App: React.FC = () => {
   useSupabaseAuthListener();
   useSiteConfigLoader();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   // Initialize dark mode from localStorage on mount
   useEffect(() => {
@@ -87,6 +89,21 @@ const App: React.FC = () => {
       document.documentElement.classList.add('dark');
     }
   }, []);
+
+  // Global search: Ctrl/Cmd+K to open, Esc to close, custom event
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setSearchOpen(true); }
+      if (e.key === 'Escape' && searchOpen) setSearchOpen(false);
+    };
+    const onOpen = () => setSearchOpen(true);
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('bn:open-search', onOpen);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('bn:open-search', onOpen);
+    };
+  }, [searchOpen]);
 
   return (
     <BrowserRouter>
@@ -155,6 +172,7 @@ const App: React.FC = () => {
           <BottomNav />
           <ToastContainer />
           <CookieBanner />
+          <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
 
           {/* DevRoleSwitcher — solo en modo desarrollo */}
           {import.meta.env.DEV && (
