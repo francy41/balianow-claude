@@ -18,6 +18,18 @@ const CATEGORY_TABS = [
   { id: 'prensa-blogs', label: 'Prensa & Blogs', icon: '📰' },
 ];
 
+// Sub-categorías por plataforma (filtro fino)
+const PLATFORM_TABS = [
+  { id: 'all',       label: 'Todas',    icon: '🌐', color: 'from-pink-500 to-fuchsia-600' },
+  { id: 'TikTok',    label: 'TikTok',   icon: '🎵', color: 'from-pink-500 to-rose-600' },
+  { id: 'Instagram', label: 'Instagram',icon: '📸', color: 'from-purple-500 via-pink-500 to-orange-400' },
+  { id: 'Facebook',  label: 'Facebook', icon: '📘', color: 'from-blue-600 to-blue-800' },
+  { id: 'YouTube',   label: 'YouTube',  icon: '▶️', color: 'from-red-500 to-red-700' },
+  { id: 'Spotify',   label: 'Spotify',  icon: '🎧', color: 'from-green-500 to-green-700' },
+  { id: 'Twitch',    label: 'Twitch',   icon: '🎮', color: 'from-purple-600 to-violet-800' },
+  { id: 'X',         label: 'X/Twitter',icon: '🐦', color: 'from-gray-700 to-black' },
+];
+
 const formatFollowers = (n: number) => {
   if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
   if (n >= 1000) return `${(n / 1000).toFixed(0)}K`;
@@ -700,6 +712,8 @@ const PromocionatePage: React.FC = () => {
   const cart = useCartStore();
   const [search, setSearch] = useState(params.get('q') || '');
   const [activeTab, setActiveTab] = useState(params.get('cat') || 'all');
+  const [activePlatform, setActivePlatform] = useState(params.get('platform') || 'all');
+  const [sellerFilter, setSellerFilter] = useState<string | null>(null);
   const [selectedSeller, setSelectedSeller] = useState<PromoSeller | null>(null);
   const [bookingService, setBookingService] = useState<PromoService | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
@@ -709,11 +723,27 @@ const PromocionatePage: React.FC = () => {
     const q = search.toLowerCase();
     return PROMO_SERVICES.filter(s => {
       const matchCat = activeTab === 'all' || s.category === activeTab;
+      const matchPlatform = activePlatform === 'all' ||
+        s.platforms.some(p => p.name.toLowerCase() === activePlatform.toLowerCase());
+      const matchSeller = !sellerFilter || s.sellerId === sellerFilter;
       const matchSearch = !q || s.title.toLowerCase().includes(q) || s.sellerName.toLowerCase().includes(q) ||
-        s.tags.some(t => t.toLowerCase().includes(q)) || s.categoryLabel.toLowerCase().includes(q);
-      return matchCat && matchSearch;
+        s.tags.some(t => t.toLowerCase().includes(q)) || s.categoryLabel.toLowerCase().includes(q) ||
+        s.platforms.some(p => p.name.toLowerCase().includes(q));
+      return matchCat && matchPlatform && matchSeller && matchSearch;
     });
-  }, [search, activeTab]);
+  }, [search, activeTab, activePlatform, sellerFilter]);
+
+  // Conteo de servicios por plataforma (sin filtro de plataforma)
+  const platformCounts = useMemo(() => {
+    const map: Record<string, number> = { all: 0 };
+    const baseSet = PROMO_SERVICES.filter(s =>
+      (activeTab === 'all' || s.category === activeTab) &&
+      (!sellerFilter || s.sellerId === sellerFilter)
+    );
+    map.all = baseSet.length;
+    baseSet.forEach(s => s.platforms.forEach(p => { map[p.name] = (map[p.name] || 0) + 1; }));
+    return map;
+  }, [activeTab, sellerFilter]);
 
   const handleBuy = (service: PromoService) => {
     if (!isAuthenticated) { navigate('/auth'); return; }
@@ -823,6 +853,49 @@ const PromocionatePage: React.FC = () => {
           ))}
         </div>
 
+        {/* Sub-filtro por PLATAFORMA */}
+        <div className="mt-3">
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 px-1">📌 Filtra por plataforma</p>
+          <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+            {PLATFORM_TABS.map(p => {
+              const count = platformCounts[p.id] || 0;
+              const isActive = activePlatform === p.id;
+              if (p.id !== 'all' && count === 0) return null;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => setActivePlatform(p.id)}
+                  className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                    isActive
+                      ? `bg-gradient-to-r ${p.color} text-white shadow-lg border-transparent scale-105`
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+                  }`}
+                >
+                  <span>{p.icon}</span>
+                  <span>{p.label}</span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${
+                    isActive ? 'bg-white/25 text-white' : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-300'
+                  }`}>
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Filtro activo de vendedor */}
+        {sellerFilter && (
+          <div className="mt-3 flex items-center gap-2 bg-pink-50 dark:bg-pink-900/20 border border-pink-200 dark:border-pink-700 rounded-xl px-3 py-2">
+            <span className="text-xs text-pink-700 dark:text-pink-300 font-bold">
+              👤 Mostrando solo servicios de: <strong>{PROMO_SELLERS.find(s => s.id === sellerFilter)?.name}</strong>
+            </span>
+            <button onClick={() => setSellerFilter(null)} className="ml-auto text-pink-500 hover:text-pink-700 text-xs font-bold">
+              ✕ Quitar filtro
+            </button>
+          </div>
+        )}
+
         {/* ── BOTÓN CARRITO — inline debajo de los filtros ── */}
         {cart.items.length > 0 && (
           <button
@@ -867,12 +940,38 @@ const PromocionatePage: React.FC = () => {
               <Shield className="w-5 h-5 text-pink-500" /> Vendedores Verificados
             </h2>
           </div>
+          <p className="text-xs text-gray-400 mb-2">💡 Toca un vendedor para ver SOLO sus servicios. Cada vendedor puede tener varios.</p>
           <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
-            {PROMO_SELLERS.map(seller => (
-              <div key={seller.id} className="flex-shrink-0 w-72">
-                <SellerCard seller={seller} onClick={() => setSelectedSeller(seller)} />
-              </div>
-            ))}
+            {PROMO_SELLERS.map(seller => {
+              const isFiltering = sellerFilter === seller.id;
+              const services = PROMO_SERVICES.filter(s => s.sellerId === seller.id);
+              return (
+                <div key={seller.id} className={`flex-shrink-0 w-72 ${isFiltering ? 'ring-2 ring-pink-500 rounded-2xl' : ''}`}>
+                  <div className="relative">
+                    <SellerCard
+                      seller={seller}
+                      onClick={() => setSellerFilter(isFiltering ? null : seller.id)}
+                    />
+                    <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-10 pointer-events-none">
+                      <span className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow">
+                        {services.length} servicio{services.length !== 1 ? 's' : ''}
+                      </span>
+                      {isFiltering && (
+                        <span className="bg-green-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow">
+                          ✓ Filtrando
+                        </span>
+                      )}
+                    </div>
+                    <button
+                      onClick={e => { e.stopPropagation(); setSelectedSeller(seller); }}
+                      className="absolute bottom-2 right-2 bg-white/95 dark:bg-gray-900/95 text-pink-600 text-[10px] font-bold px-2 py-1 rounded-full shadow border border-pink-200 hover:bg-pink-50"
+                    >
+                      Ver perfil →
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
