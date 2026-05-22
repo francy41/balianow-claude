@@ -1792,23 +1792,37 @@ const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const logoFileRef = React.useRef<HTMLInputElement>(null);
   const [logoUrl, setLogoUrl] = useState('');
 
-  const handleLogoFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Load logo from Supabase on mount (cross-device)
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase.from('site_config').select('value').eq('key', 'site_logo').maybeSingle();
+        if (data?.value?.url) { setSiteLogo(data.value.url); console.log('[Admin] Logo cargado de BD'); }
+      } catch (e) { console.error('[Admin] Error cargando logo:', e); }
+    })();
+  }, []);
+
+  const handleLogoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
-      setSiteLogo(dataUrl);
-      addToast({ message: `Logo guardado: ${file.name}`, type: 'success' });
-    };
-    reader.readAsDataURL(file);
+    addToast({ message: '📤 Subiendo logo...', type: 'info' });
+    const r = await uploadImage(file, 'logo');
+    if (r.url) {
+      setSiteLogo(r.url);
+      await saveSiteConfigKey('site_logo', { url: r.url });
+      addToast({ message: r.fallback ? '⚠ Logo local (sin servidor)' : `✅ Logo guardado en BD: ${file.name}`, type: r.fallback ? 'warning' : 'success' });
+    } else {
+      addToast({ message: `❌ ${r.error}`, type: 'error' });
+    }
   };
 
-  const handleLogoUrl = () => {
+  const handleLogoUrl = async () => {
     if (!logoUrl.trim()) { addToast({ message: 'Introduce una URL válida', type: 'error' }); return; }
-    setSiteLogo(logoUrl.trim());
+    const url = logoUrl.trim();
+    setSiteLogo(url);
+    const { error } = await saveSiteConfigKey('site_logo', { url });
     setLogoUrl('');
-    addToast({ message: 'Logo actualizado por URL', type: 'success' });
+    addToast({ message: error ? `⚠ Local OK, BD falló: ${error}` : '✅ Logo guardado en BD por URL', type: error ? 'warning' : 'success' });
   };
 
   return (

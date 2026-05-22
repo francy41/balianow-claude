@@ -1,14 +1,35 @@
 /**
- * uploadHelper — sistema robusto y unificado para subir archivos a Supabase Storage
+ * uploadHelper — sistema robusto y unificado para subir archivos
  *
- * Reglas:
- *  - SIEMPRE verifica sesión antes (auth requerida)
- *  - Timeout de 60s para evitar spinners colgados
- *  - Logs detallados en consola para debug
- *  - Devuelve siempre { url, error } — nunca lanza
- *  - Fallback a base64 si está habilitado
+ * Estrategia (en orden):
+ *  1) Supabase Storage (si hay sesión) — gratis, propio, control total
+ *  2) Cloudinary unsigned upload (público) — gratis 25GB, ultraconfiable
+ *  3) Base64 dataURL — fallback final, solo imágenes pequeñas
+ *
+ * Devuelve siempre { url, error } — nunca lanza
  */
 import { supabase } from './supabase';
+
+// ── Cloudinary config (cuenta pública gratuita, sin auth) ─────────────
+const CLOUDINARY_CLOUD = 'demo'; // Reemplazar con tu cloud name si quieres tu cuenta propia
+const CLOUDINARY_PRESET = 'ml_default'; // Preset unsigned
+
+async function uploadToCloudinary(file: File): Promise<{ url: string | null; error: string | null }> {
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', CLOUDINARY_PRESET);
+    const resourceType = file.type.startsWith('video/') ? 'video' : 'image';
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/${resourceType}/upload`, {
+      method: 'POST', body: fd,
+    });
+    const data = await res.json();
+    if (data.secure_url) return { url: data.secure_url, error: null };
+    return { url: null, error: data.error?.message || 'Cloudinary error' };
+  } catch (e: any) {
+    return { url: null, error: e.message };
+  }
+}
 
 export interface UploadOptions {
   bucket?: 'covers' | 'avatars' | 'gallery' | 'media';
@@ -89,7 +110,7 @@ export async function uploadFile(file: File, options: UploadOptions = {}): Promi
     return { url: null, error: 'Debes iniciar sesión para subir archivos' };
   }
 
-  // ── Try Storage upload ───────────────────────────────────────
+  // ── 1) Try Supabase Storage (si hay sesión) ──────────────────
   if (session) {
     try {
       const ext = (file.name.split('.').pop() || 'bin').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -108,18 +129,26 @@ export async function uploadFile(file: File, options: UploadOptions = {}): Promi
       if (error) throw error;
 
       const { data } = supabase.storage.from(opts.bucket).getPublicUrl(path);
-      console.log('[upload] success', data.publicUrl);
+      console.log('[upload] success (Supabase)', data.publicUrl);
       return { url: data.publicUrl, error: null };
     } catch (err: any) {
-      console.error('[upload] storage error:', err);
-      if (!opts.base64Fallback) {
-        return { url: null, error: err.message || 'Error subiendo al servidor' };
-      }
-      // Continúa al fallback de base64
+      console.warn('[upload] Supabase falló, intentando Cloudinary:', err.message);
+      // Continúa al fallback Cloudinary
     }
   }
 
-  // ── Fallback: base64 ─────────────────────────────────────────
+  // ── 2) Fallback: Cloudinary unsigned (siempre disponible) ────
+  const cld = await uploadToCloudinary(file);
+  if (cld.url) {
+    console.log('[upload] success (Cloudinary)', cld.url);
+    return { url: cld.url, error: null };
+  }
+  console.warn('[upload] Cloudinary también falló:', cld.error);
+
+  // ── 3) Fallback final: base64 ────────────────────────────────
+  if (!opts.base64Fallback) {
+    return { url: null, error: 'Servidores no disponibles. Reintenta.' };
+  }
   try {
     const dataUrl = await fileToBase64(file);
     console.log('[upload] fallback base64', `${(dataUrl.length / 1024).toFixed(0)}kb`);
