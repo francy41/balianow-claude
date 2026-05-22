@@ -10,7 +10,9 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { X, MapPin, Search, Save, Loader2, Upload } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { uploadImage } from '../lib/uploadHelper';
 import { useUIStore } from '../store/appStore';
+import MapErrorBoundary from './MapErrorBoundary';
 
 // Pin icon
 const pinIcon = (color: string) => L.divIcon({
@@ -110,52 +112,23 @@ const AdminLocationModal: React.FC<Props> = ({ open, mode, onClose, onSaved }) =
     setSearching(false);
   };
 
-  // Upload image to Supabase Storage with proper error handling
+  // Upload image — usa helper unificado con timeout + fallback
   const handleUpload = async (file: File) => {
     if (!file) return;
-
-    // Max 10MB
-    if (file.size > 10 * 1024 * 1024) {
-      addToast({ message: 'La imagen no puede superar 10MB', type: 'error' });
-      return;
-    }
-
     setUploading(true);
-    try {
-      // Check auth
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        addToast({ message: 'Debes iniciar sesión para subir archivos', type: 'error' });
-        setUploading(false);
-        return;
-      }
+    const result = await uploadImage(file, mode);
+    setUploading(false);
 
-      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
-      const safeName = `${mode}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const path = `${mode}/${safeName}`;
-
-      const { error } = await supabase.storage
-        .from('covers')
-        .upload(path, file, {
-          upsert: true,
-          cacheControl: '3600',
-          contentType: file.type || 'image/jpeg',
-        });
-
-      if (error) throw error;
-
-      const { data } = supabase.storage.from('covers').getPublicUrl(path);
-      setImageUrl(data.publicUrl);
-      addToast({ message: '✅ Imagen subida correctamente', type: 'success' });
-    } catch (err: any) {
-      console.error('Upload error:', err);
-      addToast({ message: `❌ Error al subir: ${err.message || 'Sin conexión'}`, type: 'error' });
-      // Fallback: usa URL temporal local para no bloquear
-      const reader = new FileReader();
-      reader.onload = ev => setImageUrl(ev.target?.result as string);
-      reader.readAsDataURL(file);
-    } finally {
-      setUploading(false);
+    if (result.url) {
+      setImageUrl(result.url);
+      addToast({
+        message: result.fallback
+          ? '⚠ Imagen guardada localmente (sin servidor)'
+          : '✅ Imagen subida correctamente',
+        type: result.fallback ? 'warning' : 'success',
+      });
+    } else {
+      addToast({ message: `❌ ${result.error}`, type: 'error' });
     }
   };
 
@@ -267,6 +240,7 @@ const AdminLocationModal: React.FC<Props> = ({ open, mode, onClose, onSaved }) =
               </div>
             </div>
 
+            <MapErrorBoundary>
             <MapContainer center={mapDefault} zoom={5} style={{ width: '100%', height: '100%' }} zoomControl>
               <TileLayer
                 url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -278,6 +252,7 @@ const AdminLocationModal: React.FC<Props> = ({ open, mode, onClose, onSaved }) =
                 <Marker position={position} icon={pinIcon(mode === 'venue' ? '#EC4899' : '#F59E0B')} />
               )}
             </MapContainer>
+            </MapErrorBoundary>
 
             {position && (
               <div className="absolute bottom-3 left-3 right-3 z-[500] bg-white dark:bg-gray-800 rounded-xl shadow-lg p-2 text-xs">

@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { Navigation, Star, Music, X, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { VENUES, EVENTS, ARTISTS } from '../data/mockData';
+import MapErrorBoundary from '../components/MapErrorBoundary';
 
 // ── Leaflet icon fix (bundled icons) ────────────────────────────────────
 // @ts-expect-error - leaflet internal
@@ -310,6 +311,7 @@ const MapPage: React.FC = () => {
 
       {/* ── MAP ── */}
       <div className="flex-1">
+        <MapErrorBoundary>
         <MapContainer
           center={[40.4168, -3.7038]}
           zoom={4}
@@ -363,6 +365,7 @@ const MapPage: React.FC = () => {
             </Marker>
           ))}
         </MapContainer>
+        </MapErrorBoundary>
       </div>
 
       {/* ── LOCATE BUTTON ── */}

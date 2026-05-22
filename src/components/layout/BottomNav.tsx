@@ -24,6 +24,16 @@ const BottomNav: React.FC = () => {
   ];
 
   return (
+    <>
+    {/* Floating search button — solo móvil */}
+    <button
+      onClick={() => window.dispatchEvent(new Event('bn:open-search'))}
+      className="lg:hidden fixed bottom-20 right-3 z-30 w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white shadow-2xl shadow-pink-500/40 flex items-center justify-center active:scale-95"
+      style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      title="Buscar"
+    >
+      <Search className="w-5 h-5" />
+    </button>
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-gray-950 via-gray-900 to-gray-900/95 border-t border-pink-500/20 backdrop-blur-xl"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       <div className="flex items-center h-14">
@@ -51,6 +61,7 @@ const BottomNav: React.FC = () => {
         })}
       </div>
     </nav>
+    </>
   );
 };
 

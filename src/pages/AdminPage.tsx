@@ -16,6 +16,7 @@ import AdminCMS from '../components/AdminCMS';
 import AdminMediaManager from '../components/AdminMediaManager';
 import AdminEditModal, { type EditField } from '../components/AdminEditModal';
 import AdminLocationModal from '../components/AdminLocationModal';
+import { uploadImage, uploadVideo } from '../lib/uploadHelper';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
 import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS } from '../data/mockData';
 
@@ -1551,65 +1552,29 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const handleImgFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    addToast({ message: 'Subiendo imagen...', type: 'info' });
-    try {
-      const ext = file.name.split('.').pop();
-      const path = `covers/slider-${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from('covers').upload(path, file, { upsert: true });
-      if (upErr) throw upErr;
-      const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(path);
-      setNewSlideUrl(publicUrl);
-      addToast({ message: `Imagen subida: ${file.name}`, type: 'success' });
-    } catch {
-      // Fallback a base64 si falla Storage
-      const reader = new FileReader();
-      reader.onload = (ev) => { setNewSlideUrl(ev.target?.result as string); };
-      reader.readAsDataURL(file);
-      addToast({ message: 'Guardado local (Storage no disponible)', type: 'warning' });
+    addToast({ message: '📤 Subiendo imagen...', type: 'info' });
+    const r = await uploadImage(file, 'slider');
+    if (r.url) {
+      setNewSlideUrl(r.url);
+      addToast({ message: r.fallback ? '⚠ Local (sin servidor)' : `✅ Subida: ${file.name}`, type: r.fallback ? 'warning' : 'success' });
+    } else {
+      addToast({ message: `❌ ${r.error}`, type: 'error' });
     }
   };
 
   const handleVideoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Max 50MB para videos
-    if (file.size > 50 * 1024 * 1024) {
-      addToast({ message: 'El video no puede superar 50MB. Usa YouTube o comprime el archivo.', type: 'error' });
+    addToast({ message: '📤 Subiendo video...', type: 'info' });
+    const r = await uploadVideo(file, 'hero');
+    if (r.url) {
+      setDraftUrl(r.url);
+      setHeroMedia({ type: 'video', url: r.url });
+      await saveSiteConfigKey('hero_media', { type: 'video', url: r.url });
+      addToast({ message: `✅ Video subido: ${file.name}`, type: 'success' });
       return;
     }
-
-    addToast({ message: '📤 Subiendo video a Storage...', type: 'info' });
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Necesitas iniciar sesión');
-
-      const ext = (file.name.split('.').pop() || 'mp4').toLowerCase();
-      const path = `media/hero-video-${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from('covers').upload(path, file, {
-        upsert: true, cacheControl: '3600', contentType: file.type || 'video/mp4',
-      });
-      if (error) throw error;
-      const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(path);
-      setDraftUrl(publicUrl);
-      setHeroMedia({ type: 'video', url: publicUrl });
-      // Save to Supabase site_config for cross-device sync
-      await saveSiteConfigKey('hero_media', { type: 'video', url: publicUrl });
-      addToast({ message: `✅ Video subido y guardado: ${file.name}`, type: 'success' });
-      return;
-    } catch (err: any) {
-      console.error('Video upload error:', err);
-      addToast({ message: `❌ Error: ${err.message}. Guardando local...`, type: 'warning' });
-    }
-
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
-      setDraftUrl(dataUrl);
-      setHeroMedia({ type: 'video', url: dataUrl });
-      addToast({ message: `Video cargado: ${file.name}`, type: 'success' });
-    };
-    reader.readAsDataURL(file);
+    addToast({ message: `❌ ${r.error}`, type: 'error' });
   };
 
   const applyOverlay = async () => {

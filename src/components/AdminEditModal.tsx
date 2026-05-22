@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, Trash2 } from 'lucide-react';
 import { useUIStore, useAdminOverridesStore } from '../store/appStore';
+import { supabase } from '../lib/supabase';
 import { Button } from './ui';
 
 export type FieldType = 'text' | 'textarea' | 'number' | 'email' | 'url' | 'select' | 'checkbox' | 'color' | 'tags' | 'date';
@@ -39,13 +40,20 @@ const AdminEditModal: React.FC<Props> = ({ open, onClose, title, entity, item, f
 
   const setVal = (k: string, v: any) => setForm(prev => ({ ...prev, [k]: v }));
 
-  const save = () => {
+  // Mapeo entidad → tabla Supabase
+  const TABLE_MAP: Record<string, string> = {
+    venue: 'venues', event: 'events', artist: 'artists',
+    user: 'profiles', profile: 'profiles', subscription: 'site_config',
+    service: 'services', course: 'courses',
+  };
+
+  const save = async () => {
     for (const f of fields) {
       if (f.required && (form[f.key] === undefined || form[f.key] === '' || form[f.key] === null)) {
         addToast({ message: `Falta el campo "${f.label}"`, type: 'error' }); return;
       }
     }
-    // Solo guardamos los campos cambiados respecto al original
+    // Solo campos cambiados
     const patch: Record<string, any> = {};
     for (const f of fields) {
       if (form[f.key] !== item[f.key]) patch[f.key] = form[f.key];
@@ -54,8 +62,34 @@ const AdminEditModal: React.FC<Props> = ({ open, onClose, title, entity, item, f
       addToast({ message: 'Sin cambios que guardar', type: 'info' });
       onClose(); return;
     }
+
+    // 1) Override local INMEDIATO para feedback rápido
     setPatch(entity, item.id, patch);
-    addToast({ message: `"${form.name || form.title || item.id}" actualizado`, type: 'success' });
+
+    // 2) Persistir en Supabase (real, cross-device)
+    const table = TABLE_MAP[entity];
+    if (table) {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          addToast({ message: '⚠ Guardado solo local (inicia sesión para sincronizar)', type: 'warning' });
+        } else {
+          const { error } = await supabase.from(table).update(patch).eq('id', item.id);
+          if (error) {
+            console.error('[AdminEdit] supabase error:', error);
+            addToast({ message: `⚠ Local guardado, BD falló: ${error.message}`, type: 'warning' });
+          } else {
+            addToast({ message: `✅ "${form.name || form.title || item.id}" guardado en la BD`, type: 'success' });
+          }
+        }
+      } catch (err: any) {
+        console.error('[AdminEdit] catch error:', err);
+        addToast({ message: `⚠ Local guardado, BD falló: ${err.message}`, type: 'warning' });
+      }
+    } else {
+      addToast({ message: `✅ "${form.name || form.title || item.id}" actualizado`, type: 'success' });
+    }
+
     onSaved?.({ ...item, ...patch });
     onClose();
   };
