@@ -9,3 +9,7 @@ Thumbs.db
 # Local Netlify folder
 .netlify
 .vercel
+
+# Claude Code local settings (contain secrets)
+.claude/settings.local.json
+.claude/
