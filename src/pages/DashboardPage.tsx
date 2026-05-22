@@ -17,6 +17,7 @@ import PaymentMethodsPanel from '../components/PaymentMethodsPanel';
 import ProfileEditModal from '../components/ProfileEditModal';
 import { BuyerTable, QRScanner } from '../components/BuyerManagement';
 import { QrCode, Scan } from 'lucide-react';
+import TeacherClassesPanel from '../components/TeacherClassesPanel';
 
 type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers' | 'buyers' | 'scanner';
 
@@ -33,7 +34,7 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'offers',   label: 'Ofertas',       icon: <Briefcase className="w-4 h-4" /> },
 ];
 
-const PERFORMER_ROLES = ['artist', 'dj', 'dancer', 'venue'];
+const PERFORMER_ROLES = ['artist', 'dj', 'dancer', 'venue', 'instructor', 'admin', 'superadmin', 'business', 'promoter'];
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -146,7 +147,7 @@ const DashboardPage: React.FC = () => {
             )}
             {tab === 'courses'  && <CoursesTab  performerId={performerId} />}
             {tab === 'calendar' && <CalendarTab performerId={performerId} />}
-            {tab === 'classes'  && <ClassesTab  performerId={performerId} />}
+            {tab === 'classes'  && <TeacherClassesPanel />}
             {tab === 'offers'   && <OffersTab   performerId={performerId} />}
             {tab === 'buyers'   && (
               <div>
