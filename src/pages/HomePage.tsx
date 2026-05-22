@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone } from 'lucide-react';
+import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen } from 'lucide-react';
 import { ARTISTS, EVENTS, VENUES } from '../data/mockData';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, type HeroSliderImage, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
@@ -906,67 +906,32 @@ const HomePage: React.FC = () => {
       {/* ── RADIOS · PLAYLISTS · REDES SOCIALES ── */}
       {isModuleOn('radio') && (
       <section className="mx-4 mt-4 space-y-2">
-        {/* Fila 1: Radio + Playlist + Descarga App */}
-        <div className="grid grid-cols-3 gap-2">
+        {/* Fila 1: Radios · Playlists · App · Abierto · Live — 5 cards iguales */}
+        <div className="grid grid-cols-5 gap-1.5 sm:gap-2 max-w-3xl mx-auto">
           {/* RADIOS */}
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
             <button onClick={() => setRadiosOpen(v => !v)}
-              className="w-full bg-gradient-to-r from-gray-900 to-gray-800 px-2.5 py-1.5 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <Radio className="w-3 h-3 text-pink-400" />
-                <span className="text-white font-bold text-[11px]">Radios</span>
-                <span className="w-1 h-1 bg-red-500 rounded-full animate-pulse" />
+              className="w-full h-[44px] bg-gradient-to-br from-pink-500 to-fuchsia-600 px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all">
+              <div className="flex items-center gap-1">
+                <Radio className="w-3 h-3 text-white" />
+                <span className="text-white font-black text-[10px] sm:text-[11px]">Radios</span>
               </div>
-              <Plus className={`w-3 h-3 text-white/60 transition-transform duration-300 ${radiosOpen ? 'rotate-45' : ''}`} />
+              <span className="text-white/80 text-[8px] font-bold flex items-center gap-0.5">
+                <span className="w-1 h-1 bg-white rounded-full animate-pulse" /> En vivo
+              </span>
             </button>
-            {radiosOpen && (
-              <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[180px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
-                {RADIO_STATIONS.map((station, i) => (
-                  <button key={station.id} onClick={() => setPlaying(playing === i ? null : i)}
-                    className={`w-full flex items-center gap-2 p-2 hover:bg-pink-50/50 dark:hover:bg-pink-900/10 transition-all text-left ${playing === i ? 'bg-pink-50 dark:bg-pink-900/20 border-l-2 border-pink-500' : ''}`}>
-                    <img src={station.img} alt={station.name} className="w-7 h-7 rounded-lg object-cover flex-shrink-0 bg-gray-200" />
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-gray-900 dark:text-white text-[10px] truncate">{station.name}</p>
-                      <p className="text-gray-400 text-[8px]">{station.genre}</p>
-                    </div>
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${playing === i ? 'bg-pink-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
-                      {playing === i ? <Pause className="w-2.5 h-2.5" /> : <Play className="w-2.5 h-2.5 ml-0.5" />}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* PLAYLISTS */}
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
             <button onClick={() => setPlaylistsOpen(v => !v)}
-              className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 px-2.5 py-1.5 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
+              className="w-full h-[44px] bg-gradient-to-br from-fuchsia-600 to-purple-700 px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all">
+              <div className="flex items-center gap-1">
                 <ListMusic className="w-3 h-3 text-white" />
-                <span className="text-white font-bold text-[11px]">Playlists</span>
+                <span className="text-white font-black text-[10px] sm:text-[11px]">Playlists</span>
               </div>
-              <Plus className={`w-3 h-3 text-white/60 transition-transform duration-300 ${playlistsOpen ? 'rotate-45' : ''}`} />
+              <span className="text-white/80 text-[8px] font-bold">{PLAYLISTS.length} mixes</span>
             </button>
-            {playlistsOpen && (
-              <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[180px] overflow-y-auto" style={{ scrollbarWidth: 'thin' }}>
-                {PLAYLISTS.map((pl, idx) => (
-                  <button key={pl.id} onClick={() => setPlaying(playing === 100 + idx ? null : 100 + idx)}
-                    className={`w-full flex items-center gap-2 p-2 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-all text-left ${playing === 100 + idx ? 'bg-purple-50 dark:bg-purple-900/20 border-l-2 border-purple-500' : ''}`}>
-                    <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${pl.color} flex items-center justify-center flex-shrink-0`}>
-                      <ListMusic className="w-3 h-3 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-gray-900 dark:text-white text-[10px] truncate">{pl.name}</p>
-                      <p className="text-gray-400 text-[8px]">{pl.tracks} tracks</p>
-                    </div>
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${playing === 100 + idx ? 'bg-purple-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
-                      {playing === 100 + idx ? <Pause className="w-2.5 h-2.5" /> : <Play className="w-2.5 h-2.5 ml-0.5" />}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* DESCARGA APP */}
@@ -974,19 +939,110 @@ const HomePage: React.FC = () => {
             <a
               href="https://lpwwdjujxwxdvyoznehp.supabase.co/storage/v1/object/public/covers/app/bailanow-app.apk"
               download="BailaNow.apk"
-              className="w-full h-full bg-gradient-to-r from-green-500 to-emerald-600 px-2.5 py-1.5 flex flex-col items-center justify-center gap-1 hover:from-green-600 hover:to-emerald-700 active:scale-95 transition-all cursor-pointer"
+              className="w-full h-[44px] bg-gradient-to-br from-rose-500 to-pink-600 px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all"
             >
               <div className="flex items-center gap-1">
                 <Smartphone className="w-3 h-3 text-white" />
-                <span className="text-white font-bold text-[11px]">App</span>
+                <span className="text-white font-black text-[10px] sm:text-[11px]">App</span>
               </div>
               <div className="flex items-center gap-0.5">
-                <Download className="w-2.5 h-2.5 text-white/80" />
-                <span className="text-white/80 text-[8px] font-medium">Android</span>
+                <Download className="w-2 h-2 text-white/80" />
+                <span className="text-white/80 text-[8px] font-bold">Android</span>
               </div>
             </a>
           </div>
+
+          {/* ABIERTO AHORA */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+            <button onClick={() => navigate('/venues?open=true')}
+              className="w-full h-[44px] bg-gradient-to-br from-emerald-500 to-green-600 px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all"
+            >
+              <div className="flex items-center gap-1">
+                <DoorOpen className="w-3 h-3 text-white" />
+                <span className="text-white font-black text-[10px] sm:text-[11px]">Abierto</span>
+              </div>
+              <span className="text-white/90 text-[8px] font-bold flex items-center gap-0.5">
+                <span className="w-1 h-1 bg-white rounded-full animate-pulse" /> Ahora
+              </span>
+            </button>
+          </div>
+
+          {/* LIVE */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+            <button onClick={() => navigate('/live')}
+              className="w-full h-[44px] bg-gradient-to-br from-red-500 to-rose-600 px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all"
+            >
+              <div className="flex items-center gap-1">
+                <Video className="w-3 h-3 text-white" />
+                <span className="text-white font-black text-[10px] sm:text-[11px]">Live</span>
+              </div>
+              <span className="text-white/90 text-[8px] font-bold flex items-center gap-0.5">
+                <span className="w-1 h-1 bg-white rounded-full animate-pulse" /> En directo
+              </span>
+            </button>
+          </div>
         </div>
+
+        {/* Paneles desplegables debajo de la fila (Radios y Playlists) */}
+        {radiosOpen && (
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden max-w-3xl mx-auto">
+            <div className="bg-gradient-to-r from-pink-500 to-fuchsia-600 px-3 py-1.5 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Radio className="w-3 h-3 text-white" />
+                <span className="text-white font-bold text-[11px]">Radios en vivo</span>
+              </div>
+              <button onClick={() => setRadiosOpen(false)}>
+                <X className="w-3 h-3 text-white/80" />
+              </button>
+            </div>
+            <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[200px] overflow-y-auto">
+              {RADIO_STATIONS.map((station, i) => (
+                <button key={station.id} onClick={() => setPlaying(playing === i ? null : i)}
+                  className={`w-full flex items-center gap-2 p-2 hover:bg-pink-50/50 dark:hover:bg-pink-900/10 transition-all text-left ${playing === i ? 'bg-pink-50 dark:bg-pink-900/20 border-l-2 border-pink-500' : ''}`}>
+                  <img src={station.img} alt={station.name} className="w-8 h-8 rounded-lg object-cover flex-shrink-0 bg-gray-200" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-gray-900 dark:text-white text-xs truncate">{station.name}</p>
+                    <p className="text-gray-400 text-[10px]">{station.genre}</p>
+                  </div>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${playing === i ? 'bg-pink-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
+                    {playing === i ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {playlistsOpen && (
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden max-w-3xl mx-auto">
+            <div className="bg-gradient-to-r from-fuchsia-600 to-purple-700 px-3 py-1.5 flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <ListMusic className="w-3 h-3 text-white" />
+                <span className="text-white font-bold text-[11px]">Playlists</span>
+              </div>
+              <button onClick={() => setPlaylistsOpen(false)}>
+                <X className="w-3 h-3 text-white/80" />
+              </button>
+            </div>
+            <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[200px] overflow-y-auto">
+              {PLAYLISTS.map((pl, idx) => (
+                <button key={pl.id} onClick={() => setPlaying(playing === 100 + idx ? null : 100 + idx)}
+                  className={`w-full flex items-center gap-2 p-2 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-all text-left ${playing === 100 + idx ? 'bg-purple-50 dark:bg-purple-900/20 border-l-2 border-purple-500' : ''}`}>
+                  <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${pl.color} flex items-center justify-center flex-shrink-0`}>
+                    <ListMusic className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-gray-900 dark:text-white text-xs truncate">{pl.name}</p>
+                    <p className="text-gray-400 text-[10px]">{pl.tracks} tracks</p>
+                  </div>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${playing === 100 + idx ? 'bg-purple-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
+                    {playing === 100 + idx ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Fila 2: Redes sociales del proyecto */}
         <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm px-3 py-2 flex items-center justify-between">
