@@ -77,16 +77,43 @@ export function useSupabaseAuthListener() {
   useEffect(() => {
     // Restore existing session on mount
     const init = async () => {
-      const session = await authService.getSession();
-      if (session?.user) {
-        const meta = session.user.user_metadata;
-        const user = await resolveUser(
-          session.user.id,
-          session.user.email ?? '',
-          { name: meta?.full_name || meta?.name, avatar: meta?.avatar_url || meta?.picture }
-        );
-        if (user) useAuthStore.setState({ user, isAuthenticated: true, isLoading: false });
-      } else {
+      try {
+        const session = await authService.getSession();
+        console.log('[auth] init session:', session?.user?.id || 'none');
+        if (session?.user) {
+          const meta = session.user.user_metadata;
+          let user = await resolveUser(
+            session.user.id,
+            session.user.email ?? '',
+            { name: meta?.full_name || meta?.name, avatar: meta?.avatar_url || meta?.picture }
+          );
+          // Fallback: si profile falló, crear user mínimo desde la sesión
+          if (!user) {
+            console.warn('[auth] resolveUser failed, using session fallback');
+            user = {
+              id: session.user.id,
+              name: meta?.full_name || meta?.name || (session.user.email || 'Usuario').split('@')[0],
+              email: session.user.email || '',
+              avatar: meta?.avatar_url || meta?.picture || '',
+              coverPhoto: '',
+              bio: '',
+              phone: '',
+              role: 'user',
+              city: 'Madrid',
+              country: '',
+              isVerified: true,
+              isPremium: false,
+              wallet: 0,
+              notifications: 0,
+              socials: { instagram:'', tiktok:'', youtube:'', website:'', facebook:'', soundcloud:'', twitch:'', spotify:'' },
+            } as any;
+          }
+          useAuthStore.setState({ user, isAuthenticated: true, isLoading: false });
+        } else {
+          useAuthStore.setState({ isLoading: false });
+        }
+      } catch (e) {
+        console.error('[auth] init error:', e);
         useAuthStore.setState({ isLoading: false });
       }
     };
@@ -96,12 +123,23 @@ export function useSupabaseAuthListener() {
     const { data: { subscription } } = authService.onAuthChange(async (event, session) => {
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
         const meta = session.user.user_metadata;
-        const user = await resolveUser(
+        let user = await resolveUser(
           session.user.id,
           session.user.email ?? '',
           { name: meta?.full_name || meta?.name, avatar: meta?.avatar_url || meta?.picture }
         );
-        if (user) useAuthStore.setState({ user, isAuthenticated: true, isLoading: false });
+        if (!user) {
+          user = {
+            id: session.user.id,
+            name: meta?.full_name || meta?.name || (session.user.email || 'Usuario').split('@')[0],
+            email: session.user.email || '',
+            avatar: meta?.avatar_url || meta?.picture || '',
+            coverPhoto: '', bio: '', phone: '', role: 'user', city: 'Madrid', country: '',
+            isVerified: true, isPremium: false, wallet: 0, notifications: 0,
+            socials: { instagram:'', tiktok:'', youtube:'', website:'', facebook:'', soundcloud:'', twitch:'', spotify:'' },
+          } as any;
+        }
+        useAuthStore.setState({ user, isAuthenticated: true, isLoading: false });
 
       } else if (event === 'SIGNED_OUT') {
         useAuthStore.setState({ user: null, isAuthenticated: false, isLoading: false });
