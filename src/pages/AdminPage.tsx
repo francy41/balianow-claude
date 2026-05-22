@@ -1440,27 +1440,32 @@ const HeroSliderEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const [newUrl, setNewUrl] = useState('');
   const [newAlt, setNewAlt] = useState('');
 
+  // Sync con Supabase + store
+  useEffect(() => { setImages(heroSliderImages); }, [heroSliderImages]);
+
+  const persistImages = async (updated: HeroSliderImage[]) => {
+    setImages(updated);
+    setHeroSliderImages(updated);
+    const { error } = await saveSiteConfigKey('hero_slider_images', updated);
+    if (error) addToast({ message: `Error BD: ${error}`, type: 'error' });
+  };
+
   const handleAdd = () => {
     if (!newUrl.trim()) return;
     const updated = [...images, { id: Date.now().toString(), url: newUrl.trim(), alt: newAlt.trim() || 'Slider image' }];
-    setImages(updated);
-    setHeroSliderImages(updated);
+    persistImages(updated);
     setNewUrl('');
     setNewAlt('');
     addToast({ message: 'Imagen añadida al slider', type: 'success' });
   };
 
   const handleRemove = (id: string) => {
-    const updated = images.filter(i => i.id !== id);
-    setImages(updated);
-    setHeroSliderImages(updated);
+    persistImages(images.filter(i => i.id !== id));
     addToast({ message: 'Imagen eliminada', type: 'info' });
   };
 
   const handleUrlChange = (id: string, url: string) => {
-    const updated = images.map(i => i.id === id ? { ...i, url } : i);
-    setImages(updated);
-    setHeroSliderImages(updated);
+    persistImages(images.map(i => i.id === id ? { ...i, url } : i));
   };
 
   return (
@@ -1515,6 +1520,32 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const [slides, setSlides] = useState<HeroSliderImage[]>(heroSliderImages);
   const fileRef = React.useRef<HTMLInputElement>(null);
   const imgFileRef = React.useRef<HTMLInputElement>(null);
+
+  // Sincroniza estado local con store cuando llega data fresca de Supabase
+  useEffect(() => { setSlides(heroSliderImages); }, [heroSliderImages]);
+  useEffect(() => { setDraftUrl(heroMedia.url); }, [heroMedia.url]);
+
+  // Carga directa desde Supabase al montar (independiente del store)
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase.from('site_config').select('key, value').in('key', ['hero_slider_images', 'hero_media']);
+        if (!data) return;
+        for (const row of data) {
+          if (row.key === 'hero_slider_images' && Array.isArray(row.value) && row.value.length > 0) {
+            console.log('[Admin] Sync slider from Supabase:', row.value.length, 'slides');
+            setSlides(row.value);
+            setHeroSliderImages(row.value);
+          }
+          if (row.key === 'hero_media' && row.value?.url) {
+            console.log('[Admin] Sync hero media from Supabase');
+            setHeroMedia(row.value);
+            setDraftUrl(row.value.url);
+          }
+        }
+      } catch (err) { console.error('[Admin] Sync error:', err); }
+    })();
+  }, []);
 
   const saveSlides = async (updated: HeroSliderImage[]) => {
     setSlides(updated);
