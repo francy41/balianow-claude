@@ -6,6 +6,7 @@ import BottomNav from './components/layout/BottomNav';
 import CookieBanner from './components/CookieBanner';
 import ProtectedRoute from './components/ProtectedRoute';
 import GlobalSearch from './components/GlobalSearch';
+import DarkModeToggle from './components/DarkModeToggle';
 import { ToastContainer, FullPageLoader } from './components/ui';
 import { useSupabaseAuthListener } from './hooks/useSupabaseAuth';
 import { useSiteConfigLoader } from './hooks/useSiteConfig';
@@ -173,6 +174,7 @@ const App: React.FC = () => {
           <ToastContainer />
           <CookieBanner />
           <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
+          <DarkModeToggle />
 
           {/* DevRoleSwitcher — solo en modo desarrollo */}
           {import.meta.env.DEV && (

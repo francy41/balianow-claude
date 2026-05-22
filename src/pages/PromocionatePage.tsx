@@ -918,8 +918,8 @@ const PromocionatePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Sticky cart bar — fixed bottom for mobile when scrolled past the inline bar */}
-      {cart.items.length > 0 && (
+      {/* Sticky cart bar — solo cuando el drawer está CERRADO para no tapar el botón de pagar */}
+      {cart.items.length > 0 && !cartOpen && (
         <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-[55] px-4 pb-3 lg:hidden pointer-events-none">
           <button
             onClick={() => setCartOpen(true)}
