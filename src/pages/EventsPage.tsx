@@ -8,6 +8,7 @@ import {
 import { EVENTS, ARTISTS, VENUES } from '../data/mockData';
 import type { Artist } from '../data/mockData';
 import { Badge, StarRating, SearchBar, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
+import SearchTriggerBar from '../components/SearchTriggerBar';
 import { useAuthStore, useUIStore, getYouTubeId } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
 import { VenueSectionsSelector } from '../components/VenueSections';
@@ -80,7 +81,8 @@ const EventsList: React.FC = () => {
           <p className="text-gray-400">Los mejores eventos latinos cerca de ti</p>
         </div>
 
-        <SearchBar placeholder="Buscar eventos, ciudades..." value={search} onChange={setSearch} />
+        <SearchTriggerBar placeholder="🔍 Buscar eventos, locales, artistas en todo BailaNow…" className="mb-3" />
+        <SearchBar placeholder="Filtrar en esta página..." value={search} onChange={setSearch} />
 
         <div className="mt-4 space-y-3">
           <FilterChips options={CATEGORIES} selected={selectedCat} onChange={setSelectedCat} />

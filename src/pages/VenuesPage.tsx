@@ -4,6 +4,7 @@ import { MapPin, Users, Clock, CheckCircle, Star, MessageSquare, Bell, Heart, Sh
 import { VENUES } from '../data/mockData';
 import type { Venue } from '../data/mockData';
 import { Badge, StarRating, SearchBar, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
+import SearchTriggerBar from '../components/SearchTriggerBar';
 import { useAuthStore, useUIStore, getYouTubeId } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
 
@@ -43,7 +44,8 @@ const VenuesList: React.FC = () => {
           <p className="text-gray-400">Clubs, estudios y espacios de entretenimiento latino</p>
         </div>
 
-        <SearchBar placeholder="Buscar venues, ciudades..." value={search} onChange={setSearch} />
+        <SearchTriggerBar placeholder="🔍 Buscar locales, artistas, eventos en todo BailaNow…" className="mb-3" />
+        <SearchBar placeholder="Filtrar en esta página..." value={search} onChange={setSearch} />
 
         <div className="mt-4 space-y-3">
           <FilterChips options={TYPES} selected={selectedType} onChange={setSelectedType} />

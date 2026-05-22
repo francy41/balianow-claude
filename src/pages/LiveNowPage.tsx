@@ -8,6 +8,7 @@ import { LIVE_STREAMS, SCHEDULED_STREAMS, ARTISTS } from '../data/mockData';
 import type { LiveStream } from '../data/mockData';
 import { useAuthStore, useUIStore } from '../store/appStore';
 import { Avatar } from '../components/ui';
+import SearchTriggerBar from '../components/SearchTriggerBar';
 
 type CategoryFilter = 'all' | 'dj' | 'dancer' | 'instructor' | 'band';
 
@@ -98,6 +99,7 @@ const LiveNowPage: React.FC = () => {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
+        <SearchTriggerBar placeholder="🔍 Buscar streams, artistas, eventos en BailaNow…" className="mb-4" />
         {/* ── FEATURED PLAYER + CHAT ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
           {/* Player */}

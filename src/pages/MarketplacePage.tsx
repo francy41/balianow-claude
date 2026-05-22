@@ -4,6 +4,7 @@ import { Clock, ShoppingBag } from 'lucide-react';
 import { SERVICES } from '../data/mockData';
 import type { Service } from '../data/mockData';
 import { Avatar, Badge, StarRating, SearchBar, FilterChips, EmptyState, SectionHeader } from '../components/ui';
+import SearchTriggerBar from '../components/SearchTriggerBar';
 import { useAuthStore, useCartStore } from '../store/appStore';
 import PaymentGateway from '../components/payment/PaymentGateway';
 
@@ -81,7 +82,8 @@ const MarketplacePage: React.FC = () => {
           ))}
         </div>
 
-        <SearchBar placeholder="Buscar servicios, artistas..." value={search} onChange={setSearch} />
+        <SearchTriggerBar placeholder="🔍 Buscar servicios, artistas, locales en todo BailaNow…" className="mb-3" />
+        <SearchBar placeholder="Filtrar servicios..." value={search} onChange={setSearch} />
 
         <div className="mt-4 space-y-3">
           <FilterChips options={CATEGORIES} selected={selectedCat} onChange={setSelectedCat} />

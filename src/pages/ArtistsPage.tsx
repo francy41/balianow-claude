@@ -4,6 +4,7 @@ import { MapPin, Users, CheckCircle, Radio } from 'lucide-react';
 import { ARTISTS } from '../data/mockData';
 import type { Artist } from '../data/mockData';
 import { Badge, StarRating, Avatar, FilterChips, SearchBar, SectionHeader, EmptyState } from '../components/ui';
+import SearchTriggerBar from '../components/SearchTriggerBar';
 
 const TYPES = ['Todos', 'DJ', 'Bailarín/a', 'Banda', 'Instructor/a', 'Cantante'];
 const GENRES = ['Todos', 'Salsa', 'Bachata', 'Merengue', 'Cumbia', 'Reggaeton', 'Timba', 'Afrobeats'];
@@ -54,7 +55,8 @@ const ArtistsPage: React.FC = () => {
           <p className="text-gray-400">Los mejores DJs, bailarines y músicos latinos</p>
         </div>
 
-        <SearchBar placeholder="Buscar artistas, géneros, ciudades..." value={search} onChange={setSearch} />
+        <SearchTriggerBar placeholder="🔍 Buscar artistas, eventos, locales en todo BailaNow…" className="mb-3" />
+        <SearchBar placeholder="Filtrar en esta página..." value={search} onChange={setSearch} />
 
         <div className="mt-4 space-y-3">
           <div>
