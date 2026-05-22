@@ -7,6 +7,7 @@ import {
   Ticket, Video, Gift
 } from 'lucide-react';
 import { useCMSStore } from '../../store/cmsStore';
+import { useSiteConfigStore } from '../../store/appStore';
 
 interface NavItem {
   label: string;
@@ -71,6 +72,7 @@ interface SidebarProps { open: boolean; onClose?: () => void; }
 const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const location = useLocation();
   const cmsMenu = useCMSStore(s => s.menu);
+  const siteLogo = useSiteConfigStore(s => s.siteLogo);
   const dynamicMenuItems = [...cmsMenu].filter(m => m.isVisible).sort((a, b) => a.order - b.order);
 
   return (
@@ -81,11 +83,17 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       <aside className={`fixed top-0 left-0 h-full w-60 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 border-r border-pink-500/10 z-40 flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Logo */}
         <div className="flex items-center gap-2 px-5 h-14 border-b border-pink-500/10 flex-shrink-0">
-          <span className="text-2xl">💃</span>
-          <span className="font-display font-black text-lg">
-            <span className="text-white">Baila</span>
-            <span className="bg-gradient-to-r from-pink-400 to-fuchsia-500 bg-clip-text text-transparent">Now</span>
-          </span>
+          {siteLogo ? (
+            <img src={siteLogo} alt="BailaNow" className="h-10 max-w-[180px] object-contain" />
+          ) : (
+            <>
+              <span className="text-2xl">💃</span>
+              <span className="font-display font-black text-lg">
+                <span className="text-white">Baila</span>
+                <span className="bg-gradient-to-r from-pink-400 to-fuchsia-500 bg-clip-text text-transparent">Now</span>
+              </span>
+            </>
+          )}
         </div>
 
         {/* Nav */}

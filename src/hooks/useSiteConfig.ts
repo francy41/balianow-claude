@@ -10,7 +10,7 @@ import { useSiteConfigStore } from '../store/appStore';
 
 // ── Load config from Supabase on mount ────────────────────────────────────
 export function useSiteConfigLoader() {
-  const { setHeroSliderImages, setHeroMedia } = useSiteConfigStore();
+  const { setHeroSliderImages, setHeroMedia, setSiteLogo } = useSiteConfigStore();
 
   useEffect(() => {
     const load = async () => {
@@ -18,7 +18,8 @@ export function useSiteConfigLoader() {
         .from('site_config')
         .select('key, value');
 
-      if (error || !data) return;
+      if (error || !data) { console.warn('[siteConfig] load failed:', error); return; }
+      console.log('[siteConfig] loaded', data.length, 'keys');
 
       for (const row of data) {
         if (row.key === 'hero_slider_images' && Array.isArray(row.value) && row.value.length > 0) {
@@ -26,6 +27,10 @@ export function useSiteConfigLoader() {
         }
         if (row.key === 'hero_media' && row.value?.url) {
           setHeroMedia(row.value);
+        }
+        if (row.key === 'site_logo' && row.value?.url) {
+          setSiteLogo(row.value.url);
+          console.log('[siteConfig] logo cargado:', row.value.url);
         }
       }
     };

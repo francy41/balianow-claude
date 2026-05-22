@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Bell, Globe, ChevronDown, Menu, LogOut, LayoutDashboard, User, Shield, Edit3, ShoppingCart } from 'lucide-react';
 import ProfileEditModal from '../ProfileEditModal';
-import { useAuthStore, useUIStore, useCartStore } from '../../store/appStore';
+import { useAuthStore, useUIStore, useCartStore, useSiteConfigStore } from '../../store/appStore';
 import { Avatar } from '../ui';
 
 interface NavbarProps { onMenuToggle: () => void; }
@@ -19,6 +19,7 @@ const ROLE_LABELS: Record<string, string> = {
 const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useAuthStore();
+  const { siteLogo } = useSiteConfigStore();
   const { addToast } = useUIStore();
   const cart = useCartStore();
   const [lang, setLang] = useState<'ES' | 'EN'>('ES');
@@ -44,8 +45,14 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
 
       {/* Logo */}
       <Link to="/" className="flex items-center gap-1 font-display font-black text-lg flex-shrink-0">
-        <span className="text-white">Baila</span>
-        <span className="bg-gradient-to-r from-pink-400 to-fuchsia-500 bg-clip-text text-transparent">Now</span>
+        {siteLogo ? (
+          <img src={siteLogo} alt="BailaNow" className="h-8 max-w-[160px] object-contain" />
+        ) : (
+          <>
+            <span className="text-white">Baila</span>
+            <span className="bg-gradient-to-r from-pink-400 to-fuchsia-500 bg-clip-text text-transparent">Now</span>
+          </>
+        )}
       </Link>
 
       {/* Desktop nav links */}
