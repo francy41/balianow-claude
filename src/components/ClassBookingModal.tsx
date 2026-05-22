@@ -55,44 +55,68 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
 
   // Cargar slots disponibles + generar slots demo
   useEffect(() => {
+    const generateDemoSlots = (): Slot[] => {
+      const demo: Slot[] = [];
+      for (let d = 1; d <= 14; d++) {
+        for (const hour of [10, 16, 19, 21]) {
+          const start = new Date();
+          start.setDate(start.getDate() + d);
+          start.setHours(hour, 0, 0, 0);
+          const end = new Date(start.getTime() + offering.duration_minutes * 60000);
+          demo.push({
+            id: `demo-${d}-${hour}`,
+            starts_at: start.toISOString(),
+            ends_at: end.toISOString(),
+            booked_count: Math.floor(Math.random() * offering.max_students),
+            max_students: offering.max_students,
+          });
+        }
+      }
+      return demo;
+    };
+
+    // Si es offering sample (ID no es UUID), saltar la query
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(offering.id);
+    if (!isUUID) {
+      console.log('[booking] offering sample, usando slots demo');
+      setSlots(generateDemoSlots());
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    const safety = setTimeout(() => {
+      if (!cancelled) { console.warn('[booking] slots timeout'); setSlots(generateDemoSlots()); setLoading(false); }
+    }, 5000);
+
     (async () => {
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('availability_slots')
           .select('*')
           .eq('offering_id', offering.id)
           .eq('status', 'available')
           .gt('starts_at', new Date().toISOString())
           .order('starts_at')
-          .limit(20);
+          .limit(56);
+
+        if (cancelled) return;
+        console.log('[booking] slots loaded:', { count: data?.length, error });
 
         if (data && data.length > 0) {
           setSlots(data);
         } else {
-          // Generar slots demo (próximos 14 días, varias horas)
-          const demo: Slot[] = [];
-          for (let d = 1; d <= 14; d++) {
-            for (const hour of [10, 16, 19, 21]) {
-              const start = new Date();
-              start.setDate(start.getDate() + d);
-              start.setHours(hour, 0, 0, 0);
-              const end = new Date(start.getTime() + offering.duration_minutes * 60000);
-              demo.push({
-                id: `demo-${d}-${hour}`,
-                starts_at: start.toISOString(),
-                ends_at: end.toISOString(),
-                booked_count: Math.floor(Math.random() * offering.max_students),
-                max_students: offering.max_students,
-              });
-            }
-          }
-          setSlots(demo);
+          setSlots(generateDemoSlots());
         }
       } catch (e) {
-        console.error('[booking] slots load error:', e);
+        console.error('[booking] slots error:', e);
+        if (!cancelled) setSlots(generateDemoSlots());
+      } finally {
+        if (!cancelled) { setLoading(false); clearTimeout(safety); }
       }
-      setLoading(false);
     })();
+
+    return () => { cancelled = true; clearTimeout(safety); };
   }, [offering.id]);
 
   // Agrupa slots por día

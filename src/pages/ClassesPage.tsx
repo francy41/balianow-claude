@@ -51,10 +51,10 @@ const ClassesPage: React.FC = () => {
 
     (async () => {
       try {
-        // 1) Cargar offerings con join a vendor profile
+        // 1) Cargar offerings sin join (más robusto)
         const { data, error } = await supabase
           .from('class_offerings')
-          .select('*, profiles!class_offerings_vendor_id_fkey(full_name, avatar_url)')
+          .select('*')
           .eq('status', 'active')
           .order('created_at', { ascending: false });
 
@@ -68,25 +68,34 @@ const ClassesPage: React.FC = () => {
           return;
         }
 
-        // 2) Cargar TODOS los slots de una vez (1 query)
+        // 2) Cargar slots + vendors en paralelo
         const offeringIds = data.map((c: any) => c.id);
-        const { data: allSlots } = await supabase
-          .from('availability_slots')
-          .select('id, offering_id, starts_at')
-          .in('offering_id', offeringIds)
-          .eq('status', 'available')
-          .gt('starts_at', new Date().toISOString())
-          .order('starts_at');
+        const vendorIds = [...new Set(data.map((c: any) => c.vendor_id))];
+
+        const [{ data: allSlots }, { data: allVendors }] = await Promise.all([
+          supabase
+            .from('availability_slots')
+            .select('id, offering_id, starts_at')
+            .in('offering_id', offeringIds)
+            .eq('status', 'available')
+            .gt('starts_at', new Date().toISOString())
+            .order('starts_at'),
+          supabase
+            .from('profiles')
+            .select('id, full_name, avatar_url')
+            .in('id', vendorIds),
+        ]);
 
         if (cancelled) return;
 
-        // 3) Mapear: para cada offering, encontrar su próximo slot
+        // 3) Mapear: para cada offering, encontrar su próximo slot + vendor
         const enriched: ClassOffering[] = data.map((c: any) => {
           const slots = (allSlots || []).filter((s: any) => s.offering_id === c.id);
+          const vendor = (allVendors || []).find((v: any) => v.id === c.vendor_id);
           return {
             ...c,
-            vendor_name: c.profiles?.full_name || 'Profesor',
-            vendor_avatar: c.profiles?.avatar_url || '',
+            vendor_name: vendor?.full_name || 'Profesor',
+            vendor_avatar: vendor?.avatar_url || '',
             next_slot: slots[0] || null,
             slots_count: slots.length,
           };
