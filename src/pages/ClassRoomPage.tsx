@@ -3,9 +3,9 @@
  * URL: /clase/:bookingId
  * Solo accesible al estudiante o profesor de la reserva
  */
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, Clock, Video, AlertCircle, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Users, Clock, Video, AlertCircle, MessageCircle, ExternalLink, Maximize } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/appStore';
 
@@ -28,8 +28,6 @@ const ClassRoomPage: React.FC = () => {
   const [offering, setOffering] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const jitsiContainerRef = useRef<HTMLDivElement>(null);
-  const jitsiApiRef = useRef<any>(null);
 
   // Cargar booking
   useEffect(() => {
@@ -66,56 +64,10 @@ const ClassRoomPage: React.FC = () => {
     })();
   }, [bookingId, user]);
 
-  // Cargar Jitsi script y montar la sala
-  useEffect(() => {
-    if (!booking?.jitsi_room || !jitsiContainerRef.current) return;
-
-    const loadJitsi = () => {
-      if (!(window as any).JitsiMeetExternalAPI) {
-        const script = document.createElement('script');
-        script.src = 'https://meet.jit.si/external_api.js';
-        script.async = true;
-        script.onload = mountJitsi;
-        document.body.appendChild(script);
-      } else {
-        mountJitsi();
-      }
-    };
-
-    const mountJitsi = () => {
-      if (!jitsiContainerRef.current) return;
-      // @ts-ignore
-      const api = new (window as any).JitsiMeetExternalAPI('meet.jit.si', {
-        roomName: booking.jitsi_room,
-        parentNode: jitsiContainerRef.current,
-        width: '100%',
-        height: '100%',
-        userInfo: { displayName: user?.name || 'Estudiante' },
-        configOverwrite: {
-          startWithAudioMuted: true,
-          startWithVideoMuted: false,
-          prejoinPageEnabled: true,
-        },
-        interfaceConfigOverwrite: {
-          TOOLBAR_BUTTONS: [
-            'microphone', 'camera', 'chat', 'desktop', 'fullscreen',
-            'fodeviceselection', 'hangup', 'profile', 'settings',
-            'raisehand', 'tileview', 'mute-everyone',
-          ],
-          SHOW_JITSI_WATERMARK: false,
-          SHOW_BRAND_WATERMARK: false,
-          DEFAULT_BACKGROUND: '#0a0a0a',
-        },
-      });
-      jitsiApiRef.current = api;
-    };
-
-    loadJitsi();
-
-    return () => {
-      try { jitsiApiRef.current?.dispose(); } catch {}
-    };
-  }, [booking, user]);
+  // Build Jitsi URL con parámetros para que entre directamente sin prejoin
+  const jitsiUrl = booking?.jitsi_room
+    ? `https://meet.jit.si/${booking.jitsi_room}#userInfo.displayName="${encodeURIComponent(user?.name || 'Estudiante')}"&config.prejoinPageEnabled=false&config.startWithAudioMuted=true&config.disableDeepLinking=true&interfaceConfig.SHOW_JITSI_WATERMARK=false&interfaceConfig.SHOW_BRAND_WATERMARK=false`
+    : '';
 
   if (loading) {
     return (
@@ -164,8 +116,31 @@ const ClassRoomPage: React.FC = () => {
         <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">EN VIVO</span>
       </header>
 
-      {/* Jitsi container */}
-      <div ref={jitsiContainerRef} className="flex-1 bg-black" style={{ minHeight: '70vh' }} />
+      {/* Jitsi via iframe (simple y robusto) */}
+      <div className="flex-1 bg-black relative" style={{ minHeight: 'calc(100vh - 100px)' }}>
+        {jitsiUrl ? (
+          <iframe
+            src={jitsiUrl}
+            allow="camera; microphone; fullscreen; display-capture; autoplay"
+            allowFullScreen
+            className="absolute inset-0 w-full h-full border-0"
+            title="BailaNow Class Room"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <p className="text-gray-400">Preparando sala...</p>
+          </div>
+        )}
+        {/* Botón abrir en nueva pestaña como fallback */}
+        <a
+          href={`https://meet.jit.si/${booking.jitsi_room}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="absolute top-3 right-3 z-10 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-black/80"
+        >
+          <ExternalLink className="w-3 h-3" /> Abrir en pestaña aparte
+        </a>
+      </div>
 
       {/* Footer */}
       <footer className="bg-gray-900 border-t border-gray-800 px-4 py-2 text-[11px] text-gray-400 flex items-center justify-between">
