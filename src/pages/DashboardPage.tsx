@@ -939,37 +939,52 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
   const [classBookings, setClassBookings] = useState<any[]>([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
 
-  // Cargar clases reservadas del usuario
+  // Cargar clases reservadas del usuario (con timeout de seguridad)
   useEffect(() => {
+    let cancelled = false;
+    // Timeout de seguridad: 6s max para evitar spinner infinito
+    const safetyTimer = setTimeout(() => {
+      if (!cancelled) { console.warn('[dashboard] bookings load timeout'); setLoadingClasses(false); }
+    }, 6000);
+
     (async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('[dashboard] session for classes:', session?.user?.id);
         if (!session) { setLoadingClasses(false); return; }
+
         const { data, error } = await supabase
           .from('class_bookings')
-          .select('*')
+          .select('*, class_offerings(title, cover_image, duration_minutes, style), availability_slots(starts_at, ends_at)')
           .eq('student_id', session.user.id)
           .order('created_at', { ascending: false });
-        if (error) { console.error('[dashboard] bookings error:', error); setLoadingClasses(false); return; }
 
-        // Enriquecer con info de offering
-        const enriched = await Promise.all((data || []).map(async (b: any) => {
-          const { data: off } = await supabase
-            .from('class_offerings')
-            .select('title, cover_image, duration_minutes, style')
-            .eq('id', b.offering_id)
-            .maybeSingle();
-          const { data: slot } = await supabase
-            .from('availability_slots')
-            .select('starts_at, ends_at')
-            .eq('id', b.slot_id)
-            .maybeSingle();
-          return { ...b, offering: off, slot };
+        if (cancelled) return;
+        console.log('[dashboard] bookings:', { count: data?.length, error });
+
+        if (error) {
+          console.error('[dashboard] bookings error:', error);
+          setClassBookings([]);
+          setLoadingClasses(false);
+          return;
+        }
+
+        // Normalizar: el JOIN devuelve nested objects con nombres en plural
+        const normalized = (data || []).map((b: any) => ({
+          ...b,
+          offering: b.class_offerings || null,
+          slot: b.availability_slots || null,
         }));
-        setClassBookings(enriched);
-      } catch (e) { console.error('[dashboard] bookings catch:', e); }
-      setLoadingClasses(false);
+        setClassBookings(normalized);
+      } catch (e) {
+        console.error('[dashboard] bookings catch:', e);
+        setClassBookings([]);
+      } finally {
+        if (!cancelled) setLoadingClasses(false);
+      }
     })();
+
+    return () => { cancelled = true; clearTimeout(safetyTimer); };
   }, [userId]);
 
   // Pedidos de escrow (BookingModal)
@@ -1038,7 +1053,7 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
 
           {loadingClasses && (
             <div className="card-white p-12 text-center">
-              <div className="w-10 h-10 border-3 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+              <div className="w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
               <p className="text-sm text-gray-400">Cargando tus reservas…</p>
             </div>
           )}
