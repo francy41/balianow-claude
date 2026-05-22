@@ -1596,16 +1596,29 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const handleVideoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    addToast({ message: '📤 Subiendo video...', type: 'info' });
+    console.log('[video] file:', { name: file.name, size: (file.size/1024/1024).toFixed(1) + 'MB', type: file.type });
+
+    if (file.size > 100 * 1024 * 1024) {
+      addToast({ message: `❌ Video demasiado grande (${(file.size/1024/1024).toFixed(0)}MB). Max 100MB. Comprime o usa YouTube.`, type: 'error' });
+      return;
+    }
+
+    addToast({ message: `📤 Subiendo video ${(file.size/1024/1024).toFixed(1)}MB...`, type: 'info' });
     const r = await uploadVideo(file, 'hero');
+    console.log('[video] upload result:', r);
+
     if (r.url) {
       setDraftUrl(r.url);
       setHeroMedia({ type: 'video', url: r.url });
-      await saveSiteConfigKey('hero_media', { type: 'video', url: r.url });
-      addToast({ message: `✅ Video subido: ${file.name}`, type: 'success' });
+      const { error } = await saveSiteConfigKey('hero_media', { type: 'video', url: r.url });
+      if (error) {
+        addToast({ message: `⚠ Video subido pero BD falló: ${error}`, type: 'warning' });
+      } else {
+        addToast({ message: `✅ Video guardado: ${file.name}`, type: 'success' });
+      }
       return;
     }
-    addToast({ message: `❌ ${r.error}`, type: 'error' });
+    addToast({ message: `❌ ${r.error || 'Error desconocido'}`, type: 'error' });
   };
 
   const applyOverlay = async () => {
