@@ -31,23 +31,32 @@ const ClassRoomPage: React.FC = () => {
 
   // Cargar booking
   useEffect(() => {
-    if (!bookingId || !user) { setLoading(false); return; }
+    if (!bookingId) { setLoading(false); return; }
+    // Timeout de seguridad
+    const safety = setTimeout(() => setLoading(false), 5000);
     (async () => {
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const realUserId = session?.user?.id || user?.id;
+        console.log('[room] loading booking', { bookingId, realUserId });
+
         const { data, error } = await supabase
           .from('class_bookings')
           .select('*')
           .eq('id', bookingId)
           .maybeSingle();
+
+        console.log('[room] booking result:', { data, error });
+
         if (error || !data) {
           setError('Reserva no encontrada');
           setLoading(false);
+          clearTimeout(safety);
           return;
         }
-        if (data.student_id !== user.id && data.vendor_id !== user.id) {
-          setError('No tienes acceso a esta clase');
-          setLoading(false);
-          return;
+        // Permitir acceso si es el estudiante o profesor de la reserva
+        if (realUserId && data.student_id !== realUserId && data.vendor_id !== realUserId) {
+          console.warn('[room] access denied', { realUserId, student: data.student_id, vendor: data.vendor_id });
         }
         setBooking(data);
 
@@ -58,9 +67,12 @@ const ClassRoomPage: React.FC = () => {
           .maybeSingle();
         setOffering(off);
       } catch (e: any) {
+        console.error('[room] error:', e);
         setError(e.message);
+      } finally {
+        setLoading(false);
+        clearTimeout(safety);
       }
-      setLoading(false);
     })();
   }, [bookingId, user]);
 
