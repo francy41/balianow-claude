@@ -213,7 +213,26 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
       // Marcar slot ocupado
       supabase.from('availability_slots').update({ booked_count: selectedSlot.booked_count + 1 }).eq('id', selectedSlot.id);
 
-      addToast({ message: '✅ Reserva confirmada y pagada', type: 'success' });
+      // Enviar email de confirmación (fire-and-forget)
+      const userEmail = session.user.email;
+      if (userEmail) {
+        const classDate = new Date(selectedSlot.starts_at).toLocaleString('es-ES', { dateStyle: 'full', timeStyle: 'short' });
+        supabase.functions.invoke('send-booking-email', {
+          body: {
+            booking_id: data.id,
+            student_email: userEmail,
+            student_name: session.user.user_metadata?.full_name || userEmail.split('@')[0],
+            class_title: offering.title,
+            class_date: classDate,
+            vendor_name: offering.vendor_name,
+            jitsi_url: `https://bailanow-app.vercel.app/clase/${data.id}`,
+            price: offering.price,
+          },
+        }).then((r: any) => console.log('[booking] email sent:', r))
+          .catch((e: any) => console.warn('[booking] email failed:', e));
+      }
+
+      addToast({ message: '✅ Reserva confirmada · Email enviado', type: 'success' });
       setStep('done');
     } catch (e: any) {
       console.error('[booking] catch:', e);

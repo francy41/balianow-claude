@@ -18,6 +18,7 @@ import ProfileEditModal from '../components/ProfileEditModal';
 import { BuyerTable, QRScanner } from '../components/BuyerManagement';
 import { QrCode, Scan } from 'lucide-react';
 import TeacherClassesPanel from '../components/TeacherClassesPanel';
+import ClassReviewModal from '../components/ClassReviewModal';
 
 type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers' | 'buyers' | 'scanner';
 
@@ -939,6 +940,7 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
   const [fanTab, setFanTab] = useState<'classes' | 'orders' | 'promo' | 'payments'>('classes');
   const [classBookings, setClassBookings] = useState<any[]>([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
+  const [reviewBooking, setReviewBooking] = useState<any | null>(null);
 
   // Cargar clases reservadas del usuario (con timeout de seguridad)
   useEffect(() => {
@@ -1132,10 +1134,16 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
                         </button>
                       )}
                       {isPast && (
-                        <button onClick={() => navigate(`/clase/${b.id}`)}
-                          className="flex-1 bg-gray-100 text-gray-600 font-bold px-4 py-2.5 rounded-xl text-sm active:scale-95">
-                          Ver grabación
-                        </button>
+                        <>
+                          <button onClick={() => setReviewBooking(b)}
+                            className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-black px-4 py-2.5 rounded-xl text-sm shadow-lg active:scale-95 flex items-center justify-center gap-1">
+                            ⭐ Valorar clase
+                          </button>
+                          <button onClick={() => navigate(`/clase/${b.id}`)}
+                            className="bg-gray-100 text-gray-600 font-bold px-3 py-2.5 rounded-xl text-sm active:scale-95">
+                            Ver
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -1150,6 +1158,15 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
             </button>
           </div>
         </div>
+      )}
+
+      {reviewBooking && (
+        <ClassReviewModal
+          open={!!reviewBooking}
+          booking={reviewBooking}
+          onClose={() => setReviewBooking(null)}
+          onSubmitted={() => setReviewBooking(null)}
+        />
       )}
 
       {/* ── Pedidos de escrow (Reservas directas) ── */}
