@@ -3,6 +3,7 @@
  * Stripe · PayPal · Wallet BailaNow
  */
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   X, CreditCard, Wallet, ShieldCheck, ChevronDown, ChevronUp,
   CheckCircle, Lock, Sparkles, ArrowRight,
@@ -92,6 +93,13 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
   const { addToast } = useUIStore();
   const cart = useCartStore();
   const ordersStore = useOrdersStore();
+  const navigate = useNavigate();
+
+  // Handler: cierra modal y navega al dashboard
+  const handleGoToDashboard = () => {
+    onClose();
+    navigate('/dashboard?tab=orders');
+  };
 
   const [method, setMethod] = useState<PayMethod>('card');
   const [showBreakdown, setShowBreakdown] = useState(false);
@@ -189,7 +197,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
 
       <div className="relative bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-2xl max-w-lg w-full max-h-[95vh] overflow-y-auto shadow-2xl">
         {completed ? (
-          <SuccessScreen breakdown={completedBreakdown} total={completedTotal} provider={completedProvider} onClose={onClose} />
+          <SuccessScreen breakdown={completedBreakdown} total={completedTotal} provider={completedProvider} onClose={handleGoToDashboard} />
         ) : (
           <>
             {/* ── HEADER ── */}
