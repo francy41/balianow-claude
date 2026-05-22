@@ -115,54 +115,81 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
   const fmtTime = (iso: string) => new Date(iso).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
 
   const handleConfirm = async () => {
-    if (!isAuthenticated || !user) {
-      addToast({ message: 'Inicia sesión para reservar', type: 'error' });
+    console.log('[booking] handleConfirm clicked', { selectedSlot, offering });
+    if (!selectedSlot) {
+      addToast({ message: '⚠ Elige un horario primero', type: 'error' });
       return;
     }
-    if (!selectedSlot) { addToast({ message: 'Elige un horario', type: 'error' }); return; }
 
     setSubmitting(true);
     setStep('paying');
 
     try {
-      // Generar sala Jitsi única
-      const jitsiRoom = `bailanow-${offering.id.slice(0, 8)}-${Date.now()}`;
-      const platformFee = +(offering.price * 0.15).toFixed(2);
+      // Verificar sesión real
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('[booking] session:', session?.user?.id);
 
-      // Crear booking
-      const { data, error } = await supabase.from('class_bookings').insert({
-        slot_id: selectedSlot.id.startsWith('demo-') ? null : selectedSlot.id,
-        offering_id: offering.id.startsWith('sample-') ? null : offering.id,
-        student_id: user.id,
-        vendor_id: offering.vendor_id,
-        status: 'confirmed',
-        amount_paid: offering.price,
-        currency: offering.currency,
-        platform_fee: platformFee,
-        jitsi_room: jitsiRoom,
-        notes: `Reserva ${offering.title} para ${selectedSlot.starts_at}`,
-      }).select().single();
-
-      if (error && !selectedSlot.id.startsWith('demo-')) {
-        throw error;
+      if (!session) {
+        addToast({ message: '⚠ Necesitas iniciar sesión. Modo demo activo.', type: 'warning' });
+        // Simulación demo
+        await new Promise(r => setTimeout(r, 1200));
+        setStep('done');
+        setSubmitting(false);
+        return;
       }
 
-      // Marcar slot como ocupado si era real
-      if (!selectedSlot.id.startsWith('demo-')) {
+      const realUserId = session.user.id;
+      const jitsiRoom = `bailanow-${offering.id.slice(0, 8)}-${Date.now()}`;
+      const platformFee = +(offering.price * 0.15).toFixed(2);
+      const isDemoSlot = selectedSlot.id.startsWith('demo-');
+      const isDemoOffering = offering.id.startsWith('sample-');
+
+      console.log('[booking] inserting:', { isDemoSlot, isDemoOffering, realUserId });
+
+      if (!isDemoSlot && !isDemoOffering) {
+        const { data, error } = await supabase.from('class_bookings').insert({
+          slot_id: selectedSlot.id,
+          offering_id: offering.id,
+          student_id: realUserId,
+          vendor_id: offering.vendor_id,
+          status: 'confirmed',
+          amount_paid: offering.price,
+          currency: offering.currency,
+          platform_fee: platformFee,
+          jitsi_room: jitsiRoom,
+          notes: `Reserva ${offering.title}`,
+        }).select().single();
+
+        console.log('[booking] result:', { data, error });
+
+        if (error) {
+          addToast({ message: `❌ Error: ${error.message}`, type: 'error' });
+          setStep('select');
+          setSubmitting(false);
+          return;
+        }
+
+        // Marcar slot ocupado
         await supabase
           .from('availability_slots')
           .update({ booked_count: selectedSlot.booked_count + 1 })
           .eq('id', selectedSlot.id);
+
+        addToast({ message: '✅ Reserva confirmada y pagada', type: 'success' });
+      } else {
+        // Modo demo
+        await new Promise(r => setTimeout(r, 1200));
+        addToast({ message: '✅ Reserva demo confirmada', type: 'success' });
       }
 
-      addToast({ message: '✅ Reserva confirmada y pagada', type: 'success' });
       setStep('done');
     } catch (e: any) {
-      console.error('[booking] error:', e);
-      addToast({ message: '⚠ Reserva guardada localmente (modo demo)', type: 'warning' });
-      setStep('done');
+      console.error('[booking] catch:', e);
+      addToast({ message: `❌ ${e.message || 'Error inesperado'}`, type: 'error' });
+      setStep('select');
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   return (
