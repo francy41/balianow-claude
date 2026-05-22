@@ -199,7 +199,7 @@ const ClassesPage: React.FC = () => {
         <ClassBookingModal
           offering={selectedClass}
           onClose={() => setSelectedClass(null)}
-          onBooked={() => { setSelectedClass(null); navigate('/dashboard'); }}
+          onBooked={() => { setSelectedClass(null); navigate('/dashboard?tab=classes'); }}
         />
       )}
     </div>

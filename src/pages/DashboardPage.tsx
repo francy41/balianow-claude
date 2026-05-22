@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { safeSocialUrl } from '../lib/security';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import {
   LayoutDashboard, Wallet, BookOpen, Calendar as CalIcon, Video, Briefcase,
   Plus, Trash2, Edit3, CheckCircle, X, Check, ExternalLink, Clock,
@@ -934,7 +935,42 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
   const { orders } = useOrdersStore();
   const { addToast } = useUIStore();
   const navigate = useNavigate();
-  const [fanTab, setFanTab] = useState<'orders' | 'promo' | 'payments'>('orders');
+  const [fanTab, setFanTab] = useState<'classes' | 'orders' | 'promo' | 'payments'>('classes');
+  const [classBookings, setClassBookings] = useState<any[]>([]);
+  const [loadingClasses, setLoadingClasses] = useState(true);
+
+  // Cargar clases reservadas del usuario
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) { setLoadingClasses(false); return; }
+        const { data, error } = await supabase
+          .from('class_bookings')
+          .select('*')
+          .eq('student_id', session.user.id)
+          .order('created_at', { ascending: false });
+        if (error) { console.error('[dashboard] bookings error:', error); setLoadingClasses(false); return; }
+
+        // Enriquecer con info de offering
+        const enriched = await Promise.all((data || []).map(async (b: any) => {
+          const { data: off } = await supabase
+            .from('class_offerings')
+            .select('title, cover_image, duration_minutes, style')
+            .eq('id', b.offering_id)
+            .maybeSingle();
+          const { data: slot } = await supabase
+            .from('availability_slots')
+            .select('starts_at, ends_at')
+            .eq('id', b.slot_id)
+            .maybeSingle();
+          return { ...b, offering: off, slot };
+        }));
+        setClassBookings(enriched);
+      } catch (e) { console.error('[dashboard] bookings catch:', e); }
+      setLoadingClasses(false);
+    })();
+  }, [userId]);
 
   // Pedidos de escrow (BookingModal)
   const myEscrowOrders = transactions
@@ -957,6 +993,13 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
   return (
     <div className="space-y-4">
       <div className="card-white rounded-2xl p-1.5 flex gap-1 overflow-x-auto">
+        <button onClick={() => setFanTab('classes')}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            fanTab === 'classes' ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'
+          }`}>
+          <Video className="w-4 h-4" /> Mis clases
+          {classBookings.length > 0 && <span className="bg-white text-pink-600 text-[10px] font-black px-1.5 py-0.5 rounded-full">{classBookings.length}</span>}
+        </button>
         <button onClick={() => setFanTab('orders')}
           className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
             fanTab === 'orders' ? 'bg-brand-orange text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'
@@ -981,6 +1024,116 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
 
       {fanTab === 'payments' && (
         <PaymentMethodsPanel userId={userId} holderDefault={userName} />
+      )}
+
+      {/* ── Mis Clases reservadas (sala Jitsi) ── */}
+      {fanTab === 'classes' && (
+        <div className="space-y-3">
+          <div className="card-white p-5 bg-gradient-to-br from-pink-50 to-fuchsia-50 border border-pink-100">
+            <h2 className="font-display font-black text-xl text-gray-900 mb-1 flex items-center gap-2">
+              <Video className="w-5 h-5 text-pink-500" /> Mis clases reservadas
+            </h2>
+            <p className="text-gray-500 text-sm">Accede a la sala 10 minutos antes del horario. Tu profesor te estará esperando.</p>
+          </div>
+
+          {loadingClasses && (
+            <div className="card-white p-12 text-center">
+              <div className="w-10 h-10 border-3 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+              <p className="text-sm text-gray-400">Cargando tus reservas…</p>
+            </div>
+          )}
+
+          {!loadingClasses && classBookings.length === 0 && (
+            <div className="card-white p-12 text-center text-gray-400">
+              <Video className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <p className="text-sm mb-1 font-bold text-gray-700">Aún no tienes clases reservadas</p>
+              <p className="text-xs mb-4">Explora nuestras clases online y reserva la tuya</p>
+              <button onClick={() => navigate('/clases')} className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold px-5 py-2.5 rounded-xl text-sm">
+                🎓 Ver clases disponibles
+              </button>
+            </div>
+          )}
+
+          {classBookings.map(b => {
+            const startsAt = b.slot?.starts_at ? new Date(b.slot.starts_at) : null;
+            const minutesUntil = startsAt ? Math.round((startsAt.getTime() - Date.now()) / 60000) : null;
+            const canJoin = minutesUntil !== null && minutesUntil <= 15 && minutesUntil >= -120;
+            const isPast = minutesUntil !== null && minutesUntil < -120;
+
+            return (
+              <div key={b.id} className="card-white overflow-hidden border-2 border-pink-100 hover:border-pink-300 transition-all">
+                <div className="flex flex-col sm:flex-row">
+                  {/* Cover */}
+                  <div className="w-full sm:w-40 h-32 sm:h-auto bg-gradient-to-br from-pink-100 to-purple-200 relative flex-shrink-0">
+                    {b.offering?.cover_image && (
+                      <img src={b.offering.cover_image} alt={b.offering.title} className="w-full h-full object-cover" />
+                    )}
+                    <span className={`absolute top-2 left-2 text-[10px] font-black px-2 py-0.5 rounded-full ${
+                      isPast ? 'bg-gray-500 text-white' :
+                      canJoin ? 'bg-red-500 text-white animate-pulse' :
+                      'bg-blue-500 text-white'
+                    }`}>
+                      {isPast ? '📋 Finalizada' : canJoin ? '🔴 ¡Empieza ya!' : '📅 Programada'}
+                    </span>
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 p-4 flex flex-col gap-2">
+                    <div>
+                      <h3 className="font-black text-base text-gray-900">{b.offering?.title || 'Clase reservada'}</h3>
+                      {startsAt && (
+                        <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
+                          <CalIcon className="w-3 h-3" />
+                          {startsAt.toLocaleString('es-ES', { dateStyle: 'full', timeStyle: 'short' })}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-500">
+                        <span>⏱ {b.offering?.duration_minutes || 60}min</span>
+                        <span>•</span>
+                        <span>€{b.amount_paid}</span>
+                        <span>•</span>
+                        <span className="text-green-600 font-bold">✓ Pagado</span>
+                      </div>
+                    </div>
+
+                    {/* CTA */}
+                    <div className="flex items-center gap-2 mt-1">
+                      {canJoin && !isPast && (
+                        <button onClick={() => navigate(`/clase/${b.id}`)}
+                          className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 text-white font-black px-4 py-2.5 rounded-xl text-sm shadow-lg shadow-red-500/30 active:scale-95 flex items-center justify-center gap-2">
+                          <Video className="w-4 h-4" /> Entrar a la sala ahora
+                        </button>
+                      )}
+                      {!canJoin && !isPast && (
+                        <button onClick={() => navigate(`/clase/${b.id}`)}
+                          className="flex-1 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black px-4 py-2.5 rounded-xl text-sm shadow-lg active:scale-95 flex items-center justify-center gap-2">
+                          <Video className="w-4 h-4" /> Acceder a la sala
+                          {minutesUntil !== null && minutesUntil > 15 && (
+                            <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full">
+                              en {minutesUntil > 60 ? `${Math.floor(minutesUntil/60)}h` : `${minutesUntil}min`}
+                            </span>
+                          )}
+                        </button>
+                      )}
+                      {isPast && (
+                        <button onClick={() => navigate(`/clase/${b.id}`)}
+                          className="flex-1 bg-gray-100 text-gray-600 font-bold px-4 py-2.5 rounded-xl text-sm active:scale-95">
+                          Ver grabación
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          <div className="text-center pt-3">
+            <button onClick={() => navigate('/clases')} className="text-pink-600 text-sm font-bold hover:underline">
+              + Reservar otra clase
+            </button>
+          </div>
+        </div>
       )}
 
       {/* ── Pedidos de escrow (Reservas directas) ── */}

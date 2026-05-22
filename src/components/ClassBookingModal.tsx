@@ -326,8 +326,10 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
                 </div>
               )}
               <button onClick={onBooked}
-                className="mt-5 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg">
-                Ver mis reservas
+                className="mt-5 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg flex items-center gap-2 mx-auto">
+                <Video className="w-4 h-4" />
+                Ver mis clases y entrar a la sala
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           )}
