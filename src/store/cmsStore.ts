@@ -82,9 +82,9 @@ const DEFAULT_MENU: CMSMenuItem[] = [
   { id: 'm-events',  label: 'Eventos',        to: '/eventos',                icon: '📅', order: 3, isVisible: true, isExternal: false },
   { id: 'm-artists', label: 'Artistas',       to: '/artistas',               icon: '🎶', order: 4, isVisible: true, isExternal: false },
   { id: 'm-dancers', label: 'Bailarines',     to: '/artistas?tipo=dancer',   icon: '💃', order: 5, isVisible: true, isExternal: false },
-  { id: 'm-classes', label: 'Clases & Eventos', to: '/clases',               icon: '🎓', order: 6, isVisible: true, isExternal: false },
+  { id: 'm-classes', label: 'En Directo',     to: '/clases',                 icon: '🔴', order: 6, isVisible: true, isExternal: false },
   { id: 'm-market',  label: 'Marketplace',    to: '/marketplace',            icon: '🛍️', order: 7, isVisible: true, isExternal: false },
-  { id: 'm-live',    label: 'Streaming Live', to: '/live',                   icon: '🎥', order: 8, isVisible: true, isExternal: false },
+  { id: 'm-streams', label: 'Streams',        to: '/live',                   icon: '🎥', order: 8, isVisible: true, isExternal: false },
   { id: 'm-chat',    label: 'Comunidad',      to: '/chat',                   icon: '💬', order: 9, isVisible: true, isExternal: false },
 ];
 
@@ -329,7 +329,7 @@ export const useCMSStore = create<CMSState>()(
     }),
     {
       name: 'ritmolatino-cms',
-      version: 3,
+      version: 4,
       // Si cambias DEFAULT_*, sube la versión y los datos viejos se descartan
       migrate: () => undefined as any,
     }

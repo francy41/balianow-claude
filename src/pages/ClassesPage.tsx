@@ -127,12 +127,12 @@ const ClassesPage: React.FC = () => {
       <div className="bg-gradient-to-br from-pink-500 via-fuchsia-600 to-purple-700 text-white px-4 pt-6 pb-8 relative overflow-hidden">
         <div className="max-w-6xl mx-auto relative">
           <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="w-5 h-5" />
-            <span className="text-xs uppercase font-black tracking-widest opacity-90">Clases & Eventos Online</span>
+            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            <span className="text-xs uppercase font-black tracking-widest opacity-90">🔴 EN DIRECTO</span>
           </div>
-          <h1 className="font-display font-black text-3xl sm:text-4xl mb-2">Aprende a bailar con los mejores</h1>
+          <h1 className="font-display font-black text-3xl sm:text-4xl mb-2">Clases y workshops en vivo</h1>
           <p className="text-white/80 text-sm sm:text-base max-w-xl">
-            Reserva clases online, talleres y eventos en vivo. Elige fecha, paga seguro, conéctate y baila.
+            Conecta en directo con los mejores profesores. Elige fecha, paga seguro y baila desde casa.
           </p>
           <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-5 max-w-2xl">
             {[
