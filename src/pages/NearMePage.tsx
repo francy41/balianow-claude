@@ -1,0 +1,418 @@
+/**
+ * NearMePage — "Cerca de mí"
+ * Reemplaza ExplorePage. Detecta ubicación del usuario (o permite escribir ciudad)
+ * y muestra venues, eventos, artistas, bailarines y DJs cercanos.
+ */
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { MapPin, Navigation, Search, Star, Calendar, Music, Users, X, Map, ChevronRight } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { VENUES, EVENTS, ARTISTS } from '../data/mockData';
+
+// Geo distance (Haversine in km)
+function distanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const toRad = (d: number) => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+// Default city coords
+const CITY_COORDS: Record<string, [number, number]> = {
+  'Madrid': [40.4168, -3.7038],     'Barcelona': [41.3851, 2.1734],
+  'Valencia': [39.4699, -0.3763],   'Sevilla': [37.3891, -5.9845],
+  'Bilbao': [43.2630, -2.9350],     'Málaga': [36.7213, -4.4214],
+  'Granada': [37.1773, -3.5986],    'Zaragoza': [41.6488, -0.8891],
+  'Paris': [48.8566, 2.3522],       'Londres': [51.5074, -0.1278],
+  'Berlín': [52.5200, 13.4050],     'Roma': [41.9028, 12.4964],
+  'Miami': [25.7617, -80.1918],     'New York': [40.7128, -74.0060],
+  'Cali': [3.4516, -76.5320],       'Bogotá': [4.7110, -74.0721],
+  'Medellín': [6.2476, -75.5658],   'La Habana': [23.1136, -82.3666],
+  'Santo Domingo': [18.4861, -69.9312], 'Buenos Aires': [-34.6037, -58.3816],
+  'Lima': [-12.0464, -77.0428],     'México DF': [19.4326, -99.1332],
+};
+const POPULAR_CITIES = ['Madrid','Barcelona','Valencia','Sevilla','Paris','Miami','New York','Cali','Medellín','La Habana'];
+
+type Item = {
+  id: string;
+  type: 'venue' | 'event' | 'artist' | 'dancer' | 'dj';
+  name: string;
+  city: string;
+  lat: number;
+  lng: number;
+  img?: string;
+  genre?: string;
+  rating?: number;
+  date?: string;
+  distance?: number;
+};
+
+const NearMePage: React.FC = () => {
+  const navigate = useNavigate();
+  const [position, setPosition] = useState<[number, number] | null>(null);
+  const [city, setCity]         = useState<string>('');
+  const [locating, setLocating] = useState(false);
+  const [search, setSearch]     = useState('');
+  const [items, setItems]       = useState<Item[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [showCityPicker, setShowCityPicker] = useState(false);
+  const [radius, setRadius]     = useState<50 | 100 | 500 | 5000>(100);
+  const [activeTab, setActiveTab] = useState<'all' | 'venues' | 'events' | 'artists' | 'dancers' | 'djs'>('all');
+
+  // Restore saved city on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('bailanow-near-city');
+    if (saved && CITY_COORDS[saved]) {
+      setCity(saved);
+      setPosition(CITY_COORDS[saved]);
+    } else {
+      // Try geolocation silently
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => setPosition([pos.coords.latitude, pos.coords.longitude]),
+          () => setShowCityPicker(true),
+          { timeout: 5000 }
+        );
+      } else setShowCityPicker(true);
+    }
+  }, []);
+
+  // Load items from Supabase + fallbacks
+  useEffect(() => {
+    const load = async () => {
+      const combined: Item[] = [];
+
+      // Venues
+      try {
+        const { data } = await supabase.from('venues').select('*');
+        data?.forEach((v: any) => {
+          if (v.lat && v.lng) combined.push({
+            id: v.id, type: 'venue', name: v.name, city: v.city || '',
+            lat: Number(v.lat), lng: Number(v.lng),
+            img: v.image_url, genre: Array.isArray(v.style) ? v.style.join(', ') : v.style,
+            rating: Number(v.rating) || 4.5,
+          });
+        });
+      } catch {}
+
+      // Events
+      try {
+        const { data } = await supabase.from('events').select('*');
+        data?.forEach((e: any) => {
+          if (e.lat && e.lng) combined.push({
+            id: e.id, type: 'event', name: e.title, city: e.city || '',
+            lat: Number(e.lat), lng: Number(e.lng),
+            img: e.image_url || e.cover, date: e.date,
+          });
+        });
+      } catch {}
+
+      // Artists (incluye singers, dancers, djs, instructors)
+      try {
+        const { data } = await supabase.from('artists').select('*');
+        data?.forEach((a: any) => {
+          if (a.lat && a.lng) {
+            const t: Item['type'] = a.type === 'dancer' ? 'dancer' : a.type === 'dj' ? 'dj' : 'artist';
+            combined.push({
+              id: a.id, type: t, name: a.name, city: a.city || '',
+              lat: Number(a.lat), lng: Number(a.lng),
+              img: a.avatar, genre: Array.isArray(a.genre) ? a.genre.join(', ') : a.genre,
+              rating: Number(a.rating) || undefined,
+            });
+          }
+        });
+      } catch {}
+
+      setItems(combined);
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  // Locate user via GPS
+  const handleLocate = () => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      pos => { setPosition([pos.coords.latitude, pos.coords.longitude]); setCity(''); localStorage.removeItem('bailanow-near-city'); setLocating(false); setShowCityPicker(false); },
+      () => { setLocating(false); alert('No se pudo obtener tu ubicación. Selecciona una ciudad.'); setShowCityPicker(true); },
+      { timeout: 8000 }
+    );
+  };
+
+  const selectCity = (c: string) => {
+    if (!CITY_COORDS[c]) return;
+    setCity(c);
+    setPosition(CITY_COORDS[c]);
+    localStorage.setItem('bailanow-near-city', c);
+    setShowCityPicker(false);
+  };
+
+  // Compute distances + filter
+  const filtered = useMemo(() => {
+    if (!position) return [];
+    return items
+      .map(it => ({ ...it, distance: distanceKm(position[0], position[1], it.lat, it.lng) }))
+      .filter(it => it.distance! <= radius)
+      .filter(it => {
+        if (activeTab === 'venues'  && it.type !== 'venue')  return false;
+        if (activeTab === 'events'  && it.type !== 'event')  return false;
+        if (activeTab === 'artists' && it.type !== 'artist') return false;
+        if (activeTab === 'dancers' && it.type !== 'dancer') return false;
+        if (activeTab === 'djs'     && it.type !== 'dj')     return false;
+        if (search) return it.name.toLowerCase().includes(search.toLowerCase()) ||
+                          it.city.toLowerCase().includes(search.toLowerCase());
+        return true;
+      })
+      .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
+  }, [items, position, radius, activeTab, search]);
+
+  const counts = useMemo(() => {
+    if (!position) return { all: 0, venues: 0, events: 0, artists: 0, dancers: 0, djs: 0 };
+    const inRadius = items
+      .map(it => ({ ...it, distance: distanceKm(position[0], position[1], it.lat, it.lng) }))
+      .filter(it => it.distance! <= radius);
+    return {
+      all:     inRadius.length,
+      venues:  inRadius.filter(i => i.type === 'venue').length,
+      events:  inRadius.filter(i => i.type === 'event').length,
+      artists: inRadius.filter(i => i.type === 'artist').length,
+      dancers: inRadius.filter(i => i.type === 'dancer').length,
+      djs:     inRadius.filter(i => i.type === 'dj').length,
+    };
+  }, [items, position, radius]);
+
+  const goTo = (it: Item) => {
+    if (it.type === 'venue')  navigate(`/venues/${it.id}`);
+    if (it.type === 'event')  navigate(`/eventos/${it.id}`);
+    else navigate(`/artistas/${it.id}`);
+  };
+
+  const locationLabel = city || (position ? 'Tu ubicación' : 'Sin ubicación');
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-24">
+
+      {/* ── HERO HEADER ── */}
+      <div className="bg-gradient-to-br from-pink-500 via-fuchsia-600 to-purple-700 text-white px-4 pt-5 pb-6 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
+        <div className="relative">
+          <h1 className="font-display font-black text-2xl flex items-center gap-2 mb-1">
+            <MapPin className="w-6 h-6" /> Cerca de mí
+          </h1>
+          <p className="text-white/80 text-sm mb-4">Descubre lo mejor del baile latino a tu alrededor</p>
+
+          <button onClick={() => setShowCityPicker(true)}
+            className="w-full bg-white/15 backdrop-blur-md border border-white/30 rounded-2xl px-4 py-3 flex items-center justify-between hover:bg-white/25 transition-all">
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+                <MapPin className="w-4 h-4" />
+              </div>
+              <div className="text-left">
+                <p className="text-[10px] uppercase tracking-wider opacity-80">Tu ubicación</p>
+                <p className="font-bold text-sm">{locationLabel}</p>
+              </div>
+            </div>
+            <ChevronRight className="w-5 h-5 opacity-70" />
+          </button>
+
+          {/* Radio selector */}
+          <div className="mt-3 flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+            <span className="text-[10px] uppercase tracking-wider opacity-70 flex-shrink-0">Radio:</span>
+            {[50, 100, 500, 5000].map(r => (
+              <button key={r} onClick={() => setRadius(r as any)}
+                className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                  radius === r ? 'bg-white text-pink-600' : 'bg-white/20 text-white'
+                }`}>
+                {r >= 1000 ? `${r/1000}K km` : `${r} km`}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── SEARCH ── */}
+      <div className="px-4 py-3 sticky top-14 z-20 bg-gray-50 dark:bg-gray-950">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Buscar venues, artistas, eventos…"
+            className="w-full bg-white dark:bg-gray-900 rounded-2xl pl-9 pr-3 py-2.5 text-sm border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
+          />
+        </div>
+      </div>
+
+      {/* ── TABS ── */}
+      <div className="px-4 mb-3 flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        {[
+          { key: 'all',     label: `Todo (${counts.all})`,     icon: '🌍' },
+          { key: 'venues',  label: `Locales (${counts.venues})`, icon: '🏛️' },
+          { key: 'events',  label: `Eventos (${counts.events})`, icon: '🎉' },
+          { key: 'artists', label: `Artistas (${counts.artists})`,icon: '🎤' },
+          { key: 'dancers', label: `Bailarines (${counts.dancers})`, icon: '💃' },
+          { key: 'djs',     label: `DJs (${counts.djs})`,        icon: '🎧' },
+        ].map(t => (
+          <button key={t.key} onClick={() => setActiveTab(t.key as any)}
+            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+              activeTab === t.key
+                ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white shadow-lg shadow-pink-500/30'
+                : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+            }`}>
+            <span className="mr-1">{t.icon}</span>{t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── RESULTS — formato post/publicación con logo ── */}
+      <div className="px-4 space-y-4">
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="w-10 h-10 border-3 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto" />
+            <p className="text-gray-400 text-sm mt-3">Buscando cerca de ti…</p>
+          </div>
+        ) : !position ? (
+          <div className="text-center py-12">
+            <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="font-bold text-gray-700 dark:text-gray-300">Activa tu ubicación</p>
+            <p className="text-gray-400 text-xs mt-1 mb-4">o elige una ciudad para empezar</p>
+            <button onClick={handleLocate} className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold px-6 py-3 rounded-xl">
+              📍 Usar mi ubicación
+            </button>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-4xl mb-3">🔍</p>
+            <p className="font-bold text-gray-700 dark:text-gray-300">Nada cerca de {locationLabel}</p>
+            <p className="text-gray-400 text-xs mt-1">Prueba ampliando el radio o cambiando de ciudad</p>
+          </div>
+        ) : (
+          filtered.map(it => {
+            const typeMeta = {
+              venue:  { label: 'Local',     emoji: '🏛️', color: 'from-pink-500 to-rose-600' },
+              event:  { label: 'Evento',    emoji: '🎉', color: 'from-orange-500 to-red-500' },
+              artist: { label: 'Artista',   emoji: '🎤', color: 'from-purple-500 to-fuchsia-600' },
+              dancer: { label: 'Bailarín',  emoji: '💃', color: 'from-green-500 to-emerald-600' },
+              dj:     { label: 'DJ',        emoji: '🎧', color: 'from-cyan-500 to-blue-600' },
+            }[it.type];
+
+            return (
+              <article key={`${it.type}-${it.id}`}
+                onClick={() => goTo(it)}
+                className="bg-white dark:bg-gray-900 rounded-3xl overflow-hidden shadow-md hover:shadow-xl border border-gray-100 dark:border-gray-800 cursor-pointer active:scale-[0.99] transition-all"
+              >
+                {/* HEADER — Logo + tipo + distancia (estilo Instagram post) */}
+                <header className="flex items-center gap-3 px-4 py-3">
+                  <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${typeMeta.color} p-[2px] flex-shrink-0`}>
+                    <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 overflow-hidden">
+                      {it.img
+                        ? <img src={it.img} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
+                        : <div className="w-full h-full flex items-center justify-center text-lg">{typeMeta.emoji}</div>
+                      }
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-black text-[15px] text-gray-900 dark:text-white truncate leading-tight">{it.name}</h3>
+                    <p className="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
+                      <span className={`px-1.5 py-0.5 rounded-full text-white text-[9px] font-bold bg-gradient-to-r ${typeMeta.color}`}>
+                        {typeMeta.emoji} {typeMeta.label}
+                      </span>
+                      <MapPin className="w-3 h-3 ml-1" />{it.city}
+                    </p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="bg-pink-50 dark:bg-pink-900/20 rounded-full px-2 py-1">
+                      <p className="text-[10px] font-black text-pink-600 dark:text-pink-300">{it.distance!.toFixed(1)} km</p>
+                    </div>
+                  </div>
+                </header>
+
+                {/* IMAGEN DE LA PUBLICACIÓN — grande, tipo post */}
+                {it.img && (
+                  <div className="relative w-full aspect-[16/9] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
+                    <img src={it.img} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                    {it.rating && (
+                      <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
+                        <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                        <span className="text-white text-xs font-bold">{it.rating}</span>
+                      </div>
+                    )}
+                    {it.date && (
+                      <div className="absolute bottom-3 left-3 bg-white/95 rounded-full px-2.5 py-1 flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-pink-600" />
+                        <span className="text-gray-900 text-[11px] font-bold">{it.date}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* FOOTER — info + CTA */}
+                <footer className="px-4 py-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-xs text-gray-500 flex-1 min-w-0">
+                    {it.genre && (
+                      <span className="flex items-center gap-1 truncate">
+                        <Music className="w-3.5 h-3.5 text-pink-500 flex-shrink-0" />
+                        <span className="font-medium truncate">{it.genre}</span>
+                      </span>
+                    )}
+                  </div>
+                  <button className={`bg-gradient-to-r ${typeMeta.color} text-white text-xs font-black px-4 py-2 rounded-full shadow-lg flex items-center gap-1`}>
+                    Ver
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </button>
+                </footer>
+              </article>
+            );
+          })
+        )}
+      </div>
+
+      {/* ── CITY PICKER MODAL ── */}
+      {showCityPicker && (
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-3" onClick={() => setShowCityPicker(false)}>
+          <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="px-5 pt-5 pb-3 flex items-center justify-between border-b border-gray-100 dark:border-gray-800">
+              <h2 className="font-black text-gray-900 dark:text-white">Elige tu ubicación</h2>
+              <button onClick={() => setShowCityPicker(false)} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-4 space-y-2 overflow-y-auto">
+              <button onClick={handleLocate}
+                className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2 mb-2 active:scale-95">
+                {locating
+                  ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Localizando…</>
+                  : <><Navigation className="w-4 h-4" /> Usar mi ubicación actual</>
+                }
+              </button>
+              <p className="text-[10px] font-bold uppercase text-gray-400 tracking-wider px-2 pt-2">Ciudades populares</p>
+              {POPULAR_CITIES.map(c => (
+                <button key={c} onClick={() => selectCity(c)}
+                  className={`w-full text-left px-4 py-2.5 rounded-xl flex items-center justify-between text-sm font-bold transition-all ${
+                    city === c ? 'bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-300' : 'hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
+                  }`}>
+                  <span className="flex items-center gap-2"><MapPin className="w-4 h-4 opacity-50" />{c}</span>
+                  {city === c && <span className="text-pink-500">✓</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Map shortcut ── */}
+      {position && (
+        <button onClick={() => navigate('/mapa')}
+          className="fixed bottom-20 right-4 z-30 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white px-4 py-3 rounded-full shadow-2xl shadow-pink-500/40 flex items-center gap-2 font-bold text-sm">
+          <Map className="w-4 h-4" /> Ver mapa
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default NearMePage;

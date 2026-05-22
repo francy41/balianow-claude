@@ -16,7 +16,7 @@ const DevRoleSwitcher = import.meta.env.DEV
 
 // Lazy load pages
 const HomePage          = lazy(() => import('./pages/HomePage'));
-const ExplorePage       = lazy(() => import('./pages/ExplorePage'));
+const NearMePage        = lazy(() => import('./pages/NearMePage'));
 const ArtistsPage       = lazy(() => import('./pages/ArtistsPage'));
 const ArtistProfilePage = lazy(() => import('./pages/ArtistProfilePage'));
 const EventsPage        = lazy(() => import('./pages/EventsPage'));
@@ -104,7 +104,8 @@ const App: React.FC = () => {
                 <Routes>
                   {/* ── Main pages ── */}
                   <Route path="/"                    element={<HomePage />} />
-                  <Route path="/explorar"            element={<ExplorePage />} />
+                  <Route path="/cerca"               element={<NearMePage />} />
+                  <Route path="/explorar"            element={<Navigate to="/cerca" replace />} />
                   <Route path="/artistas"            element={<ArtistsPage />} />
                   <Route path="/artistas/:id"        element={<ArtistProfilePage />} />
                   <Route path="/eventos"             element={<EventsPage />} />

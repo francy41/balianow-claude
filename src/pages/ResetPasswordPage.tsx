@@ -24,15 +24,47 @@ const ResetPasswordPage: React.FC = () => {
   const [loading, setLoading]         = useState(false);
   const [done, setDone]               = useState(false);
   const [hasSession, setHasSession]   = useState(false);
+  const [checking, setChecking]       = useState(true);
 
-  // Verify Supabase has a valid recovery session before allowing form submission
+  // Detect Supabase recovery token from URL hash or existing session
   useEffect(() => {
+    // Check URL hash for type=recovery (Supabase puts tokens in hash)
+    const hash = window.location.hash;
+    const params = new URLSearchParams(hash.replace(/^#/, ''));
+    const type = params.get('type');
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+
+    if (type === 'recovery' && accessToken) {
+      // Manually set session from hash tokens so Supabase can process the recovery
+      supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken ?? '' })
+        .then(({ error }) => {
+          if (!error) setHasSession(true);
+        })
+        .finally(() => setChecking(false));
+      return;
+    }
+
+    // Also handle PKCE flow (code in query params)
+    const searchParams = new URLSearchParams(window.location.search);
+    const code = searchParams.get('code');
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code)
+        .then(({ error }) => {
+          if (!error) setHasSession(true);
+        })
+        .finally(() => setChecking(false));
+      return;
+    }
+
+    // Fallback: check existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setHasSession(!!session);
+      setChecking(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') setHasSession(true);
+      if (event === 'PASSWORD_RECOVERY') { setHasSession(true); setChecking(false); }
     });
     return () => subscription.unsubscribe();
   }, []);
@@ -56,6 +88,17 @@ const ResetPasswordPage: React.FC = () => {
       addToast({ message: result.error ?? 'No se pudo actualizar la contraseña. El enlace puede haber expirado.', type: 'error' });
     }
   };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center p-6">
+        <div className="text-center">
+          <div className="text-4xl animate-pulse mb-4">🔐</div>
+          <p className="text-gray-400 text-sm">Verificando enlace…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!hasSession) {
     return (

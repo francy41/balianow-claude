@@ -76,14 +76,15 @@ const DEFAULT_CATEGORIES: CMSCategory[] = [
 ];
 
 const DEFAULT_MENU: CMSMenuItem[] = [
-  { id: 'm-explore',  label: 'Explorador',  to: '/explorar',    icon: '🧭', order: 0, isVisible: true, isExternal: false },
-  { id: 'm-venues',   label: 'Localidades', to: '/venues',      icon: '📍', order: 1, isVisible: true, isExternal: false },
-  { id: 'm-events',   label: 'Eventos',     to: '/eventos',     icon: '📅', order: 2, isVisible: true, isExternal: false },
-  { id: 'm-artists',  label: 'Artistas',    to: '/artistas',    icon: '🎶', order: 3, isVisible: true, isExternal: false },
-  { id: 'm-dancers',  label: 'Bailarines',  to: '/artistas?tipo=dancer', icon: '💃', order: 4, isVisible: true, isExternal: false },
-  { id: 'm-market',   label: 'Marketplace', to: '/marketplace', icon: '🛍️', order: 5, isVisible: true, isExternal: false },
-  { id: 'm-live',     label: 'Clases en vivo', to: '/live',     icon: '🎥', order: 6, isVisible: true, isExternal: false },
-  { id: 'm-chat',     label: 'Comunidad',   to: '/chat',        icon: '💬', order: 7, isVisible: true, isExternal: false },
+  { id: 'm-home',    label: 'Inicio',         to: '/',                       icon: '🏠', order: 0, isVisible: true, isExternal: false },
+  { id: 'm-near',    label: 'Cerca de mí',    to: '/cerca',                  icon: '📍', order: 1, isVisible: true, isExternal: false },
+  { id: 'm-cities',  label: 'Ciudades',       to: '/venues',                 icon: '🏙️', order: 2, isVisible: true, isExternal: false },
+  { id: 'm-events',  label: 'Eventos',        to: '/eventos',                icon: '📅', order: 3, isVisible: true, isExternal: false },
+  { id: 'm-artists', label: 'Artistas',       to: '/artistas',               icon: '🎶', order: 4, isVisible: true, isExternal: false },
+  { id: 'm-dancers', label: 'Bailarines',     to: '/artistas?tipo=dancer',   icon: '💃', order: 5, isVisible: true, isExternal: false },
+  { id: 'm-market',  label: 'Marketplace',    to: '/marketplace',            icon: '🛍️', order: 6, isVisible: true, isExternal: false },
+  { id: 'm-live',    label: 'Clases en vivo', to: '/live',                   icon: '🎥', order: 7, isVisible: true, isExternal: false },
+  { id: 'm-chat',    label: 'Comunidad',      to: '/chat',                   icon: '💬', order: 8, isVisible: true, isExternal: false },
 ];
 
 const DEFAULT_HOME_MODULES: HomeModule[] = [
@@ -327,7 +328,7 @@ export const useCMSStore = create<CMSState>()(
     }),
     {
       name: 'ritmolatino-cms',
-      version: 1,
+      version: 2,
       // Si cambias DEFAULT_*, sube la versión y los datos viejos se descartan
       migrate: () => undefined as any,
     }

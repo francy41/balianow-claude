@@ -58,7 +58,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
       {/* Desktop nav links */}
       <nav className="hidden lg:flex items-center gap-0.5 ml-4">
         {[
-          { label: 'Explorador', to: '/explorar' },
+          { label: 'Cerca de mí', to: '/cerca' },
           { label: 'Mercado',    to: '/marketplace' },
           { label: 'Eventos',    to: '/eventos' },
           { label: 'Artistas',   to: '/artistas' },
@@ -106,7 +106,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
           <div className="flex items-center gap-2">
             <input autoFocus value={search} onChange={e => setSearch(e.target.value)}
               onKeyDown={e => {
-                if (e.key === 'Enter') { navigate(`/explorar?q=${search}`); setSearchOpen(false); }
+                if (e.key === 'Enter') { navigate(`/cerca?q=${search}`); setSearchOpen(false); }
                 if (e.key === 'Escape') setSearchOpen(false);
               }}
               placeholder="Buscar..." className="bg-white/10 border border-pink-500/30 text-white placeholder-gray-500 rounded-lg py-1.5 px-3 text-sm w-44 focus:outline-none focus:ring-2 focus:ring-pink-500/50" />

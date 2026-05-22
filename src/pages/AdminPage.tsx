@@ -15,6 +15,7 @@ import { saveSiteConfigKey } from '../hooks/useSiteConfig';
 import AdminCMS from '../components/AdminCMS';
 import AdminMediaManager from '../components/AdminMediaManager';
 import AdminEditModal, { type EditField } from '../components/AdminEditModal';
+import AdminLocationModal from '../components/AdminLocationModal';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
 import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS } from '../data/mockData';
 
@@ -774,11 +775,18 @@ const UsuariosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const { openEdit } = useAdminEdit();
   const { getMerged } = useAdminOverridesStore();
+  const [showAddVenue, setShowAddVenue] = React.useState(false);
+  const [showAddEvent, setShowAddEvent] = React.useState(false);
   return (
   <div>
     <PageHeader title="Localidades" subtitle="Gestiona los venues y locales de la plataforma" action={
-      <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => addToast({ message: 'Nueva localidad añadida', type: 'success' })}>Añadir localidad</Button>
+      <div className="flex gap-2">
+        <Button variant="dark" icon={<Plus className="w-4 h-4" />} onClick={() => setShowAddEvent(true)}>Nuevo evento</Button>
+        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => setShowAddVenue(true)}>Nueva localidad</Button>
+      </div>
     } />
+    <AdminLocationModal open={showAddVenue} mode="venue" onClose={() => setShowAddVenue(false)} onSaved={() => addToast({ message: '✅ Local guardado en la base de datos', type: 'success' })} />
+    <AdminLocationModal open={showAddEvent} mode="event" onClose={() => setShowAddEvent(false)} onSaved={() => addToast({ message: '✅ Evento guardado en la base de datos', type: 'success' })} />
     <div className="grid grid-cols-3 gap-4 mb-6">
       {[{ label: 'Localidades activas', val: '47' }, { label: 'Ciudades', val: '12' }, { label: 'Pendientes aprobación', val: '3' }].map(s => (
         <div key={s.label} className="card-white p-4 text-center"><p className="text-3xl font-black text-brand-orange">{s.val}</p><p className="text-gray-400 text-sm mt-1">{s.label}</p></div>
@@ -1545,9 +1553,39 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
     }
   };
 
-  const handleVideoFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVideoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Max 50MB para videos
+    if (file.size > 50 * 1024 * 1024) {
+      addToast({ message: 'El video no puede superar 50MB. Usa YouTube o comprime el archivo.', type: 'error' });
+      return;
+    }
+
+    addToast({ message: '📤 Subiendo video a Storage...', type: 'info' });
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Necesitas iniciar sesión');
+
+      const ext = (file.name.split('.').pop() || 'mp4').toLowerCase();
+      const path = `media/hero-video-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('covers').upload(path, file, {
+        upsert: true, cacheControl: '3600', contentType: file.type || 'video/mp4',
+      });
+      if (error) throw error;
+      const { data: { publicUrl } } = supabase.storage.from('covers').getPublicUrl(path);
+      setDraftUrl(publicUrl);
+      setHeroMedia({ type: 'video', url: publicUrl });
+      // Save to Supabase site_config for cross-device sync
+      await saveSiteConfigKey('hero_media', { type: 'video', url: publicUrl });
+      addToast({ message: `✅ Video subido y guardado: ${file.name}`, type: 'success' });
+      return;
+    } catch (err: any) {
+      console.error('Video upload error:', err);
+      addToast({ message: `❌ Error: ${err.message}. Guardando local...`, type: 'warning' });
+    }
+
     const reader = new FileReader();
     reader.onload = (ev) => {
       const dataUrl = ev.target?.result as string;

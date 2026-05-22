@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram } from 'lucide-react';
+import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone } from 'lucide-react';
 import { ARTISTS, EVENTS, VENUES } from '../data/mockData';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, type HeroSliderImage, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
@@ -906,8 +906,8 @@ const HomePage: React.FC = () => {
       {/* ── RADIOS · PLAYLISTS · REDES SOCIALES ── */}
       {isModuleOn('radio') && (
       <section className="mx-4 mt-4 space-y-2">
-        {/* Fila 1: Radio + Playlist (cabeceras compactas, se expanden al tocar) */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* Fila 1: Radio + Playlist + Descarga App */}
+        <div className="grid grid-cols-3 gap-2">
           {/* RADIOS */}
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
             <button onClick={() => setRadiosOpen(v => !v)}
@@ -967,6 +967,24 @@ const HomePage: React.FC = () => {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* DESCARGA APP */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+            <a
+              href="https://lpwwdjujxwxdvyoznehp.supabase.co/storage/v1/object/public/covers/app/bailanow-app.apk"
+              download="BailaNow.apk"
+              className="w-full h-full bg-gradient-to-r from-green-500 to-emerald-600 px-2.5 py-1.5 flex flex-col items-center justify-center gap-1 hover:from-green-600 hover:to-emerald-700 active:scale-95 transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-1">
+                <Smartphone className="w-3 h-3 text-white" />
+                <span className="text-white font-bold text-[11px]">App</span>
+              </div>
+              <div className="flex items-center gap-0.5">
+                <Download className="w-2.5 h-2.5 text-white/80" />
+                <span className="text-white/80 text-[8px] font-medium">Android</span>
+              </div>
+            </a>
           </div>
         </div>
 

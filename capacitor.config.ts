@@ -5,15 +5,16 @@ const config: CapacitorConfig = {
   appName: 'BailaNow',
   webDir: 'dist',
   server: {
-    // Para desarrollo con hot-reload en dispositivo físico, descomenta:
-    // url: 'http://TU_IP_LOCAL:3000',
-    // cleartext: true,
+    // ✅ La APK siempre carga la web en vivo — cualquier cambio en la web
+    // se refleja automáticamente en la app sin necesitar rebuild del APK
+    url: 'https://bailanow-app.vercel.app',
+    cleartext: false,
   },
   plugins: {
     SplashScreen: {
       launchShowDuration: 2500,
       launchAutoHide: true,
-      backgroundColor: '#ffffff',
+      backgroundColor: '#0a0a0a',
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
       showSpinner: false,
@@ -21,8 +22,8 @@ const config: CapacitorConfig = {
       splashImmersive: true,
     },
     StatusBar: {
-      style: 'DEFAULT',
-      backgroundColor: '#FF6B35',
+      style: 'DARK',
+      backgroundColor: '#EC4899',
     },
     Keyboard: {
       resize: 'body',
@@ -33,12 +34,12 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: false,
     captureInput: true,
-    webContentsDebuggingEnabled: false, // true en dev si necesitas debugear
+    webContentsDebuggingEnabled: false,
   },
   ios: {
     contentInset: 'automatic',
     scrollEnabled: true,
-    limitsNavigationsToAppBoundDomains: true,
+    limitsNavigationsToAppBoundDomains: false,
   },
 };
 

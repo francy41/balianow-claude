@@ -17,9 +17,9 @@ interface NavItem {
 
 const NAV: { section: string; items: NavItem[] }[] = [
   {
-    section: 'EXPLORADOR',
+    section: 'CERCA DE MÍ',
     items: [
-      { label: 'Explorador',   icon: <Compass className="w-4 h-4" />,    to: '/explorar' },
+      { label: 'Cerca de mí',  icon: <MapPin className="w-4 h-4" />,     to: '/cerca' },
       { label: 'Ciudades',      icon: <MapPin className="w-4 h-4" />,     to: '/venues' },
       { label: 'Eventos',      icon: <Calendar className="w-4 h-4" />,   to: '/eventos' },
       { label: 'Artistas',     icon: <Music2 className="w-4 h-4" />,     to: '/artistas' },
@@ -93,7 +93,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           {/* CMS-managed menu (top section) */}
           {dynamicMenuItems.length > 0 && (
             <div>
-              <p className="nav-section">NAVEGACIÓN</p>
+              <p className="nav-section">MENÚ</p>
               {dynamicMenuItems.map(item => (
                 <NavLink
                   key={item.id}
@@ -110,7 +110,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
             </div>
           )}
 
-          {NAV.filter(g => g.section !== 'EXPLORADOR' && g.section !== 'CATEGORÍAS').map(group => (
+          {NAV.filter(g => g.section !== 'EXPLORADOR' && g.section !== 'CATEGORÍAS' && g.section !== 'CERCA DE MÍ').map(group => (
             <div key={group.section}>
               <p className="nav-section">{group.section}</p>
               {group.items.map(item => (
