@@ -44,50 +44,64 @@ const ClassesPage: React.FC = () => {
   const [filterOnline, setFilterOnline] = useState<'all' | 'online' | 'presencial'>('all');
   const [selectedClass, setSelectedClass] = useState<ClassOffering | null>(null);
 
-  // Load classes from Supabase + sample fallback
+  // Load classes from Supabase — todo en paralelo con timeout
   useEffect(() => {
+    let cancelled = false;
+    const safety = setTimeout(() => { if (!cancelled) { console.warn('[classes] timeout'); setLoading(false); setClasses(SAMPLE_CLASSES); } }, 6000);
+
     (async () => {
       try {
+        // 1) Cargar offerings con join a vendor profile
         const { data, error } = await supabase
           .from('class_offerings')
-          .select('*')
+          .select('*, profiles!class_offerings_vendor_id_fkey(full_name, avatar_url)')
           .eq('status', 'active')
           .order('created_at', { ascending: false });
-        if (error) throw error;
 
-        // Enriquecer con vendor + next slot
-        const enriched: ClassOffering[] = [];
-        for (const c of (data || [])) {
-          const { data: vendor } = await supabase
-            .from('profiles')
-            .select('full_name, avatar_url')
-            .eq('id', c.vendor_id)
-            .maybeSingle();
-          const { data: slots } = await supabase
-            .from('availability_slots')
-            .select('id, starts_at')
-            .eq('offering_id', c.id)
-            .eq('status', 'available')
-            .gt('starts_at', new Date().toISOString())
-            .order('starts_at')
-            .limit(1);
-          enriched.push({
-            ...c,
-            vendor_name: vendor?.full_name || 'Profesor',
-            vendor_avatar: vendor?.avatar_url || '',
-            next_slot: slots?.[0] || null,
-            slots_count: slots?.length || 0,
-          });
+        if (cancelled) return;
+        console.log('[classes] loaded:', { count: data?.length, error });
+
+        if (error || !data || data.length === 0) {
+          setClasses(SAMPLE_CLASSES);
+          setLoading(false);
+          clearTimeout(safety);
+          return;
         }
-        // Si no hay datos, mostrar ejemplos
-        if (enriched.length === 0) setClasses(SAMPLE_CLASSES);
-        else setClasses(enriched);
+
+        // 2) Cargar TODOS los slots de una vez (1 query)
+        const offeringIds = data.map((c: any) => c.id);
+        const { data: allSlots } = await supabase
+          .from('availability_slots')
+          .select('id, offering_id, starts_at')
+          .in('offering_id', offeringIds)
+          .eq('status', 'available')
+          .gt('starts_at', new Date().toISOString())
+          .order('starts_at');
+
+        if (cancelled) return;
+
+        // 3) Mapear: para cada offering, encontrar su próximo slot
+        const enriched: ClassOffering[] = data.map((c: any) => {
+          const slots = (allSlots || []).filter((s: any) => s.offering_id === c.id);
+          return {
+            ...c,
+            vendor_name: c.profiles?.full_name || 'Profesor',
+            vendor_avatar: c.profiles?.avatar_url || '',
+            next_slot: slots[0] || null,
+            slots_count: slots.length,
+          };
+        });
+
+        setClasses(enriched);
       } catch (err) {
-        console.error('[classes] load error:', err);
-        setClasses(SAMPLE_CLASSES);
+        console.error('[classes] catch:', err);
+        if (!cancelled) setClasses(SAMPLE_CLASSES);
+      } finally {
+        if (!cancelled) { setLoading(false); clearTimeout(safety); }
       }
-      setLoading(false);
     })();
+
+    return () => { cancelled = true; clearTimeout(safety); };
   }, []);
 
   const filtered = useMemo(() => classes.filter(c => {
