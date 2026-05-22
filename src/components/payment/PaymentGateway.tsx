@@ -122,14 +122,20 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
     sellerAvatar: items.find(i => i.sellerId === b.sellerId)?.sellerAvatar ?? '',
   }));
 
-  // Crear stripe intent cuando se elige tarjeta
+  // Crear stripe intent cuando se elige tarjeta — con timeout 4s para no colgar
   useEffect(() => {
     if (!open || method !== 'card' || clientSecret || subtotal <= 0) return;
     setLoadingIntent(true);
     setIntentError('');
-    createStripePaymentIntent({ amount: subtotal, items: paymentItems, userId: user?.id ?? 'guest' })
-      .then(r => setClientSecret(r.clientSecret))
-      .catch(e => setIntentError(e.message))
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Modo demo (sin Stripe configurado)')), 4000)
+    );
+    Promise.race([
+      createStripePaymentIntent({ amount: subtotal, items: paymentItems, userId: user?.id ?? 'guest' }),
+      timeoutPromise,
+    ])
+      .then((r: any) => setClientSecret(r.clientSecret))
+      .catch(e => setIntentError(e.message || 'Stripe en modo demo'))
       .finally(() => setLoadingIntent(false));
   }, [open, method]);
 
@@ -317,25 +323,38 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
 
               {/* ── PAYMENT FORMS ── */}
               <div className="min-h-[140px]">
-                {/* STRIPE */}
+                {/* STRIPE — modo demo siempre disponible */}
                 {method === 'card' && (
                   <div className="space-y-3">
                     {loadingIntent && (
-                      <div className="flex flex-col items-center justify-center py-10 gap-3">
-                        <div className="w-8 h-8 border-3 border-gray-200 border-t-pink-500 rounded-full animate-spin" />
-                        <p className="text-sm text-gray-400">Conectando con Stripe...</p>
-                      </div>
-                    )}
-                    {intentError && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                        <p className="text-sm font-bold text-amber-800 mb-1">⚠️ Stripe en modo demo</p>
-                        <p className="text-xs text-amber-600 mb-3">Configura tus claves de Stripe para aceptar pagos reales.</p>
-                        {/* Demo button mientras no hay Stripe configurado */}
-                        <button onClick={() => handleSuccess('Stripe (Demo)')}
-                          className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black rounded-xl py-3.5 text-sm flex items-center justify-center gap-2 shadow-lg shadow-pink-500/20">
-                          <CreditCard className="w-4 h-4" /> Simular pago de {fmtEur(subtotal)}
+                      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-3 flex items-center gap-3">
+                        <div className="w-5 h-5 border-2 border-pink-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                        <p className="text-xs text-gray-500 flex-1">Verificando pasarela…</p>
+                        <button onClick={() => { setIntentError('Demo'); setLoadingIntent(false); }}
+                          className="text-[10px] text-pink-600 font-bold underline">
+                          Saltar
                         </button>
                       </div>
+                    )}
+                    {/* Botón de simulación SIEMPRE visible para pruebas */}
+                    {!loadingIntent && !clientSecret && (
+                      <>
+                        <div className="bg-gradient-to-br from-amber-50 to-pink-50 border border-amber-200 rounded-2xl p-3 mb-2">
+                          <div className="flex items-start gap-2 mb-2">
+                            <span className="text-lg">🧪</span>
+                            <div>
+                              <p className="text-xs font-bold text-amber-800">Modo de pruebas activo</p>
+                              <p className="text-[11px] text-amber-700">Pago simulado — no se cobra dinero real. Stripe se conectará automáticamente cuando esté configurado.</p>
+                            </div>
+                          </div>
+                        </div>
+                        <button onClick={() => handleSuccess('Stripe Demo')}
+                          className="w-full bg-gradient-to-r from-pink-500 via-fuchsia-600 to-purple-600 text-white font-black rounded-2xl py-4 text-sm flex items-center justify-center gap-2 shadow-2xl shadow-pink-500/30 active:scale-95 transition-all">
+                          <CreditCard className="w-5 h-5" />
+                          <span>Pagar {fmtEur(subtotal)} ahora</span>
+                          <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full ml-1">DEMO</span>
+                        </button>
+                      </>
                     )}
                     {clientSecret && !loadingIntent && (
                       <StripePayment
