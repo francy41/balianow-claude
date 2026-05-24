@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   X, Camera, Upload, User as UserIcon, Mail, MapPin, Phone, Save,
-  Instagram, Youtube, Facebook, Globe, Music2, Twitch, Loader2
+  Instagram, Youtube, Facebook, Globe, Music2, Twitch, Loader2, Share2
 } from 'lucide-react';
 import { useAuthStore, useUIStore, type User, type UserSocials } from '../store/appStore';
 import { supabase, storage } from '../lib/supabase';
@@ -158,13 +158,18 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
         country:        form.country      || null,
         whatsapp:       form.phone        || null,
         avatar_url:     form.avatar       || null,
+        cover_photo:    form.coverPhoto   || null,
         instagram_url:  form.socials?.instagram  || null,
         tiktok_url:     form.socials?.tiktok     || null,
         youtube_url:    form.socials?.youtube    || null,
         website_url:    form.socials?.website    || null,
         facebook_url:   form.socials?.facebook   || null,
+        soundcloud_url: (form.socials as any)?.soundcloud || null,
+        twitch_url:     (form.socials as any)?.twitch     || null,
+        spotify_url:    (form.socials as any)?.spotify    || null,
+        styles:         (form as any).styles || [],
+        tags:           (form as any).tags || [],
       };
-      if (form.coverPhoto) dbUpdate.cover_photo = form.coverPhoto;
 
       const { error } = await supabase
         .from('profiles')
@@ -212,11 +217,14 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
           <button onClick={onClose} className="absolute top-3 right-3 bg-white/20 hover:bg-white/30 text-white rounded-full p-1.5">
             <X className="w-4 h-4" />
           </button>
-          <button onClick={() => coverRef.current?.click()} disabled={uploadingCover}
-            className="absolute bottom-3 right-3 bg-white/90 hover:bg-white text-gray-800 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow disabled:opacity-60">
-            {uploadingCover ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
-            {uploadingCover ? 'Subiendo...' : 'Cambiar portada'}
-          </button>
+          <div className="absolute bottom-3 right-3 flex flex-col items-end gap-1">
+            <button onClick={() => coverRef.current?.click()} disabled={uploadingCover}
+              className="bg-white/90 hover:bg-white text-gray-800 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow disabled:opacity-60">
+              {uploadingCover ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
+              {uploadingCover ? 'Subiendo...' : 'Cambiar portada'}
+            </button>
+            <span className="text-[9px] text-white/80 font-bold bg-black/40 px-2 py-0.5 rounded">📐 1200×400px</span>
+          </div>
           <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={e => handleFileSelect(e.target.files?.[0], 'coverPhoto')} />
 
           {/* Avatar */}
@@ -241,7 +249,22 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
               </button>
               <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={e => handleFileSelect(e.target.files?.[0], 'avatar')} />
             </div>
+            <span className="block text-[9px] text-white font-bold bg-black/40 px-2 py-0.5 rounded mt-1">📐 400×400px</span>
           </div>
+
+          {/* Botón compartir perfil público */}
+          {user?.id && (
+            <button onClick={async () => {
+                const url = `${window.location.origin}/p/${user.id}`;
+                if (navigator.share) {
+                  try { await navigator.share({ title: `${form.name} en BailaNow`, url }); return; } catch {}
+                }
+                try { await navigator.clipboard.writeText(url); addToast({ message: '✅ Enlace copiado: ' + url, type: 'success' }); } catch {}
+              }}
+              className="absolute top-3 right-14 bg-white/90 hover:bg-white text-pink-600 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow">
+              <Share2 className="w-3.5 h-3.5" /> Compartir
+            </button>
+          )}
         </div>
 
         {/* Tabs */}
@@ -292,6 +315,58 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
                   maxLength={500}
                 />
                 <p className="text-[10px] text-gray-400 text-right mt-1">{(form.bio || '').length}/500</p>
+              </div>
+
+              {/* Estilos de baile (chips clickeables) — vincula con filtros del proyecto */}
+              <div>
+                <label className="text-xs font-bold text-gray-600 uppercase tracking-wide block mb-2">
+                  🎵 Estilos de baile
+                  <span className="text-[10px] text-gray-400 ml-1 normal-case">— Aparecerás en estos filtros</span>
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {['Bachata','Salsa','Kizomba','Reggaeton','Merengue','Cumbia','Latin Mix','Bachata Sensual','Salsa Cubana','Tango','Mambo','Cha-cha'].map(s => {
+                    const styles = (form as any).styles || [];
+                    const active = styles.includes(s);
+                    return (
+                      <button key={s} type="button" onClick={() => {
+                        const cur: string[] = (form as any).styles || [];
+                        const next = active ? cur.filter(x => x !== s) : [...cur, s];
+                        setForm({ ...form, styles: next } as any);
+                      }}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-full transition-all ${
+                          active
+                            ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white shadow-md scale-105'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-pink-50'
+                        }`}>
+                        {active && '✓ '}{s}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Tags (hashtags personalizados) */}
+              <div>
+                <label className="text-xs font-bold text-gray-600 uppercase tracking-wide block mb-2">
+                  #️⃣ Etiquetas personalizadas
+                  <span className="text-[10px] text-gray-400 ml-1 normal-case">— Separadas por coma</span>
+                </label>
+                <input
+                  value={((form as any).tags || []).join(', ')}
+                  onChange={e => {
+                    const tags = e.target.value.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean);
+                    setForm({ ...form, tags } as any);
+                  }}
+                  placeholder="madrid, profesor, principiantes, romantica"
+                  className="input-field"
+                />
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {((form as any).tags || []).map((t: string) => (
+                    <span key={t} className="text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-600 px-2 py-0.5 rounded-full">
+                      #{t}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           )}

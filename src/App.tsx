@@ -21,6 +21,7 @@ const HomePage          = lazy(() => import('./pages/HomePage'));
 const NearMePage        = lazy(() => import('./pages/NearMePage'));
 const ClassesPage       = lazy(() => import('./pages/ClassesPage'));
 const ClassRoomPage     = lazy(() => import('./pages/ClassRoomPage'));
+const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'));
 const ArtistsPage       = lazy(() => import('./pages/ArtistsPage'));
 const ArtistProfilePage = lazy(() => import('./pages/ArtistProfilePage'));
 const EventsPage        = lazy(() => import('./pages/EventsPage'));
@@ -127,6 +128,8 @@ const App: React.FC = () => {
                   <Route path="/cerca"               element={<NearMePage />} />
                   <Route path="/clases"              element={<ClassesPage />} />
                   <Route path="/clase/:bookingId"    element={<ProtectedRoute><ClassRoomPage /></ProtectedRoute>} />
+                  <Route path="/p/:slug"             element={<PublicProfilePage />} />
+                  <Route path="/u/:slug"             element={<PublicProfilePage />} />
                   <Route path="/explorar"            element={<Navigate to="/cerca" replace />} />
                   <Route path="/artistas"            element={<ArtistsPage />} />
                   <Route path="/artistas/:id"        element={<ArtistProfilePage />} />
