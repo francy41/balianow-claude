@@ -41,7 +41,7 @@ export const computeCommissionRate = (
   return Math.round(final * 1000) / 1000;
 };
 
-export type UserRole = 'user' | 'artist' | 'dj' | 'dancer' | 'venue' | 'admin' | 'vendor' | 'superadmin';
+export type UserRole = 'user' | 'artist' | 'dj' | 'dancer' | 'venue' | 'admin' | 'superadmin' | 'instructor' | 'business' | 'promoter';
 
 export interface UserSocials {
   instagram?: string;

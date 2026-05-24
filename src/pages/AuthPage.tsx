@@ -18,13 +18,14 @@ const ROLES: { id: UserRole; label: string; icon: string; desc: string; badge?: 
   { id: 'dj',      label: 'DJ',                   icon: '🎧', desc: 'Promociona tus sets y consigue bookings' },
   { id: 'dancer',  label: 'Bailarín/a',            icon: '💃', desc: 'Muestra tu arte y consigue shows' },
   { id: 'artist',  label: 'Artista / Banda',       icon: '🎺', desc: 'Publica tus servicios y actúa' },
-  { id: 'venue',   label: 'Venue / Local',         icon: '🏛️', desc: 'Gestiona tu espacio y eventos' },
-  { id: 'vendor',  label: 'Vendedor',              icon: '🏪', desc: 'Vende servicios, cursos y productos latinos', badge: 'NUEVO' },
+  { id: 'venue',     label: 'Venue / Local',       icon: '🏛️', desc: 'Gestiona tu espacio y eventos' },
+  { id: 'instructor',label: 'Profesor/a',          icon: '🎓', desc: 'Da clases online y workshops' },
+  { id: 'business',  label: 'Vendedor / Empresa',  icon: '🏪', desc: 'Vende servicios, cursos y productos latinos', badge: 'NUEVO' },
 ];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PASSWORD_RE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
-const ALLOWED_ROLES: UserRole[] = ['user', 'dj', 'dancer', 'artist', 'venue', 'vendor'];
+const ALLOWED_ROLES: UserRole[] = ['user', 'dj', 'dancer', 'artist', 'venue', 'instructor', 'business', 'promoter'];
 
 const CITIES = [
   'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Bilbao', 'Málaga',
