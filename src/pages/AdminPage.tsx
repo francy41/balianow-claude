@@ -2739,11 +2739,17 @@ const AdministradoresSection: React.FC<{ addToast: Function; isSuperAdmin: boole
 
   const load = async () => {
     setLoading(true);
-    const [{ data: adminData }, { data: invData }] = await Promise.all([
-      supabase.from('profiles').select('id,name,email,avatar,role,created_at').in('role', ['admin','superadmin']).order('role', { ascending: false }),
+    const [{ data: adminData, error: adminErr }, { data: invData }] = await Promise.all([
+      supabase.from('profiles').select('id,full_name,email,avatar_url,role,created_at').in('role', ['admin','superadmin']).order('role', { ascending: false }),
       supabase.from('admin_invitations').select('id,email,role,expires_at,used_at,created_at').order('created_at', { ascending: false }).limit(20),
     ]);
-    setAdmins(adminData ?? []);
+    if (adminErr) console.error('[admin] load admins error:', adminErr);
+    // Map to interface (name → full_name, avatar → avatar_url)
+    const mapped = (adminData ?? []).map((a: any) => ({
+      id: a.id, name: a.full_name || a.email?.split('@')[0] || 'Admin',
+      email: a.email, avatar: a.avatar_url || '', role: a.role, created_at: a.created_at,
+    }));
+    setAdmins(mapped);
     setInvitations(invData ?? []);
     setLoading(false);
   };
@@ -2751,26 +2757,30 @@ const AdministradoresSection: React.FC<{ addToast: Function; isSuperAdmin: boole
   useEffect(() => { load(); }, []);
 
   const handleSendInvite = async () => {
-    if (!inviteEmail.trim()) return;
+    const email = inviteEmail.trim().toLowerCase();
+    if (!email) return;
     setSending(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-admin-invite`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({ email: inviteEmail.trim(), role: inviteRole }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? 'Error');
-      addToast({ type: 'success', message: `✅ Invitación enviada a ${inviteEmail}` });
+      // 1) Si el usuario YA existe → directamente le subimos el rol
+      const { data: existing } = await supabase.from('profiles').select('id,full_name').eq('email', email).maybeSingle();
+      if (existing) {
+        const { error: upErr } = await supabase.from('profiles').update({ role: inviteRole }).eq('id', existing.id);
+        if (upErr) throw upErr;
+        addToast({ type: 'success', message: `✅ ${existing.full_name || email} ahora es ${inviteRole}` });
+      } else {
+        // 2) Si NO existe → crear invitación pendiente
+        const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+        const { error: invErr } = await supabase.from('admin_invitations').insert({
+          email, role: inviteRole, expires_at: expiresAt,
+        });
+        if (invErr) throw invErr;
+        addToast({ type: 'success', message: `✅ Invitación creada para ${email} (válida 48h)` });
+      }
       setInviteEmail('');
       load();
     } catch (err: any) {
-      addToast({ type: 'error', message: err.message });
+      console.error('[admin] invite error:', err);
+      addToast({ type: 'error', message: `❌ ${err.message}` });
     } finally {
       setSending(false);
     }
