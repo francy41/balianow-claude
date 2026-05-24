@@ -820,7 +820,11 @@ const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
         v.isPremium ? <Badge variant="orange">Premium</Badge> : <Badge variant="gray">Básico</Badge>,
         <div className="flex gap-1">
           <button onClick={() => openEdit({ entity: 'venue', title: v.name, item: v, fields: FIELDS_VENUE })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
-          <button onClick={() => addToast({ message: `${v.name} eliminado`, type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
+          <button onClick={async () => {
+            if (!confirm(`¿Eliminar el local "${v.name}"?`)) return;
+            const { error } = await supabase.from('venues').delete().eq('id', v.id);
+            addToast({ message: error ? `Error: ${error.message}` : `✅ ${v.name} eliminado de BD`, type: error ? 'error' : 'success' });
+          }} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
         </div>
       ])}
     />
@@ -956,7 +960,11 @@ const EventosSection: React.FC<{ addToast: Function; navigate: Function }> = ({ 
         <div className="flex gap-1">
           <button onClick={() => navigate(`/eventos/${e.id}`)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
           <button onClick={() => openEdit({ entity: 'event', title: e.title, item: e, fields: FIELDS_EVENT })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
-          <button onClick={() => addToast({ message: 'Evento eliminado', type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
+          <button onClick={async () => {
+            if (!confirm(`¿Eliminar el evento "${e.title}"?`)) return;
+            const { error } = await supabase.from('events').delete().eq('id', e.id);
+            addToast({ message: error ? `Error: ${error.message}` : `✅ "${e.title}" eliminado de BD`, type: error ? 'error' : 'success' });
+          }} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
         </div>
       ])}
     />
@@ -1992,6 +2000,7 @@ const ROLE_CONFIG = [
 ];
 
 const RolesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const navigate = useNavigate();
   const [profiles, setProfiles] = useState<SupaProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedRole, setExpandedRole] = useState<string | null>(null);
@@ -2174,7 +2183,10 @@ const RolesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
                                 {user.location && <p className="text-[10px] text-gray-400 mt-0.5">📍 {user.location}</p>}
                               </div>
                               <div className="flex gap-1 flex-shrink-0">
-                                <button onClick={() => startEdit(user)} className="p-1.5 rounded-lg hover:bg-pink-100 text-gray-400 hover:text-brand-orange transition-colors" title="Editar">
+                                <button onClick={() => navigate(`/artistas/${user.id}`)} className="p-1.5 rounded-lg hover:bg-blue-100 text-gray-400 hover:text-blue-500 transition-colors" title="Ver perfil público">
+                                  <Eye className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => startEdit(user)} className="p-1.5 rounded-lg hover:bg-pink-100 text-gray-400 hover:text-brand-orange transition-colors" title="Editar (admin)">
                                   <Edit className="w-3.5 h-3.5" />
                                 </button>
                                 <button onClick={() => deleteUser(user)} className="p-1.5 rounded-lg hover:bg-red-100 text-gray-400 hover:text-red-500 transition-colors" title="Eliminar">
@@ -2410,19 +2422,41 @@ const PatrocinadoresSection: React.FC<{ addToast: Function }> = ({ addToast }) =
 
   const setF = (k: keyof Sponsor, v: any) => setForm(p => ({ ...p, [k]: v }));
 
+  // Sync sponsors to Supabase site_config (cross-device)
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase.from('site_config').select('value').eq('key', 'sponsors').maybeSingle();
+        if (data?.value && Array.isArray(data.value) && data.value.length > 0) {
+          // Replace local store with BD data
+          useSponsorsStore.setState({ sponsors: data.value });
+          console.log('[admin] sponsors loaded from BD:', data.value.length);
+        }
+      } catch (e) { console.error('[admin] sponsors load error:', e); }
+    })();
+  }, []);
+
+  const persistSponsors = async (next: Sponsor[]) => {
+    await saveSiteConfigKey('sponsors', next);
+  };
+
   const openNew = () => { setEditId(null); setForm({ name:'', tagline:'', logo:'', color:'#E11D48', link:'', badge:'🏆 Patrocinador', type:'venue', active:true, isPremium:false, city:'', website:'', phone:'', email:'', description:'' }); setShowForm(true); };
   const openEdit = (sp: Sponsor) => { setEditId(sp.id); setForm(sp); setShowForm(true); };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name?.trim()) { addToast({ message: 'El nombre es obligatorio', type: 'error' }); return; }
     if (!form.link?.trim()) { addToast({ message: 'El enlace es obligatorio', type: 'error' }); return; }
+    let nextSponsors: Sponsor[];
     if (editId) {
       updateSponsor(editId, form as Partial<Sponsor>);
-      addToast({ message: 'Patrocinador actualizado ✓', type: 'success' });
+      nextSponsors = sponsors.map(sp => sp.id === editId ? { ...sp, ...(form as Partial<Sponsor>) } as Sponsor : sp);
+      addToast({ message: '✅ Patrocinador actualizado en BD', type: 'success' });
     } else {
-      addSponsor(form as Omit<Sponsor, 'id' | 'createdAt'>);
-      addToast({ message: 'Patrocinador añadido ✓', type: 'success' });
+      const newSp = addSponsor(form as Omit<Sponsor, 'id' | 'createdAt'>);
+      nextSponsors = [...sponsors, newSp];
+      addToast({ message: '✅ Patrocinador añadido en BD', type: 'success' });
     }
+    await persistSponsors(nextSponsors);
     setShowForm(false);
   };
 
@@ -2658,7 +2692,12 @@ const PatrocinadoresSection: React.FC<{ addToast: Function }> = ({ addToast }) =
               <button onClick={() => openEdit(sp)} className="w-8 h-8 rounded-xl bg-blue-50 text-blue-500 hover:bg-blue-100 flex items-center justify-center transition-all">
                 <Edit className="w-4 h-4" />
               </button>
-              <button onClick={() => { removeSponsor(sp.id); addToast({ message: 'Patrocinador eliminado', type: 'error' }); }}
+              <button onClick={async () => {
+                  if (!confirm(`¿Eliminar a "${sp.name}"?`)) return;
+                  removeSponsor(sp.id);
+                  await persistSponsors(sponsors.filter(s => s.id !== sp.id));
+                  addToast({ message: '✅ Patrocinador eliminado de BD', type: 'success' });
+                }}
                 className="w-8 h-8 rounded-xl bg-red-50 text-red-400 hover:bg-red-100 flex items-center justify-center transition-all">
                 <Trash2 className="w-4 h-4" />
               </button>
