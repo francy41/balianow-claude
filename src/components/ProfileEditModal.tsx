@@ -7,6 +7,8 @@ import { useAuthStore, useUIStore, type User, type UserSocials } from '../store/
 import { supabase, storage } from '../lib/supabase';
 import { uploadImage as uploadImageHelper } from '../lib/uploadHelper';
 import { Button } from './ui';
+import ImageCropperModal from './ImageCropperModal';
+import SocialLinksEditor from './SocialLinksEditor';
 
 interface Props {
   open: boolean;
@@ -34,6 +36,9 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
   const [uploadingCover, setUploadingCover] = useState(false);
   const avatarRef = useRef<HTMLInputElement>(null);
   const coverRef  = useRef<HTMLInputElement>(null);
+  // Crop editor state
+  const [cropFile, setCropFile] = useState<File | null>(null);
+  const [cropField, setCropField] = useState<'avatar' | 'coverPhoto'>('avatar');
 
   useEffect(() => { if (user) setForm(user); }, [user]);
   if (!open || !user) return null;
@@ -76,15 +81,24 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
       reader.readAsDataURL(file);
     });
 
-  const handleFile = async (file: File | undefined, field: 'avatar' | 'coverPhoto') => {
+  // Cuando el usuario selecciona file → abrir cropper
+  const handleFileSelect = (file: File | undefined, field: 'avatar' | 'coverPhoto') => {
     if (!file) return;
-    console.log('[avatar] file selected:', { name: file.name, size: file.size, type: file.type, field });
     if (!file.type.startsWith('image/')) {
       addToast({ message: 'Solo imágenes (jpg, png, webp...)', type: 'error' }); return;
     }
     if (file.size > 10 * 1024 * 1024) {
       addToast({ message: 'Imagen demasiado grande (max 10MB)', type: 'error' }); return;
     }
+    setCropField(field);
+    setCropFile(file);  // Esto abre el cropper modal
+  };
+
+  // Cuando el cropper devuelve el File editado → subir
+  const handleCropDone = async (file: File) => {
+    const field = cropField;
+    setCropFile(null);  // cerrar cropper
+    console.log('[avatar] cropped file ready:', { size: file.size, field });
     if (field === 'avatar') setUploadingAvatar(true);
     else setUploadingCover(true);
 
@@ -203,7 +217,7 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
             {uploadingCover ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
             {uploadingCover ? 'Subiendo...' : 'Cambiar portada'}
           </button>
-          <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={e => handleFile(e.target.files?.[0], 'coverPhoto')} />
+          <input ref={coverRef} type="file" accept="image/*" className="hidden" onChange={e => handleFileSelect(e.target.files?.[0], 'coverPhoto')} />
 
           {/* Avatar */}
           <div className="absolute -bottom-10 left-6">
@@ -225,7 +239,7 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
                 className="absolute -bottom-1 -right-1 bg-brand-orange hover:bg-brand-orange-dark text-white p-1.5 rounded-full shadow disabled:opacity-60">
                 <Camera className="w-3.5 h-3.5" />
               </button>
-              <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={e => handleFile(e.target.files?.[0], 'avatar')} />
+              <input ref={avatarRef} type="file" accept="image/*" className="hidden" onChange={e => handleFileSelect(e.target.files?.[0], 'avatar')} />
             </div>
           </div>
         </div>
@@ -283,30 +297,10 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
           )}
 
           {tab === 'socials' && (
-            <div className="space-y-2">
-              <p className="text-xs text-gray-500 mb-3">Conecta tus redes para que la gente te descubra.</p>
-              {SOCIAL_FIELDS.map(s => (
-                <div key={s.key} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                  <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${s.color} text-white flex items-center justify-center flex-shrink-0`}>
-                    {s.icon}
-                  </div>
-                  <div className="flex-1">
-                    <label className="text-xs font-bold text-gray-700">{s.label}</label>
-                    <input
-                      value={form.socials?.[s.key] || ''}
-                      onChange={e => setSocial(s.key, e.target.value)}
-                      placeholder={s.placeholder}
-                      className="w-full bg-transparent text-sm text-gray-800 placeholder-gray-400 focus:outline-none mt-0.5"
-                    />
-                  </div>
-                  {form.socials?.[s.key] && (
-                    <button onClick={() => setSocial(s.key, '')} className="text-gray-400 hover:text-red-500">
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
+            <SocialLinksEditor
+              socials={form.socials}
+              onChange={(socials) => setForm(prev => ({ ...prev, socials }))}
+            />
           )}
 
           {tab === 'photos' && (
@@ -366,6 +360,17 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
           </div>
         </div>
       </div>
+
+      {/* Editor de imagen (crop + zoom) */}
+      <ImageCropperModal
+        open={!!cropFile}
+        imageFile={cropFile}
+        aspect={cropField === 'avatar' ? 'square' : '3:1'}
+        shape={cropField === 'avatar' ? 'circle' : 'rect'}
+        outputSize={cropField === 'avatar' ? 400 : 1200}
+        onClose={() => setCropFile(null)}
+        onSave={handleCropDone}
+      />
     </div>
   );
 };
