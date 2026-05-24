@@ -52,7 +52,7 @@ const DEFAULTS: Required<UploadOptions> = {
   maxSizeMB: 50,
   allowedTypes: ['image/*', 'video/*'],
   base64Fallback: true,
-  timeoutMs: 60000,
+  timeoutMs: 12000,  // 12s max para Storage upload
 };
 
 function matchesType(file: File, patterns: string[]): boolean {

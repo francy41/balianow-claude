@@ -78,20 +78,39 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
 
   const handleFile = async (file: File | undefined, field: 'avatar' | 'coverPhoto') => {
     if (!file) return;
+    console.log('[avatar] file selected:', { name: file.name, size: file.size, type: file.type, field });
     if (!file.type.startsWith('image/')) {
       addToast({ message: 'Solo imágenes (jpg, png, webp...)', type: 'error' }); return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      addToast({ message: 'Imagen demasiado grande (max 10MB)', type: 'error' }); return;
     }
     if (field === 'avatar') setUploadingAvatar(true);
     else setUploadingCover(true);
 
+    // Safety timeout: si tarda más de 15s, abortar spinner
+    const safety = setTimeout(() => {
+      console.warn('[avatar] safety timeout 15s — releasing spinner');
+      if (field === 'avatar') setUploadingAvatar(false);
+      else setUploadingCover(false);
+      addToast({ message: '⏱ Upload tardó demasiado. Reintenta.', type: 'warning' });
+    }, 15000);
+
     try {
+      console.log('[avatar] starting upload...');
       const url = await uploadImage(file, field);
+      console.log('[avatar] upload result:', url ? `OK (${url.slice(0, 60)}...)` : 'FAILED');
+      clearTimeout(safety);
       if (url) {
         setForm(prev => ({ ...prev, [field]: url }));
-        addToast({ message: `${field === 'avatar' ? 'Foto de perfil' : 'Portada'} subida ✓`, type: 'success' });
+        addToast({ message: `✅ ${field === 'avatar' ? 'Foto de perfil' : 'Portada'} subida`, type: 'success' });
+      } else {
+        addToast({ message: '⚠ Imagen no se pudo subir', type: 'error' });
       }
     } catch (err: any) {
-      addToast({ message: `Error al subir imagen: ${err.message}`, type: 'error' });
+      clearTimeout(safety);
+      console.error('[avatar] error:', err);
+      addToast({ message: `Error: ${err.message || 'desconocido'}`, type: 'error' });
     } finally {
       if (field === 'avatar') setUploadingAvatar(false);
       else setUploadingCover(false);
