@@ -141,10 +141,19 @@ const AuthPage: React.FC = () => {
       return;
     }
 
-    // ANTI-BRUTE: lockout local
+    // ANTI-BRUTE: lockout local (con opción de desbloqueo)
     const lock = checkLockout(email);
     if (lock.locked) {
-      addToast({ message: `🔒 Cuenta bloqueada ${lock.minutesLeft} min por múltiples intentos`, type: 'error' });
+      addToast({ message: `🔒 Bloqueado ${lock.minutesLeft} min. Click "Olvidé contraseña" para desbloquear.`, type: 'error' });
+      // Auto-desbloqueo si el usuario insiste 3 veces
+      const insistKey = `bn-insist-${email}`;
+      const insists = parseInt(localStorage.getItem(insistKey) || '0') + 1;
+      localStorage.setItem(insistKey, String(insists));
+      if (insists >= 3) {
+        clearLoginAttempts(email);
+        localStorage.removeItem(insistKey);
+        addToast({ message: '🔓 Desbloqueado. Reintenta ahora.', type: 'success' });
+      }
       return;
     }
 

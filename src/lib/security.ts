@@ -56,8 +56,8 @@ export function sanitizeText(input: unknown, maxLength = 500): string {
 //   ANTI-BRUTE-FORCE: lockout local después de 5 intentos
 // ═════════════════════════════════════════════════════════════════
 const LOCKOUT_KEY = 'bn-login-attempts';
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_MINUTES = 15;
+const MAX_ATTEMPTS = 10;   // 10 intentos antes de bloquear
+const LOCKOUT_MINUTES = 5; // Solo 5 min (no 15)
 
 interface LockoutState { attempts: number; lockedUntil?: number; lastAttempt: number; }
 
