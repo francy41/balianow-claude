@@ -18,10 +18,22 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file('../bailanow-release.keystore')
-            storePassword 'BailaNow2024!'
-            keyAlias 'bailanow'
-            keyPassword 'BailaNow2024!'
+            // Leer credenciales desde key.properties (NO commitear ese archivo)
+            // Fallback: variables de entorno para CI/CD
+            def keystorePropertiesFile = rootProject.file("key.properties")
+            def keystoreProperties = new Properties()
+            if (keystorePropertiesFile.exists()) {
+                keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+                storeFile file(keystoreProperties['storeFile'] ?: '../bailanow-release.keystore')
+                storePassword keystoreProperties['storePassword']
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+            } else if (System.getenv('KEYSTORE_PASSWORD')) {
+                storeFile file('../bailanow-release.keystore')
+                storePassword System.getenv('KEYSTORE_PASSWORD')
+                keyAlias System.getenv('KEY_ALIAS') ?: 'bailanow'
+                keyPassword System.getenv('KEY_PASSWORD')
+            }
         }
     }
     buildTypes {

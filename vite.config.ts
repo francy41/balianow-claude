@@ -1,12 +1,43 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-export default defineConfig({
-  // base '/' para web/Vercel; Capacitor usa 'dist/' directamente
+export default defineConfig(({ mode }) => ({
   base: '/',
   plugins: [react()],
   server: {
     port: parseInt(process.env.PORT || '3000'),
-    host: true
+    host: true,
   },
-})
+  build: {
+    // ── PRODUCTION HARDENING ──────────────────────────────────
+    sourcemap: false,                    // No exponer mapping a TS
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: mode === 'production',   // Quita console.log en prod
+        drop_debugger: true,
+        pure_funcs: mode === 'production' ? ['console.log', 'console.info', 'console.debug'] : [],
+      },
+      format: {
+        comments: false,                  // Quita comentarios
+      },
+      mangle: {
+        safari10: true,
+      },
+    },
+    rollupOptions: {
+      output: {
+        // Nombres aleatorios para los chunks (más difícil de mapear)
+        chunkFileNames: 'assets/[hash].js',
+        entryFileNames: 'assets/[hash].js',
+        assetFileNames: 'assets/[hash][extname]',
+      },
+    },
+    target: 'es2020',
+  },
+  esbuild: {
+    legalComments: 'none',
+    // Quita console.* y debugger en producción
+    drop: mode === 'production' ? ['console', 'debugger'] : [],
+  },
+}))
