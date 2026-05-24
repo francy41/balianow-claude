@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore, useUIStore, type User, type UserSocials } from '../store/appStore';
 import { supabase, storage } from '../lib/supabase';
+import { uploadImage as uploadImageHelper } from '../lib/uploadHelper';
 import { Button } from './ui';
 
 interface Props {
@@ -37,22 +38,15 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
   useEffect(() => { if (user) setForm(user); }, [user]);
   if (!open || !user) return null;
 
-  // ── Upload image to Supabase Storage ──────────────────────────
+  // ── Upload image (helper unificado: Supabase → Cloudinary → base64) ──
   const uploadImage = async (file: File, field: 'avatar' | 'coverPhoto'): Promise<string | null> => {
-    const bucket = 'avatars';
-    const ext    = file.name.split('.').pop() || 'jpg';
-    const path   = `${user.id}/${field}-${Date.now()}.${ext}`;
-
-    // Resize first
+    // Resize primero para no enviar archivos enormes
     const resized = await resizeImage(file, field === 'avatar' ? 400 : 1200, field === 'avatar' ? 400 : 400);
-
-    const { url, error } = await storage.upload(bucket, path, resized);
-    if (error || !url) {
-      console.error('Upload error:', error);
-      // Fallback to base64 if storage not available
-      return await fileToBase64(file);
-    }
-    return url;
+    const folder = field === 'avatar' ? `avatars/${user.id}` : `covers/${user.id}`;
+    const r = await uploadImageHelper(resized, folder);
+    if (r.url) return r.url;
+    // último recurso: base64
+    return await fileToBase64(file);
   };
 
   const resizeImage = (file: File, maxW: number, maxH: number): Promise<File> =>
