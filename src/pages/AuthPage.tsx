@@ -11,6 +11,10 @@ import {
   supabaseResetPassword,
   supabaseResendVerification,
 } from '../hooks/useSupabaseAuth';
+import {
+  checkLockout, recordFailedLogin, clearLoginAttempts,
+  isHoneypotTriggered, HONEYPOT_FIELD, checkClientRateLimit, passwordStrength,
+} from '../lib/security';
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const ROLES: { id: UserRole; label: string; icon: string; desc: string; badge?: string }[] = [
@@ -77,6 +81,7 @@ const AuthPage: React.FC = () => {
   // Login fields
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [honeypot, setHoneypot] = useState('');  // 🍯 anti-bot
 
   // Register fields
   const [regName, setRegName] = useState('');
@@ -123,14 +128,35 @@ const AuthPage: React.FC = () => {
     // On success the browser navigates away — no need to setGoogleLoading(false)
   };
 
-  // ── Email login ────────────────────────────────────────────
+  // ── Email login (con lockout + honeypot + rate limit) ───────
   const handleLogin = async () => {
     const email = loginEmail.trim().toLowerCase();
     if (!email || !loginPassword) { addToast({ message: 'Completa todos los campos', type: 'error' }); return; }
     if (!EMAIL_RE.test(email)) { addToast({ message: 'El email no es válido', type: 'error' }); return; }
 
+    // ANTI-BOT: honeypot
+    if (isHoneypotTriggered(honeypot)) {
+      console.warn('[security] honeypot triggered on login');
+      addToast({ message: 'Detección de seguridad activada', type: 'error' });
+      return;
+    }
+
+    // ANTI-BRUTE: lockout local
+    const lock = checkLockout(email);
+    if (lock.locked) {
+      addToast({ message: `🔒 Cuenta bloqueada ${lock.minutesLeft} min por múltiples intentos`, type: 'error' });
+      return;
+    }
+
+    // RATE LIMIT cliente
+    if (!checkClientRateLimit('login', 10)) {
+      addToast({ message: '⏱ Demasiados intentos. Espera 1 minuto.', type: 'error' });
+      return;
+    }
+
     const supa = await supabaseLogin(email, loginPassword);
     if (supa.success) {
+      clearLoginAttempts(email);  // reset lockout en login exitoso
       addToast({ message: '¡Bienvenido de vuelta!', type: 'success' });
       const { user: loggedUser } = useAuthStore.getState();
       if (loggedUser?.role === 'admin' || loggedUser?.role === 'superadmin') {
@@ -145,22 +171,19 @@ const AuthPage: React.FC = () => {
       setView('verify');
       return;
     }
-    // Demo fallback (local dev / mock users)
-    const ok = await login(email, loginPassword);
-    if (ok) {
-      addToast({ message: '¡Bienvenido!', type: 'success' });
-      const { user: loggedUser } = useAuthStore.getState();
-      if (loggedUser?.role === 'admin' || loggedUser?.role === 'superadmin') {
-        navigate('/admin');
-      } else {
-        navigate('/dashboard');
-      }
-    } else {
-      addToast({ message: supa.error ?? 'Email o contraseña incorrectos', type: 'error' });
+    // Login falló → registrar intento
+    const result = recordFailedLogin(email);
+    if (result.locked) {
+      addToast({ message: `🔒 Cuenta bloqueada ${result.minutesLeft} min. Demasiados intentos fallidos.`, type: 'error' });
+      return;
     }
+    addToast({
+      message: `Email o contraseña incorrectos. ${result.attemptsLeft} intento${result.attemptsLeft !== 1 ? 's' : ''} restante${result.attemptsLeft !== 1 ? 's' : ''}.`,
+      type: 'error',
+    });
   };
 
-  // ── Register ───────────────────────────────────────────────
+  // ── Register (con honeypot + rate limit) ────────────────────
   const handleRegister = async () => {
     const email = regEmail.trim().toLowerCase();
     const name  = regName.trim().slice(0, 100);
@@ -172,6 +195,17 @@ const AuthPage: React.FC = () => {
       return;
     }
     if (!ALLOWED_ROLES.includes(selectedRole)) { addToast({ message: 'Tipo de cuenta no válido', type: 'error' }); return; }
+
+    // ANTI-BOT
+    if (isHoneypotTriggered(honeypot)) {
+      console.warn('[security] honeypot triggered on register');
+      addToast({ message: 'Detección de seguridad activada', type: 'error' });
+      return;
+    }
+    if (!checkClientRateLimit('register', 3)) {
+      addToast({ message: '⏱ Solo 3 registros por minuto. Espera un momento.', type: 'error' });
+      return;
+    }
 
     const supa = await supabaseRegister(email, regPassword, { name, role: selectedRole, city: regCity.trim() || 'Madrid' });
     if (supa.success) {
@@ -340,6 +374,14 @@ const AuthPage: React.FC = () => {
             </button>
 
             <OrDivider />
+
+            {/* ── HONEYPOT (invisible para humanos, visible para bots) ── */}
+            <div style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }} aria-hidden="true">
+              <label htmlFor={HONEYPOT_FIELD}>No rellenes este campo</label>
+              <input type="text" id={HONEYPOT_FIELD} name={HONEYPOT_FIELD}
+                tabIndex={-1} autoComplete="off"
+                value={honeypot} onChange={e => setHoneypot(e.target.value)} />
+            </div>
 
             {/* ── LOGIN FORM ── */}
             {view === 'login' && (
