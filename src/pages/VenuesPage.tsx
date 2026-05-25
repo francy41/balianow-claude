@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MapPin, Users, Clock, CheckCircle, Star, MessageSquare, Bell, Heart, Share2, Calendar, Music2, Instagram, Youtube, Facebook, Globe, Headphones, Video } from 'lucide-react';
 import { VENUES } from '../data/mockData';
@@ -7,6 +7,43 @@ import { Badge, StarRating, SearchBar, FilterChips, EmptyState, Button, Avatar }
 import SearchTriggerBar from '../components/SearchTriggerBar';
 import { useAuthStore, useUIStore, getYouTubeId } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
+import { supabase } from '../lib/supabase';
+
+// ── Carga venues reales de Supabase + merge con mock para no romper detalle ──
+const cleanCity = (s: string | null | undefined) => (s || '').split(/[,\-\/(]/)[0].trim();
+
+function venueIsOpenNowDb(v: any): boolean {
+  if (v.is_open === true) return true;
+  if (!v.open_time || !v.close_time) return false;
+  const now = new Date();
+  const toMin = (s: string) => { const [h, m] = String(s).split(':').map(Number); return (h || 0) * 60 + (m || 0); };
+  const o = toMin(v.open_time), c = toMin(v.close_time);
+  const cur = now.getHours() * 60 + now.getMinutes();
+  return c > o ? (cur >= o && cur <= c) : (cur >= o || cur <= c);
+}
+
+function mapDbVenue(v: any): Venue {
+  return {
+    id:          v.id,
+    name:        v.name,
+    type:        (v.type || 'club') as Venue['type'],
+    city:        cleanCity(v.city),
+    address:     v.address || '',
+    cover:       v.cover || v.image_url || v.avatar || '',
+    avatar:      v.avatar || v.image_url || '',
+    rating:      Number(v.rating) || 4.5,
+    reviews:     Number(v.reviews) || 0,
+    capacity:    Number(v.capacity) || 0,
+    isOpen:      venueIsOpenNowDb(v),
+    openHours:   v.open_hours || (v.open_time && v.close_time ? `${String(v.open_time).slice(0,5)}–${String(v.close_time).slice(0,5)}` : ''),
+    description: v.description || '',
+    isPremium:   !!v.is_premium,
+    amenities:   Array.isArray(v.amenities) ? v.amenities : [],
+    lat:         Number(v.lat) || 0,
+    lng:         Number(v.lng) || 0,
+    priceRange:  Number(v.price_range) || 2,
+  } as Venue;
+}
 
 const TYPES = ['Todos', 'Club', 'Bar', 'Studio', 'Rooftop', 'Lounge', 'Restaurante'];
 const CITIES = ['Todas', 'Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'London', 'Santo Domingo', 'Buenos Aires', 'Cali', 'Miami', 'La Habana', 'Bogotá', 'Medellín', 'New York', 'Berlin', 'Ciudad de México', 'Caracas'];
@@ -25,16 +62,40 @@ const VenuesList: React.FC = () => {
   const [selectedType, setSelectedType] = useState(['Todos']);
   const [selectedCity, setSelectedCity] = useState(['Todas']);
   const [onlyOpen, setOnlyOpen] = useState(false);
+  const [dbVenues, setDbVenues] = useState<Venue[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Carga real desde Supabase
+  useEffect(() => {
+    let cancelled = false;
+    const safety = setTimeout(() => { if (!cancelled) setLoading(false); }, 8000);
+    (async () => {
+      try {
+        const { data } = await supabase.from('venues').select('*');
+        if (cancelled) return;
+        setDbVenues((data || []).map(mapDbVenue));
+      } catch (e) { console.warn('[venues] load', e); }
+      if (!cancelled) setLoading(false);
+    })();
+    return () => { cancelled = true; clearTimeout(safety); };
+  }, []);
+
+  // Combina BD + mock evitando duplicados por id
+  const allVenues = useMemo(() => {
+    if (dbVenues.length === 0) return VENUES;
+    const ids = new Set(dbVenues.map(v => v.id));
+    return [...dbVenues, ...VENUES.filter(v => !ids.has(v.id))];
+  }, [dbVenues]);
 
   const filtered = useMemo(() => {
-    return VENUES.filter(v => {
+    return allVenues.filter(v => {
       const matchSearch = !search || v.name.toLowerCase().includes(search.toLowerCase()) || v.city.toLowerCase().includes(search.toLowerCase());
       const matchType = selectedType.includes('Todos') || selectedType.some(t => v.type === t.toLowerCase());
       const matchCity = selectedCity.includes('Todas') || selectedCity.includes(v.city);
       const matchOpen = !onlyOpen || v.isOpen;
       return matchSearch && matchType && matchCity && matchOpen;
     });
-  }, [search, selectedType, selectedCity, onlyOpen]);
+  }, [allVenues, search, selectedType, selectedCity, onlyOpen]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-6">
@@ -59,8 +120,19 @@ const VenuesList: React.FC = () => {
         </div>
 
         <div className="mt-6">
-          <p className="text-gray-400 text-sm mb-4">{filtered.length} venues</p>
-          {filtered.length === 0 ? (
+          <p className="text-gray-400 text-sm mb-4">
+            {loading ? 'Cargando…' : `${filtered.length} venues`}
+          </p>
+          {loading && filtered.length === 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="card-white overflow-hidden">
+                  <div className="h-44 bg-gray-200 animate-pulse" />
+                  <div className="p-4 space-y-2"><div className="h-4 bg-gray-200 animate-pulse rounded w-3/4" /></div>
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
             <EmptyState icon="🏛️" title="No hay venues" description="Intenta con otros filtros" />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">

@@ -1,31 +1,148 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapPin, Users, CheckCircle, Radio } from 'lucide-react';
-import { ARTISTS } from '../data/mockData';
-import type { Artist } from '../data/mockData';
+import { MapPin, Users, CheckCircle, Radio, Music } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import { Badge, StarRating, Avatar, FilterChips, SearchBar, SectionHeader, EmptyState } from '../components/ui';
 import SearchTriggerBar from '../components/SearchTriggerBar';
 import LiveFab from '../components/LiveFab';
 
+interface DbArtist {
+  id: string;
+  name: string;
+  type: 'dj' | 'dancer' | 'singer' | 'band' | 'instructor' | 'artist';
+  city: string;
+  country?: string;
+  cover?: string;
+  avatar?: string;
+  genre: string[];
+  rating: number;
+  reviews: number;
+  followers: number;
+  priceFrom: number;
+  isVerified?: boolean;
+  isPremium?: boolean;
+  isLive?: boolean;
+  bio?: string;
+  source: 'artist' | 'profile';
+}
+
 const TYPES = ['Todos', 'DJ', 'Bailarín/a', 'Banda', 'Instructor/a', 'Cantante'];
-const GENRES = ['Todos', 'Salsa', 'Bachata', 'Merengue', 'Cumbia', 'Reggaeton', 'Timba', 'Afrobeats'];
-const CITIES = ['Todas', 'Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'Milano'];
+const GENRES = ['Todos', 'Salsa', 'Bachata', 'Merengue', 'Cumbia', 'Reggaeton', 'Timba', 'Afrobeats', 'Kizomba'];
+
+const normalizeRoleToType = (role: string): DbArtist['type'] | null => {
+  const r = String(role || '').toLowerCase();
+  if (r === 'dj')                                  return 'dj';
+  if (r === 'dancer')                              return 'dancer';
+  if (r === 'singer' || r === 'musician')          return 'singer';
+  if (r === 'band')                                return 'band';
+  if (r === 'instructor' || r === 'teacher')       return 'instructor';
+  if (['artist','promoter','performer','user','vendor'].includes(r)) return 'artist';
+  return null;
+};
+
+const cleanCity = (s: string | null | undefined) => (s || '').split(/[,\-\/(]/)[0].trim();
 
 const ArtistsPage: React.FC = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const initialType = params.get('tipo') || 'Todos';
 
+  const [items, setItems] = useState<DbArtist[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [selectedType, setSelectedType] = useState([initialType === 'dj' ? 'DJ' : 'Todos']);
+  const [selectedType, setSelectedType] = useState([
+    initialType === 'dj' ? 'DJ' :
+    initialType === 'dancer' ? 'Bailarín/a' :
+    initialType === 'singer' ? 'Cantante' :
+    initialType === 'instructor' ? 'Instructor/a' :
+    initialType === 'band' ? 'Banda' : 'Todos'
+  ]);
   const [selectedGenre, setSelectedGenre] = useState(['Todos']);
   const [selectedCity, setSelectedCity] = useState(['Todas']);
   const [onlyLive, setOnlyLive] = useState(false);
   const [onlyVerified, setOnlyVerified] = useState(false);
   const [sortBy, setSortBy] = useState<'rating' | 'price' | 'followers'>('rating');
 
+  // ── Load from Supabase ────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    const safety = setTimeout(() => { if (!cancelled) setLoading(false); }, 8000);
+
+    (async () => {
+      const combined: DbArtist[] = [];
+
+      // 1) tabla artists (artistas tradicionales)
+      try {
+        const { data } = await supabase.from('artists').select('*');
+        data?.forEach((a: any) => {
+          combined.push({
+            id:         a.id,
+            name:       a.name,
+            type:       a.type || 'artist',
+            city:       cleanCity(a.city),
+            country:    a.country,
+            cover:      a.cover || a.avatar,
+            avatar:     a.avatar,
+            genre:      Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : []),
+            rating:     Number(a.rating) || 4.5,
+            reviews:    Number(a.reviews) || 0,
+            followers:  Number(a.followers) || 0,
+            priceFrom:  Number(a.price_from || a.priceFrom) || 0,
+            isVerified: !!a.is_verified,
+            isPremium:  !!a.is_premium,
+            isLive:     !!a.is_live,
+            bio:        a.bio,
+            source:     'artist',
+          });
+        });
+      } catch (e) { console.warn('[artists] artists table', e); }
+
+      // 2) tabla profiles (usuarios con rol artista/dj/dancer/etc)
+      try {
+        const { data } = await supabase.from('profiles').select('*');
+        data?.forEach((p: any) => {
+          const t = normalizeRoleToType(p.role);
+          if (!t) return;
+          combined.push({
+            id:         p.id,
+            name:       p.full_name || p.email || 'Usuario',
+            type:       t,
+            city:       cleanCity(p.city || p.location),
+            country:    p.country,
+            cover:      p.cover_photo || p.avatar_url,
+            avatar:     p.avatar_url,
+            genre:      Array.isArray(p.styles) ? p.styles : (Array.isArray(p.genre) ? p.genre : []),
+            rating:     0,
+            reviews:    0,
+            followers:  0,
+            priceFrom:  0,
+            isVerified: !!p.verified,
+            isPremium:  false,
+            isLive:     !!p.is_live,
+            bio:        p.bio,
+            source:     'profile',
+          });
+        });
+      } catch (e) { console.warn('[artists] profiles', e); }
+
+      if (!cancelled) {
+        setItems(combined);
+        setLoading(false);
+      }
+    })().catch(e => { console.error('[artists] fatal', e); if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; clearTimeout(safety); };
+  }, []);
+
+  // ── Lista dinámica de ciudades ────────────────────────────────
+  const cities = useMemo(() => {
+    const set = new Set<string>(['Todas']);
+    items.forEach(i => { if (i.city) set.add(i.city); });
+    return Array.from(set);
+  }, [items]);
+
   const filtered = useMemo(() => {
-    return ARTISTS.filter(a => {
+    return items.filter(a => {
       const matchSearch = !search || a.name.toLowerCase().includes(search.toLowerCase()) ||
         a.genre.some(g => g.toLowerCase().includes(search.toLowerCase())) ||
         a.city.toLowerCase().includes(search.toLowerCase());
@@ -43,10 +160,16 @@ const ArtistsPage: React.FC = () => {
       return matchSearch && matchType && matchGenre && matchCity && matchLive && matchVerified;
     }).sort((a, b) => {
       if (sortBy === 'rating') return b.rating - a.rating;
-      if (sortBy === 'price') return a.priceFrom - b.priceFrom;
+      if (sortBy === 'price') return (a.priceFrom || 9999) - (b.priceFrom || 9999);
       return b.followers - a.followers;
     });
-  }, [search, selectedType, selectedGenre, selectedCity, onlyLive, onlyVerified, sortBy]);
+  }, [items, search, selectedType, selectedGenre, selectedCity, onlyLive, onlyVerified, sortBy]);
+
+  const goToProfile = (a: DbArtist) => {
+    // Perfiles de usuarios → página pública /p/:id ; artistas tradicionales → /artistas/:id
+    if (a.source === 'profile') navigate(`/p/${a.id}`);
+    else navigate(`/artistas/${a.id}`);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-6">
@@ -70,7 +193,7 @@ const ArtistsPage: React.FC = () => {
           </div>
           <div>
             <p className="text-gray-400 text-xs mb-2 font-semibold uppercase tracking-wide">Ciudad</p>
-            <FilterChips options={CITIES} selected={selectedCity} onChange={setSelectedCity} />
+            <FilterChips options={cities} selected={selectedCity} onChange={setSelectedCity} />
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
@@ -101,18 +224,32 @@ const ArtistsPage: React.FC = () => {
         </div>
 
         <div className="mt-6">
-          <p className="text-gray-400 text-sm mb-4">{filtered.length} artistas encontrados</p>
-          {filtered.length === 0 ? (
+          <p className="text-gray-400 text-sm mb-4">
+            {loading ? 'Cargando…' : `${filtered.length} artistas encontrados`}
+          </p>
+          {loading ? (
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="card-white overflow-hidden">
+                  <div className="h-40 bg-gray-200 animate-pulse" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-4 bg-gray-200 animate-pulse rounded w-3/4" />
+                    <div className="h-3 bg-gray-200 animate-pulse rounded w-1/2" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
             <EmptyState
               icon="🎧"
               title="No se encontraron artistas"
               description="Intenta cambiar los filtros o busca con otros términos"
-              action={<button onClick={() => { setSearch(''); setSelectedType(['Todos']); setSelectedGenre(['Todos']); }} className="btn-outline text-sm">Limpiar filtros</button>}
+              action={<button onClick={() => { setSearch(''); setSelectedType(['Todos']); setSelectedGenre(['Todos']); setSelectedCity(['Todas']); }} className="btn-outline text-sm">Limpiar filtros</button>}
             />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {filtered.map(artist => (
-                <ArtistCard key={artist.id} artist={artist} onClick={() => navigate(`/artistas/${artist.id}`)} />
+                <ArtistCard key={`${artist.source}-${artist.id}`} artist={artist} onClick={() => goToProfile(artist)} />
               ))}
             </div>
           )}
@@ -124,18 +261,20 @@ const ArtistsPage: React.FC = () => {
   );
 };
 
-const ArtistCard: React.FC<{ artist: Artist; onClick: () => void }> = ({ artist, onClick }) => (
+const ArtistCard: React.FC<{ artist: DbArtist; onClick: () => void }> = ({ artist, onClick }) => (
   <div
     onClick={onClick}
     className="card-white overflow-hidden hover:shadow-card-hover transition-all duration-300 cursor-pointer hover:scale-[1.02]"
   >
-    <div className="relative h-40 overflow-hidden">
-      <img src={artist.cover} alt={artist.name} className="w-full h-full object-cover" />
+    <div className="relative h-40 overflow-hidden bg-gradient-to-br from-pink-400 to-fuchsia-600">
+      {artist.cover
+        ? <img src={artist.cover} alt={artist.name} className="w-full h-full object-cover" loading="lazy" />
+        : <div className="w-full h-full flex items-center justify-center"><Music className="w-12 h-12 text-white/40" /></div>}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
       {artist.isLive && <Badge variant="live" className="absolute top-2 left-2">🔴 LIVE</Badge>}
       {artist.isPremium && <Badge variant="orange" className="absolute top-2 right-2">👑 PRO</Badge>}
       <div className="absolute bottom-3 left-3 flex items-center gap-2">
-        <Avatar src={artist.avatar} name={artist.name} size="md" isLive={artist.isLive} />
+        <Avatar src={artist.avatar || ''} name={artist.name} size="md" isLive={artist.isLive} />
         <div>
           <div className="flex items-center gap-1">
             <span className="text-white font-semibold text-sm">{artist.name}</span>
@@ -147,31 +286,35 @@ const ArtistCard: React.FC<{ artist: Artist; onClick: () => void }> = ({ artist,
     </div>
 
     <div className="p-4">
-      <div className="flex flex-wrap gap-1 mb-3">
-        {artist.genre.slice(0, 3).map(g => (
-          <span key={g} className="text-xs bg-pink-50 text-brand-orange px-2 py-0.5 rounded-full font-medium">{g}</span>
-        ))}
-      </div>
+      {artist.genre.length > 0 && (
+        <div className="flex flex-wrap gap-1 mb-3">
+          {artist.genre.slice(0, 3).map(g => (
+            <span key={g} className="text-xs bg-pink-50 text-brand-orange px-2 py-0.5 rounded-full font-medium">{g}</span>
+          ))}
+        </div>
+      )}
 
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <StarRating rating={artist.rating} count={artist.reviews} />
+          {artist.rating > 0 && <StarRating rating={artist.rating} count={artist.reviews} />}
           <div className="flex items-center gap-3 text-gray-400 text-xs">
-            <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{artist.city}</span>
-            <span className="flex items-center gap-1"><Users className="w-3 h-3" />{artist.followers.toLocaleString()}</span>
+            {artist.city && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{artist.city}</span>}
+            {artist.followers > 0 && <span className="flex items-center gap-1"><Users className="w-3 h-3" />{artist.followers.toLocaleString()}</span>}
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-xs text-gray-400">Desde</p>
-          <p className="text-brand-orange font-bold">€{artist.priceFrom}</p>
-        </div>
+        {artist.priceFrom > 0 && (
+          <div className="text-right">
+            <p className="text-xs text-gray-400">Desde</p>
+            <p className="text-brand-orange font-bold">€{artist.priceFrom}</p>
+          </div>
+        )}
       </div>
 
       <button
         onClick={e => { e.stopPropagation(); onClick(); }}
         className="w-full mt-3 btn-orange text-xs py-2"
       >
-        Ver Perfil & Contratar
+        Ver Perfil
       </button>
     </div>
   </div>

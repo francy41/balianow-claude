@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   MapPin, Clock, Users, Calendar, ArrowLeft, Star, MessageSquare,
@@ -6,7 +6,7 @@ import {
   Facebook, Globe, Headphones, Video, Ticket, Play, ChevronRight,
 } from 'lucide-react';
 import { EVENTS, ARTISTS, VENUES } from '../data/mockData';
-import type { Artist } from '../data/mockData';
+import type { Artist, Event as EventType } from '../data/mockData';
 import { Badge, StarRating, SearchBar, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
 import SearchTriggerBar from '../components/SearchTriggerBar';
 import { useAuthStore, useUIStore, getYouTubeId } from '../store/appStore';
@@ -14,6 +14,35 @@ import BookingModal from '../components/BookingModal';
 import { VenueSectionsSelector } from '../components/VenueSections';
 import { useTicketStore } from '../store/ticketStore';
 import LiveFab from '../components/LiveFab';
+import { supabase } from '../lib/supabase';
+
+const cleanCity = (s: string | null | undefined) => (s || '').split(/[,\-\/(]/)[0].trim();
+
+function mapDbEvent(e: any): EventType {
+  return {
+    id:          e.id,
+    title:       e.title || 'Evento',
+    description: e.description || '',
+    venueId:     e.venue_id || '',
+    venueName:   e.venue_name || '',
+    city:        cleanCity(e.city),
+    date:        e.date || e.event_date || '',
+    time:        e.time || e.start_time || '20:00',
+    endTime:     e.end_time || '23:00',
+    cover:       e.cover || e.image_url || e.image || '',
+    category:    Array.isArray(e.category) ? e.category : (e.category ? [e.category] : []),
+    price:       Number(e.price) || 0,
+    currency:    e.currency || 'EUR',
+    capacity:    Number(e.capacity) || 0,
+    attending:   Number(e.attending) || 0,
+    isOnline:    !!e.is_online,
+    isFeatured:  !!e.is_featured,
+    isPremium:   !!e.is_premium,
+    artists:     Array.isArray(e.artists) ? e.artists : [],
+    lat:         Number(e.lat) || 0,
+    lng:         Number(e.lng) || 0,
+  };
+}
 
 const CATEGORIES = ['Todos', 'Salsa', 'Bachata', 'Festival', 'Masterclass', 'Online', 'Reggaeton', 'Timba'];
 const CITIES = ['Todas', 'Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'Online'];
@@ -56,9 +85,31 @@ const EventsList: React.FC = () => {
   const [selectedCat, setSelectedCat] = useState(['Todos']);
   const [selectedCity, setSelectedCity] = useState(['Todas']);
   const [onlyOnline, setOnlyOnline] = useState(false);
+  const [dbEvents, setDbEvents] = useState<EventType[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const safety = setTimeout(() => { if (!cancelled) setLoading(false); }, 8000);
+    (async () => {
+      try {
+        const { data } = await supabase.from('events').select('*').order('date', { ascending: true });
+        if (cancelled) return;
+        setDbEvents((data || []).map(mapDbEvent));
+      } catch (e) { console.warn('[events] load', e); }
+      if (!cancelled) setLoading(false);
+    })();
+    return () => { cancelled = true; clearTimeout(safety); };
+  }, []);
+
+  const allEvents = useMemo(() => {
+    if (dbEvents.length === 0) return EVENTS;
+    const ids = new Set(dbEvents.map(e => e.id));
+    return [...dbEvents, ...EVENTS.filter(e => !ids.has(e.id))];
+  }, [dbEvents]);
 
   const filtered = useMemo(() => {
-    return EVENTS.filter(e => {
+    return allEvents.filter(e => {
       const matchSearch = !search || e.title.toLowerCase().includes(search.toLowerCase()) ||
         e.city.toLowerCase().includes(search.toLowerCase());
       const matchCat = selectedCat.includes('Todos') || e.category.some(c => selectedCat.includes(c));
@@ -66,7 +117,7 @@ const EventsList: React.FC = () => {
       const matchOnline = !onlyOnline || e.isOnline;
       return matchSearch && matchCat && matchCity && matchOnline;
     });
-  }, [search, selectedCat, selectedCity, onlyOnline]);
+  }, [allEvents, search, selectedCat, selectedCity, onlyOnline]);
 
   const handleBuyTicket = (event: typeof EVENTS[0], e: React.MouseEvent) => {
     e.stopPropagation();
