@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useAdminOverridesStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_CATEGORIES, type HeroMediaType, type CommissionSource, type HeroSliderImage, type HomeCategory, type Sponsor } from '../store/appStore';
 import { supabase } from '../lib/supabase';
-import { saveSiteConfigKey } from '../hooks/useSiteConfig';
+import { saveSiteConfigKey, saveCategoriesToDb } from '../hooks/useSiteConfig';
 import AdminCMS from '../components/AdminCMS';
 import AdminMediaManager from '../components/AdminMediaManager';
 import AdminEditModal, { type EditField } from '../components/AdminEditModal';
@@ -426,7 +426,11 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     name: '', icon: '🎉', route: '/', section: 'main', display_order: 99, active: true,
   });
 
-  const save = (updated: HomeCategory[]) => setHomeCategories(updated);
+  const save = async (updated: HomeCategory[]) => {
+    setHomeCategories(updated);
+    const { error } = await saveCategoriesToDb(updated);
+    if (error) addToast({ message: `⚠ Guardado local, BD falló: ${error}`, type: 'warning' });
+  };
 
   const toggleActive = (id: string) => {
     save(homeCategories.map(c => c.id === id ? { ...c, active: !c.active } : c));
