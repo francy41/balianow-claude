@@ -34,6 +34,7 @@ const ChatPage          = lazy(() => import('./pages/ChatPage'));
 const DashboardPage     = lazy(() => import('./pages/DashboardPage'));
 const WalletPage        = lazy(() => import('./pages/WalletPage'));
 const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'));
+const SocialPage        = lazy(() => import('./pages/SocialPage'));
 const MapPage           = lazy(() => import('./pages/MapPage'));
 const AuthPage          = lazy(() => import('./pages/AuthPage'));
 const AdminPage         = lazy(() => import('./pages/AdminPage'));
@@ -149,6 +150,8 @@ const App: React.FC = () => {
                   <Route path="/perfil"              element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                   <Route path="/wallet"              element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
                   <Route path="/subscripciones"      element={<ProtectedRoute><SubscriptionsPage /></ProtectedRoute>} />
+                  <Route path="/redes"               element={<ProtectedRoute><SocialPage /></ProtectedRoute>} />
+                  <Route path="/social"              element={<ProtectedRoute><SocialPage /></ProtectedRoute>} />
                   <Route path="/auth"                element={<AuthPage />} />
                   {/* OAuth & email-link callbacks — no auth guard, Supabase handles the session */}
                   <Route path="/auth/callback"      element={<AuthCallbackPage />} />

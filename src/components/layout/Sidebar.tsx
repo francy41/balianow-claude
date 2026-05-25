@@ -61,8 +61,9 @@ const NAV: { section: string; items: NavItem[] }[] = [
   {
     section: 'MI CUENTA',
     items: [
-      { label: 'Mi Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, to: '/dashboard' },
-      { label: 'Mi Perfil',    icon: <User className="w-4 h-4" />,            to: '/perfil' },
+      { label: 'Mi Dashboard',  icon: <LayoutDashboard className="w-4 h-4" />, to: '/dashboard' },
+      { label: 'Mi Perfil',     icon: <User className="w-4 h-4" />,            to: '/perfil' },
+      { label: '📱 Redes Sociales', icon: <Megaphone className="w-4 h-4" />,   to: '/redes' },
     ],
   },
 ];
