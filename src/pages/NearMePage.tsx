@@ -7,37 +7,14 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapPin, Navigation, Search, Star, Calendar, Music, Users, X, Map, ChevronRight, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { VENUES, EVENTS, ARTISTS } from '../data/mockData';
+import { CITY_COORDS, POPULAR_CITIES, distanceKm, resolveCityCoords } from '../lib/geo';
 
-// Geo distance (Haversine in km)
-function distanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const R = 6371;
-  const toRad = (d: number) => d * Math.PI / 180;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2)**2;
-  return 2 * R * Math.asin(Math.sqrt(a));
-}
-
-// Default city coords
-const CITY_COORDS: Record<string, [number, number]> = {
-  'Madrid': [40.4168, -3.7038],     'Barcelona': [41.3851, 2.1734],
-  'Valencia': [39.4699, -0.3763],   'Sevilla': [37.3891, -5.9845],
-  'Bilbao': [43.2630, -2.9350],     'Málaga': [36.7213, -4.4214],
-  'Granada': [37.1773, -3.5986],    'Zaragoza': [41.6488, -0.8891],
-  'Paris': [48.8566, 2.3522],       'Londres': [51.5074, -0.1278],
-  'Berlín': [52.5200, 13.4050],     'Roma': [41.9028, 12.4964],
-  'Miami': [25.7617, -80.1918],     'New York': [40.7128, -74.0060],
-  'Cali': [3.4516, -76.5320],       'Bogotá': [4.7110, -74.0721],
-  'Medellín': [6.2476, -75.5658],   'La Habana': [23.1136, -82.3666],
-  'Santo Domingo': [18.4861, -69.9312], 'Buenos Aires': [-34.6037, -58.3816],
-  'Lima': [-12.0464, -77.0428],     'México DF': [19.4326, -99.1332],
-};
-const POPULAR_CITIES = ['Madrid','Barcelona','Valencia','Sevilla','Paris','Miami','New York','Cali','Medellín','La Habana'];
+type ItemType = 'venue' | 'event' | 'artist' | 'dancer' | 'dj';
 
 type Item = {
   id: string;
-  type: 'venue' | 'event' | 'artist' | 'dancer' | 'dj';
+  type: ItemType;
+  source: 'venue' | 'event' | 'artist' | 'profile';
   name: string;
   city: string;
   lat: number;
@@ -48,6 +25,22 @@ type Item = {
   date?: string;
   distance?: number;
 };
+
+// Mapea el role del profile a un tipo visible en las pestañas
+function roleToType(role?: string | null): ItemType | null {
+  switch ((role || '').toLowerCase()) {
+    case 'dj':                       return 'dj';
+    case 'dancer':                   return 'dancer';
+    case 'instructor':
+    case 'artist':
+    case 'singer':
+    case 'band':                     return 'artist';
+    case 'venue':
+    case 'business':
+    case 'promoter':                 return 'venue';
+    default:                         return null;  // user/admin/etc. no se listan
+  }
+}
 
 const NearMePage: React.FC = () => {
   const navigate = useNavigate();
@@ -97,51 +90,99 @@ const NearMePage: React.FC = () => {
     );
   }, [searchParams]);
 
-  // Load items from Supabase + fallbacks
+  // Load items from Supabase: venues + events + artists + user profiles
   useEffect(() => {
     const load = async () => {
       const combined: Item[] = [];
+      const seen = new Set<string>();
+
+      const pushOnce = (it: Item) => {
+        const key = `${it.source}:${it.id}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        combined.push(it);
+      };
 
       // Venues
       try {
         const { data } = await supabase.from('venues').select('*');
         data?.forEach((v: any) => {
-          if (v.lat && v.lng) combined.push({
-            id: v.id, type: 'venue', name: v.name, city: v.city || '',
-            lat: Number(v.lat), lng: Number(v.lng),
-            img: v.image_url, genre: Array.isArray(v.style) ? v.style.join(', ') : v.style,
+          const coords = (v.lat && v.lng)
+            ? [Number(v.lat), Number(v.lng)] as [number, number]
+            : resolveCityCoords(v.city);
+          if (!coords) return;
+          pushOnce({
+            id: v.id, type: 'venue', source: 'venue',
+            name: v.name, city: v.city || '',
+            lat: coords[0], lng: coords[1],
+            img: v.image_url || v.cover || v.avatar,
+            genre: Array.isArray(v.style) ? v.style.join(', ') : v.style,
             rating: Number(v.rating) || 4.5,
           });
         });
-      } catch {}
+      } catch (e) { console.warn('[NearMe] venues:', e); }
 
       // Events
       try {
         const { data } = await supabase.from('events').select('*');
         data?.forEach((e: any) => {
-          if (e.lat && e.lng) combined.push({
-            id: e.id, type: 'event', name: e.title, city: e.city || '',
-            lat: Number(e.lat), lng: Number(e.lng),
+          const coords = (e.lat && e.lng)
+            ? [Number(e.lat), Number(e.lng)] as [number, number]
+            : resolveCityCoords(e.city);
+          if (!coords) return;
+          pushOnce({
+            id: e.id, type: 'event', source: 'event',
+            name: e.title, city: e.city || '',
+            lat: coords[0], lng: coords[1],
             img: e.image_url || e.cover, date: e.date,
           });
         });
-      } catch {}
+      } catch (e) { console.warn('[NearMe] events:', e); }
 
-      // Artists (incluye singers, dancers, djs, instructors)
+      // Artists (tabla curada: incluye singers, dancers, djs, instructors)
       try {
         const { data } = await supabase.from('artists').select('*');
         data?.forEach((a: any) => {
-          if (a.lat && a.lng) {
-            const t: Item['type'] = a.type === 'dancer' ? 'dancer' : a.type === 'dj' ? 'dj' : 'artist';
-            combined.push({
-              id: a.id, type: t, name: a.name, city: a.city || '',
-              lat: Number(a.lat), lng: Number(a.lng),
-              img: a.avatar, genre: Array.isArray(a.genre) ? a.genre.join(', ') : a.genre,
-              rating: Number(a.rating) || undefined,
-            });
-          }
+          const coords = (a.lat && a.lng)
+            ? [Number(a.lat), Number(a.lng)] as [number, number]
+            : resolveCityCoords(a.city);
+          if (!coords) return;
+          const t: ItemType = a.type === 'dancer' ? 'dancer' : a.type === 'dj' ? 'dj' : 'artist';
+          pushOnce({
+            id: a.id, type: t, source: 'artist',
+            name: a.name, city: a.city || '',
+            lat: coords[0], lng: coords[1],
+            img: a.avatar, genre: Array.isArray(a.genre) ? a.genre.join(', ') : a.genre,
+            rating: Number(a.rating) || undefined,
+          });
         });
-      } catch {}
+      } catch (e) { console.warn('[NearMe] artists:', e); }
+
+      // User Profiles (perfiles creados por usuarios via signup + ProfileEditModal)
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('id, full_name, name, role, location, city, lat, lng, avatar_url, avatar, styles, tags');
+        data?.forEach((p: any) => {
+          const type = roleToType(p.role);
+          if (!type) return;  // ignora 'user', 'admin', etc.
+          const cityName = p.location || p.city || '';
+          const coords = (p.lat && p.lng)
+            ? [Number(p.lat), Number(p.lng)] as [number, number]
+            : resolveCityCoords(cityName);
+          if (!coords) return;
+          const styles = Array.isArray(p.styles) ? p.styles : [];
+          const tags = Array.isArray(p.tags) ? p.tags : [];
+          pushOnce({
+            id: p.id, type, source: 'profile',
+            name: p.full_name || p.name || 'Perfil',
+            city: cityName,
+            lat: coords[0], lng: coords[1],
+            img: p.avatar_url || p.avatar || undefined,
+            genre: styles.slice(0, 3).join(', ') || (tags.length ? '#' + tags.slice(0, 3).join(' #') : undefined),
+          });
+        });
+      } catch (e) { console.warn('[NearMe] profiles:', e); }
 
       setItems(combined);
       setLoading(false);
@@ -219,9 +260,10 @@ const NearMePage: React.FC = () => {
   }, [items, position, radius]);
 
   const goTo = (it: Item) => {
-    if (it.type === 'venue')  navigate(`/venues/${it.id}`);
-    if (it.type === 'event')  navigate(`/eventos/${it.id}`);
-    else navigate(`/artistas/${it.id}`);
+    if (it.source === 'venue')   return navigate(`/venues/${it.id}`);
+    if (it.source === 'event')   return navigate(`/eventos/${it.id}`);
+    if (it.source === 'profile') return navigate(`/p/${it.id}`);
+    return navigate(`/artistas/${it.id}`);
   };
 
   const locationLabel = city || (position ? 'Tu ubicación' : 'Sin ubicación');

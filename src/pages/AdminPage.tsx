@@ -72,6 +72,7 @@ interface EditRequest {
   title: string;
   item: Record<string, any> & { id: string };
   fields: EditField[];
+  onSaved?: (newItem: Record<string, any>) => void;
 }
 const EditContext = React.createContext<{
   openEdit: (req: EditRequest) => void;
@@ -81,21 +82,23 @@ export const useAdminEdit = () => React.useContext(EditContext);
 
 // Field configs por entidad
 export const FIELDS_ARTIST: EditField[] = [
+  { key: 'avatar', label: 'Avatar / Foto perfil', type: 'image', cols: 2, helper: 'Sube una imagen cuadrada o pega URL' },
+  { key: 'cover',  label: 'Portada (imagen grande)', type: 'image', cols: 2 },
   { key: 'name',  label: 'Nombre',    type: 'text',     required: true },
-  { key: 'type',  label: 'Tipo',      type: 'select',   options: [
+  { key: 'type',  label: 'Tipo',      type: 'select',   required: true, options: [
       { value: 'dj', label: 'DJ' }, { value: 'dancer', label: 'Bailarín/a' },
       { value: 'singer', label: 'Cantante' }, { value: 'band', label: 'Banda' },
       { value: 'instructor', label: 'Instructor/a' }
     ] },
-  { key: 'city',  label: 'Ciudad',    type: 'text' },
+  { key: 'city',  label: 'Ciudad',    type: 'text', helper: 'Auto-geo a partir de ciudad conocida' },
   { key: 'country', label: 'País',    type: 'text' },
-  { key: 'priceFrom', label: 'Precio desde (€)', type: 'number' },
+  { key: 'price_from', label: 'Precio desde (€)', type: 'number' },
   { key: 'rating', label: 'Rating',   type: 'number' },
   { key: 'bio',   label: 'Biografía', type: 'textarea' },
   { key: 'tags',  label: 'Tags',      type: 'tags', helper: 'Separadas por comas' },
   { key: 'genre', label: 'Géneros',   type: 'tags', helper: 'Separados por comas' },
-  { key: 'isPremium',  label: 'Premium',  type: 'checkbox', placeholder: 'Mostrar como PRO' },
-  { key: 'isVerified', label: 'Verificado', type: 'checkbox', placeholder: 'Mostrar tick azul' },
+  { key: 'is_premium',  label: 'Premium',  type: 'checkbox', placeholder: 'Mostrar como PRO' },
+  { key: 'is_verified', label: 'Verificado', type: 'checkbox', placeholder: 'Mostrar tick azul' },
 ];
 
 export const FIELDS_EVENT: EditField[] = [
@@ -296,6 +299,7 @@ const AdminPage: React.FC = () => {
           entity={editReq.entity}
           item={editReq.item}
           fields={editReq.fields}
+          onSaved={editReq.onSaved}
         />
       )}
     </div>
@@ -870,65 +874,172 @@ const SuscripcionesSection: React.FC<{ addToast: Function }> = ({ addToast }) =>
 };
 
 // ── 7. ARTISTAS ───────────────────────────────────────────────────────────
+type DbArtist = {
+  id: string; name: string; type: string; city?: string; country?: string;
+  avatar?: string; cover?: string; rating?: number; price_from?: number;
+  is_premium?: boolean; is_verified?: boolean; bio?: string;
+  tags?: string[]; genre?: string[]; completed_bookings?: number;
+};
+
+const useDbArtists = (filterType?: string[]) => {
+  const [artists, setArtists] = useState<DbArtist[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const reload = React.useCallback(async () => {
+    try {
+      let q = supabase.from('artists').select('*').order('name', { ascending: true });
+      if (filterType?.length) q = q.in('type', filterType);
+      const { data, error } = await q;
+      if (error) throw error;
+      setArtists((data || []) as DbArtist[]);
+    } catch (e: any) {
+      console.warn('[Admin] artists load:', e.message);
+    } finally {
+      setLoading(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterType?.join(',')]);
+
+  useEffect(() => { reload(); }, [reload]);
+  return { artists, loading, reload, setArtists };
+};
+
 const ArtistasSection: React.FC<{ addToast: Function; navigate: Function }> = ({ addToast, navigate }) => {
   const { openEdit } = useAdminEdit();
-  const { getMerged } = useAdminOverridesStore();
+  const { artists, loading, reload, setArtists } = useDbArtists();
+  const [search, setSearch] = useState('');
+
+  const filtered = artists.filter(a =>
+    !search || (a.name || '').toLowerCase().includes(search.toLowerCase()) ||
+    (a.city || '').toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleDelete = async (a: DbArtist) => {
+    if (!confirm(`¿Eliminar "${a.name}" definitivamente?`)) return;
+    const { error } = await supabase.from('artists').delete().eq('id', a.id);
+    if (error) {
+      addToast({ message: `Error: ${error.message}`, type: 'error' });
+    } else {
+      setArtists(prev => prev.filter(x => x.id !== a.id));
+      addToast({ message: `✅ "${a.name}" eliminado`, type: 'success' });
+    }
+  };
+
+  const newArtist = () => openEdit({
+    entity: 'artist',
+    title: 'Nuevo artista',
+    item: { id: `art-new-${Date.now()}`, name: '', type: 'dj', city: '', country: 'España' } as any,
+    fields: FIELDS_ARTIST,
+    onSaved: () => reload(),
+  });
+
   return (
-  <div>
-    <PageHeader title="Artistas" subtitle={`${ARTISTS.length} artistas registrados`} action={
-      <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => addToast({ message: 'Redirigiendo a formulario de artista', type: 'info' })}>Añadir artista</Button>
-    } />
-    <AdminTable
-      headers={['Artista', 'Tipo', 'Ciudad', 'Rating', 'Bookings', 'Premium', 'Acciones']}
-      rows={ARTISTS.map(orig => getMerged('artist', orig)).map(a => [
-        <div className="flex items-center gap-2">
-          <img src={a.avatar} alt={a.name} className="w-8 h-8 rounded-full" />
-          <div>
-            <p className="font-semibold text-sm">{a.name}</p>
-            {a.isVerified && <span className="text-blue-500 text-xs">✓ Verificado</span>}
-          </div>
-        </div>,
-        <Badge variant="gray" className="capitalize">{a.type}</Badge>,
-        <span>{a.city}</span>,
-        <div className="flex items-center gap-1"><span className="text-brand-orange">⭐</span><span className="font-semibold">{a.rating}</span></div>,
-        <span>{a.completedBookings}</span>,
-        a.isPremium ? <Badge variant="orange">PRO</Badge> : <Badge variant="gray">Básico</Badge>,
-        <div className="flex gap-1">
-          <button onClick={() => navigate(`/artistas/${a.id}`)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
-          <button onClick={() => openEdit({ entity: 'artist', title: a.name, item: a, fields: FIELDS_ARTIST })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
-          <button onClick={() => addToast({ message: `${a.name} suspendido`, type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><XCircle className="w-4 h-4" /></button>
+    <div>
+      <PageHeader title="Artistas" subtitle={loading ? 'Cargando…' : `${artists.length} artistas en la BD`} action={
+        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={newArtist}>Añadir artista</Button>
+      } />
+
+      <div className="mb-4 max-w-md">
+        <SearchBar placeholder="Buscar por nombre o ciudad…" value={search} onChange={setSearch} />
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12"><div className="animate-spin w-8 h-8 border-4 border-brand-orange border-t-transparent rounded-full mx-auto" /><p className="text-gray-400 mt-3">Cargando artistas de Supabase…</p></div>
+      ) : artists.length === 0 ? (
+        <div className="card-white p-12 text-center">
+          <Music2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <p className="font-bold text-gray-700 mb-1">No hay artistas todavía</p>
+          <p className="text-gray-400 text-sm mb-4">Crea el primer artista, instructor, DJ o bailarín para tu plataforma.</p>
+          <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={newArtist}>Crear primer artista</Button>
         </div>
-      ])}
-    />
-  </div>
+      ) : (
+        <AdminTable
+          headers={['Artista', 'Tipo', 'Ciudad', 'Rating', 'Premium', 'Acciones']}
+          rows={filtered.map(a => [
+            <div className="flex items-center gap-2">
+              {a.avatar
+                ? <img src={a.avatar} alt={a.name} className="w-8 h-8 rounded-full object-cover" />
+                : <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-500">{(a.name || '?')[0]}</div>}
+              <div>
+                <p className="font-semibold text-sm">{a.name}</p>
+                {a.is_verified && <span className="text-blue-500 text-xs">✓ Verificado</span>}
+              </div>
+            </div>,
+            <Badge variant="gray" className="capitalize">{a.type}</Badge>,
+            <span>{a.city || '—'}</span>,
+            <div className="flex items-center gap-1"><span className="text-brand-orange">⭐</span><span className="font-semibold">{a.rating ?? 0}</span></div>,
+            a.is_premium ? <Badge variant="orange">PRO</Badge> : <Badge variant="gray">Básico</Badge>,
+            <div className="flex gap-1">
+              <button onClick={() => navigate(`/artistas/${a.id}`)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
+              <button onClick={() => openEdit({ entity: 'artist', title: a.name, item: a as any, fields: FIELDS_ARTIST, onSaved: () => reload() })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
+              <button onClick={() => handleDelete(a)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
+            </div>
+          ])}
+        />
+      )}
+    </div>
   );
 };
 
 // ── 8. BAILARINAS ─────────────────────────────────────────────────────────
 const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const { openEdit } = useAdminEdit();
-  const dancers = ARTISTS.filter(a => a.type === 'dancer' || a.type === 'instructor');
+  const { artists, loading, reload, setArtists } = useDbArtists(['dancer', 'instructor']);
+
+  const newDancer = () => openEdit({
+    entity: 'artist',
+    title: 'Nuevo bailarín/a',
+    item: { id: `art-new-${Date.now()}`, name: '', type: 'dancer', city: '', country: 'España' } as any,
+    fields: FIELDS_ARTIST,
+    onSaved: () => reload(),
+  });
+
+  const handleDelete = async (a: DbArtist) => {
+    if (!confirm(`¿Eliminar "${a.name}"?`)) return;
+    const { error } = await supabase.from('artists').delete().eq('id', a.id);
+    if (error) {
+      addToast({ message: `Error: ${error.message}`, type: 'error' });
+    } else {
+      setArtists(prev => prev.filter(x => x.id !== a.id));
+      addToast({ message: `✅ "${a.name}" eliminado`, type: 'success' });
+    }
+  };
+
   return (
     <div>
-      <PageHeader title="Bailarines & Instructores" subtitle={`${dancers.length} perfiles activos`} action={
-        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => openEdit({ entity: 'artist', title: 'Nuevo bailarín/a', item: { id: `art-new-${Date.now()}`, name: '', type: 'dancer', city: '', country: 'España' }, fields: FIELDS_ARTIST })}>Añadir bailarín/a</Button>
+      <PageHeader title="Bailarines & Instructores" subtitle={loading ? 'Cargando…' : `${artists.length} perfiles en la BD`} action={
+        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={newDancer}>Añadir bailarín/a</Button>
       } />
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {[...dancers, ...ARTISTS.slice(0, 4)].map(a => (
-          <div key={a.id} className="card-white p-4 text-center hover:shadow-card-hover transition-shadow">
-            <img src={a.avatar} alt={a.name} className="w-16 h-16 rounded-full mx-auto mb-3 ring-2 ring-brand-orange/30" />
-            <p className="font-bold text-gray-900 text-sm">{a.name}</p>
-            <p className="text-gray-400 text-xs capitalize mt-0.5">{a.type} · {a.city}</p>
-            <div className="flex items-center justify-center gap-1 mt-1">
-              <span className="text-brand-orange text-xs">⭐</span><span className="text-xs font-semibold">{a.rating}</span>
+
+      {loading ? (
+        <div className="text-center py-12"><div className="animate-spin w-8 h-8 border-4 border-brand-orange border-t-transparent rounded-full mx-auto" /><p className="text-gray-400 mt-3">Cargando bailarines…</p></div>
+      ) : artists.length === 0 ? (
+        <div className="card-white p-12 text-center">
+          <Sparkles className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+          <p className="font-bold text-gray-700 mb-1">Sin bailarines todavía</p>
+          <p className="text-gray-400 text-sm mb-4">Añade tu primer bailarín o instructor — aparecerá en "Cerca de mí".</p>
+          <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={newDancer}>Crear primer bailarín</Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {artists.map(a => (
+            <div key={a.id} className="card-white p-4 text-center hover:shadow-card-hover transition-shadow">
+              {a.avatar
+                ? <img src={a.avatar} alt={a.name} className="w-16 h-16 rounded-full mx-auto mb-3 ring-2 ring-brand-orange/30 object-cover" />
+                : <div className="w-16 h-16 rounded-full mx-auto mb-3 ring-2 ring-brand-orange/30 bg-gray-100 flex items-center justify-center text-xl font-black text-gray-400">{(a.name || '?')[0]}</div>}
+              <p className="font-bold text-gray-900 text-sm">{a.name}</p>
+              <p className="text-gray-400 text-xs capitalize mt-0.5">{a.type} · {a.city || '—'}</p>
+              <div className="flex items-center justify-center gap-1 mt-1">
+                <span className="text-brand-orange text-xs">⭐</span><span className="text-xs font-semibold">{a.rating ?? 0}</span>
+              </div>
+              <div className="flex gap-1 mt-3">
+                <button onClick={() => openEdit({ entity: 'artist', title: a.name, item: a as any, fields: FIELDS_ARTIST, onSaved: () => reload() })} className="flex-1 text-xs py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50">Editar</button>
+                <button onClick={() => handleDelete(a)} className="flex-1 text-xs py-1 rounded-lg border border-red-100 text-red-400 hover:bg-red-50">Eliminar</button>
+              </div>
             </div>
-            <div className="flex gap-1 mt-3">
-              <button onClick={() => openEdit({ entity: 'artist', title: a.name, item: a, fields: FIELDS_ARTIST })} className="flex-1 text-xs py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50">Editar</button>
-              <button onClick={() => addToast({ message: `${a.name} suspendido`, type: 'error' })} className="flex-1 text-xs py-1 rounded-lg border border-red-100 text-red-400 hover:bg-red-50">Suspender</button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

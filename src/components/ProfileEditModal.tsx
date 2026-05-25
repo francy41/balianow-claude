@@ -9,6 +9,7 @@ import { uploadImage as uploadImageHelper } from '../lib/uploadHelper';
 import { Button } from './ui';
 import ImageCropperModal from './ImageCropperModal';
 import SocialLinksEditor from './SocialLinksEditor';
+import { resolveCityCoords } from '../lib/geo';
 
 interface Props {
   open: boolean;
@@ -151,6 +152,10 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
     try {
       const realId = session.user.id; // Always use the real Supabase auth ID
 
+      // Auto-geo: si la ciudad coincide con una conocida y no hay lat/lng manual,
+      // resolvemos para que el perfil aparezca en "Cerca de mí" y en el mapa.
+      const coords = resolveCityCoords(form.city);
+
       const dbUpdate: Record<string, any> = {
         full_name:      form.name,
         bio:            form.bio          || null,
@@ -169,6 +174,7 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
         spotify_url:    (form.socials as any)?.spotify    || null,
         styles:         (form as any).styles || [],
         tags:           (form as any).tags || [],
+        ...(coords ? { lat: coords[0], lng: coords[1] } : {}),
       };
 
       const { error } = await supabase
