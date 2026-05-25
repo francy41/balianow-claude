@@ -18,7 +18,7 @@ import AdminEditModal, { type EditField } from '../components/AdminEditModal';
 import AdminLocationModal from '../components/AdminLocationModal';
 import { uploadImage, uploadVideo } from '../lib/uploadHelper';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
-import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS } from '../data/mockData';
+import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS, PROMO_SERVICES } from '../data/mockData';
 
 // ── ADMIN SECTIONS ─────────────────────────────────────────────────────────
 type AdminSection =
@@ -2414,7 +2414,7 @@ const PatrocinadoresSection: React.FC<{ addToast: Function }> = ({ addToast }) =
   const { sponsors, addSponsor, updateSponsor, removeSponsor, toggleActive } = useSponsorsStore();
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
-  const [linkMode, setLinkMode] = useState<'venue' | 'artist' | 'custom'>('venue');
+  const [linkMode, setLinkMode] = useState<'venue' | 'artist' | 'event' | 'dancer' | 'vendor' | 'promo' | 'category' | 'custom'>('venue');
   const [form, setForm] = useState<Partial<Sponsor>>({
     name: '', tagline: '', logo: '', color: '#E11D48', link: '', badge: '🏆 Patrocinador',
     type: 'venue', active: true, isPremium: false, city: '', website: '', phone: '', email: '', description: '',
@@ -2579,17 +2579,27 @@ const PatrocinadoresSection: React.FC<{ addToast: Function }> = ({ addToast }) =
                   <label className="text-xs font-bold text-gray-700 mb-1 block">Ciudad</label>
                   <input value={form.city || ''} onChange={e => setF('city', e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange" placeholder="Madrid, Cali, Miami..." />
                 </div>
-                {/* Enlace */}
+                {/* Enlace — múltiples categorías */}
                 <div className="sm:col-span-2">
                   <label className="text-xs font-bold text-gray-700 mb-2 block">Enlace al hacer clic</label>
-                  <div className="flex gap-2 mb-2">
-                    {(['venue','artist','custom'] as const).map(m => (
-                      <button key={m} onClick={() => { setLinkMode(m); if (m==='venue') setF('link','/venues'); else if (m==='artist') setF('link','/artistas'); }}
-                        className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all ${linkMode===m ? 'bg-brand-orange text-white border-brand-orange' : 'border-gray-200 text-gray-600 hover:border-brand-orange'}`}>
-                        {m==='venue' ? '🏠 Local' : m==='artist' ? '🎧 Artista' : '🔗 URL personalizada'}
+                  <div className="flex gap-1.5 mb-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+                    {([
+                      { id: 'venue',    label: '🏠 Local',       defaultLink: '/venues' },
+                      { id: 'artist',   label: '🎤 Artista',     defaultLink: '/artistas' },
+                      { id: 'event',    label: '🎉 Evento',      defaultLink: '/eventos' },
+                      { id: 'dancer',   label: '💃 Bailarín',    defaultLink: '/artistas?tipo=dancer' },
+                      { id: 'vendor',   label: '🏪 Vendedor',    defaultLink: '/promocionate' },
+                      { id: 'promo',    label: '📢 Promoción',   defaultLink: '/promocionate' },
+                      { id: 'category', label: '🗂️ Categoría',   defaultLink: '/cerca' },
+                      { id: 'custom',   label: '🔗 URL libre',   defaultLink: '' },
+                    ] as const).map(m => (
+                      <button key={m.id} onClick={() => { setLinkMode(m.id); setF('link', m.defaultLink); }}
+                        className={`text-xs font-bold px-3 py-1.5 rounded-lg border whitespace-nowrap transition-all flex-shrink-0 ${linkMode===m.id ? 'bg-brand-orange text-white border-brand-orange' : 'border-gray-200 text-gray-600 hover:border-brand-orange'}`}>
+                        {m.label}
                       </button>
                     ))}
                   </div>
+
                   {linkMode === 'venue' && (
                     <select onChange={e => setF('link', `/venues/${e.target.value}`)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
                       <option value="">— Selecciona un local —</option>
@@ -2599,7 +2609,73 @@ const PatrocinadoresSection: React.FC<{ addToast: Function }> = ({ addToast }) =
                   {linkMode === 'artist' && (
                     <select onChange={e => setF('link', `/artistas/${e.target.value}`)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
                       <option value="">— Selecciona un artista —</option>
-                      {ARTISTS.map(a => <option key={a.id} value={a.id}>{a.name} · {a.city}</option>)}
+                      {ARTISTS.filter(a => a.type === 'singer' || a.type === 'band').map(a => <option key={a.id} value={a.id}>{a.name} · {a.city}</option>)}
+                    </select>
+                  )}
+                  {linkMode === 'event' && (
+                    <select onChange={e => setF('link', `/eventos/${e.target.value}`)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
+                      <option value="">— Selecciona un evento —</option>
+                      {EVENTS.map(ev => <option key={ev.id} value={ev.id}>{ev.title} · {ev.city || ''}</option>)}
+                    </select>
+                  )}
+                  {linkMode === 'dancer' && (
+                    <select onChange={e => setF('link', `/artistas/${e.target.value}`)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
+                      <option value="">— Selecciona un bailarín/a —</option>
+                      {ARTISTS.filter(a => a.type === 'dancer' || a.type === 'instructor').map(a => <option key={a.id} value={a.id}>{a.name} · {a.city}</option>)}
+                    </select>
+                  )}
+                  {linkMode === 'vendor' && (
+                    <select onChange={e => setF('link', `/promocionate?vendor=${e.target.value}`)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
+                      <option value="">— Selecciona un vendedor —</option>
+                      {PROMO_SERVICES.filter((v, i, arr) => arr.findIndex(x => x.sellerId === v.sellerId) === i).map(v => (
+                        <option key={v.sellerId} value={v.sellerId}>{v.sellerName}</option>
+                      ))}
+                    </select>
+                  )}
+                  {linkMode === 'promo' && (
+                    <select onChange={e => setF('link', `/promocionate?service=${e.target.value}`)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
+                      <option value="">— Selecciona una promoción —</option>
+                      {PROMO_SERVICES.map(p => <option key={p.id} value={p.id}>{p.title.slice(0, 60)} · €{p.price}</option>)}
+                    </select>
+                  )}
+                  {linkMode === 'category' && (
+                    <select onChange={e => setF('link', e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
+                      <option value="">— Selecciona categoría —</option>
+                      <optgroup label="📍 Búsqueda por ubicación">
+                        <option value="/cerca">Cerca de mí</option>
+                        <option value="/mapa">Mapa interactivo</option>
+                      </optgroup>
+                      <optgroup label="🎵 Estilos de baile">
+                        <option value="/cerca?style=Bachata">Bachata</option>
+                        <option value="/cerca?style=Salsa">Salsa</option>
+                        <option value="/cerca?style=Kizomba">Kizomba</option>
+                        <option value="/cerca?style=Reggaeton">Reggaeton</option>
+                        <option value="/cerca?style=Merengue">Merengue</option>
+                      </optgroup>
+                      <optgroup label="🎉 Eventos">
+                        <option value="/eventos?cat=festivales">Festivales</option>
+                        <option value="/eventos?cat=congresos">Congresos</option>
+                        <option value="/eventos?cat=club">Noches de club</option>
+                        <option value="/eventos?cat=social">Eventos sociales</option>
+                      </optgroup>
+                      <optgroup label="🎓 Aprender">
+                        <option value="/clases">Clases en directo</option>
+                        <option value="/marketplace?cat=talleres">Talleres</option>
+                        <option value="/marketplace?cat=clases">Academia</option>
+                      </optgroup>
+                      <optgroup label="📢 Promoción">
+                        <option value="/promocionate?cat=redes-sociales">Redes sociales</option>
+                        <option value="/promocionate?cat=spotify-playlists">Spotify & Playlists</option>
+                        <option value="/promocionate?cat=video-promo">Video promo</option>
+                        <option value="/promocionate?cat=influencers">Influencers</option>
+                      </optgroup>
+                      <optgroup label="🏛️ Sitios">
+                        <option value="/venues">Todos los locales</option>
+                        <option value="/venues?open=true">Abiertos ahora</option>
+                        <option value="/artistas">Todos los artistas</option>
+                        <option value="/artistas?tipo=dj">Solo DJs</option>
+                        <option value="/artistas?tipo=dancer">Solo bailarines</option>
+                      </optgroup>
                     </select>
                   )}
                   {linkMode === 'custom' && (

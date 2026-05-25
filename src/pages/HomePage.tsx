@@ -98,11 +98,13 @@ const SPONSORS = [
   },
 ];
 
-// ── SPONSORS SLIDER (compact) ─────────────────────────────────────────────
+// ── SPONSORS SLIDER (auto-scroll infinito hacia la izquierda) ──────────
 const SponsorsSlider: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = ({ navigate }) => {
   const allSponsors = useSponsorsStore(s => s.sponsors);
   const active = allSponsors.filter(s => s.active);
-  const shown = active.slice(0, 5);
+  // Duplicar lista para hacer scroll infinito sin gap
+  const duplicated = [...active, ...active, ...active];
+
   return (
     <section className="mt-3 px-4">
       <div className="flex items-center justify-between mb-2">
@@ -114,36 +116,32 @@ const SponsorsSlider: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = (
           Ver todos <ChevronRight className="w-2.5 h-2.5" />
         </button>
       </div>
-      <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-        {shown.map((sp) => (
-          <button
-            key={sp.id}
-            onClick={() => navigate(sp.link)}
-            className="flex-shrink-0 flex flex-col items-center gap-1 group"
-            style={{ minWidth: 56 }}
-          >
-            <div
-              className="w-10 h-10 rounded-xl overflow-hidden shadow-md group-hover:scale-110 transition-transform duration-200 border border-white/20"
-              style={{ boxShadow: `0 2px 10px ${sp.color}35` }}
+
+      {/* Marquee container con máscara de degradado a los lados */}
+      <div className="relative overflow-hidden" style={{
+        maskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
+        WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
+      }}>
+        <div className="flex gap-4 animate-marquee-left" style={{ width: 'max-content' }}>
+          {duplicated.map((sp, i) => (
+            <button
+              key={`${sp.id}-${i}`}
+              onClick={() => navigate(sp.link)}
+              className="flex-shrink-0 flex flex-col items-center gap-1 group"
+              style={{ minWidth: 64 }}
             >
-              <img src={sp.logo} alt={sp.name} className="w-full h-full object-cover" />
-            </div>
-            <span className="text-[9px] font-semibold text-gray-500 dark:text-gray-500 text-center leading-tight max-w-[54px] line-clamp-1 group-hover:text-pink-500 transition-colors">
-              {sp.name}
-            </span>
-          </button>
-        ))}
-        {/* Ver todos tile */}
-        <button
-          onClick={() => navigate('/venues')}
-          className="flex-shrink-0 flex flex-col items-center gap-1 group"
-          style={{ minWidth: 56 }}
-        >
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500/10 to-fuchsia-600/10 border border-dashed border-pink-400/50 flex items-center justify-center group-hover:bg-pink-500/20 transition-all duration-200">
-            <span className="text-pink-500 text-xs font-black">+{Math.max(0, active.length - 5)}</span>
-          </div>
-          <span className="text-[9px] font-bold text-pink-500 text-center">Ver todos</span>
-        </button>
+              <div
+                className="w-12 h-12 rounded-xl overflow-hidden shadow-md group-hover:scale-110 transition-transform duration-200 border border-white/20"
+                style={{ boxShadow: `0 2px 10px ${sp.color}35` }}
+              >
+                <img src={sp.logo} alt={sp.name} className="w-full h-full object-cover" loading="lazy" />
+              </div>
+              <span className="text-[9px] font-semibold text-gray-500 dark:text-gray-500 text-center leading-tight max-w-[60px] line-clamp-1 group-hover:text-pink-500 transition-colors">
+                {sp.name}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -1092,28 +1090,40 @@ const HomePage: React.FC = () => {
               Ver todos <ChevronRight className="w-3 h-3" />
             </button>
           </div>
-          {/* Posts en horizontal scroll */}
-          <div className="flex gap-0 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-            {COMMUNITY_POSTS.filter(p => p.status === 'APROBADO').slice(0, 5).map((post, idx, arr) => (
-              <button
-                key={post.id}
-                onClick={() => navigate(`/comunidad?post=${post.id}`)}
-                className={`flex-shrink-0 flex items-start gap-2 p-3 hover:bg-orange-50/60 dark:hover:bg-orange-900/10 transition-all text-left ${idx < arr.length - 1 ? 'border-r border-gray-100 dark:border-gray-800' : ''}`}
-                style={{ minWidth: 170, maxWidth: 180 }}
-              >
-                <img
-                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(post.user)}&background=F97316&color=fff&size=60&bold=true&rounded=true`}
-                  alt={post.user}
-                  className="w-8 h-8 rounded-full flex-shrink-0"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-900 dark:text-white text-[10px] truncate">{post.user}</p>
-                  <p className="text-gray-500 dark:text-gray-400 text-[9px] line-clamp-2 leading-snug mt-0.5">{post.fullText}</p>
-                  <p className="text-[8px] text-brand-orange font-bold mt-1">📍 {post.location}</p>
+          {/* Posts en auto-scroll infinito hacia la izquierda */}
+          {(() => {
+            const posts = COMMUNITY_POSTS.filter(p => p.status === 'APROBADO').slice(0, 8);
+            const tripled = [...posts, ...posts, ...posts];
+            return (
+              <div className="relative overflow-hidden" style={{
+                maskImage: 'linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%)',
+                WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%)',
+              }}>
+                <div className="flex animate-marquee-left-slow" style={{ width: 'max-content' }}>
+                  {tripled.map((post, idx) => (
+                    <button
+                      key={`${post.id}-${idx}`}
+                      onClick={() => navigate(`/comunidad?post=${post.id}`)}
+                      className="flex-shrink-0 flex items-start gap-2 p-3 hover:bg-orange-50/60 dark:hover:bg-orange-900/10 transition-all text-left border-r border-gray-100 dark:border-gray-800"
+                      style={{ minWidth: 200, maxWidth: 210 }}
+                    >
+                      <img
+                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(post.user)}&background=F97316&color=fff&size=60&bold=true&rounded=true`}
+                        alt={post.user}
+                        className="w-9 h-9 rounded-full flex-shrink-0"
+                        loading="lazy"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900 dark:text-white text-[11px] truncate">{post.user}</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-[10px] line-clamp-2 leading-snug mt-0.5">{post.fullText}</p>
+                        <p className="text-[9px] text-brand-orange font-bold mt-1">📍 {post.location}</p>
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              </button>
-            ))}
-          </div>
+              </div>
+            );
+          })()}
         </div>
       </section>
       )}
