@@ -35,6 +35,7 @@ const FUNCTIONS = [
   'stripe-webhook',
   'create-paypal-order',
   'capture-paypal-order',
+  'scrape-profile',
 ];
 
 async function deployFunction(name) {

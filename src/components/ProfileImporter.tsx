@@ -25,15 +25,17 @@
 import React, { useState, useMemo } from 'react';
 import {
   Upload, FileText, Database, CheckCircle, AlertCircle, Loader2,
-  X, Plus, Trash2, Eye, Download
+  X, Plus, Trash2, Eye, Download, Link2, Globe, Sparkles
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useUIStore } from '../store/appStore';
 import { resolveCityCoords } from '../lib/geo';
+import { scrapeProfile, scrapedToImport, type ScrapedProfile } from '../lib/scrapeProfile';
 import { Button } from './ui';
 
 type Role = 'artist' | 'dj' | 'dancer' | 'instructor' | 'singer' | 'band' | 'venue' | 'business' | 'promoter';
 type Format = 'json' | 'csv' | 'tsv';
+type Mode = 'paste' | 'urls';
 
 interface ParsedProfile {
   // Identificación
@@ -183,6 +185,7 @@ function normalizeRecord(raw: Record<string, any>, defaultRole: Role, idx: numbe
 
 const ProfileImporter: React.FC = () => {
   const { addToast } = useUIStore();
+  const [mode, setMode] = useState<Mode>('paste');
   const [format, setFormat] = useState<Format>('json');
   const [text, setText] = useState('');
   const [defaultRole, setDefaultRole] = useState<Role>('artist');
@@ -190,7 +193,19 @@ const ProfileImporter: React.FC = () => {
   const [importedCount, setImportedCount] = useState<number | null>(null);
   const [errors, setErrors] = useState<{ row: number; name: string; error: string }[]>([]);
 
+  // URL scraping mode state
+  const [urlText, setUrlText] = useState('');
+  const [scraping, setScraping] = useState(false);
+  const [scrapeProgress, setScrapeProgress] = useState({ done: 0, total: 0 });
+  const [scrapedProfiles, setScrapedProfiles] = useState<(ScrapedProfile & { _error?: string; _row?: number })[]>([]);
+  const [scrapeErrors, setScrapeErrors] = useState<{ url: string; error: string }[]>([]);
+
   const parsed = useMemo<ParsedProfile[]>(() => {
+    if (mode === 'urls') {
+      return scrapedProfiles.map((p, i) =>
+        normalizeRecord(scrapedToImport(p, defaultRole), defaultRole, i)
+      );
+    }
     if (!text.trim()) return [];
     try {
       if (format === 'json') {
@@ -204,10 +219,54 @@ const ProfileImporter: React.FC = () => {
     } catch (e: any) {
       return [];
     }
-  }, [text, format, defaultRole]);
+  }, [text, format, defaultRole, mode, scrapedProfiles]);
 
   const valid = parsed.filter(p => !p._error);
   const invalid = parsed.filter(p => p._error);
+
+  // ── URL scraping ────────────────────────────────────────────────
+  const handleScrapeUrls = async () => {
+    const urls = urlText
+      .split(/\r?\n/)
+      .map(l => l.trim())
+      .filter(l => l && /^https?:\/\//i.test(l));
+
+    if (urls.length === 0) {
+      addToast({ message: 'Pega al menos una URL http(s)', type: 'error' });
+      return;
+    }
+    if (urls.length > 50) {
+      addToast({ message: 'Máximo 50 URLs por lote', type: 'warning' });
+      urls.length = 50;
+    }
+
+    setScraping(true);
+    setScrapeProgress({ done: 0, total: urls.length });
+    setScrapedProfiles([]);
+    setScrapeErrors([]);
+
+    const ok: ScrapedProfile[] = [];
+    const fail: { url: string; error: string }[] = [];
+
+    // Scraping secuencial (la edge function tiene rate limit 30/min)
+    for (let i = 0; i < urls.length; i++) {
+      const url = urls[i];
+      const res = await scrapeProfile(url);
+      if (res.ok) ok.push(res.profile);
+      else fail.push({ url, error: res.error });
+      setScrapeProgress({ done: i + 1, total: urls.length });
+      // pequeña pausa entre requests para no saturar
+      if (i < urls.length - 1) await new Promise(r => setTimeout(r, 200));
+    }
+
+    setScrapedProfiles(ok);
+    setScrapeErrors(fail);
+    setScraping(false);
+    addToast({
+      message: `✅ ${ok.length} extraídos · ${fail.length} fallos`,
+      type: fail.length === 0 ? 'success' : 'warning',
+    });
+  };
 
   const handleImport = async () => {
     if (valid.length === 0) {
@@ -270,8 +329,19 @@ const ProfileImporter: React.FC = () => {
     setText(format === 'json' ? SAMPLE_JSON : SAMPLE_CSV);
   };
 
+  const loadSampleUrls = () => {
+    setUrlText([
+      'https://en.wikipedia.org/wiki/Romeo_Santos',
+      'https://en.wikipedia.org/wiki/Marc_Anthony',
+      'https://en.wikipedia.org/wiki/Juan_Luis_Guerra',
+    ].join('\n'));
+  };
+
   const clearAll = () => {
     setText('');
+    setUrlText('');
+    setScrapedProfiles([]);
+    setScrapeErrors([]);
     setImportedCount(null);
     setErrors([]);
   };
@@ -285,65 +355,140 @@ const ProfileImporter: React.FC = () => {
               <Database className="w-5 h-5 text-brand-orange" /> Importar perfiles en bloque
             </h2>
             <p className="text-gray-400 text-sm mt-0.5">
-              Pega JSON, CSV o TSV de perfiles extraídos de otras webs. Se geocodifican y guardan en <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">profiles</code>.
+              Pega URLs de otras webs (extracción automática) o JSON / CSV / TSV. Geocoding incluido.
             </p>
           </div>
         </div>
 
-        {/* Formato + rol por defecto */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-          <div>
-            <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">Formato</label>
-            <div className="flex gap-1">
-              {(['json', 'csv', 'tsv'] as Format[]).map(f => (
-                <button key={f} onClick={() => setFormat(f)}
-                  className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase ${
-                    format === f ? 'bg-brand-orange text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
-                  }`}>{f}</button>
-              ))}
-            </div>
-          </div>
-          <div className="md:col-span-2">
-            <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">Rol por defecto (si la fila no lo trae)</label>
-            <select value={defaultRole} onChange={e => setDefaultRole(e.target.value as Role)} className="input-field">
-              <option value="artist">Artista</option>
-              <option value="dj">DJ</option>
-              <option value="dancer">Bailarín/a</option>
-              <option value="instructor">Instructor/a</option>
-              <option value="singer">Cantante</option>
-              <option value="band">Banda</option>
-              <option value="venue">Local / Venue</option>
-              <option value="business">Vendedor / Business</option>
-              <option value="promoter">Promotor</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Acciones rápidas */}
-        <div className="flex gap-2 mb-2 flex-wrap">
-          <button onClick={loadSample} className="text-xs text-brand-orange hover:text-pink-600 font-bold flex items-center gap-1">
-            <FileText className="w-3 h-3" /> Cargar ejemplo
+        {/* Tabs Mode */}
+        <div className="flex gap-1 mb-4 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-fit">
+          <button onClick={() => setMode('urls')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase flex items-center gap-1.5 ${
+              mode === 'urls' ? 'bg-white dark:bg-gray-900 text-brand-orange shadow-sm' : 'text-gray-600 dark:text-gray-300'
+            }`}>
+            <Link2 className="w-3.5 h-3.5" /> Por URL
+            <span className="text-[9px] bg-pink-500 text-white px-1 py-0.5 rounded">SCRAPER</span>
           </button>
-          {text && (
-            <button onClick={clearAll} className="text-xs text-red-500 hover:text-red-700 font-bold flex items-center gap-1">
-              <X className="w-3 h-3" /> Limpiar
-            </button>
-          )}
+          <button onClick={() => setMode('paste')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold uppercase flex items-center gap-1.5 ${
+              mode === 'paste' ? 'bg-white dark:bg-gray-900 text-brand-orange shadow-sm' : 'text-gray-600 dark:text-gray-300'
+            }`}>
+            <FileText className="w-3.5 h-3.5" /> Pegar texto
+          </button>
         </div>
 
-        {/* Textarea */}
-        <textarea
-          value={text}
-          onChange={e => setText(e.target.value)}
-          rows={12}
-          spellCheck={false}
-          placeholder={format === 'json' ? 'Pega tu array JSON aquí...' : 'Pega tu ' + format.toUpperCase() + ' aquí (primera fila = cabeceras)'}
-          className="w-full input-field font-mono text-xs"
-          style={{ resize: 'vertical', minHeight: 200 }}
-        />
+        {/* Rol por defecto (común) */}
+        <div className="mb-3">
+          <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">Rol por defecto (si la fuente no lo dice)</label>
+          <select value={defaultRole} onChange={e => setDefaultRole(e.target.value as Role)} className="input-field">
+            <option value="artist">Artista</option>
+            <option value="dj">DJ</option>
+            <option value="dancer">Bailarín/a</option>
+            <option value="instructor">Instructor/a</option>
+            <option value="singer">Cantante</option>
+            <option value="band">Banda</option>
+            <option value="venue">Local / Venue</option>
+            <option value="business">Vendedor / Business</option>
+            <option value="promoter">Promotor</option>
+          </select>
+        </div>
+
+        {/* MODO URL ─────────────────────────────────────────────── */}
+        {mode === 'urls' && (
+          <>
+            <div className="flex gap-2 mb-2 flex-wrap items-center">
+              <Globe className="w-4 h-4 text-brand-orange" />
+              <span className="text-xs font-bold text-gray-700 dark:text-gray-200">URLs a extraer</span>
+              <span className="text-[10px] text-gray-400">(una por línea, máx 50)</span>
+              <button onClick={loadSampleUrls} className="ml-auto text-xs text-brand-orange hover:text-pink-600 font-bold flex items-center gap-1">
+                <Sparkles className="w-3 h-3" /> Ejemplo
+              </button>
+              {(urlText || scrapedProfiles.length > 0) && (
+                <button onClick={clearAll} className="text-xs text-red-500 hover:text-red-700 font-bold flex items-center gap-1">
+                  <X className="w-3 h-3" /> Limpiar
+                </button>
+              )}
+            </div>
+            <textarea
+              value={urlText}
+              onChange={e => setUrlText(e.target.value)}
+              rows={6}
+              spellCheck={false}
+              placeholder={'https://instagram.com/usuario\nhttps://www.tiktok.com/@otro_artista\nhttps://soundcloud.com/dj-ejemplo'}
+              className="w-full input-field font-mono text-xs"
+              style={{ resize: 'vertical', minHeight: 120 }}
+            />
+
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              <Button
+                variant="orange"
+                icon={scraping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                onClick={handleScrapeUrls}
+                loading={scraping}
+                disabled={!urlText.trim()}
+              >
+                {scraping
+                  ? `Extrayendo… ${scrapeProgress.done}/${scrapeProgress.total}`
+                  : 'Extraer perfiles'}
+              </Button>
+              {scrapedProfiles.length > 0 && (
+                <span className="text-xs text-green-600 font-bold flex items-center gap-1">
+                  <CheckCircle className="w-3.5 h-3.5" /> {scrapedProfiles.length} perfiles listos para importar
+                </span>
+              )}
+            </div>
+
+            {scrapeErrors.length > 0 && (
+              <div className="mt-3 bg-red-50 dark:bg-red-900/20 border border-red-200 rounded-xl p-3 max-h-40 overflow-y-auto text-xs">
+                <p className="font-bold text-red-700 mb-1">URLs que fallaron ({scrapeErrors.length}):</p>
+                {scrapeErrors.slice(0, 10).map((e, i) => (
+                  <p key={i} className="text-red-600 truncate">• {e.url} → {e.error}</p>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* MODO PASTE ───────────────────────────────────────────── */}
+        {mode === 'paste' && (
+          <>
+            <div className="mb-3">
+              <label className="text-xs font-bold uppercase text-gray-500 mb-1 block">Formato</label>
+              <div className="flex gap-1 max-w-xs">
+                {(['json', 'csv', 'tsv'] as Format[]).map(f => (
+                  <button key={f} onClick={() => setFormat(f)}
+                    className={`flex-1 py-2 rounded-lg text-xs font-bold uppercase ${
+                      format === f ? 'bg-brand-orange text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+                    }`}>{f}</button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2 mb-2 flex-wrap">
+              <button onClick={loadSample} className="text-xs text-brand-orange hover:text-pink-600 font-bold flex items-center gap-1">
+                <FileText className="w-3 h-3" /> Cargar ejemplo
+              </button>
+              {text && (
+                <button onClick={clearAll} className="text-xs text-red-500 hover:text-red-700 font-bold flex items-center gap-1">
+                  <X className="w-3 h-3" /> Limpiar
+                </button>
+              )}
+            </div>
+
+            <textarea
+              value={text}
+              onChange={e => setText(e.target.value)}
+              rows={12}
+              spellCheck={false}
+              placeholder={format === 'json' ? 'Pega tu array JSON aquí...' : 'Pega tu ' + format.toUpperCase() + ' aquí (primera fila = cabeceras)'}
+              className="w-full input-field font-mono text-xs"
+              style={{ resize: 'vertical', minHeight: 200 }}
+            />
+          </>
+        )}
 
         {/* Estadísticas */}
-        {text && (
+        {parsed.length > 0 && (
           <div className="grid grid-cols-3 gap-2 mt-3">
             <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 text-center">
               <p className="text-2xl font-black text-gray-900 dark:text-white">{parsed.length}</p>
@@ -436,14 +581,19 @@ const ProfileImporter: React.FC = () => {
 
       {/* Ayuda */}
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 rounded-2xl p-4 text-xs text-blue-900 dark:text-blue-200">
-        <p className="font-bold mb-2">💡 Tips para el JSON / CSV:</p>
+        <p className="font-bold mb-2">💡 Cómo funciona</p>
         <ul className="space-y-1 pl-4 list-disc">
-          <li><strong>name</strong> es el único campo obligatorio</li>
+          <li><strong>Por URL</strong>: pega enlaces (Instagram, TikTok, YouTube, SoundCloud, Spotify, web personal, Wikipedia…). El scraper extrae nombre, bio, avatar, redes sociales y ciudad de los metadatos OpenGraph + JSON-LD de cada página.</li>
+          <li><strong>Pegar texto</strong>: JSON / CSV / TSV. <code>name</code> es el único campo obligatorio.</li>
           <li><strong>city</strong> auto-geocodifica a lat/lng (Madrid, Barcelona, Paris, Miami, Cali, etc.)</li>
           <li><strong>styles</strong> y <strong>tags</strong> aceptan array JSON o lista separada por <code>;</code> en CSV</li>
           <li>Si traen <strong>email</strong>, se hace UPSERT (no duplica)</li>
-          <li>Los perfiles importados aparecen en Cerca de mí, Artistas, Mapa según su <strong>role</strong></li>
+          <li>Los perfiles importados aparecen automáticamente en Cerca de mí, Artistas y Mapa según su <strong>role</strong></li>
         </ul>
+        <p className="mt-3 text-[10px] text-blue-700 dark:text-blue-300">
+          ⚠ El scraper requiere la Edge Function <code>scrape-profile</code> desplegada en Supabase
+          (<code>npx supabase functions deploy scrape-profile</code> o <code>node supabase/deploy-functions.mjs</code>).
+        </p>
       </div>
     </div>
   );
