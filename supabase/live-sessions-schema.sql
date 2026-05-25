@@ -86,10 +86,10 @@ CREATE TRIGGER trg_bump_live_donations
 CREATE OR REPLACE VIEW public.live_sessions_enriched AS
 SELECT
   s.*,
-  p.name      AS host_name,
-  p.avatar_url AS host_avatar,
-  p.role      AS host_role,
-  p.city      AS host_city
+  COALESCE(p.full_name, p.email)              AS host_name,
+  p.avatar_url                                AS host_avatar,
+  p.role::text                                AS host_role,
+  COALESCE(p.city, p.location)                AS host_city
 FROM public.live_sessions s
 LEFT JOIN public.profiles p ON p.id = s.host_id;
 

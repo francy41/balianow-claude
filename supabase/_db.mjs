@@ -1,7 +1,11 @@
 // Helper único para conectar a Postgres usando credenciales del entorno.
 // Lee desde .env.local (no commiteado). Nunca hardcodear contraseñas.
-import 'dotenv/config';
+import dotenv from 'dotenv';
 import pg from 'pg';
+
+// Load .env.local first (project convention), then fallback to .env
+dotenv.config({ path: '.env.local' });
+dotenv.config();
 
 const { Client } = pg;
 

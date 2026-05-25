@@ -7,7 +7,11 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS lat       double precision,
   ADD COLUMN IF NOT EXISTS lng       double precision,
   ADD COLUMN IF NOT EXISTS tags      text[]  DEFAULT '{}',
-  ADD COLUMN IF NOT EXISTS styles    text[]  DEFAULT '{}';
+  ADD COLUMN IF NOT EXISTS styles    text[]  DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS city      text;
+
+-- Si existe la columna heredada `location`, copiar a `city`
+UPDATE public.profiles SET city = location WHERE city IS NULL AND location IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS profiles_geo_idx   ON public.profiles (lat, lng) WHERE lat IS NOT NULL;
 CREATE INDEX IF NOT EXISTS profiles_role_idx  ON public.profiles (role);
