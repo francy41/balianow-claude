@@ -3,19 +3,30 @@
  * Requiere SUPABASE_ACCESS_TOKEN (Personal Access Token)
  * Obtener en: https://supabase.com/dashboard/account/tokens
  */
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { config as loadEnv } from 'dotenv';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const root = join(__dirname, '..');
+for (const f of ['.env.local', '.env']) {
+  const p = join(root, f);
+  if (existsSync(p)) loadEnv({ path: p, override: false });
+}
 
-const PROJECT_REF = 'lpwwdjujxwxdvyoznehp';
-const ACCESS_TOKEN = process.env.SUPABASE_ACCESS_TOKEN || process.argv[2];
+const PROJECT_REF   = process.env.SUPABASE_PROJECT_REF || process.argv[3];
+const ACCESS_TOKEN  = process.env.SUPABASE_ACCESS_TOKEN || process.argv[2];
 
+if (!PROJECT_REF) {
+  console.error('\n❌ Falta SUPABASE_PROJECT_REF (en .env.local)');
+  console.error('   Lo encuentras en la URL del dashboard: https://supabase.com/dashboard/project/<REF>\n');
+  process.exit(1);
+}
 if (!ACCESS_TOKEN || ACCESS_TOKEN === 'undefined') {
   console.error('\n❌ Falta SUPABASE_ACCESS_TOKEN');
   console.error('   Obtén tu token en: https://supabase.com/dashboard/account/tokens');
-  console.error('   Uso: node deploy-functions.mjs <TU_ACCESS_TOKEN>\n');
+  console.error('   Define SUPABASE_ACCESS_TOKEN en .env.local o pásalo como argumento.\n');
   process.exit(1);
 }
 

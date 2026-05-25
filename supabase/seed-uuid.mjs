@@ -1,11 +1,6 @@
-import pg from 'pg';
+import { createDbClient } from './_db.mjs';
 
-const client = new pg.Client({
-  host: 'db.lpwwdjujxwxdvyoznehp.supabase.co',
-  port: 5432, database: 'postgres', user: 'postgres',
-  password: '@Solfa11223344@',
-  ssl: { rejectUnauthorized: false },
-});
+const client = createDbClient();
 
 // We need to check column types first, then fix id columns that are UUID instead of TEXT
 async function run() {

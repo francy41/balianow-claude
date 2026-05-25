@@ -1,11 +1,6 @@
-import pg from 'pg';
+import { createDbClient } from './_db.mjs';
 
-const client = new pg.Client({
-  host: 'db.lpwwdjujxwxdvyoznehp.supabase.co',
-  port: 5432, database: 'postgres', user: 'postgres',
-  password: '@Solfa11223344@',
-  ssl: { rejectUnauthorized: false },
-});
+const client = createDbClient();
 
 // ── SEED DATA ────────────────────────────────────────────────
 const ARTISTS = [

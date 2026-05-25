@@ -13,6 +13,7 @@ import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerforme
 import { supabase } from '../lib/supabase';
 import { saveSiteConfigKey } from '../hooks/useSiteConfig';
 import AdminCMS from '../components/AdminCMS';
+import ProfileImporter from '../components/ProfileImporter';
 import AdminMediaManager from '../components/AdminMediaManager';
 import AdminEditModal, { type EditField } from '../components/AdminEditModal';
 import AdminLocationModal from '../components/AdminLocationModal';
@@ -26,11 +27,12 @@ type AdminSection =
   | 'suscripciones' | 'artistas' | 'bailarinas' | 'eventos' | 'mercado'
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms'
-  | 'patrocinadores' | 'administradores';
+  | 'patrocinadores' | 'administradores' | 'importar';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
   { id: 'cms',            label: 'CMS · Constructor',       icon: <Palette className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'importar',       label: 'Importar perfiles',       icon: <Database className="w-4 h-4" />, badge: 'NEW' },
   { id: 'patrocinadores', label: 'Patrocinadores',          icon: <Star className="w-4 h-4" />, badge: 'NEW' },
   { id: 'categorias',     label: 'Categorías',              icon: <Tag className="w-4 h-4" /> },
   { id: 'media',          label: 'Media Manager',           icon: <Palette className="w-4 h-4" />, badge: 'NEW' },
@@ -280,6 +282,7 @@ const AdminPage: React.FC = () => {
         {active === 'retiros'        && <RetirosSection addToast={addToast} />}
         {active === 'comisiones'     && <ComisionesSection addToast={addToast} />}
         {active === 'cms'            && <AdminCMS />}
+        {active === 'importar'       && <ProfileImporter />}
         {active === 'diseno'         && <DisenoSection addToast={addToast} />}
         {active === 'configuracion'  && <ConfiguracionSection addToast={addToast} />}
         {active === 'roles'          && <RolesSection addToast={addToast} />}

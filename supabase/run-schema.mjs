@@ -1,20 +1,25 @@
-import pg from 'pg';
+/**
+ * run-schema.mjs — Ejecuta un fichero SQL contra la BD
+ *
+ * Uso:
+ *   node supabase/run-schema.mjs <fichero.sql>
+ *
+ * Ej:
+ *   node supabase/run-schema.mjs add-profile-geo.sql
+ *
+ * Para aplicar TODAS las migraciones pendientes, usa:
+ *   npm run db:migrate
+ */
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { createDbClient } from './_db.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const file = process.argv[2] || 'schema.sql';
 const sql = readFileSync(join(__dirname, file), 'utf-8');
 
-const client = new pg.Client({
-  host: 'db.lpwwdjujxwxdvyoznehp.supabase.co',
-  port: 5432,
-  database: 'postgres',
-  user: 'postgres',
-  password: '@Solfa11223344@',
-  ssl: { rejectUnauthorized: false },
-});
+const client = createDbClient();
 
 // Split SQL into individual statements, respecting $$ blocks
 function splitStatements(sql) {
@@ -44,7 +49,7 @@ function splitStatements(sql) {
 
 try {
   await client.connect();
-  console.log('✅ Connected to Supabase PostgreSQL\n');
+  console.log('✅ Connected to PostgreSQL\n');
 
   const statements = splitStatements(sql);
   let ok = 0, fail = 0;
@@ -70,6 +75,7 @@ try {
   console.log(`\n🏁 Done: ${ok} succeeded, ${fail} skipped/failed`);
 } catch (err) {
   console.error('❌ Connection error:', err.message);
+  process.exitCode = 1;
 } finally {
   await client.end();
 }

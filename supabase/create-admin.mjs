@@ -1,13 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+import { createDbClient } from './_db.mjs';
 
-// Use service_role key to create admin user (bypasses RLS)
-// We'll use the REST API directly via postgres instead
-import pg from 'pg';
-
-const client = new pg.Client({
-  host: 'db.lpwwdjujxwxdvyoznehp.supabase.co', port: 5432, database: 'postgres', user: 'postgres',
-  password: '@Solfa11223344@', ssl: { rejectUnauthorized: false },
-});
+const client = createDbClient();
 
 async function run() {
   await client.connect();
