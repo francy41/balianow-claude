@@ -57,11 +57,17 @@ export const CITY_COORDS: Record<string, LatLng> = {
   'new york':         { lat:  40.7128, lng: -74.0060 },
 };
 
-/** Devuelve coordenadas de una ciudad conocida (case/acentos-insensible). */
+/** Devuelve coordenadas de una ciudad conocida (case/acentos/sufijos-insensible).
+ *  Acepta variantes como "Madrid, España", "Barcelona - Spain", "Sevilla / Andalucía". */
 export function resolveCityCoords(city: string | null | undefined): LatLng | null {
   if (!city) return null;
-  const key = city.trim().toLowerCase();
-  return CITY_COORDS[key] ?? null;
+  // Quitar sufijos de país/región separados por coma, guion o slash
+  let key = city.trim().toLowerCase().split(/[,\-\/(]/)[0].trim();
+  if (!key) return null;
+  if (CITY_COORDS[key]) return CITY_COORDS[key];
+  // Probar también la versión sin tildes
+  const noAccents = key.normalize('NFD').replace(/[̀-ͯ]/g, '');
+  return CITY_COORDS[noAccents] ?? null;
 }
 
 /** Distancia en km entre 2 puntos (haversine). */

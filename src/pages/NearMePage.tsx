@@ -131,13 +131,22 @@ const NearMePage: React.FC = () => {
     const load = async () => {
       const combined: Item[] = [];
 
+      // Helper: trata lat/lng=0 o NaN como "no hay coords"
+      const coordsOrCity = (row: any): { lat: number; lng: number } | null => {
+        const lat = Number(row.lat), lng = Number(row.lng);
+        if (lat && lng && !isNaN(lat) && !isNaN(lng)) return { lat, lng };
+        return resolveCityCoords(row.city || row.location);
+      };
+
       // Venues
       try {
         const { data } = await supabase.from('venues').select('*');
         data?.forEach((v: any) => {
-          if (v.lat && v.lng) combined.push({
+          const c = coordsOrCity(v);
+          if (!c) return;
+          combined.push({
             id: v.id, type: 'venue', name: v.name, city: v.city || '',
-            lat: Number(v.lat), lng: Number(v.lng),
+            lat: c.lat, lng: c.lng,
             img: v.image_url || v.cover || v.avatar,
             genre: Array.isArray(v.style) ? v.style.join(', ') : v.style,
             rating: Number(v.rating) || 4.5,
@@ -145,59 +154,58 @@ const NearMePage: React.FC = () => {
             openHoursText: v.open_hours || (v.open_time && v.close_time ? `${String(v.open_time).slice(0,5)}–${String(v.close_time).slice(0,5)}` : undefined),
           });
         });
-      } catch {}
+      } catch (e) { console.warn('[nearme] venues', e); }
 
       // Events
       try {
         const { data } = await supabase.from('events').select('*');
         data?.forEach((e: any) => {
-          if (e.lat && e.lng) combined.push({
+          const c = coordsOrCity(e);
+          if (!c) return;
+          combined.push({
             id: e.id, type: 'event', name: e.title, city: e.city || '',
-            lat: Number(e.lat), lng: Number(e.lng),
+            lat: c.lat, lng: c.lng,
             img: e.image_url || e.cover, date: e.date,
           });
         });
-      } catch {}
+      } catch (e) { console.warn('[nearme] events', e); }
 
       // Artists (incluye singers, dancers, djs, instructors)
       try {
         const { data } = await supabase.from('artists').select('*');
         data?.forEach((a: any) => {
-          if (a.lat && a.lng) {
-            const t: Item['type'] = a.type === 'dancer' ? 'dancer' : a.type === 'dj' ? 'dj' : 'artist';
-            combined.push({
-              id: a.id, type: t, name: a.name, city: a.city || '',
-              lat: Number(a.lat), lng: Number(a.lng),
-              img: a.avatar, genre: Array.isArray(a.genre) ? a.genre.join(', ') : a.genre,
-              rating: Number(a.rating) || undefined,
-            });
-          }
+          const c = coordsOrCity(a);
+          if (!c) return;
+          const t: Item['type'] = a.type === 'dancer' ? 'dancer' : a.type === 'dj' ? 'dj' : 'artist';
+          combined.push({
+            id: a.id, type: t, name: a.name, city: a.city || '',
+            lat: c.lat, lng: c.lng,
+            img: a.avatar, genre: Array.isArray(a.genre) ? a.genre.join(', ') : a.genre,
+            rating: Number(a.rating) || undefined,
+          });
         });
-      } catch {}
+      } catch (e) { console.warn('[nearme] artists', e); }
 
       // PROFILES (usuarios reales — DJs, bailarines, artistas, instructores...)
       try {
         const { data } = await supabase.from('profiles').select('*');
         data?.forEach((p: any) => {
           const role = String(p.role || '').toLowerCase();
+          // mapping permisivo: si el rol no es admin/superadmin, lo mostramos en alguna categoria
           const t: Item['type'] | null =
             role === 'dj'        ? 'dj'     :
             role === 'dancer'    ? 'dancer' :
             (role === 'venue' || role === 'business') ? 'venue' :
-            ['artist','instructor','singer','musician','promoter','band'].includes(role) ? 'artist' :
+            ['artist','instructor','singer','musician','promoter','band','vendor','user'].includes(role) ? 'artist' :
             null;
           if (!t) return;
-          let lat = Number(p.lat), lng = Number(p.lng);
-          if (!lat || !lng) {
-            const c = resolveCityCoords(p.city || p.location);
-            if (!c) return;
-            lat = c.lat; lng = c.lng;
-          }
+          const c = coordsOrCity(p);
+          if (!c) return;
           combined.push({
             id: p.id, type: t,
             name: p.full_name || p.name || 'Usuario',
             city: p.city || p.location || '',
-            lat, lng,
+            lat: c.lat, lng: c.lng,
             img: p.avatar_url || p.avatar,
             genre: Array.isArray(p.styles) ? p.styles.join(', ') : undefined,
           });
@@ -213,16 +221,12 @@ const NearMePage: React.FC = () => {
           .order('started_at', { ascending: false })
           .limit(200);
         data?.forEach((l: any) => {
-          let lat = Number(l.lat), lng = Number(l.lng);
-          if (!lat || !lng) {
-            const c = resolveCityCoords(l.city);
-            if (!c) return;
-            lat = c.lat; lng = c.lng;
-          }
+          const c = coordsOrCity(l);
+          if (!c) return;
           combined.push({
             id: l.id, type: 'live',
             name: l.title, city: l.city || '',
-            lat, lng,
+            lat: c.lat, lng: c.lng,
             img: l.cover_url || l.host_avatar,
             isLive: l.status === 'live',
             pricing_mode: l.pricing_mode,
