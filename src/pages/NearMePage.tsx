@@ -53,7 +53,29 @@ type Item = {
   pricing_mode?: 'free' | 'paid' | 'reservation' | 'donation';
   price?: number;
   liveData?: LiveSessionLite;
+  isOpenNow?: boolean;
+  openHoursText?: string;
 };
+
+// ── Calcula si un venue está abierto ahora ──────────────────────
+// Acepta is_open (flag manual), open_time/close_time (HH:MM:SS) + operating_days (array)
+const WEEKDAYS_ES = ['domingo','lunes','martes','miercoles','jueves','viernes','sabado'];
+function venueIsOpenNow(v: any): boolean {
+  if (v.is_open === true) return true;
+  if (v.is_open === false) return false;
+  if (!v.open_time || !v.close_time) return false;
+  const now = new Date();
+  const today = WEEKDAYS_ES[now.getDay()];
+  const days = Array.isArray(v.operating_days) ? v.operating_days.map((d: string) => String(d).toLowerCase()) : [];
+  if (days.length > 0 && !days.includes(today) && !days.includes(today.replace('miercoles','miércoles')) && !days.includes(today.replace('sabado','sábado'))) {
+    return false;
+  }
+  const toMin = (s: string) => { const [h, m] = String(s).split(':').map(Number); return (h || 0) * 60 + (m || 0); };
+  const o = toMin(v.open_time), c = toMin(v.close_time);
+  const cur = now.getHours() * 60 + now.getMinutes();
+  // Soporta horarios que cruzan medianoche (ej. 23:00 → 06:00)
+  return c > o ? (cur >= o && cur <= c) : (cur >= o || cur <= c);
+}
 
 const NearMePage: React.FC = () => {
   const navigate = useNavigate();
@@ -67,7 +89,7 @@ const NearMePage: React.FC = () => {
   const [showCityPicker, setShowCityPicker] = useState(false);
   const [gpsError, setGpsError] = useState<string>('');
   const [radius, setRadius]     = useState<50 | 100 | 500 | 5000>(500);
-  const [activeTab, setActiveTab] = useState<'all' | 'live' | 'venues' | 'events' | 'artists' | 'dancers' | 'djs'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'live' | 'open' | 'venues' | 'events' | 'artists' | 'dancers' | 'djs'>('all');
   const [livePreview, setLivePreview] = useState<LiveSessionLite | null>(null);
 
   // Initialize position from URL param > localStorage > GPS > picker
@@ -116,8 +138,11 @@ const NearMePage: React.FC = () => {
           if (v.lat && v.lng) combined.push({
             id: v.id, type: 'venue', name: v.name, city: v.city || '',
             lat: Number(v.lat), lng: Number(v.lng),
-            img: v.image_url, genre: Array.isArray(v.style) ? v.style.join(', ') : v.style,
+            img: v.image_url || v.cover || v.avatar,
+            genre: Array.isArray(v.style) ? v.style.join(', ') : v.style,
             rating: Number(v.rating) || 4.5,
+            isOpenNow: venueIsOpenNow(v),
+            openHoursText: v.open_hours || (v.open_time && v.close_time ? `${String(v.open_time).slice(0,5)}–${String(v.close_time).slice(0,5)}` : undefined),
           });
         });
       } catch {}
@@ -256,6 +281,7 @@ const NearMePage: React.FC = () => {
       .filter(it => it.distance! <= radius)
       .filter(it => {
         if (activeTab === 'live'    && it.type !== 'live')   return false;
+        if (activeTab === 'open'    && !it.isOpenNow)        return false;
         if (activeTab === 'venues'  && it.type !== 'venue')  return false;
         if (activeTab === 'events'  && it.type !== 'event')  return false;
         if (activeTab === 'artists' && it.type !== 'artist') return false;
@@ -276,6 +302,7 @@ const NearMePage: React.FC = () => {
     return {
       all:     inRadius.length,
       live:    inRadius.filter(i => i.type === 'live').length,
+      open:    inRadius.filter(i => i.isOpenNow).length,
       venues:  inRadius.filter(i => i.type === 'venue').length,
       events:  inRadius.filter(i => i.type === 'event').length,
       artists: inRadius.filter(i => i.type === 'artist').length,
@@ -365,6 +392,7 @@ const NearMePage: React.FC = () => {
         {[
           { key: 'all',     label: `Todo (${counts.all})`,     icon: '🌍' },
           { key: 'live',    label: `En vivo (${counts.live})`,  icon: '🔴' },
+          { key: 'open',    label: `Abierto ahora (${counts.open})`, icon: '🟢' },
           { key: 'venues',  label: `Locales (${counts.venues})`, icon: '🏛️' },
           { key: 'events',  label: `Eventos (${counts.events})`, icon: '🎉' },
           { key: 'artists', label: `Artistas (${counts.artists})`,icon: '🎤' },
@@ -431,12 +459,18 @@ const NearMePage: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-black text-[15px] text-gray-900 dark:text-white truncate leading-tight">{it.name}</h3>
+                    <h3 className="font-black text-[15px] text-gray-900 dark:text-white truncate leading-tight flex items-center gap-1.5">
+                      {it.name}
+                      {it.type === 'venue' && it.isOpenNow && <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0" title="Abierto ahora" />}
+                    </h3>
                     <p className="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
                       <span className={`px-1.5 py-0.5 rounded-full text-white text-[9px] font-bold bg-gradient-to-r ${typeMeta.color}`}>
                         {typeMeta.emoji} {typeMeta.label}
                       </span>
                       <MapPin className="w-3 h-3 ml-1" />{it.city}
+                      {it.type === 'venue' && it.openHoursText && (
+                        <span className="ml-1 text-[10px] text-gray-500">· {it.openHoursText}</span>
+                      )}
                     </p>
                   </div>
                   <div className="text-right flex-shrink-0">
@@ -451,6 +485,13 @@ const NearMePage: React.FC = () => {
                   <div className="relative w-full aspect-[16/9] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
                     <img src={it.img} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                    {it.type === 'venue' && it.isOpenNow && (
+                      <div className="absolute top-3 left-3">
+                        <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
+                          <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> ABIERTO AHORA
+                        </span>
+                      </div>
+                    )}
                     {it.type === 'live' && (
                       <div className="absolute top-3 left-3 flex items-center gap-2">
                         {it.isLive && <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1"><span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> LIVE</span>}
