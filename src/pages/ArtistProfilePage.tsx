@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import {
   MapPin, Users, CheckCircle, Instagram, Youtube, Facebook, Music2,
   Calendar, MessageSquare, Share2, Heart, Play, Eye, Globe, Clock,
@@ -33,13 +34,125 @@ const FAKE_REVIEWS = [
   { id: 4, user: 'Diego Martín',   rating: 5, date: '2026-02-28', text: 'El mejor DJ que hemos contratado. Lectura de público brutal.', helpful: 7 },
 ];
 
+// ── Mapea una row de artists (DB) al shape Artist (mock) ──────────
+function mapDbArtist(a: any): Artist {
+  return {
+    id:         a.id,
+    name:       a.name,
+    type:       a.type || 'artist',
+    genre:      Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : []),
+    avatar:     a.avatar || '',
+    cover:      a.cover || a.avatar || '',
+    city:       a.city || '',
+    country:    a.country || '',
+    rating:     Number(a.rating) || 4.5,
+    reviews:    Number(a.reviews) || 0,
+    followers:  Number(a.followers) || 0,
+    priceFrom:  Number(a.price_from) || 0,
+    bio:        a.bio || '',
+    tags:       Array.isArray(a.tags) ? a.tags : [],
+    isVerified: !!a.is_verified,
+    isPremium:  !!a.is_premium,
+    isLive:     !!a.is_live,
+    social:     a.social || {},
+    languages:  Array.isArray(a.languages) ? a.languages : ['Español'],
+    gallery:    Array.isArray(a.gallery) ? a.gallery : [],
+    offers:     Array.isArray(a.offers) ? a.offers : [],
+    availability: a.availability || {},
+    currency:     a.currency || 'EUR',
+    completedBookings: Number(a.completed_bookings) || 0,
+  } as unknown as Artist;
+}
+
+// ── Mapea un perfil (profiles) al shape Artist para reusar el render ──
+function mapProfileToArtist(p: any): Artist {
+  return {
+    id:         p.id,
+    name:       p.full_name || p.email || 'Usuario',
+    type:       (p.role === 'dj' || p.role === 'dancer' || p.role === 'singer' || p.role === 'band' || p.role === 'instructor') ? p.role : 'artist',
+    genre:      Array.isArray(p.styles) ? p.styles : [],
+    avatar:     p.avatar_url || '',
+    cover:      p.cover_photo || p.avatar_url || '',
+    city:       p.city || p.location || '',
+    country:    p.country || '',
+    rating:     0,
+    reviews:    0,
+    followers:  0,
+    priceFrom:  0,
+    bio:        p.bio || '',
+    tags:       Array.isArray(p.tags) ? p.tags : [],
+    isVerified: !!p.verified,
+    isPremium:  false,
+    isLive:     !!p.is_live,
+    social:     {
+      instagram: p.instagram_url, tiktok: p.tiktok_url, youtube: p.youtube_url,
+      facebook: p.facebook_url, website: p.website_url, spotify: p.spotify_url,
+      soundcloud: p.soundcloud_url, twitch: p.twitch_url,
+    },
+    languages:  ['Español'],
+    gallery:    [],
+    offers:     [],
+    availability: {},
+    currency:   'EUR',
+    completedBookings: 0,
+  } as unknown as Artist;
+}
+
 const ArtistProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
   const { addToast } = useUIStore();
 
-  const artist = ARTISTS.find(a => a.id === id) || ARTISTS[0];
+  const mockArtist = ARTISTS.find(a => a.id === id);
+  const [dbArtist, setDbArtist] = useState<Artist | null>(null);
+  const [loadingDb, setLoadingDb] = useState(!mockArtist);
+  const [notFound, setNotFound] = useState(false);
+
+  // Si no hay mock para este id, intenta cargar desde BD (artists luego profiles)
+  useEffect(() => {
+    if (mockArtist || !id) { setLoadingDb(false); return; }
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: art } = await supabase.from('artists').select('*').eq('id', id).maybeSingle();
+        if (cancelled) return;
+        if (art) { setDbArtist(mapDbArtist(art)); setLoadingDb(false); return; }
+        const { data: prof } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
+        if (cancelled) return;
+        if (prof) { setDbArtist(mapProfileToArtist(prof)); setLoadingDb(false); return; }
+        setNotFound(true);
+        setLoadingDb(false);
+      } catch (e) {
+        console.warn('[artist-profile] load', e);
+        if (!cancelled) { setNotFound(true); setLoadingDb(false); }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [id, mockArtist]);
+
+  if (loadingDb) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-10 h-10 border-3 border-pink-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (notFound || (!mockArtist && !dbArtist)) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center gap-4">
+        <p className="text-6xl">🔍</p>
+        <h2 className="font-display font-black text-xl text-gray-900 dark:text-white">Artista no encontrado</h2>
+        <p className="text-sm text-gray-500">El perfil que buscas ya no existe o fue eliminado.</p>
+        <button onClick={() => navigate('/artistas')} className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold px-6 py-3 rounded-xl">
+          Ver todos los artistas
+        </button>
+      </div>
+    );
+  }
+
+  const artist = (mockArtist || dbArtist)!;
   const currentStream = artist.currentStreamId
     ? LIVE_STREAMS.find(s => s.id === artist.currentStreamId)
     : null;
