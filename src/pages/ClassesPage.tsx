@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/appStore';
 import SearchTriggerBar from '../components/SearchTriggerBar';
 import ClassBookingModal from '../components/ClassBookingModal';
+import LiveFab from '../components/LiveFab';
 
 interface ClassOffering {
   id: string;
@@ -225,6 +226,9 @@ const ClassesPage: React.FC = () => {
           onBooked={() => { setSelectedClass(null); navigate('/dashboard?tab=classes'); }}
         />
       )}
+
+      {/* FAB Emitir clase en directo */}
+      <LiveFab category="class" label="Iniciar Clase Live" />
     </div>
   );
 };

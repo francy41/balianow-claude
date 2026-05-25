@@ -114,7 +114,41 @@ const AdminEditModal: React.FC<Props> = ({ open, onClose, title, entity, item, f
           setSaving(false);
           return;
         }
-        const { data, error } = await supabase.from(table).insert(payload).select().single();
+
+        // Auto-fill ownership columns required por RLS según entidad
+        const ownerCols: Record<string, string[]> = {
+          artist:       ['user_id'],
+          venue:        ['user_id'],
+          event:        ['created_by', 'user_id'],
+          service:      ['seller_id', 'artist_id'],
+          course:       ['performer_id', 'vendor_id'],
+          // user/profile usa el propio id de auth
+        };
+        (ownerCols[entity] || []).forEach(col => {
+          if (payload[col] === undefined) payload[col] = session.user.id;
+        });
+        if (entity === 'user' && !payload.id) payload.id = session.user.id;
+
+        // Stripping de campos id sentinel temporales (art-new-XXX)
+        if (typeof payload.id === 'string' && /^(art-new-|new-|venue-new-|event-new-|user-new-|service-new-|course-new-)/.test(payload.id)) {
+          delete payload.id;
+        }
+
+        let { data, error } = await supabase.from(table).insert(payload).select().single();
+
+        // Retry sin columnas que no existen (degradación elegante)
+        if (error && /column .* does not exist/i.test(error.message)) {
+          const colMatch = error.message.match(/column "?(\w+)"? .* does not exist/i);
+          if (colMatch?.[1]) {
+            const stripped = { ...payload };
+            delete stripped[colMatch[1]];
+            console.warn(`[AdminEdit] columna "${colMatch[1]}" no existe en ${table}, reintentando sin ella`);
+            const retry = await supabase.from(table).insert(stripped).select().single();
+            data = retry.data;
+            error = retry.error;
+          }
+        }
+
         if (error) {
           console.error('[AdminEdit] insert error:', error);
           addToast({ message: `Error al crear: ${error.message}`, type: 'error' });
@@ -155,7 +189,22 @@ const AdminEditModal: React.FC<Props> = ({ open, onClose, title, entity, item, f
         if (!session) {
           addToast({ message: '⚠ Guardado solo local (inicia sesión para sincronizar)', type: 'warning' });
         } else {
-          const { error } = await supabase.from(table).update(patch).eq('id', item.id);
+          let current = { ...patch };
+          let error: any = null;
+          // Retry hasta 3 veces eliminando columnas inexistentes
+          for (let attempt = 0; attempt < 3; attempt++) {
+            const res = await supabase.from(table).update(current).eq('id', item.id);
+            error = res.error;
+            if (!error) break;
+            const m = error.message.match(/column "?(\w+)"? .* does not exist/i);
+            if (m?.[1] && current[m[1]] !== undefined) {
+              console.warn(`[AdminEdit] columna "${m[1]}" no existe en ${table}, omitiendo`);
+              delete current[m[1]];
+              if (Object.keys(current).length === 0) break;
+            } else {
+              break;
+            }
+          }
           if (error) {
             console.error('[AdminEdit] supabase error:', error);
             addToast({ message: `⚠ Local guardado, BD falló: ${error.message}`, type: 'warning' });

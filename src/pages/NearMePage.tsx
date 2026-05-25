@@ -5,16 +5,18 @@
  */
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MapPin, Navigation, Search, Star, Calendar, Music, Users, X, Map, ChevronRight, AlertCircle } from 'lucide-react';
+import { MapPin, Navigation, Search, Star, Calendar, Music, Users, X, Map, ChevronRight, AlertCircle, Radio, Eye } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { CITY_COORDS, POPULAR_CITIES, distanceKm, resolveCityCoords } from '../lib/geo';
+import LiveFab from '../components/LiveFab';
+import LivePreviewModal, { type LiveSessionLite } from '../components/LivePreviewModal';
 
-type ItemType = 'venue' | 'event' | 'artist' | 'dancer' | 'dj';
+type ItemType = 'venue' | 'event' | 'artist' | 'dancer' | 'dj' | 'live';
 
 type Item = {
   id: string;
   type: ItemType;
-  source: 'venue' | 'event' | 'artist' | 'profile';
+  source: 'venue' | 'event' | 'artist' | 'profile' | 'live';
   name: string;
   city: string;
   lat: number;
@@ -24,6 +26,9 @@ type Item = {
   rating?: number;
   date?: string;
   distance?: number;
+  pricingMode?: 'free' | 'paid' | 'reservation' | 'donation';
+  price?: number;
+  liveSessionId?: string;
 };
 
 // Mapea el role del profile a un tipo visible en las pestañas
@@ -54,7 +59,7 @@ const NearMePage: React.FC = () => {
   const [showCityPicker, setShowCityPicker] = useState(false);
   const [gpsError, setGpsError] = useState<string>('');
   const [radius, setRadius]     = useState<50 | 100 | 500 | 5000>(500);
-  const [activeTab, setActiveTab] = useState<'all' | 'venues' | 'events' | 'artists' | 'dancers' | 'djs'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'venues' | 'events' | 'artists' | 'dancers' | 'djs' | 'lives'>('all');
 
   // Initialize position from URL param > localStorage > GPS > picker
   useEffect(() => {
@@ -184,6 +189,31 @@ const NearMePage: React.FC = () => {
         });
       } catch (e) { console.warn('[NearMe] profiles:', e); }
 
+      // Live sessions (EN VIVO ahora) — los priorizamos al top con badge propio
+      try {
+        const { data } = await supabase
+          .from('live_sessions_enriched')
+          .select('*')
+          .eq('status', 'live');
+        data?.forEach((s: any) => {
+          const coords = (s.lat && s.lng)
+            ? [Number(s.lat), Number(s.lng)] as [number, number]
+            : resolveCityCoords(s.city);
+          if (!coords) return;
+          pushOnce({
+            id: s.id, type: 'live', source: 'live',
+            name: s.title,
+            city: s.city || s.host_city || '',
+            lat: coords[0], lng: coords[1],
+            img: s.cover_url || s.host_avatar || undefined,
+            genre: Array.isArray(s.styles) ? s.styles.slice(0, 2).join(', ') : undefined,
+            pricingMode: s.pricing_mode,
+            price: Number(s.price) || undefined,
+            liveSessionId: s.id,
+          });
+        });
+      } catch (e) { console.warn('[NearMe] live:', e); }
+
       setItems(combined);
       setLoading(false);
     };
@@ -237,15 +267,21 @@ const NearMePage: React.FC = () => {
         if (activeTab === 'artists' && it.type !== 'artist') return false;
         if (activeTab === 'dancers' && it.type !== 'dancer') return false;
         if (activeTab === 'djs'     && it.type !== 'dj')     return false;
+        if (activeTab === 'lives'   && it.type !== 'live')   return false;
         if (search) return it.name.toLowerCase().includes(search.toLowerCase()) ||
                           it.city.toLowerCase().includes(search.toLowerCase());
         return true;
       })
-      .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
+      .sort((a, b) => {
+        // Lives siempre primero
+        if (a.type === 'live' && b.type !== 'live') return -1;
+        if (b.type === 'live' && a.type !== 'live') return 1;
+        return (a.distance ?? 0) - (b.distance ?? 0);
+      });
   }, [items, position, radius, activeTab, search]);
 
   const counts = useMemo(() => {
-    if (!position) return { all: 0, venues: 0, events: 0, artists: 0, dancers: 0, djs: 0 };
+    if (!position) return { all: 0, venues: 0, events: 0, artists: 0, dancers: 0, djs: 0, lives: 0 };
     const inRadius = items
       .map(it => ({ ...it, distance: distanceKm(position[0], position[1], it.lat, it.lng) }))
       .filter(it => it.distance! <= radius);
@@ -256,10 +292,19 @@ const NearMePage: React.FC = () => {
       artists: inRadius.filter(i => i.type === 'artist').length,
       dancers: inRadius.filter(i => i.type === 'dancer').length,
       djs:     inRadius.filter(i => i.type === 'dj').length,
+      lives:   inRadius.filter(i => i.type === 'live').length,
     };
   }, [items, position, radius]);
 
-  const goTo = (it: Item) => {
+  const [livePreview, setLivePreview] = useState<LiveSessionLite | null>(null);
+
+  const goTo = async (it: Item) => {
+    if (it.source === 'live' && it.liveSessionId) {
+      // Abre preview modal con clip de 60s antes de entrar
+      const { data } = await supabase.from('live_sessions_enriched').select('*').eq('id', it.liveSessionId).maybeSingle();
+      if (data) setLivePreview(data as LiveSessionLite);
+      return;
+    }
     if (it.source === 'venue')   return navigate(`/venues/${it.id}`);
     if (it.source === 'event')   return navigate(`/eventos/${it.id}`);
     if (it.source === 'profile') return navigate(`/p/${it.id}`);
@@ -337,6 +382,7 @@ const NearMePage: React.FC = () => {
       <div className="px-4 mb-3 flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
         {[
           { key: 'all',     label: `Todo (${counts.all})`,     icon: '🌍' },
+          { key: 'lives',   label: `En vivo (${counts.lives})`, icon: '🔴' },
           { key: 'venues',  label: `Locales (${counts.venues})`, icon: '🏛️' },
           { key: 'events',  label: `Eventos (${counts.events})`, icon: '🎉' },
           { key: 'artists', label: `Artistas (${counts.artists})`,icon: '🎤' },
@@ -384,6 +430,7 @@ const NearMePage: React.FC = () => {
               artist: { label: 'Artista',   emoji: '🎤', color: 'from-purple-500 to-fuchsia-600' },
               dancer: { label: 'Bailarín',  emoji: '💃', color: 'from-green-500 to-emerald-600' },
               dj:     { label: 'DJ',        emoji: '🎧', color: 'from-cyan-500 to-blue-600' },
+              live:   { label: 'EN VIVO',   emoji: '🔴', color: 'from-red-500 to-pink-600' },
             }[it.type];
 
             return (
@@ -422,7 +469,30 @@ const NearMePage: React.FC = () => {
                   <div className="relative w-full aspect-[16/9] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
                     <img src={it.img} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                    {it.rating && (
+                    {/* Indicador LIVE */}
+                    {it.type === 'live' && (
+                      <>
+                        <div className="absolute top-3 left-3 bg-red-600 px-2 py-1 rounded-md flex items-center gap-1 shadow-lg">
+                          <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                          <span className="text-white text-[10px] font-black uppercase tracking-widest">EN VIVO</span>
+                        </div>
+                        <div className="absolute bottom-3 left-3 bg-yellow-400 text-yellow-900 text-[9px] font-black uppercase px-2 py-0.5 rounded">
+                          ⏱ PREVIEW 60s
+                        </div>
+                        {it.pricingMode && (
+                          <div className={`absolute top-3 right-3 ${
+                            it.pricingMode === 'free' ? 'bg-green-500' :
+                            it.pricingMode === 'paid' ? 'bg-pink-500' :
+                            it.pricingMode === 'reservation' ? 'bg-blue-500' : 'bg-orange-500'
+                          } text-white text-[10px] font-black px-2 py-1 rounded-md`}>
+                            {it.pricingMode === 'free' ? '🆓 GRATIS' :
+                             it.pricingMode === 'paid' ? `💰 €${it.price}` :
+                             it.pricingMode === 'reservation' ? `📅 €${it.price}` : '💝 DONA'}
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {it.type !== 'live' && it.rating && (
                       <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
                         <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
                         <span className="text-white text-xs font-bold">{it.rating}</span>
@@ -448,8 +518,7 @@ const NearMePage: React.FC = () => {
                     )}
                   </div>
                   <button className={`bg-gradient-to-r ${typeMeta.color} text-white text-xs font-black px-4 py-2 rounded-full shadow-lg flex items-center gap-1`}>
-                    Ver
-                    <ChevronRight className="w-3.5 h-3.5" />
+                    {it.type === 'live' ? <><Eye className="w-3.5 h-3.5" /> Ver preview</> : <>Ver <ChevronRight className="w-3.5 h-3.5" /></>}
                   </button>
                 </footer>
               </article>
@@ -498,6 +567,12 @@ const NearMePage: React.FC = () => {
           <Map className="w-4 h-4" /> Ver mapa
         </button>
       )}
+
+      {/* FAB Emitir en directo (creadores) */}
+      <LiveFab category="show" />
+
+      {/* Preview de live (clip 60s) antes de entrar */}
+      <LivePreviewModal open={!!livePreview} onClose={() => setLivePreview(null)} session={livePreview} />
     </div>
   );
 };

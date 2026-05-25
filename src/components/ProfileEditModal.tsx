@@ -177,13 +177,26 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
         ...(coords ? { lat: coords[0], lng: coords[1] } : {}),
       };
 
-      const { error } = await supabase
-        .from('profiles')
-        .update(dbUpdate)
-        .eq('id', realId);
+      // Intento principal con retry inteligente: eliminamos columnas inexistentes
+      // hasta que el UPDATE pase (degradación elegante para BDs sin migrar)
+      let current = { ...dbUpdate };
+      let error: any = null;
+      for (let attempt = 0; attempt < 6; attempt++) {
+        const res = await supabase.from('profiles').update(current).eq('id', realId);
+        error = res.error;
+        if (!error) break;
+        const m = error.message.match(/column "?(\w+)"? .* does not exist/i);
+        if (m?.[1] && current[m[1]] !== undefined) {
+          console.warn(`[profile] columna "${m[1]}" no existe, omitiendo`);
+          delete current[m[1]];
+          if (Object.keys(current).length === 0) break;
+        } else {
+          break;
+        }
+      }
 
       if (error) {
-        // Retry with minimal set if some columns don't exist yet
+        // Último recurso: actualizar SOLO las columnas clásicas garantizadas
         const { error: error2 } = await supabase
           .from('profiles')
           .update({
