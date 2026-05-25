@@ -1,14 +1,5 @@
-import pg from 'pg';
-const client = new pg.Client({
-  host: 'db.lpwwdjujxwxdvyoznehp.supabase.co',
-  port: 5432,
-  database: 'postgres',
-  user: 'postgres',
-  password: '@Solfa11223344@',
-  ssl: { rejectUnauthorized: false },
-});
-
-await client.connect();
+import { connect } from './_db.mjs';
+const client = await connect();
 
 const sql = `ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS image_url TEXT DEFAULT '';`;
 await client.query(sql);

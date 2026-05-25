@@ -1,20 +1,13 @@
-import pg from 'pg';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { connect } from './_db.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const file = process.argv[2] || 'schema.sql';
 const sql = readFileSync(join(__dirname, file), 'utf-8');
 
-const client = new pg.Client({
-  host: 'db.lpwwdjujxwxdvyoznehp.supabase.co',
-  port: 5432,
-  database: 'postgres',
-  user: 'postgres',
-  password: '@Solfa11223344@',
-  ssl: { rejectUnauthorized: false },
-});
+const client = await connect();
 
 // Split SQL into individual statements, respecting $$ blocks
 function splitStatements(sql) {

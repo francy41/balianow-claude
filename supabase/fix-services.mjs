@@ -1,11 +1,7 @@
-import pg from 'pg';
-const client = new pg.Client({
-  host: 'db.lpwwdjujxwxdvyoznehp.supabase.co', port: 5432, database: 'postgres', user: 'postgres',
-  password: '@Solfa11223344@', ssl: { rejectUnauthorized: false },
-});
+import { connect } from './_db.mjs';
+const client = await connect();
 
 async function run() {
-  await client.connect();
   // Check what columns services has that have NOT NULL
   const { rows } = await client.query(`SELECT column_name, is_nullable, data_type, column_default FROM information_schema.columns WHERE table_name='services' AND table_schema='public' ORDER BY ordinal_position`);
   console.log('Services columns:');

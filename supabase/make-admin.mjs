@@ -1,9 +1,5 @@
-import pg from 'pg';
-const client = new pg.Client({
-  host: 'db.lpwwdjujxwxdvyoznehp.supabase.co', port: 5432, database: 'postgres', user: 'postgres',
-  password: '@Solfa11223344@', ssl: { rejectUnauthorized: false },
-});
-await client.connect();
+import { connect } from './_db.mjs';
+const client = await connect();
 const uid = '273f624b-a67d-47fc-ae4d-8af48805a055';
 const { rows } = await client.query(
   `INSERT INTO public.profiles (id, full_name, email, role, verified, status, avatar_url)
