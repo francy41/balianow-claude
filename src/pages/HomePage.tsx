@@ -5,6 +5,7 @@ import { ARTISTS, EVENTS, VENUES } from '../data/mockData';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, type HeroSliderImage, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
 import { Avatar, StarRating, SearchBar, AppImage } from '../components/ui';
+import { supabase } from '../lib/supabase';
 
 // Category interface
 interface Category {
@@ -756,9 +757,45 @@ const HomeSectionWithSearch: React.FC<HomeSectionProps> = ({
   );
 };
 
-// ── OPEN VENUES NOW SECTION ────────────────────────────────────────
+// ── OPEN VENUES NOW SECTION (Supabase + fallback mock) ──────────────
 const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
-  const openVenues = VENUES.filter(v => v.isOpen).sort((a, b) => {
+  const [dbVenues, setDbVenues] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase.from('venues').select('*');
+        if (cancelled) return;
+        setDbVenues(data || []);
+      } catch (e) { console.warn('[home] venues', e); }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const isOpenNow = (v: any): boolean => {
+    if (v.is_open === true || v.isOpen === true) return true;
+    if (v.open_time && v.close_time) {
+      const toMin = (s: string) => { const [h, m] = String(s).split(':').map(Number); return (h || 0) * 60 + (m || 0); };
+      const o = toMin(v.open_time), c = toMin(v.close_time);
+      const now = new Date(); const cur = now.getHours() * 60 + now.getMinutes();
+      return c > o ? (cur >= o && cur <= c) : (cur >= o || cur <= c);
+    }
+    return false;
+  };
+
+  // Combina BD + mock; preferimos BD si tiene resultados
+  const allVenues: any[] = dbVenues.length > 0
+    ? dbVenues.map((v: any) => ({
+        id: v.id, name: v.name, city: v.city || '',
+        cover: v.cover || v.image_url || v.avatar || '',
+        rating: Number(v.rating) || 4.5,
+        isOpen: isOpenNow(v), isPremium: !!v.is_premium,
+        openHours: v.open_hours || (v.open_time && v.close_time ? `${String(v.open_time).slice(0,5)}–${String(v.close_time).slice(0,5)}` : '24/7'),
+      }))
+    : VENUES;
+
+  const openVenues = allVenues.filter(v => v.isOpen).sort((a: any, b: any) => {
     if (a.isPremium && !b.isPremium) return -1;
     if (!a.isPremium && b.isPremium) return 1;
     return b.rating - a.rating;
