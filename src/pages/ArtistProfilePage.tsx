@@ -131,6 +131,21 @@ const ArtistProfilePage: React.FC = () => {
     return () => { cancelled = true; };
   }, [id, mockArtist]);
 
+  // ⚠ TODOS los hooks DEBEN ir antes de cualquier return condicional (rules of hooks)
+  const [activeTab, setActiveTab] = useState<TabId>('about');
+  const [liked, setLiked] = useState(false);
+  const [following, setFollowing] = useState(false);
+  const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
+  const [showCustomOffer, setShowCustomOffer] = useState(false);
+  const [customOfferTitle, setCustomOfferTitle] = useState('');
+  const { addItem, clearCart } = useCartStore();
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [bookingPreset, setBookingPreset] = useState<{ concept: string; price: number }>({ concept: '', price: 0 });
+  const [customOfferPrice, setCustomOfferPrice] = useState('');
+  const [customOfferDesc, setCustomOfferDesc] = useState('');
+
+  // Returns condicionales DESPUES de todos los hooks
   if (loadingDb) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -157,22 +172,10 @@ const ArtistProfilePage: React.FC = () => {
     ? LIVE_STREAMS.find(s => s.id === artist.currentStreamId)
     : null;
 
-  const [activeTab, setActiveTab] = useState<TabId>('about');
-  const [liked, setLiked] = useState(false);
-  const [following, setFollowing] = useState(false);
-  const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
-  const [showCustomOffer, setShowCustomOffer] = useState(false);
-  const [customOfferTitle, setCustomOfferTitle] = useState('');
-  const { addItem, clearCart } = useCartStore();
-  const [bookingOpen, setBookingOpen] = useState(false);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [bookingPreset, setBookingPreset] = useState<{ concept: string; price: number }>({ concept: '', price: 0 });
   const openBooking = (concept: string, price: number) => {
     setBookingPreset({ concept, price });
     setBookingOpen(true);
   };
-  const [customOfferPrice, setCustomOfferPrice] = useState('');
-  const [customOfferDesc, setCustomOfferDesc] = useState('');
 
   const handleChat = () => {
     if (!isAuthenticated) { navigate('/auth'); return; }
