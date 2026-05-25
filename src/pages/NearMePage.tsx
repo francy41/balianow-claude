@@ -335,6 +335,69 @@ const NearMePage: React.FC = () => {
 
   const locationLabel = city || (position ? 'Tu ubicación' : 'Sin ubicación');
 
+  // ── Card COMPACTA (para grids de 2/3/4 columnas) ─────────────────────────
+  const renderCardCompact = (it: Item) => {
+    const typeMeta = {
+      venue:  { label: 'Local',     emoji: '🏛️', color: 'from-pink-500 to-rose-600' },
+      event:  { label: 'Evento',    emoji: '🎉', color: 'from-orange-500 to-red-500' },
+      artist: { label: 'Artista',   emoji: '🎤', color: 'from-purple-500 to-fuchsia-600' },
+      dancer: { label: 'Bailarín',  emoji: '💃', color: 'from-green-500 to-emerald-600' },
+      dj:     { label: 'DJ',        emoji: '🎧', color: 'from-cyan-500 to-blue-600' },
+      live:   { label: 'LIVE',      emoji: '🔴', color: 'from-red-500 to-pink-600' },
+    }[it.type];
+    return (
+      <article key={`c-${it.type}-${it.id}`} onClick={() => goTo(it)}
+        className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-md hover:shadow-xl border border-gray-100 dark:border-gray-800 cursor-pointer active:scale-[0.97] transition-all flex flex-col">
+        {/* Cover */}
+        <div className="relative w-full aspect-square bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
+          {it.img
+            ? <img src={it.img} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
+            : <div className="w-full h-full flex items-center justify-center text-4xl">{typeMeta.emoji}</div>}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+          {/* Badge tipo */}
+          <span className={`absolute top-1.5 left-1.5 bg-gradient-to-r ${typeMeta.color} text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-md`}>
+            {typeMeta.emoji}
+          </span>
+          {/* Estado */}
+          {it.type === 'venue' && it.isOpenNow && (
+            <span className="absolute top-1.5 right-1.5 bg-green-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+              <span className="w-1 h-1 bg-white rounded-full animate-pulse" /> ABIERTO
+            </span>
+          )}
+          {it.type === 'live' && it.isLive && (
+            <span className="absolute top-1.5 right-1.5 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">🔴 LIVE</span>
+          )}
+          {/* Distancia */}
+          <span className="absolute bottom-1.5 right-1.5 bg-black/70 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+            {it.distance!.toFixed(1)} km
+          </span>
+          {/* Precio si es live de pago */}
+          {it.type === 'live' && it.pricing_mode === 'paid' && it.price && (
+            <span className="absolute bottom-1.5 left-1.5 bg-pink-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">€{it.price}</span>
+          )}
+          {it.type === 'live' && it.pricing_mode === 'free' && (
+            <span className="absolute bottom-1.5 left-1.5 bg-green-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">GRATIS</span>
+          )}
+        </div>
+        {/* Info */}
+        <div className="p-2.5 flex-1 flex flex-col justify-between gap-1">
+          <h3 className="font-black text-[13px] text-gray-900 dark:text-white leading-tight line-clamp-2">{it.name}</h3>
+          <div className="flex items-center justify-between gap-1 mt-auto">
+            <p className="text-[10px] text-gray-500 flex items-center gap-0.5 truncate">
+              <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
+              <span className="truncate">{it.city}</span>
+            </p>
+            {it.rating && (
+              <span className="text-[10px] text-yellow-600 font-bold flex items-center gap-0.5 flex-shrink-0">
+                <Star className="w-2.5 h-2.5 fill-yellow-400 text-yellow-400" />{it.rating}
+              </span>
+            )}
+          </div>
+        </div>
+      </article>
+    );
+  };
+
   // ── Renderiza una card individual (compartido por vistas agrupada y flat) ──
   const renderCard = (it: Item) => {
     const typeMeta = {
@@ -576,13 +639,17 @@ const NearMePage: React.FC = () => {
                       </button>
                     )}
                   </div>
-                  <div className="space-y-4">{visible.map(it => renderCard(it))}</div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {visible.map(it => renderCardCompact(it))}
+                  </div>
                 </section>
               );
             });
           })()
         ) : (
-          filtered.map(it => renderCard(it))
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+            {filtered.map(it => renderCardCompact(it))}
+          </div>
         )}
       </div>
 
