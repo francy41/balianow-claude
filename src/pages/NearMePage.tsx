@@ -10,6 +10,7 @@ import { supabase } from '../lib/supabase';
 import { VENUES, EVENTS, ARTISTS } from '../data/mockData';
 import { resolveCityCoords } from '../lib/geo';
 import LivePreviewModal, { type LiveSessionLite } from '../components/LivePreviewModal';
+import SearchTriggerBar from '../components/SearchTriggerBar';
 
 // Geo distance (Haversine in km)
 function distanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -334,6 +335,101 @@ const NearMePage: React.FC = () => {
 
   const locationLabel = city || (position ? 'Tu ubicación' : 'Sin ubicación');
 
+  // ── Renderiza una card individual (compartido por vistas agrupada y flat) ──
+  const renderCard = (it: Item) => {
+    const typeMeta = {
+      venue:  { label: 'Local',     emoji: '🏛️', color: 'from-pink-500 to-rose-600' },
+      event:  { label: 'Evento',    emoji: '🎉', color: 'from-orange-500 to-red-500' },
+      artist: { label: 'Artista',   emoji: '🎤', color: 'from-purple-500 to-fuchsia-600' },
+      dancer: { label: 'Bailarín',  emoji: '💃', color: 'from-green-500 to-emerald-600' },
+      dj:     { label: 'DJ',        emoji: '🎧', color: 'from-cyan-500 to-blue-600' },
+      live:   { label: 'LIVE',      emoji: '🔴', color: 'from-red-500 to-pink-600' },
+    }[it.type];
+    return (
+      <article key={`${it.type}-${it.id}`} onClick={() => goTo(it)}
+        className="bg-white dark:bg-gray-900 rounded-3xl overflow-hidden shadow-md hover:shadow-xl border border-gray-100 dark:border-gray-800 cursor-pointer active:scale-[0.99] transition-all">
+        <header className="flex items-center gap-3 px-4 py-3">
+          <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${typeMeta.color} p-[2px] flex-shrink-0`}>
+            <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 overflow-hidden">
+              {it.img
+                ? <img src={it.img} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
+                : <div className="w-full h-full flex items-center justify-center text-lg">{typeMeta.emoji}</div>}
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-black text-[15px] text-gray-900 dark:text-white truncate leading-tight flex items-center gap-1.5">
+              {it.name}
+              {it.type === 'venue' && it.isOpenNow && <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0" title="Abierto ahora" />}
+            </h3>
+            <p className="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
+              <span className={`px-1.5 py-0.5 rounded-full text-white text-[9px] font-bold bg-gradient-to-r ${typeMeta.color}`}>
+                {typeMeta.emoji} {typeMeta.label}
+              </span>
+              <MapPin className="w-3 h-3 ml-1" />{it.city}
+              {it.type === 'venue' && it.openHoursText && (
+                <span className="ml-1 text-[10px] text-gray-500">· {it.openHoursText}</span>
+              )}
+            </p>
+          </div>
+          <div className="text-right flex-shrink-0">
+            <div className="bg-pink-50 dark:bg-pink-900/20 rounded-full px-2 py-1">
+              <p className="text-[10px] font-black text-pink-600 dark:text-pink-300">{it.distance!.toFixed(1)} km</p>
+            </div>
+          </div>
+        </header>
+        {it.img && (
+          <div className="relative w-full aspect-[16/9] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
+            <img src={it.img} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+            {it.type === 'venue' && it.isOpenNow && (
+              <div className="absolute top-3 left-3">
+                <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
+                  <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> ABIERTO AHORA
+                </span>
+              </div>
+            )}
+            {it.type === 'live' && (
+              <div className="absolute top-3 left-3 flex items-center gap-2">
+                {it.isLive && <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1"><span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> LIVE</span>}
+                {it.liveData?.preview_url && <span className="bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded">PREVIEW 60s</span>}
+                {it.pricing_mode === 'free' && <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded">GRATIS</span>}
+                {it.pricing_mode === 'paid' && <span className="bg-pink-500 text-white text-[10px] font-bold px-2 py-1 rounded">€{it.price}</span>}
+                {it.pricing_mode === 'reservation' && <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-1 rounded">RESERVA €{it.price}</span>}
+                {it.pricing_mode === 'donation' && <span className="bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded">DONACIÓN</span>}
+              </div>
+            )}
+            {it.rating && (
+              <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
+                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                <span className="text-white text-xs font-bold">{it.rating}</span>
+              </div>
+            )}
+            {it.date && (
+              <div className="absolute bottom-3 left-3 bg-white/95 rounded-full px-2.5 py-1 flex items-center gap-1">
+                <Calendar className="w-3 h-3 text-pink-600" />
+                <span className="text-gray-900 text-[11px] font-bold">{it.date}</span>
+              </div>
+            )}
+          </div>
+        )}
+        <footer className="px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3 text-xs text-gray-500 flex-1 min-w-0">
+            {it.genre && (
+              <span className="flex items-center gap-1 truncate">
+                <Music className="w-3.5 h-3.5 text-pink-500 flex-shrink-0" />
+                <span className="font-medium truncate">{it.genre}</span>
+              </span>
+            )}
+          </div>
+          <button className={`bg-gradient-to-r ${typeMeta.color} text-white text-xs font-black px-4 py-2 rounded-full shadow-lg flex items-center gap-1`}>
+            Ver
+            <ChevronRight className="w-3.5 h-3.5" />
+          </button>
+        </footer>
+      </article>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-24">
 
@@ -386,14 +482,19 @@ const NearMePage: React.FC = () => {
         </div>
       )}
 
-      {/* ── SEARCH ── */}
+      {/* ── SUPER BUSCADOR (abre GlobalSearch) ── */}
+      <div className="px-4 pt-3">
+        <SearchTriggerBar placeholder="🔍 Súper buscador: locales, artistas, eventos, ciudades…" />
+      </div>
+
+      {/* ── FILTRO LOCAL ── */}
       <div className="px-4 py-3 sticky top-14 z-20 bg-gray-50 dark:bg-gray-950">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar venues, artistas, eventos…"
+            placeholder="Filtrar resultados en esta página…"
             className="w-full bg-white dark:bg-gray-900 rounded-2xl pl-9 pr-3 py-2.5 text-sm border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
           />
         </div>
@@ -423,7 +524,7 @@ const NearMePage: React.FC = () => {
       </div>
 
       {/* ── RESULTS — formato post/publicación con logo ── */}
-      <div className="px-4 space-y-4">
+      <div className="px-4 pb-32 space-y-4">
         {loading ? (
           <div className="text-center py-12">
             <div className="w-10 h-10 border-3 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto" />
@@ -444,109 +545,44 @@ const NearMePage: React.FC = () => {
             <p className="font-bold text-gray-700 dark:text-gray-300">Nada cerca de {locationLabel}</p>
             <p className="text-gray-400 text-xs mt-1">Prueba ampliando el radio o cambiando de ciudad</p>
           </div>
+        ) : activeTab === 'all' ? (
+          // ── VISTA "TODO": agrupa por categoria, max 4 por seccion + ver mas ──
+          (() => {
+            type TabKey = typeof activeTab;
+            const SECTIONS: { key: Item['type']; label: string; emoji: string; tab: TabKey }[] = [
+              { key: 'live',   label: 'En vivo',   emoji: '🔴', tab: 'live' as TabKey },
+              { key: 'venue',  label: 'Locales',   emoji: '🏛️', tab: 'venues' as TabKey },
+              { key: 'event',  label: 'Eventos',   emoji: '🎉', tab: 'events' as TabKey },
+              { key: 'artist', label: 'Artistas',  emoji: '🎤', tab: 'artists' as TabKey },
+              { key: 'dancer', label: 'Bailarines',emoji: '💃', tab: 'dancers' as TabKey },
+              { key: 'dj',     label: 'DJs',       emoji: '🎧', tab: 'djs' as TabKey },
+            ];
+            return SECTIONS.map(sec => {
+              const sectionItems = filtered.filter(it => it.type === sec.key);
+              if (sectionItems.length === 0) return null;
+              const visible = sectionItems.slice(0, 4);
+              const hasMore = sectionItems.length > 4;
+              return (
+                <section key={sec.key} className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h2 className="font-display font-black text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                      <span>{sec.emoji}</span> {sec.label}
+                      <span className="text-sm font-bold text-gray-400">({sectionItems.length})</span>
+                    </h2>
+                    {hasMore && (
+                      <button onClick={() => setActiveTab(sec.tab)}
+                        className="text-xs font-bold text-pink-500 hover:text-pink-600 flex items-center gap-1">
+                        Ver todo <ChevronRight className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-4">{visible.map(it => renderCard(it))}</div>
+                </section>
+              );
+            });
+          })()
         ) : (
-          filtered.map(it => {
-            const typeMeta = {
-              venue:  { label: 'Local',     emoji: '🏛️', color: 'from-pink-500 to-rose-600' },
-              event:  { label: 'Evento',    emoji: '🎉', color: 'from-orange-500 to-red-500' },
-              artist: { label: 'Artista',   emoji: '🎤', color: 'from-purple-500 to-fuchsia-600' },
-              dancer: { label: 'Bailarín',  emoji: '💃', color: 'from-green-500 to-emerald-600' },
-              dj:     { label: 'DJ',        emoji: '🎧', color: 'from-cyan-500 to-blue-600' },
-              live:   { label: 'LIVE',      emoji: '🔴', color: 'from-red-500 to-pink-600' },
-            }[it.type];
-
-            return (
-              <article key={`${it.type}-${it.id}`}
-                onClick={() => goTo(it)}
-                className="bg-white dark:bg-gray-900 rounded-3xl overflow-hidden shadow-md hover:shadow-xl border border-gray-100 dark:border-gray-800 cursor-pointer active:scale-[0.99] transition-all"
-              >
-                {/* HEADER — Logo + tipo + distancia (estilo Instagram post) */}
-                <header className="flex items-center gap-3 px-4 py-3">
-                  <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${typeMeta.color} p-[2px] flex-shrink-0`}>
-                    <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 overflow-hidden">
-                      {it.img
-                        ? <img src={it.img} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
-                        : <div className="w-full h-full flex items-center justify-center text-lg">{typeMeta.emoji}</div>
-                      }
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-black text-[15px] text-gray-900 dark:text-white truncate leading-tight flex items-center gap-1.5">
-                      {it.name}
-                      {it.type === 'venue' && it.isOpenNow && <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0" title="Abierto ahora" />}
-                    </h3>
-                    <p className="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
-                      <span className={`px-1.5 py-0.5 rounded-full text-white text-[9px] font-bold bg-gradient-to-r ${typeMeta.color}`}>
-                        {typeMeta.emoji} {typeMeta.label}
-                      </span>
-                      <MapPin className="w-3 h-3 ml-1" />{it.city}
-                      {it.type === 'venue' && it.openHoursText && (
-                        <span className="ml-1 text-[10px] text-gray-500">· {it.openHoursText}</span>
-                      )}
-                    </p>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    <div className="bg-pink-50 dark:bg-pink-900/20 rounded-full px-2 py-1">
-                      <p className="text-[10px] font-black text-pink-600 dark:text-pink-300">{it.distance!.toFixed(1)} km</p>
-                    </div>
-                  </div>
-                </header>
-
-                {/* IMAGEN DE LA PUBLICACIÓN — grande, tipo post */}
-                {it.img && (
-                  <div className="relative w-full aspect-[16/9] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
-                    <img src={it.img} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                    {it.type === 'venue' && it.isOpenNow && (
-                      <div className="absolute top-3 left-3">
-                        <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
-                          <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> ABIERTO AHORA
-                        </span>
-                      </div>
-                    )}
-                    {it.type === 'live' && (
-                      <div className="absolute top-3 left-3 flex items-center gap-2">
-                        {it.isLive && <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1"><span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> LIVE</span>}
-                        {it.liveData?.preview_url && <span className="bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded">PREVIEW 60s</span>}
-                        {it.pricing_mode === 'free' && <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded">GRATIS</span>}
-                        {it.pricing_mode === 'paid' && <span className="bg-pink-500 text-white text-[10px] font-bold px-2 py-1 rounded">€{it.price}</span>}
-                        {it.pricing_mode === 'reservation' && <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-1 rounded">RESERVA €{it.price}</span>}
-                        {it.pricing_mode === 'donation' && <span className="bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded">DONACIÓN</span>}
-                      </div>
-                    )}
-                    {it.rating && (
-                      <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
-                        <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                        <span className="text-white text-xs font-bold">{it.rating}</span>
-                      </div>
-                    )}
-                    {it.date && (
-                      <div className="absolute bottom-3 left-3 bg-white/95 rounded-full px-2.5 py-1 flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-pink-600" />
-                        <span className="text-gray-900 text-[11px] font-bold">{it.date}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* FOOTER — info + CTA */}
-                <footer className="px-4 py-3 flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-xs text-gray-500 flex-1 min-w-0">
-                    {it.genre && (
-                      <span className="flex items-center gap-1 truncate">
-                        <Music className="w-3.5 h-3.5 text-pink-500 flex-shrink-0" />
-                        <span className="font-medium truncate">{it.genre}</span>
-                      </span>
-                    )}
-                  </div>
-                  <button className={`bg-gradient-to-r ${typeMeta.color} text-white text-xs font-black px-4 py-2 rounded-full shadow-lg flex items-center gap-1`}>
-                    Ver
-                    <ChevronRight className="w-3.5 h-3.5" />
-                  </button>
-                </footer>
-              </article>
-            );
-          })
+          filtered.map(it => renderCard(it))
         )}
       </div>
 
@@ -583,12 +619,14 @@ const NearMePage: React.FC = () => {
         </div>
       )}
 
-      {/* ── Map shortcut ── */}
+      {/* ── Map shortcut — barra ancha sobre el bottom nav, sin solapar FABs ── */}
       {position && (
-        <button onClick={() => navigate('/mapa')}
-          className="fixed bottom-20 right-4 z-30 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white px-4 py-3 rounded-full shadow-2xl shadow-pink-500/40 flex items-center gap-2 font-bold text-sm">
-          <Map className="w-4 h-4" /> Ver mapa
-        </button>
+        <div className="fixed left-0 right-0 bottom-[68px] lg:bottom-4 z-30 px-3 pointer-events-none">
+          <button onClick={() => navigate('/mapa')}
+            className="pointer-events-auto w-full sm:w-auto sm:mx-auto sm:max-w-xs flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white px-5 py-3.5 rounded-2xl shadow-2xl shadow-pink-500/40 font-bold text-base active:scale-95 transition-transform mx-auto block">
+            <Map className="w-5 h-5" /> Ver mapa
+          </button>
+        </div>
       )}
 
       <LivePreviewModal isOpen={!!livePreview} onClose={() => setLivePreview(null)} session={livePreview} />

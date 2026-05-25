@@ -10,7 +10,7 @@ import { supabase } from '../lib/supabase';
 
 interface Result {
   id: string;
-  type: 'venue' | 'event' | 'artist' | 'dancer' | 'dj' | 'city';
+  type: 'venue' | 'event' | 'artist' | 'dancer' | 'dj' | 'city' | 'live' | 'profile';
   title: string;
   subtitle?: string;
   img?: string;
@@ -18,12 +18,14 @@ interface Result {
 }
 
 const TYPE_META = {
-  venue:  { label: 'Local',     emoji: '🏛️', color: 'bg-pink-500' },
-  event:  { label: 'Evento',    emoji: '🎉', color: 'bg-orange-500' },
-  artist: { label: 'Artista',   emoji: '🎤', color: 'bg-purple-500' },
-  dancer: { label: 'Bailarín',  emoji: '💃', color: 'bg-green-500' },
-  dj:     { label: 'DJ',        emoji: '🎧', color: 'bg-cyan-500' },
-  city:   { label: 'Ciudad',    emoji: '🏙️', color: 'bg-blue-500' },
+  venue:   { label: 'Local',     emoji: '🏛️', color: 'bg-pink-500' },
+  event:   { label: 'Evento',    emoji: '🎉', color: 'bg-orange-500' },
+  artist:  { label: 'Artista',   emoji: '🎤', color: 'bg-purple-500' },
+  dancer:  { label: 'Bailarín',  emoji: '💃', color: 'bg-green-500' },
+  dj:      { label: 'DJ',        emoji: '🎧', color: 'bg-cyan-500' },
+  city:    { label: 'Ciudad',    emoji: '🏙️', color: 'bg-blue-500' },
+  live:    { label: 'En vivo',   emoji: '🔴', color: 'bg-red-500' },
+  profile: { label: 'Perfil',    emoji: '👤', color: 'bg-fuchsia-500' },
 };
 
 const POPULAR_CITIES = ['Madrid','Barcelona','Valencia','Sevilla','Paris','Miami','New York','Cali','Medellín','La Habana','Berlín','Roma','Londres'];
@@ -61,16 +63,18 @@ const GlobalSearch: React.FC<Props> = ({ open, onClose }) => {
       const q = `%${query}%`;
 
       try {
-        const [venuesRes, eventsRes, artistsRes] = await Promise.all([
-          supabase.from('venues').select('id,name,city,country,image_url').ilike('name', q).limit(8),
-          supabase.from('events').select('id,title,city,country,date,image_url,cover').ilike('title', q).limit(8),
-          supabase.from('artists').select('id,name,city,type,avatar').ilike('name', q).limit(8),
+        const [venuesRes, eventsRes, artistsRes, profilesRes, livesRes] = await Promise.all([
+          supabase.from('venues').select('id,name,city,country,image_url,cover,avatar').ilike('name', q).limit(6),
+          supabase.from('events').select('id,title,city,country,date,image_url,cover').ilike('title', q).limit(6),
+          supabase.from('artists').select('id,name,city,type,avatar').ilike('name', q).limit(6),
+          supabase.from('profiles').select('id,full_name,role,city,location,avatar_url,styles').or(`full_name.ilike.${q},email.ilike.${q}`).limit(8),
+          supabase.from('live_sessions_enriched').select('id,title,city,status,pricing_mode,cover_url,host_avatar,host_name').ilike('title', q).limit(4),
         ]);
 
         venuesRes.data?.forEach((v: any) => all.push({
           id: v.id, type: 'venue', title: v.name,
-          subtitle: `${v.city}${v.country ? ', ' + v.country : ''}`,
-          img: v.image_url, to: `/venues/${v.id}`,
+          subtitle: `${v.city || ''}${v.country ? ', ' + v.country : ''}`,
+          img: v.image_url || v.cover || v.avatar, to: `/venues/${v.id}`,
         }));
         eventsRes.data?.forEach((e: any) => all.push({
           id: e.id, type: 'event', title: e.title,
@@ -80,6 +84,31 @@ const GlobalSearch: React.FC<Props> = ({ open, onClose }) => {
         artistsRes.data?.forEach((a: any) => {
           const t: Result['type'] = a.type === 'dancer' ? 'dancer' : a.type === 'dj' ? 'dj' : 'artist';
           all.push({ id: a.id, type: t, title: a.name, subtitle: a.city, img: a.avatar, to: `/artistas/${a.id}` });
+        });
+
+        // PROFILES (perfiles importados o creados por usuarios)
+        profilesRes.data?.forEach((p: any) => {
+          const role = String(p.role || '').toLowerCase();
+          if (role === 'admin' || role === 'superadmin') return;
+          const t: Result['type'] =
+            role === 'dj'     ? 'dj' :
+            role === 'dancer' ? 'dancer' :
+            (role === 'venue' || role === 'business') ? 'venue' :
+            'profile';
+          all.push({
+            id: p.id, type: t, title: p.full_name || 'Usuario',
+            subtitle: [p.city || p.location, role].filter(Boolean).join(' · '),
+            img: p.avatar_url, to: `/p/${p.id}`,
+          });
+        });
+
+        // LIVE SESSIONS
+        livesRes.data?.forEach((l: any) => {
+          all.push({
+            id: l.id, type: 'live', title: l.title,
+            subtitle: `${l.host_name || ''}${l.status === 'live' ? ' · 🔴 EN VIVO' : ' · programado'}`,
+            img: l.cover_url || l.host_avatar, to: `/live/session/${l.id}`,
+          });
         });
 
         // City matches
@@ -189,7 +218,7 @@ const GlobalSearch: React.FC<Props> = ({ open, onClose }) => {
                 return (
                   <div key={type}>
                     <p className="text-[10px] uppercase font-black text-gray-400 tracking-wider mb-1.5 px-2 flex items-center gap-1">
-                      <span>{meta.emoji}</span> {meta.label}s ({items.length})
+                      <span>{meta.emoji}</span> {meta.label} ({items.length})
                     </p>
                     <div className="space-y-1">
                       {items.map(r => (
