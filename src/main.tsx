@@ -2,6 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { initSentry } from './lib/sentry';
+
+// Sentry: captura errores reales en producción (no-op en DEV o si falta DSN)
+initSentry();
 
 // ── Production log suppression + Anti-tampering ────────────────────────────
 if (!import.meta.env.DEV) {
