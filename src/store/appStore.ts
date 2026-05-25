@@ -209,6 +209,9 @@ export interface HomeCategory {
   section: 'main' | 'mercado' | 'comunidad';
   display_order: number;
   active: boolean;
+  parent_id?: string | null;        // null = categoría raíz; uuid = subcategoría
+  description?: string;
+  image_url?: string;
 }
 
 export const DEFAULT_HOME_CATEGORIES: HomeCategory[] = [

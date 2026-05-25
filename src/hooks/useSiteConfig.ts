@@ -34,7 +34,7 @@ export function useSiteConfigLoader() {
       try {
         const { data, error } = await supabase
           .from('categories')
-          .select('id, name, icon, route, section, display_order, active, image_url')
+          .select('id, name, icon, route, section, display_order, active, image_url, parent_id, description')
           .order('section', { ascending: true })
           .order('display_order', { ascending: true });
         if (error) throw error;
@@ -48,6 +48,8 @@ export function useSiteConfigLoader() {
             display_order: Number(r.display_order) || 99,
             active: r.active !== false,
             image_url: r.image_url || undefined,
+            parent_id: r.parent_id || null,
+            description: r.description || undefined,
           }));
           setHomeCategories(cats);
         }
@@ -58,18 +60,39 @@ export function useSiteConfigLoader() {
   }, []);
 }
 
+// ── Helpers ──────────────────────────────────────────────────────────────
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const isUuid = (s: any): boolean => typeof s === 'string' && UUID_RE.test(s);
+
+/** Convierte id de zustand (texto corto) a UUID determinista basado en slug+section.
+ *  Así re-ejecutar saveCategoriesToDb no duplica filas. */
+function toUuid(seed: string): string {
+  // SHA-like simple hash → formateado como uuid v4
+  let h = 5381;
+  for (let i = 0; i < seed.length; i++) h = ((h << 5) + h) ^ seed.charCodeAt(i);
+  const hex = (Math.abs(h).toString(16) + 'a1b2c3d4e5f6').padEnd(32, '0').slice(0, 32);
+  return `${hex.slice(0,8)}-${hex.slice(8,12)}-4${hex.slice(13,16)}-a${hex.slice(17,20)}-${hex.slice(20,32)}`;
+}
+
 // ── Persiste categorias del home en la tabla categories ──────────────────
 export async function saveCategoriesToDb(cats: HomeCategory[]): Promise<{ error?: string }> {
   try {
-    // Reemplazo total: borra las que no estén y upserta las actuales
-    const ids = cats.map(c => c.id);
-    if (ids.length > 0) {
-      await supabase.from('categories').delete().not('id', 'in', `(${ids.map(i => `'${i}'`).join(',')})`);
+    // Mapea ids no-uuid a uuids deterministas (para que vuelvan idénticos al recargar)
+    const idMap = new Map<string, string>();
+    cats.forEach(c => {
+      const dbId = isUuid(c.id) ? c.id : toUuid(`${c.section || 'main'}|${c.name || c.id}`);
+      idMap.set(c.id, dbId);
+    });
+
+    const uuids = Array.from(idMap.values());
+    if (uuids.length > 0) {
+      await supabase.from('categories').delete().not('id', 'in', `(${uuids.map(i => `"${i}"`).join(',')})`);
     } else {
-      await supabase.from('categories').delete().neq('id', '__noop__');
+      await supabase.from('categories').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     }
+
     const rows = cats.map(c => ({
-      id: c.id,
+      id: idMap.get(c.id)!,
       name: c.name,
       icon: c.icon || '🎉',
       slug: c.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
@@ -77,7 +100,9 @@ export async function saveCategoriesToDb(cats: HomeCategory[]): Promise<{ error?
       section: c.section || 'main',
       display_order: c.display_order ?? 99,
       active: c.active !== false,
-      image_url: (c as any).image_url ?? null,
+      image_url: c.image_url ?? null,
+      parent_id: c.parent_id ? (idMap.get(c.parent_id) || (isUuid(c.parent_id) ? c.parent_id : null)) : null,
+      description: c.description ?? null,
     }));
     const { error } = await supabase.from('categories').upsert(rows, { onConflict: 'id' });
     if (error) return { error: error.message };

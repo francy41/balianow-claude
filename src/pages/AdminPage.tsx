@@ -470,11 +470,41 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
       addToast({ message: 'Nombre y ruta son requeridos', type: 'error' }); return;
     }
     const id = Date.now().toString();
-    save([...homeCategories, { ...newCat, id }]);
+    save([...homeCategories, { ...newCat, id, parent_id: null }]);
     setShowNewForm(false);
     setNewCat({ name: '', icon: '🎉', route: '/', section: 'main', display_order: 99, active: true });
     addToast({ message: `"${newCat.name}" añadida al home`, type: 'success' });
   };
+
+  // ── SUBCATEGORIAS ─────────────────────────────────────────────
+  const [expandedParent, setExpandedParent] = useState<string | null>(null);
+  const [subDraft, setSubDraft] = useState<{ parentId: string; name: string; icon: string; route: string } | null>(null);
+
+  const addSubcategory = () => {
+    if (!subDraft || !subDraft.name.trim()) {
+      addToast({ message: 'El nombre es requerido', type: 'error' }); return;
+    }
+    const parent = homeCategories.find(c => c.id === subDraft.parentId);
+    if (!parent) return;
+    const id = `sub-${Date.now()}`;
+    const childrenCount = homeCategories.filter(c => c.parent_id === parent.id).length;
+    const newSub: HomeCategory = {
+      id,
+      name: subDraft.name.trim(),
+      icon: subDraft.icon || '🏷️',
+      route: subDraft.route.trim() || parent.route,
+      section: parent.section,
+      display_order: childrenCount + 1,
+      active: true,
+      parent_id: parent.id,
+    };
+    save([...homeCategories, newSub]);
+    setSubDraft(null);
+    addToast({ message: `Subcategoría "${newSub.name}" añadida a ${parent.name}`, type: 'success' });
+  };
+
+  const getChildren = (parentId: string) =>
+    homeCategories.filter(c => c.parent_id === parentId).sort((a, b) => a.display_order - b.display_order);
 
   const resetToDefault = () => {
     if (!confirm('¿Restaurar las categorías por defecto? Se perderán los cambios.')) return;
@@ -680,7 +710,51 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
               {sectionCats.length === 0 ? (
                 <p className="text-center text-gray-400 text-sm py-4">Sin categorías en esta sección</p>
               ) : (
-                sectionCats.map(cat => <CatRow key={cat.id} cat={cat} sectionCats={sectionCats} />)
+                sectionCats.filter(c => !c.parent_id).map(parent => {
+                  const children = getChildren(parent.id);
+                  const siblings = sectionCats.filter(c => !c.parent_id);
+                  const isExpanded = expandedParent === parent.id;
+                  return (
+                    <div key={parent.id} className="space-y-2">
+                      <CatRow cat={parent} sectionCats={siblings} />
+                      <div className="ml-6 pl-3 border-l-2 border-pink-100 space-y-2">
+                        {children.length > 0 && (
+                          <>
+                            <button onClick={() => setExpandedParent(isExpanded ? null : parent.id)}
+                              className="text-[11px] font-bold text-pink-500 hover:text-pink-700 flex items-center gap-1">
+                              {isExpanded ? '▼' : '▶'} {children.length} subcategoría{children.length === 1 ? '' : 's'}
+                            </button>
+                            {isExpanded && children.map(child => (
+                              <CatRow key={child.id} cat={child} sectionCats={children} />
+                            ))}
+                          </>
+                        )}
+                        {subDraft?.parentId === parent.id ? (
+                          <div className="card-white p-3 border-l-4 border-pink-300 bg-pink-50/40">
+                            <p className="text-[11px] font-bold text-gray-500 uppercase mb-2">Nueva subcategoría de "{parent.name}"</p>
+                            <div className="grid grid-cols-5 gap-2 mb-2">
+                              <input value={subDraft.icon} onChange={e => setSubDraft(d => d && { ...d, icon: e.target.value })}
+                                maxLength={2} placeholder="🏷️" className="input col-span-1 text-center text-lg" />
+                              <input value={subDraft.name} onChange={e => setSubDraft(d => d && { ...d, name: e.target.value })}
+                                placeholder="Nombre" className="input col-span-4" />
+                            </div>
+                            <input value={subDraft.route} onChange={e => setSubDraft(d => d && { ...d, route: e.target.value })}
+                              placeholder={`Ruta (por defecto ${parent.route})`} className="input w-full text-xs font-mono mb-2" />
+                            <div className="flex gap-2">
+                              <button onClick={addSubcategory} className="flex-1 bg-pink-500 text-white font-bold text-xs rounded-lg py-2">Crear</button>
+                              <button onClick={() => setSubDraft(null)} className="flex-1 border border-gray-200 text-gray-600 font-bold text-xs rounded-lg py-2">Cancelar</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button onClick={() => setSubDraft({ parentId: parent.id, name: '', icon: '🏷️', route: '' })}
+                            className="text-[11px] font-bold text-gray-400 hover:text-pink-500 flex items-center gap-1">
+                            <Plus className="w-3 h-3" /> Añadir subcategoría
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>
@@ -747,50 +821,116 @@ const RadioSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 const UsuariosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('todos');
+  const [users, setUsers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const { openEdit } = useAdminEdit();
-  const { getMerged } = useAdminOverridesStore();
-  const users = [
-    { id: 'usr-1', name: 'Carlos Rodríguez', email: 'carlos@email.com', role: 'user',   status: 'active',   joined: '15 May 2026', revenue: '€0', city: 'Madrid' },
-    { id: 'usr-2', name: 'DJ Mambo King',    email: 'dj@email.com',     role: 'dj',     status: 'active',   joined: '10 May 2026', revenue: '€1,620', city: 'Madrid' },
-    { id: 'usr-3', name: 'La Reina',         email: 'reina@email.com',  role: 'dancer', status: 'active',   joined: '8 May 2026',  revenue: '€890', city: 'Barcelona' },
-    { id: 'usr-4', name: 'Club Tropicana',   email: 'club@email.com',   role: 'venue',  status: 'pending',  joined: '12 May 2026', revenue: '€0', city: 'Madrid' },
-    { id: 'usr-5', name: 'Admin User',       email: 'admin@email.com',  role: 'admin',  status: 'active',   joined: '1 Jan 2026',  revenue: '—', city: 'Madrid' },
-    { id: 'usr-6', name: 'Spam User',        email: 'spam@email.com',   role: 'user',   status: 'banned',   joined: '14 May 2026', revenue: '€0', city: 'Madrid' },
-  ].map(u => getMerged('user', u));
+  const navigate = useNavigate();
+
+  const loadUsers = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, role, status, city, location, avatar_url, created_at, verified')
+        .order('created_at', { ascending: false })
+        .limit(200);
+      if (error) throw error;
+      const mapped = (data || []).map((u: any) => ({
+        id:     u.id,
+        name:   u.full_name || u.email?.split('@')[0] || 'Usuario',
+        email:  u.email || '',
+        role:   u.role || 'user',
+        status: u.status || 'active',
+        city:   u.city || u.location || '',
+        joined: u.created_at ? new Date(u.created_at).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' }) : '—',
+        avatar: u.avatar_url || '',
+        verified: !!u.verified,
+      }));
+      setUsers(mapped);
+    } catch (e: any) {
+      console.error('[admin] users load', e);
+      addToast({ message: `Error cargando usuarios: ${e.message}`, type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { loadUsers(); }, []);
+
+  const filtered = users.filter(u => {
+    if (search && !u.name.toLowerCase().includes(search.toLowerCase()) && !u.email.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filter === 'activos'    && u.status !== 'active')  return false;
+    if (filter === 'pendientes' && u.status !== 'pending') return false;
+    if (filter === 'baneados'   && u.status !== 'banned')  return false;
+    return true;
+  });
+
+  const handleBan = async (u: any) => {
+    if (!confirm(`¿${u.status === 'banned' ? 'Desbloquear' : 'Banear'} a ${u.name}?`)) return;
+    const newStatus = u.status === 'banned' ? 'active' : 'banned';
+    const { error } = await supabase.from('profiles').update({ status: newStatus }).eq('id', u.id);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: `${u.name} ${newStatus === 'banned' ? 'baneado' : 'desbloqueado'}`, type: 'success' });
+    loadUsers();
+  };
+
   return (
     <div>
-      <PageHeader title="Usuarios" subtitle={`${users.length} usuarios registrados`} action={
-        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => openEdit({ entity: 'user', title: 'Nuevo usuario', item: { id: `usr-new-${Date.now()}`, name: '', email: '', role: 'user', city: '' }, fields: FIELDS_USER })}>Nuevo usuario</Button>
+      <PageHeader title="Usuarios" subtitle={loading ? 'Cargando...' : `${filtered.length} de ${users.length} usuarios`} action={
+        <div className="flex gap-2">
+          <Button variant="dark" icon={<RefreshCw className="w-4 h-4" />} onClick={loadUsers}>Recargar</Button>
+          <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => {
+            // Para CREAR un usuario real con auth, redirigir a la pagina de signup o invitar
+            addToast({ message: 'Para crear un usuario nuevo, comparte el link de registro o usa "Invitar admin" si quieres dar permisos.', type: 'info' });
+          }}>Nuevo usuario</Button>
+        </div>
       } />
-      <div className="flex gap-3 mb-4">
-        <SearchBar placeholder="Buscar usuarios..." value={search} onChange={setSearch} className="max-w-xs" />
-        <div className="flex gap-1">
+      <div className="flex gap-3 mb-4 flex-wrap">
+        <SearchBar placeholder="Buscar por nombre o email..." value={search} onChange={setSearch} className="max-w-xs" />
+        <div className="flex gap-1 flex-wrap">
           {['todos', 'activos', 'pendientes', 'baneados'].map(f => (
             <button key={f} onClick={() => setFilter(f)} className={`px-3 py-2 rounded-lg text-xs font-semibold capitalize transition-all ${filter === f ? 'bg-brand-orange text-white' : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-200'}`}>{f}</button>
           ))}
         </div>
       </div>
-      <AdminTable
-        headers={['Usuario', 'Email', 'Rol', 'Estado', 'Registro', 'Revenue', 'Acciones']}
-        rows={users.map(u => [
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-brand-orange/10 flex items-center justify-center text-sm font-bold text-brand-orange">{u.name[0]}</div>
-            <span className="font-semibold text-gray-800 text-sm">{u.name}</span>
-          </div>,
-          <span className="text-gray-500 text-sm">{u.email}</span>,
-          <Badge variant={u.role === 'admin' ? 'blue' : u.role === 'dj' ? 'orange' : 'gray'} className="capitalize">{u.role}</Badge>,
-          <Badge variant={u.status === 'active' ? 'green' : u.status === 'pending' ? 'orange' : 'red'}>
-            {u.status === 'active' ? 'Activo' : u.status === 'pending' ? 'Pendiente' : 'Baneado'}
-          </Badge>,
-          <span className="text-gray-400 text-sm">{u.joined}</span>,
-          <span className="font-semibold text-gray-800">{u.revenue}</span>,
-          <div className="flex gap-1">
-            <button onClick={() => addToast({ message: `Viendo perfil de ${u.name}`, type: 'info' })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
-            <button onClick={() => openEdit({ entity: 'user', title: u.name, item: u, fields: FIELDS_USER })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
-            <button onClick={() => addToast({ message: `${u.name} baneado`, type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500"><XCircle className="w-4 h-4" /></button>
-          </div>
-        ])}
-      />
+      {loading ? (
+        <div className="text-center py-12 text-gray-400">
+          <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" />
+          Cargando usuarios desde Supabase...
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">
+          <Users className="w-12 h-12 mx-auto mb-2 opacity-30" />
+          <p>No hay usuarios que coincidan</p>
+        </div>
+      ) : (
+        <AdminTable
+          headers={['Usuario', 'Email', 'Rol', 'Estado', 'Ciudad', 'Registro', 'Acciones']}
+          rows={filtered.map(u => [
+            <div className="flex items-center gap-2">
+              {u.avatar
+                ? <img src={u.avatar} alt={u.name} className="w-8 h-8 rounded-full object-cover" />
+                : <div className="w-8 h-8 rounded-full bg-brand-orange/10 flex items-center justify-center text-sm font-bold text-brand-orange">{u.name[0]?.toUpperCase()}</div>}
+              <div>
+                <span className="font-semibold text-gray-800 text-sm">{u.name}</span>
+                {u.verified && <CheckCircle className="w-3 h-3 text-blue-500 inline ml-1" />}
+              </div>
+            </div>,
+            <span className="text-gray-500 text-sm">{u.email}</span>,
+            <Badge variant={u.role === 'superadmin' ? 'red' : u.role === 'admin' ? 'blue' : u.role === 'dj' ? 'orange' : 'gray'} className="capitalize">{u.role}</Badge>,
+            <Badge variant={u.status === 'active' ? 'green' : u.status === 'pending' ? 'orange' : 'red'}>
+              {u.status === 'active' ? 'Activo' : u.status === 'pending' ? 'Pendiente' : 'Baneado'}
+            </Badge>,
+            <span className="text-gray-500 text-sm">{u.city}</span>,
+            <span className="text-gray-400 text-sm">{u.joined}</span>,
+            <div className="flex gap-1">
+              <button onClick={() => navigate(`/p/${u.id}`)} title="Ver perfil público" className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
+              <button onClick={() => openEdit({ entity: 'user', title: u.name, item: u, fields: FIELDS_USER, onSaved: () => loadUsers() } as any)} title="Editar" className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
+              <button onClick={() => handleBan(u)} title={u.status === 'banned' ? 'Desbloquear' : 'Banear'} className={`p-1.5 rounded-lg ${u.status === 'banned' ? 'hover:bg-green-50 text-green-500' : 'hover:bg-red-50 text-gray-400 hover:text-red-500'}`}><XCircle className="w-4 h-4" /></button>
+            </div>
+          ])}
+        />
+      )}
     </div>
   );
 };
