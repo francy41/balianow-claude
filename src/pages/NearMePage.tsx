@@ -128,6 +128,10 @@ const NearMePage: React.FC = () => {
 
   // Load items from Supabase + fallbacks
   useEffect(() => {
+    let cancelled = false;
+    // Red de seguridad: en cualquier caso quitamos el spinner a los 8s
+    const safety = setTimeout(() => { if (!cancelled) setLoading(false); }, 8000);
+
     const load = async () => {
       const combined: Item[] = [];
 
@@ -236,10 +240,14 @@ const NearMePage: React.FC = () => {
         });
       } catch (e) { console.warn('[nearme] live load', e); }
 
-      setItems(combined);
-      setLoading(false);
+      if (!cancelled) {
+        setItems(combined);
+        setLoading(false);
+      }
     };
-    load();
+    load().catch(e => { console.error('[nearme] fatal', e); if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; clearTimeout(safety); };
   }, []);
 
   // Locate user via GPS — con alta precisión
