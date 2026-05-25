@@ -16,6 +16,7 @@ import AdminCMS from '../components/AdminCMS';
 import AdminMediaManager from '../components/AdminMediaManager';
 import AdminEditModal, { type EditField } from '../components/AdminEditModal';
 import AdminLocationModal from '../components/AdminLocationModal';
+import ProfileImporter from '../components/ProfileImporter';
 import { uploadImage, uploadVideo } from '../lib/uploadHelper';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
 import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS, PROMO_SERVICES } from '../data/mockData';
@@ -26,7 +27,7 @@ type AdminSection =
   | 'suscripciones' | 'artistas' | 'bailarinas' | 'eventos' | 'mercado'
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms'
-  | 'patrocinadores' | 'administradores';
+  | 'patrocinadores' | 'administradores' | 'importar';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -36,6 +37,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'media',          label: 'Media Manager',           icon: <Palette className="w-4 h-4" />, badge: 'NEW' },
   { id: 'radio',          label: 'Radio Online',            icon: <Radio className="w-4 h-4" />, badge: '2 live' },
   { id: 'usuarios',       label: 'Usuarios',                icon: <Users className="w-4 h-4" /> },
+  { id: 'importar',       label: 'Importar perfiles',       icon: <FileText className="w-4 h-4" />, badge: 'NEW' },
   { id: 'localidades',    label: 'Localidades',             icon: <MapPin className="w-4 h-4" /> },
   { id: 'suscripciones',  label: 'Suscripciones Premium',  icon: <Crown className="w-4 h-4" /> },
   { id: 'artistas',       label: 'Artistas',                icon: <Music2 className="w-4 h-4" /> },
@@ -285,6 +287,7 @@ const AdminPage: React.FC = () => {
         {active === 'resenas'        && <ResenasSection addToast={addToast} />}
         {active === 'patrocinadores'  && <PatrocinadoresSection addToast={addToast} />}
         {active === 'administradores' && <AdministradoresSection addToast={addToast} isSuperAdmin={isSuperAdmin} />}
+        {active === 'importar'        && <ProfileImporter />}
       </main>
 
       {/* Modal de edición global */}

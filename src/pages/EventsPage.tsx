@@ -13,6 +13,7 @@ import { useAuthStore, useUIStore, getYouTubeId } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
 import { VenueSectionsSelector } from '../components/VenueSections';
 import { useTicketStore } from '../store/ticketStore';
+import LiveFab from '../components/LiveFab';
 
 const CATEGORIES = ['Todos', 'Salsa', 'Bachata', 'Festival', 'Masterclass', 'Online', 'Reggaeton', 'Timba'];
 const CITIES = ['Todas', 'Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'Online'];
@@ -749,6 +750,8 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
         defaultPrice={event.price}
         helperText={`${event.isOnline ? 'Online' : event.city} · ${event.time} – ${event.endTime}`}
       />
+
+      <LiveFab defaultCategory="event" label="Iniciar Evento Live" />
     </div>
   );
 };

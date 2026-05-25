@@ -5,6 +5,7 @@ import { ARTISTS } from '../data/mockData';
 import type { Artist } from '../data/mockData';
 import { Badge, StarRating, Avatar, FilterChips, SearchBar, SectionHeader, EmptyState } from '../components/ui';
 import SearchTriggerBar from '../components/SearchTriggerBar';
+import LiveFab from '../components/LiveFab';
 
 const TYPES = ['Todos', 'DJ', 'Bailarín/a', 'Banda', 'Instructor/a', 'Cantante'];
 const GENRES = ['Todos', 'Salsa', 'Bachata', 'Merengue', 'Cumbia', 'Reggaeton', 'Timba', 'Afrobeats'];
@@ -117,6 +118,8 @@ const ArtistsPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      <LiveFab defaultCategory="show" label="Iniciar Live" />
     </div>
   );
 };

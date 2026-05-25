@@ -6,6 +6,7 @@ import {
 import { useAuthStore, useUIStore, type User, type UserSocials } from '../store/appStore';
 import { supabase, storage } from '../lib/supabase';
 import { uploadImage as uploadImageHelper } from '../lib/uploadHelper';
+import { resolveCityCoords } from '../lib/geo';
 import { Button } from './ui';
 import ImageCropperModal from './ImageCropperModal';
 import SocialLinksEditor from './SocialLinksEditor';
@@ -151,10 +152,14 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
     try {
       const realId = session.user.id; // Always use the real Supabase auth ID
 
+      // Auto-resolver coordenadas desde ciudad
+      const coords = resolveCityCoords(form.city);
+
       const dbUpdate: Record<string, any> = {
         full_name:      form.name,
         bio:            form.bio          || null,
         location:       form.city         || null,
+        city:           form.city         || null,
         country:        form.country      || null,
         whatsapp:       form.phone        || null,
         avatar_url:     form.avatar       || null,
@@ -169,28 +174,23 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
         spotify_url:    (form.socials as any)?.spotify    || null,
         styles:         (form as any).styles || [],
         tags:           (form as any).tags || [],
+        lat:            coords?.lat ?? null,
+        lng:            coords?.lng ?? null,
       };
 
-      const { error } = await supabase
-        .from('profiles')
-        .update(dbUpdate)
-        .eq('id', realId);
-
-      if (error) {
-        // Retry with minimal set if some columns don't exist yet
-        const { error: error2 } = await supabase
-          .from('profiles')
-          .update({
-            full_name:  form.name,
-            bio:        form.bio      || null,
-            location:   form.city     || null,
-            country:    form.country  || null,
-            whatsapp:   form.phone    || null,
-            avatar_url: form.avatar   || null,
-          })
-          .eq('id', realId);
-        if (error2) throw error2;
+      // Retry quitando columnas inexistentes (ej. lat/lng/styles antes de la migración)
+      let lastErr: any = null;
+      const payload = { ...dbUpdate };
+      for (let attempt = 0; attempt < 12; attempt++) {
+        const { error } = await supabase.from('profiles').update(payload).eq('id', realId);
+        if (!error) { lastErr = null; break; }
+        lastErr = error;
+        const m = /column "?([a-z_]+)"? of relation .* does not exist/i.exec(error.message || '')
+              || /Could not find the '([a-z_]+)' column/i.exec(error.message || '');
+        if (m && payload[m[1]] !== undefined) { delete payload[m[1]]; continue; }
+        break;
       }
+      if (lastErr) throw lastErr;
 
       // Sync local Zustand store
       updateUser({ ...form, id: realId });

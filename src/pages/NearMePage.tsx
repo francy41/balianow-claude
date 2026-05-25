@@ -8,6 +8,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapPin, Navigation, Search, Star, Calendar, Music, Users, X, Map, ChevronRight, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { VENUES, EVENTS, ARTISTS } from '../data/mockData';
+import { resolveCityCoords } from '../lib/geo';
+import LivePreviewModal, { type LiveSessionLite } from '../components/LivePreviewModal';
 
 // Geo distance (Haversine in km)
 function distanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -37,7 +39,7 @@ const POPULAR_CITIES = ['Madrid','Barcelona','Valencia','Sevilla','Paris','Miami
 
 type Item = {
   id: string;
-  type: 'venue' | 'event' | 'artist' | 'dancer' | 'dj';
+  type: 'venue' | 'event' | 'artist' | 'dancer' | 'dj' | 'live';
   name: string;
   city: string;
   lat: number;
@@ -47,6 +49,10 @@ type Item = {
   rating?: number;
   date?: string;
   distance?: number;
+  isLive?: boolean;
+  pricing_mode?: 'free' | 'paid' | 'reservation' | 'donation';
+  price?: number;
+  liveData?: LiveSessionLite;
 };
 
 const NearMePage: React.FC = () => {
@@ -61,7 +67,8 @@ const NearMePage: React.FC = () => {
   const [showCityPicker, setShowCityPicker] = useState(false);
   const [gpsError, setGpsError] = useState<string>('');
   const [radius, setRadius]     = useState<50 | 100 | 500 | 5000>(500);
-  const [activeTab, setActiveTab] = useState<'all' | 'venues' | 'events' | 'artists' | 'dancers' | 'djs'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'live' | 'venues' | 'events' | 'artists' | 'dancers' | 'djs'>('all');
+  const [livePreview, setLivePreview] = useState<LiveSessionLite | null>(null);
 
   // Initialize position from URL param > localStorage > GPS > picker
   useEffect(() => {
@@ -143,6 +150,63 @@ const NearMePage: React.FC = () => {
         });
       } catch {}
 
+      // PROFILES (usuarios reales — DJs, bailarines, artistas, instructores...)
+      try {
+        const { data } = await supabase.from('profiles').select('*');
+        data?.forEach((p: any) => {
+          const role = String(p.role || '').toLowerCase();
+          const t: Item['type'] | null =
+            role === 'dj'        ? 'dj'     :
+            role === 'dancer'    ? 'dancer' :
+            (role === 'venue' || role === 'business') ? 'venue' :
+            ['artist','instructor','singer','musician','promoter','band'].includes(role) ? 'artist' :
+            null;
+          if (!t) return;
+          let lat = Number(p.lat), lng = Number(p.lng);
+          if (!lat || !lng) {
+            const c = resolveCityCoords(p.city || p.location);
+            if (!c) return;
+            lat = c.lat; lng = c.lng;
+          }
+          combined.push({
+            id: p.id, type: t,
+            name: p.full_name || p.name || 'Usuario',
+            city: p.city || p.location || '',
+            lat, lng,
+            img: p.avatar_url || p.avatar,
+            genre: Array.isArray(p.styles) ? p.styles.join(', ') : undefined,
+          });
+        });
+      } catch (e) { console.warn('[nearme] profiles load', e); }
+
+      // LIVE SESSIONS (en vivo o programados)
+      try {
+        const { data } = await supabase
+          .from('live_sessions_enriched')
+          .select('*')
+          .in('status', ['live', 'scheduled'])
+          .order('started_at', { ascending: false })
+          .limit(200);
+        data?.forEach((l: any) => {
+          let lat = Number(l.lat), lng = Number(l.lng);
+          if (!lat || !lng) {
+            const c = resolveCityCoords(l.city);
+            if (!c) return;
+            lat = c.lat; lng = c.lng;
+          }
+          combined.push({
+            id: l.id, type: 'live',
+            name: l.title, city: l.city || '',
+            lat, lng,
+            img: l.cover_url || l.host_avatar,
+            isLive: l.status === 'live',
+            pricing_mode: l.pricing_mode,
+            price: l.price,
+            liveData: l as LiveSessionLite,
+          });
+        });
+      } catch (e) { console.warn('[nearme] live load', e); }
+
       setItems(combined);
       setLoading(false);
     };
@@ -191,6 +255,7 @@ const NearMePage: React.FC = () => {
       .map(it => ({ ...it, distance: distanceKm(position[0], position[1], it.lat, it.lng) }))
       .filter(it => it.distance! <= radius)
       .filter(it => {
+        if (activeTab === 'live'    && it.type !== 'live')   return false;
         if (activeTab === 'venues'  && it.type !== 'venue')  return false;
         if (activeTab === 'events'  && it.type !== 'event')  return false;
         if (activeTab === 'artists' && it.type !== 'artist') return false;
@@ -210,6 +275,7 @@ const NearMePage: React.FC = () => {
       .filter(it => it.distance! <= radius);
     return {
       all:     inRadius.length,
+      live:    inRadius.filter(i => i.type === 'live').length,
       venues:  inRadius.filter(i => i.type === 'venue').length,
       events:  inRadius.filter(i => i.type === 'event').length,
       artists: inRadius.filter(i => i.type === 'artist').length,
@@ -219,9 +285,12 @@ const NearMePage: React.FC = () => {
   }, [items, position, radius]);
 
   const goTo = (it: Item) => {
-    if (it.type === 'venue')  navigate(`/venues/${it.id}`);
-    if (it.type === 'event')  navigate(`/eventos/${it.id}`);
-    else navigate(`/artistas/${it.id}`);
+    if (it.type === 'live' && it.liveData) { setLivePreview(it.liveData); return; }
+    if (it.type === 'venue')  return navigate(`/venues/${it.id}`);
+    if (it.type === 'event')  return navigate(`/eventos/${it.id}`);
+    // profiles vs artists: si parece UUID lo tratamos como perfil público
+    if (/^[0-9a-f-]{8,}/i.test(it.id)) return navigate(`/p/${it.id}`);
+    navigate(`/artistas/${it.id}`);
   };
 
   const locationLabel = city || (position ? 'Tu ubicación' : 'Sin ubicación');
@@ -295,6 +364,7 @@ const NearMePage: React.FC = () => {
       <div className="px-4 mb-3 flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
         {[
           { key: 'all',     label: `Todo (${counts.all})`,     icon: '🌍' },
+          { key: 'live',    label: `En vivo (${counts.live})`,  icon: '🔴' },
           { key: 'venues',  label: `Locales (${counts.venues})`, icon: '🏛️' },
           { key: 'events',  label: `Eventos (${counts.events})`, icon: '🎉' },
           { key: 'artists', label: `Artistas (${counts.artists})`,icon: '🎤' },
@@ -342,6 +412,7 @@ const NearMePage: React.FC = () => {
               artist: { label: 'Artista',   emoji: '🎤', color: 'from-purple-500 to-fuchsia-600' },
               dancer: { label: 'Bailarín',  emoji: '💃', color: 'from-green-500 to-emerald-600' },
               dj:     { label: 'DJ',        emoji: '🎧', color: 'from-cyan-500 to-blue-600' },
+              live:   { label: 'LIVE',      emoji: '🔴', color: 'from-red-500 to-pink-600' },
             }[it.type];
 
             return (
@@ -380,6 +451,16 @@ const NearMePage: React.FC = () => {
                   <div className="relative w-full aspect-[16/9] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
                     <img src={it.img} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                    {it.type === 'live' && (
+                      <div className="absolute top-3 left-3 flex items-center gap-2">
+                        {it.isLive && <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1"><span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> LIVE</span>}
+                        {it.liveData?.preview_url && <span className="bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded">PREVIEW 60s</span>}
+                        {it.pricing_mode === 'free' && <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded">GRATIS</span>}
+                        {it.pricing_mode === 'paid' && <span className="bg-pink-500 text-white text-[10px] font-bold px-2 py-1 rounded">€{it.price}</span>}
+                        {it.pricing_mode === 'reservation' && <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-1 rounded">RESERVA €{it.price}</span>}
+                        {it.pricing_mode === 'donation' && <span className="bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded">DONACIÓN</span>}
+                      </div>
+                    )}
                     {it.rating && (
                       <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1">
                         <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
@@ -456,6 +537,8 @@ const NearMePage: React.FC = () => {
           <Map className="w-4 h-4" /> Ver mapa
         </button>
       )}
+
+      <LivePreviewModal isOpen={!!livePreview} onClose={() => setLivePreview(null)} session={livePreview} />
     </div>
   );
 };

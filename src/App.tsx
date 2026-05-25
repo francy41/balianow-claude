@@ -28,6 +28,7 @@ const EventsPage        = lazy(() => import('./pages/EventsPage'));
 const MarketplacePage   = lazy(() => import('./pages/MarketplacePage'));
 const ServiceDetailPage = lazy(() => import('./pages/ServiceDetailPage'));
 const LiveNowPage       = lazy(() => import('./pages/LiveNowPage'));
+const LiveSessionPage   = lazy(() => import('./pages/LiveSessionPage'));
 const VenuesPage        = lazy(() => import('./pages/VenuesPage'));
 const ChatPage          = lazy(() => import('./pages/ChatPage'));
 const DashboardPage     = lazy(() => import('./pages/DashboardPage'));
@@ -138,6 +139,7 @@ const App: React.FC = () => {
                   <Route path="/marketplace"         element={<MarketplacePage />} />
                   <Route path="/marketplace/:id"     element={<ServiceDetailPage />} />
                   <Route path="/live"                element={<LiveNowPage />} />
+                  <Route path="/live/session/:id"    element={<LiveSessionPage />} />
                   <Route path="/live/:id"            element={<LiveNowPage />} />
                   <Route path="/venues"              element={<VenuesPage />} />
                   <Route path="/venues/:id"          element={<VenuesPage />} />

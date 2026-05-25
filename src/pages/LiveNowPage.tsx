@@ -9,6 +9,7 @@ import type { LiveStream } from '../data/mockData';
 import { useAuthStore, useUIStore } from '../store/appStore';
 import { Avatar } from '../components/ui';
 import SearchTriggerBar from '../components/SearchTriggerBar';
+import LiveFab from '../components/LiveFab';
 
 type CategoryFilter = 'all' | 'dj' | 'dancer' | 'instructor' | 'band';
 
@@ -326,6 +327,8 @@ const LiveNowPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      <LiveFab defaultCategory="show" label="Iniciar Live" />
     </div>
   );
 };
