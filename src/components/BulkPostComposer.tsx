@@ -16,8 +16,14 @@ import { supabase } from '../lib/supabase';
 import { uploadFile } from '../lib/uploadHelper';
 import { useUIStore } from '../store/appStore';
 
-interface Brand { id: string; name: string; emoji?: string; }
-interface PostResult { brandId: string; success: boolean; postId?: string; accountsUsed?: number; error?: string; }
+interface Brand {
+  id: string;
+  name: string;
+  emoji?: string;
+  locationId: string;
+  accountIds?: string[];
+}
+interface PostResult { brandLabel: string; locationId: string; success: boolean; postId?: string; accountsUsed?: number; error?: string; }
 
 const PLATFORMS = [
   { v: 'facebook',  label: 'Facebook',  emoji: '📘' },
@@ -56,7 +62,15 @@ const BulkPostComposer: React.FC<Props> = ({ isOpen, onClose }) => {
     if (!isOpen) return;
     (async () => {
       const { data } = await supabase.from('site_config').select('value').eq('key', 'ghl_locations').maybeSingle();
-      const list = (data?.value?.brands || []) as Brand[];
+      const raw = (data?.value?.brands || []) as any[];
+      // Normalizar (compat con marcas viejas que solo tenían `id` = locationId)
+      const list: Brand[] = raw.map(b => ({
+        id: String(b.id),
+        name: String(b.name),
+        emoji: b.emoji,
+        locationId: String(b.locationId || b.id),
+        accountIds: Array.isArray(b.accountIds) ? b.accountIds : undefined,
+      }));
       setBrands(list);
       // Por defecto: ninguna seleccionada (el user elige explícitamente)
       setSelectedBrands(new Set());
@@ -130,9 +144,12 @@ const BulkPostComposer: React.FC<Props> = ({ isOpen, onClose }) => {
           'Authorization': `Bearer ${authToken}`,
         },
         body: JSON.stringify({
+          action: 'post',
           text: text.trim(),
           mediaUrls,
-          brandIds: Array.from(selectedBrands),
+          brands: brands
+            .filter(b => selectedBrands.has(b.id))
+            .map(b => ({ locationId: b.locationId, accountIds: b.accountIds, name: b.name })),
           platforms: selectedPlatforms.size > 0 ? Array.from(selectedPlatforms) : undefined,
           scheduleDate: schedule ? new Date(scheduleAt).toISOString() : undefined,
         }),
@@ -181,15 +198,15 @@ const BulkPostComposer: React.FC<Props> = ({ isOpen, onClose }) => {
           /* ── RESULTADOS ── */
           <div className="p-5 space-y-3">
             <h3 className="font-bold text-gray-900 dark:text-white">Resultados</h3>
-            {results.map(r => {
-              const brand = brands.find(b => b.id === r.brandId);
+            {results.map((r, i) => {
+              const brand = brands.find(b => b.name === r.brandLabel || b.locationId === r.locationId);
               return (
-                <div key={r.brandId} className={`flex items-start gap-3 p-3 rounded-xl border ${r.success ? 'border-green-200 bg-green-50 dark:bg-green-900/10' : 'border-red-200 bg-red-50 dark:bg-red-900/10'}`}>
+                <div key={`${r.locationId}-${i}`} className={`flex items-start gap-3 p-3 rounded-xl border ${r.success ? 'border-green-200 bg-green-50 dark:bg-green-900/10' : 'border-red-200 bg-red-50 dark:bg-red-900/10'}`}>
                   {r.success
                     ? <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
                     : <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />}
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm">{brand?.emoji} {brand?.name || r.brandId}</p>
+                    <p className="font-bold text-sm">{brand?.emoji} {brand?.name || r.brandLabel || r.locationId}</p>
                     {r.success ? (
                       <p className="text-xs text-green-700 dark:text-green-300">
                         ✓ Publicado en {r.accountsUsed} cuenta{r.accountsUsed === 1 ? '' : 's'}

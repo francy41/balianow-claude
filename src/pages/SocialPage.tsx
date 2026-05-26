@@ -15,9 +15,39 @@ import { useAuthStore } from '../store/appStore';
 import BulkPostComposer from '../components/BulkPostComposer';
 
 interface Brand {
-  id: string;         // Location ID de GHL
-  name: string;       // Nombre comercial de la marca
-  emoji?: string;     // Emoji opcional para identificar
+  id: string;             // ID interno (UUID o location ID por compatibilidad)
+  name: string;           // Nombre comercial de la marca
+  emoji?: string;
+  locationId: string;     // Location ID de GHL (de qué sub-cuenta toma las cuentas)
+  accountIds?: string[];  // Cuentas sociales específicas. Si vacío -> todas las de la location.
+}
+
+interface GhlAccount {
+  id: string;
+  platform: string;
+  name: string;
+  avatar?: string;
+  connected?: boolean;
+}
+
+const PLATFORM_EMOJI: Record<string, string> = {
+  facebook: '📘', instagram: '📷', tiktok: '🎵', youtube: '🎥',
+  linkedin: '💼', twitter: '𝕏', google: '📍', gmb: '📍',
+};
+
+// Función auxiliar para llamar a la Edge Function
+async function callGhlFn(payload: any) {
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ghl-bulk-post`;
+  const anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+  const { data: { session } } = await supabase.auth.getSession();
+  const auth = session?.access_token || anon;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'apikey': anon, 'Authorization': `Bearer ${auth}` },
+    body: JSON.stringify(payload),
+  });
+  const json = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, json };
 }
 
 const SocialPage: React.FC = () => {
@@ -45,14 +75,22 @@ const SocialPage: React.FC = () => {
       data?.forEach((row: any) => {
         if (row.key === 'ghl_locations' && Array.isArray(row.value?.brands)) {
           row.value.brands.forEach((b: any) => {
-            if (b?.id && b?.name) list.push({ id: String(b.id), name: String(b.name), emoji: b.emoji });
+            if (!b?.id || !b?.name) return;
+            list.push({
+              id: String(b.id),
+              name: String(b.name),
+              emoji: b.emoji,
+              // Compat: si solo tenía id (que antes era locationId), usar el id como locationId
+              locationId: String(b.locationId || b.id),
+              accountIds: Array.isArray(b.accountIds) ? b.accountIds : undefined,
+            });
           });
         }
         // Fallback legacy: un solo Location ID
         if (row.key === 'ghl_location_id') {
           const legacyId = row.value?.id || row.value;
-          if (typeof legacyId === 'string' && legacyId.trim().length > 5 && !list.find(b => b.id === legacyId)) {
-            list.push({ id: legacyId.trim(), name: 'Marca principal', emoji: '⭐' });
+          if (typeof legacyId === 'string' && legacyId.trim().length > 5 && !list.find(b => b.locationId === legacyId)) {
+            list.push({ id: legacyId.trim(), name: 'Marca principal', emoji: '⭐', locationId: legacyId.trim() });
           }
         }
       });
@@ -253,89 +291,225 @@ const BrandSelector: React.FC<{
   );
 };
 
-// ── Gestor de marcas (solo admin) ──────────────────────────────
+// ── Gestor de marcas multi-cuenta (solo admin) ─────────────────
 const BrandsManager: React.FC<{ brands: Brand[]; onChange: () => void }> = ({ brands: initial, onChange }) => {
   const [list, setList] = useState<Brand[]>(initial);
-  const [draft, setDraft] = useState<Brand>({ id: '', name: '', emoji: '🏷️' });
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
+
+  // Locations distintas (para selector)
+  const distinctLocations = useMemo(() => {
+    const set = new Set<string>();
+    list.forEach(b => set.add(b.locationId));
+    return Array.from(set);
+  }, [list]);
+
+  // Estado de cuentas cargadas por location
+  const [accountsByLoc, setAccountsByLoc] = useState<Record<string, GhlAccount[]>>({});
+  const [loadingAccounts, setLoadingAccounts] = useState<Record<string, boolean>>({});
+
+  // Borrador para añadir una marca nueva
+  const [draft, setDraft] = useState<{ emoji: string; name: string; locationId: string; accountIds: Set<string> }>({
+    emoji: '🏷️', name: '', locationId: distinctLocations[0] || '', accountIds: new Set(),
+  });
+  // Otra location nueva (para añadir desde 0)
+  const [newLocationId, setNewLocationId] = useState('');
+
+  const loadAccounts = async (locId: string) => {
+    if (!locId || accountsByLoc[locId] || loadingAccounts[locId]) return;
+    setLoadingAccounts(s => ({ ...s, [locId]: true }));
+    const { ok, json } = await callGhlFn({ action: 'list-accounts', locationId: locId });
+    setLoadingAccounts(s => ({ ...s, [locId]: false }));
+    if (!ok) {
+      alert(`Error al cargar cuentas: ${json?.error || 'desconocido'}`);
+      return;
+    }
+    setAccountsByLoc(s => ({ ...s, [locId]: json.accounts || [] }));
+  };
+
+  // Carga cuentas automáticamente para la location seleccionada en el draft
+  useEffect(() => {
+    if (draft.locationId) loadAccounts(draft.locationId);
+  }, [draft.locationId]);
 
   const persist = async (newList: Brand[]) => {
-    setSaving(true); setError('');
+    setSaving(true);
     try {
-      const { error: upErr } = await supabase
-        .from('site_config')
-        .upsert(
-          { key: 'ghl_locations', value: { brands: newList }, updated_at: new Date().toISOString() },
-          { onConflict: 'key' }
-        );
-      if (upErr) throw upErr;
+      const { error } = await supabase.from('site_config').upsert(
+        { key: 'ghl_locations', value: { brands: newList }, updated_at: new Date().toISOString() },
+        { onConflict: 'key' }
+      );
+      if (error) throw error;
       setList(newList);
       onChange();
     } catch (e: any) {
-      setError(e.message || 'Error al guardar');
+      alert(`Error al guardar: ${e.message}`);
     } finally {
       setSaving(false);
     }
   };
 
+  const addLocation = () => {
+    const id = newLocationId.trim();
+    if (id.length < 5) { alert('Location ID inválido'); return; }
+    setDraft(d => ({ ...d, locationId: id }));
+    setNewLocationId('');
+    loadAccounts(id);
+  };
+
   const addBrand = () => {
-    const id = draft.id.trim(), name = draft.name.trim();
-    if (id.length < 5 || name.length < 2) { setError('Location ID y nombre requeridos'); return; }
-    if (list.find(b => b.id === id)) { setError('Esa marca ya existe'); return; }
-    persist([...list, { id, name, emoji: draft.emoji || '🏷️' }]);
-    setDraft({ id: '', name: '', emoji: '🏷️' });
+    if (!draft.name.trim()) { alert('Pon un nombre'); return; }
+    if (!draft.locationId) { alert('Selecciona una location'); return; }
+    const id = `brand-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+    const newBrand: Brand = {
+      id,
+      name: draft.name.trim(),
+      emoji: draft.emoji || '🏷️',
+      locationId: draft.locationId,
+      accountIds: draft.accountIds.size > 0 ? Array.from(draft.accountIds) : undefined,
+    };
+    persist([...list, newBrand]);
+    setDraft(d => ({ ...d, name: '', accountIds: new Set() }));
   };
 
   const removeBrand = (id: string) => {
-    if (!confirm('¿Eliminar esta marca?')) return;
+    if (!confirm('¿Eliminar esta marca virtual?')) return;
     persist(list.filter(b => b.id !== id));
   };
 
+  const toggleAccount = (acctId: string) => {
+    setDraft(d => {
+      const next = new Set(d.accountIds);
+      if (next.has(acctId)) next.delete(acctId); else next.add(acctId);
+      return { ...d, accountIds: next };
+    });
+  };
+
+  const allAccountsForDraft = accountsByLoc[draft.locationId] || [];
+  const isLoadingDraft = loadingAccounts[draft.locationId];
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div>
         <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-1">
-          <Settings className="w-5 h-5 text-pink-500" /> Marcas conectadas ({list.length})
+          <Settings className="w-5 h-5 text-pink-500" /> Marcas virtuales ({list.length})
         </h3>
         <p className="text-xs text-gray-500">
-          Cada marca = 1 sub-cuenta de GHL. Crea las sub-cuentas en tu Agency Dashboard, copia su Location ID (Settings → Company) y pégalo aquí.
+          Cada marca = un grupo de cuentas sociales conectadas en GHL. Puedes tener 20+ marcas en 1 Location.
         </p>
       </div>
 
-      {/* Lista de marcas */}
+      {/* Lista de marcas existentes */}
       {list.length > 0 && (
         <div className="space-y-2">
-          {list.map(b => (
-            <div key={b.id} className="flex items-center gap-2 p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-              <span className="text-2xl">{b.emoji || '🏷️'}</span>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-sm truncate">{b.name}</p>
-                <p className="text-[10px] text-gray-400 font-mono truncate">{b.id}</p>
+          {list.map(b => {
+            const accts = (accountsByLoc[b.locationId] || []).filter(a => !b.accountIds || b.accountIds.includes(a.id));
+            return (
+              <div key={b.id} className="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="flex items-start gap-2">
+                  <span className="text-2xl">{b.emoji || '🏷️'}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm">{b.name}</p>
+                    <p className="text-[10px] text-gray-400">
+                      Location <span className="font-mono">{b.locationId.slice(0, 12)}…</span>
+                      {b.accountIds ? ` · ${b.accountIds.length} cuenta(s)` : ' · TODAS las cuentas'}
+                    </p>
+                    {accts.length > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {accts.slice(0, 6).map(a => (
+                          <span key={a.id} className="text-[10px] bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300 px-1.5 py-0.5 rounded">
+                            {PLATFORM_EMOJI[a.platform] || '🔗'} {a.name}
+                          </span>
+                        ))}
+                        {accts.length > 6 && <span className="text-[10px] text-gray-400">+{accts.length - 6}</span>}
+                      </div>
+                    )}
+                  </div>
+                  <button onClick={() => removeBrand(b.id)} className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 rounded-lg flex-shrink-0">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-              <button onClick={() => removeBrand(b.id)} className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 rounded-lg">
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {/* Form añadir */}
-      <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-2">
-        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Añadir nueva marca</p>
-        <div className="grid grid-cols-6 gap-2">
-          <input value={draft.emoji || ''} onChange={e => setDraft(d => ({ ...d, emoji: e.target.value }))}
-            maxLength={2} placeholder="🏷️" className="input-field col-span-1 text-center text-xl" />
-          <input value={draft.name} onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
-            placeholder="Nombre de la marca" className="input-field col-span-5" />
+      {/* Form: añadir marca */}
+      <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-3 bg-pink-50/30 dark:bg-pink-900/5 -mx-4 px-4 pb-4 rounded-b-xl">
+        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">➕ Añadir nueva marca virtual</p>
+
+        {/* Step 1: Location */}
+        <div>
+          <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">1. GHL Location</label>
+          {distinctLocations.length > 0 ? (
+            <div className="flex gap-2">
+              <select value={draft.locationId} onChange={e => setDraft(d => ({ ...d, locationId: e.target.value, accountIds: new Set() }))}
+                className="input-field flex-1 text-xs font-mono">
+                <option value="">— elige una location —</option>
+                {distinctLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+              </select>
+            </div>
+          ) : null}
+          <div className="flex gap-2 mt-2">
+            <input value={newLocationId} onChange={e => setNewLocationId(e.target.value)}
+              placeholder="O pega un Location ID nuevo" className="input-field flex-1 text-xs font-mono" />
+            <button onClick={addLocation} className="btn-outline text-xs px-3">+ Añadir</button>
+          </div>
         </div>
-        <input value={draft.id} onChange={e => setDraft(d => ({ ...d, id: e.target.value }))}
-          placeholder="Location ID de GHL (Settings → Company)" className="input-field font-mono text-sm" />
-        {error && <p className="text-xs text-red-500">{error}</p>}
-        <button onClick={addBrand} disabled={saving} className="btn-orange w-full flex items-center justify-center gap-2">
+
+        {/* Step 2: Nombre + emoji */}
+        <div>
+          <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">2. Identidad de la marca</label>
+          <div className="grid grid-cols-6 gap-2">
+            <input value={draft.emoji} onChange={e => setDraft(d => ({ ...d, emoji: e.target.value }))}
+              maxLength={2} placeholder="🏷️" className="input-field col-span-1 text-center text-xl" />
+            <input value={draft.name} onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
+              placeholder="Ej: BailaNow Madrid" className="input-field col-span-5" />
+          </div>
+        </div>
+
+        {/* Step 3: Cuentas */}
+        <div>
+          <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">
+            3. Cuentas sociales (deja vacío para usar TODAS)
+          </label>
+          {isLoadingDraft ? (
+            <div className="text-center py-3 text-gray-400 text-xs">
+              <Loader2 className="w-4 h-4 animate-spin mx-auto mb-1" /> Cargando cuentas de GHL...
+            </div>
+          ) : allAccountsForDraft.length === 0 ? (
+            <div className="text-center py-3 text-xs text-orange-500 bg-orange-50 dark:bg-orange-900/10 rounded">
+              {draft.locationId
+                ? 'Esta Location no tiene cuentas sociales conectadas. Conéctalas en GHL → Social Planner primero.'
+                : 'Selecciona una Location arriba para ver las cuentas disponibles.'}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-60 overflow-y-auto">
+              {allAccountsForDraft.map(a => {
+                const sel = draft.accountIds.has(a.id);
+                return (
+                  <button key={a.id} type="button" onClick={() => toggleAccount(a.id)}
+                    className={`flex items-center gap-2 p-2 rounded border text-left text-xs transition-all ${sel ? 'border-pink-500 bg-pink-50 dark:bg-pink-900/20' : 'border-gray-200 dark:border-gray-700'}`}>
+                    <span className="text-lg">{PLATFORM_EMOJI[a.platform] || '🔗'}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold truncate">{a.name}</p>
+                      <p className="text-[10px] text-gray-400 capitalize">{a.platform}</p>
+                    </div>
+                    {sel && <Check className="w-4 h-4 text-pink-500 flex-shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          {draft.accountIds.size > 0 && (
+            <p className="text-[10px] text-pink-500 font-bold mt-1">{draft.accountIds.size} cuenta(s) seleccionada(s)</p>
+          )}
+        </div>
+
+        <button onClick={addBrand} disabled={saving || !draft.name || !draft.locationId}
+          className="btn-orange w-full flex items-center justify-center gap-2">
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-          {saving ? 'Guardando...' : 'Añadir marca'}
+          {saving ? 'Guardando...' : 'Crear marca virtual'}
         </button>
       </div>
     </div>
