@@ -3290,6 +3290,35 @@ const IntegracionesSection: React.FC<{ addToast: Function }> = ({ addToast }) =>
         />
       </div>
 
+      {/* Publicación bulk en todas las marcas (Edge Function + GHL API) */}
+      <div className="card-white p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">📡</span>
+          <div>
+            <h3 className="font-bold text-gray-900">Publicar en TODAS las marcas a la vez</h3>
+            <p className="text-xs text-gray-500">Requiere un token de GHL guardado como secret en Supabase</p>
+          </div>
+        </div>
+        <div className="text-xs text-gray-500 bg-purple-50 border border-purple-200 rounded-lg p-3 space-y-2">
+          <p className="font-bold text-purple-700">Cómo activarlo (5 minutos)</p>
+          <ol className="space-y-1.5 list-decimal list-inside">
+            <li>En GHL Agency → <b>Settings → API Keys → Private Integrations</b></li>
+            <li>Click <b>"New"</b> → ponle nombre "BailaNow Bulk" → marca scopes:
+              <br/><code className="bg-white px-1 rounded">social-media-posting.readonly</code>
+              <br/><code className="bg-white px-1 rounded">social-media-posting.write</code>
+            </li>
+            <li>Click <b>Create</b> → copia el token (empieza por <code>pit-...</code>)</li>
+            <li>En tu terminal local, ejecuta:
+              <pre className="bg-gray-900 text-green-400 p-2 rounded mt-1 text-[10px] overflow-x-auto">supabase secrets set GHL_API_TOKEN=pit-XXXXXXXXX --project-ref lpwwdjujxwxdvyoznehp</pre>
+            </li>
+            <li>Y deploy de la Edge Function:
+              <pre className="bg-gray-900 text-green-400 p-2 rounded mt-1 text-[10px] overflow-x-auto">supabase functions deploy ghl-bulk-post --project-ref lpwwdjujxwxdvyoznehp</pre>
+            </li>
+          </ol>
+          <p className="mt-2">Una vez hecho, en <a href="/redes" className="font-bold text-purple-700 underline">/redes</a> aparecerá el botón <b>"Publicar en varias"</b> 📡</p>
+        </div>
+      </div>
+
       {/* Info adicional */}
       <div className="card-white p-5">
         <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">

@@ -8,10 +8,11 @@
  * Fallback: legacy key='ghl_location_id' (un solo Location ID)
  */
 import React, { useEffect, useMemo, useState } from 'react';
-import { Share2, ExternalLink, Settings, Loader2, AlertCircle, Sparkles, Plus, Trash2, ChevronDown, Check } from 'lucide-react';
+import { Share2, ExternalLink, Settings, Loader2, AlertCircle, Sparkles, Plus, Trash2, ChevronDown, Check, Send } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/appStore';
+import BulkPostComposer from '../components/BulkPostComposer';
 
 interface Brand {
   id: string;         // Location ID de GHL
@@ -29,6 +30,7 @@ const SocialPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showAdmin, setShowAdmin] = useState(false);
   const [iframeError, setIframeError] = useState(false);
+  const [showBulk, setShowBulk] = useState(false);
 
   // Cargar marcas desde site_config
   const reload = async () => {
@@ -153,6 +155,12 @@ const SocialPage: React.FC = () => {
           <Share2 className="w-5 h-5 flex-shrink-0" />
           <BrandSelector brands={brands} activeId={activeBrandId} onSwitch={switchBrand} />
         </div>
+        {brands.length > 0 && (
+          <button onClick={() => setShowBulk(true)}
+            className="bg-white text-pink-600 hover:bg-white/90 text-xs font-bold flex items-center gap-1 px-3 py-1.5 rounded-lg shadow">
+            <Send className="w-3.5 h-3.5" /> Publicar en varias
+          </button>
+        )}
         {isAdmin && (
           <button onClick={() => setShowAdmin(s => !s)}
             className="text-white/80 hover:text-white text-xs flex items-center gap-1 px-2 py-1 rounded hover:bg-white/10">
@@ -202,6 +210,8 @@ const SocialPage: React.FC = () => {
           />
         )}
       </div>
+
+      <BulkPostComposer isOpen={showBulk} onClose={() => setShowBulk(false)} />
     </div>
   );
 };
