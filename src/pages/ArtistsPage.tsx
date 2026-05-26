@@ -51,6 +51,29 @@ const ArtistsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadStats, setLoadStats] = useState<{ artists: number; profiles: number }>({ artists: 0, profiles: 0 });
+  const [debugInfo, setDebugInfo] = useState<string>('');
+
+  const runDebug = async () => {
+    const log: string[] = [];
+    log.push(`URL: ${import.meta.env.VITE_SUPABASE_URL || '(undefined)'}`);
+    log.push(`KEY: ${(import.meta.env.VITE_SUPABASE_ANON_KEY || '').slice(0, 30)}...`);
+    log.push(`Session: ${(await supabase.auth.getSession()).data.session?.user?.email || '(no session)'}`);
+    try {
+      const t0 = Date.now();
+      const { data, error, status, statusText } = await supabase.from('artists').select('id,name,type').limit(3);
+      log.push(`/artists ${status} ${statusText} in ${Date.now()-t0}ms`);
+      if (error) log.push(`  ERROR: ${error.message} (code: ${error.code})`);
+      else log.push(`  OK: ${data?.length} rows. Sample: ${JSON.stringify(data?.[0])}`);
+    } catch (e: any) { log.push(`/artists EXCEPTION: ${e.message}`); }
+    try {
+      const t0 = Date.now();
+      const { data, error, status, statusText } = await supabase.from('profiles').select('id,full_name,role').limit(3);
+      log.push(`/profiles ${status} ${statusText} in ${Date.now()-t0}ms`);
+      if (error) log.push(`  ERROR: ${error.message} (code: ${error.code})`);
+      else log.push(`  OK: ${data?.length} rows. Sample: ${JSON.stringify(data?.[0])}`);
+    } catch (e: any) { log.push(`/profiles EXCEPTION: ${e.message}`); }
+    setDebugInfo(log.join('\n'));
+  };
   const [search, setSearch] = useState('');
   const [selectedType, setSelectedType] = useState([
     initialType === 'dj' ? 'DJ' :
@@ -251,6 +274,17 @@ const ArtistsPage: React.FC = () => {
             <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-700 rounded-lg p-3 mb-4 text-xs text-red-700 dark:text-red-300">
               <strong>⚠ Error cargando datos:</strong> {loadError}
               <div className="mt-1 text-[10px] text-red-500">Comprueba conexión o RLS de Supabase</div>
+            </div>
+          )}
+          {/* DEBUG button */}
+          {!loading && items.length === 0 && (
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-300 rounded-lg">
+              <button onClick={runDebug} className="bg-yellow-500 text-white font-bold text-xs px-3 py-1.5 rounded">
+                🔍 Debug: ¿por qué 0 artistas?
+              </button>
+              {debugInfo && (
+                <pre className="mt-2 text-[10px] text-gray-700 font-mono whitespace-pre-wrap break-all">{debugInfo}</pre>
+              )}
             </div>
           )}
           {loading ? (
