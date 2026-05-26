@@ -535,21 +535,27 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
                   className="input w-full" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="col-span-2">
                 <label className="text-[10px] font-bold text-gray-500 uppercase">Ruta</label>
                 <input value={editData.route || ''} onChange={e => setEditData(d => ({ ...d, route: e.target.value }))}
                   className="input w-full text-xs font-mono" placeholder="/eventos" />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-gray-500 uppercase">Sección</label>
-                <select value={editData.section || 'main'} onChange={e => setEditData(d => ({ ...d, section: e.target.value as any }))}
-                  className="input w-full text-xs">
-                  <option value="main">Principal</option>
-                  <option value="mercado">Mercado</option>
-                  <option value="comunidad">Comunidad</option>
-                </select>
+                <label className="text-[10px] font-bold text-gray-500 uppercase">Posición</label>
+                <input type="number" min="1" value={editData.display_order ?? ''}
+                  onChange={e => setEditData(d => ({ ...d, display_order: Number(e.target.value) || 99 }))}
+                  className="input w-full text-xs" placeholder="1" title="Menor número = más arriba" />
               </div>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-gray-500 uppercase">Sección</label>
+              <select value={editData.section || 'main'} onChange={e => setEditData(d => ({ ...d, section: e.target.value as any }))}
+                className="input w-full text-xs">
+                <option value="main">⭐ Principal</option>
+                <option value="mercado">🏪 Mercado</option>
+                <option value="comunidad">💬 Comunidad</option>
+              </select>
             </div>
             {/* Live preview */}
             <div className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
@@ -563,7 +569,20 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
             </div>
           </div>
         ) : (
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Posición editable */}
+            <div className="flex-shrink-0 flex flex-col items-center" title="Posición en la home (menor = arriba)">
+              <input type="number" min="1" max="99"
+                value={cat.display_order}
+                onChange={e => {
+                  const v = Number(e.target.value);
+                  if (!isFinite(v) || v < 1) return;
+                  save(homeCategories.map(c => c.id === cat.id ? { ...c, display_order: v } : c));
+                }}
+                className="w-12 h-10 text-center text-sm font-bold border border-pink-200 rounded-lg bg-pink-50 text-pink-700 focus:ring-2 focus:ring-pink-400 focus:outline-none"
+              />
+              <span className="text-[8px] text-gray-400 mt-0.5 uppercase font-bold">pos</span>
+            </div>
             {/* Icon preview */}
             <div className="w-10 h-10 rounded-full bg-pink-50 border border-pink-100 flex items-center justify-center text-xl flex-shrink-0">{cat.icon}</div>
             {/* Info */}
@@ -576,7 +595,7 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
               className={`text-[10px] font-bold px-2 py-1 rounded-full flex-shrink-0 transition-all ${cat.active ? 'bg-green-100 text-green-700 hover:bg-red-100 hover:text-red-600' : 'bg-gray-100 text-gray-500 hover:bg-green-100 hover:text-green-700'}`}>
               {cat.active ? '✓ Activa' : '○ Oculta'}
             </button>
-            {/* Reorder */}
+            {/* Reorder con flechas */}
             <div className="flex flex-col gap-0.5 flex-shrink-0">
               <button onClick={() => moveCategory(cat.id, -1)} disabled={idx === 0}
                 className="p-0.5 text-gray-300 hover:text-pink-500 disabled:opacity-20 transition-colors text-xs">▲</button>
@@ -1021,63 +1040,139 @@ const SuscripcionesSection: React.FC<{ addToast: Function }> = ({ addToast }) =>
 // ── 7. ARTISTAS ───────────────────────────────────────────────────────────
 const ArtistasSection: React.FC<{ addToast: Function; navigate: Function }> = ({ addToast, navigate }) => {
   const { openEdit } = useAdminEdit();
-  const { getMerged } = useAdminOverridesStore();
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => {
+    setLoading(true);
+    const combined: any[] = [];
+    try {
+      const { data } = await supabase.from('artists').select('*');
+      data?.forEach((a: any) => combined.push({ ...a, source: 'artist' }));
+    } catch (e) { console.warn('artists', e); }
+    try {
+      const { data } = await supabase.from('profiles').select('*').in('role', ['artist','dj','singer','band','musician','promoter']);
+      data?.forEach((p: any) => combined.push({
+        id: p.id, name: p.full_name || p.email, type: p.role,
+        city: p.city || p.location, avatar: p.avatar_url,
+        rating: 0, completedBookings: 0, isVerified: p.verified, isPremium: false,
+        source: 'profile',
+      }));
+    } catch (e) { console.warn('profiles', e); }
+    setItems(combined);
+    setLoading(false);
+  };
+  useEffect(() => { load(); }, []);
+
+  const handleDelete = async (item: any) => {
+    if (!confirm(`¿Eliminar "${item.name}" de la BD?`)) return;
+    const table = item.source === 'profile' ? 'profiles' : 'artists';
+    const { error } = await supabase.from(table).delete().eq('id', item.id);
+    if (error) addToast({ message: error.message, type: 'error' });
+    else { addToast({ message: `✅ ${item.name} eliminado`, type: 'success' }); load(); }
+  };
+
   return (
-  <div>
-    <PageHeader title="Artistas" subtitle={`${ARTISTS.length} artistas registrados`} action={
-      <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => addToast({ message: 'Redirigiendo a formulario de artista', type: 'info' })}>Añadir artista</Button>
-    } />
-    <AdminTable
-      headers={['Artista', 'Tipo', 'Ciudad', 'Rating', 'Bookings', 'Premium', 'Acciones']}
-      rows={ARTISTS.map(orig => getMerged('artist', orig)).map(a => [
-        <div className="flex items-center gap-2">
-          <img src={a.avatar} alt={a.name} className="w-8 h-8 rounded-full" />
-          <div>
-            <p className="font-semibold text-sm">{a.name}</p>
-            {a.isVerified && <span className="text-blue-500 text-xs">✓ Verificado</span>}
-          </div>
-        </div>,
-        <Badge variant="gray" className="capitalize">{a.type}</Badge>,
-        <span>{a.city}</span>,
-        <div className="flex items-center gap-1"><span className="text-brand-orange">⭐</span><span className="font-semibold">{a.rating}</span></div>,
-        <span>{a.completedBookings}</span>,
-        a.isPremium ? <Badge variant="orange">PRO</Badge> : <Badge variant="gray">Básico</Badge>,
-        <div className="flex gap-1">
-          <button onClick={() => navigate(`/artistas/${a.id}`)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
-          <button onClick={() => openEdit({ entity: 'artist', title: a.name, item: a, fields: FIELDS_ARTIST })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
-          <button onClick={() => addToast({ message: `${a.name} suspendido`, type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><XCircle className="w-4 h-4" /></button>
+    <div>
+      <PageHeader title="Artistas" subtitle={loading ? 'Cargando…' : `${items.length} artistas/perfiles desde BD`} action={
+        <div className="flex gap-2">
+          <Button variant="dark" icon={<RefreshCw className="w-4 h-4" />} onClick={load}>Recargar</Button>
+          <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => openEdit({ entity: 'artist', title: 'Nuevo artista', item: { id: `art-new-${Date.now()}`, name: '', type: 'singer', city: '', country: 'España' }, fields: FIELDS_ARTIST, onSaved: () => load() } as any)}>Añadir artista</Button>
         </div>
-      ])}
-    />
-  </div>
+      } />
+      {loading ? <div className="text-center py-12 text-gray-400"><RefreshCw className="w-6 h-6 animate-spin mx-auto" /></div>
+       : items.length === 0 ? <div className="text-center py-12 text-gray-400">No hay artistas en la BD aún</div>
+       : (
+        <AdminTable
+          headers={['Artista', 'Tipo', 'Ciudad', 'Rating', 'Fuente', 'Acciones']}
+          rows={items.map(a => [
+            <div className="flex items-center gap-2">
+              {a.avatar
+                ? <img src={a.avatar} alt={a.name} className="w-8 h-8 rounded-full object-cover" />
+                : <div className="w-8 h-8 rounded-full bg-brand-orange/20 flex items-center justify-center text-xs font-bold text-brand-orange">{(a.name || '?')[0]?.toUpperCase()}</div>}
+              <div>
+                <p className="font-semibold text-sm">{a.name}</p>
+                {a.isVerified && <span className="text-blue-500 text-xs">✓ Verificado</span>}
+              </div>
+            </div>,
+            <Badge variant="gray" className="capitalize">{a.type}</Badge>,
+            <span>{a.city || '—'}</span>,
+            <div className="flex items-center gap-1"><span className="text-brand-orange">⭐</span><span className="font-semibold">{a.rating || '—'}</span></div>,
+            <Badge variant={a.source === 'profile' ? 'blue' : 'orange'}>{a.source === 'profile' ? 'Usuario' : 'Artista'}</Badge>,
+            <div className="flex gap-1">
+              <button onClick={() => navigate(a.source === 'profile' ? `/p/${a.id}` : `/artistas/${a.id}`)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
+              <button onClick={() => openEdit({ entity: 'artist', title: a.name, item: a, fields: FIELDS_ARTIST, onSaved: () => load() } as any)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
+              <button onClick={() => handleDelete(a)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
+            </div>
+          ])}
+        />
+      )}
+    </div>
   );
 };
 
 // ── 8. BAILARINAS ─────────────────────────────────────────────────────────
 const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const { openEdit } = useAdminEdit();
-  const dancers = ARTISTS.filter(a => a.type === 'dancer' || a.type === 'instructor');
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = async () => {
+    setLoading(true);
+    const combined: any[] = [];
+    try {
+      const { data } = await supabase.from('artists').select('*').in('type', ['dancer','instructor']);
+      data?.forEach((a: any) => combined.push({ ...a, source: 'artist' }));
+    } catch (e) { console.warn('artists', e); }
+    try {
+      const { data } = await supabase.from('profiles').select('*').in('role', ['dancer','instructor']);
+      data?.forEach((p: any) => combined.push({
+        id: p.id, name: p.full_name || p.email, type: p.role,
+        city: p.city || p.location, avatar: p.avatar_url,
+        rating: 0, source: 'profile',
+      }));
+    } catch (e) { console.warn('profiles', e); }
+    setItems(combined);
+    setLoading(false);
+  };
+  useEffect(() => { load(); }, []);
+
+  const handleDelete = async (item: any) => {
+    if (!confirm(`¿Eliminar "${item.name}" de la BD?`)) return;
+    const table = item.source === 'profile' ? 'profiles' : 'artists';
+    const { error } = await supabase.from(table).delete().eq('id', item.id);
+    if (error) addToast({ message: error.message, type: 'error' });
+    else { addToast({ message: `✅ ${item.name} eliminado`, type: 'success' }); load(); }
+  };
+
   return (
     <div>
-      <PageHeader title="Bailarines & Instructores" subtitle={`${dancers.length} perfiles activos`} action={
-        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => openEdit({ entity: 'artist', title: 'Nuevo bailarín/a', item: { id: `art-new-${Date.now()}`, name: '', type: 'dancer', city: '', country: 'España' }, fields: FIELDS_ARTIST })}>Añadir bailarín/a</Button>
+      <PageHeader title="Bailarines & Instructores" subtitle={loading ? 'Cargando…' : `${items.length} perfiles desde BD`} action={
+        <div className="flex gap-2">
+          <Button variant="dark" icon={<RefreshCw className="w-4 h-4" />} onClick={load}>Recargar</Button>
+          <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => openEdit({ entity: 'artist', title: 'Nuevo bailarín/a', item: { id: `art-new-${Date.now()}`, name: '', type: 'dancer', city: '', country: 'España' }, fields: FIELDS_ARTIST, onSaved: () => load() } as any)}>Añadir bailarín/a</Button>
+        </div>
       } />
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {[...dancers, ...ARTISTS.slice(0, 4)].map(a => (
-          <div key={a.id} className="card-white p-4 text-center hover:shadow-card-hover transition-shadow">
-            <img src={a.avatar} alt={a.name} className="w-16 h-16 rounded-full mx-auto mb-3 ring-2 ring-brand-orange/30" />
-            <p className="font-bold text-gray-900 text-sm">{a.name}</p>
-            <p className="text-gray-400 text-xs capitalize mt-0.5">{a.type} · {a.city}</p>
-            <div className="flex items-center justify-center gap-1 mt-1">
-              <span className="text-brand-orange text-xs">⭐</span><span className="text-xs font-semibold">{a.rating}</span>
+      {loading ? <div className="text-center py-12 text-gray-400"><RefreshCw className="w-6 h-6 animate-spin mx-auto" /></div>
+       : items.length === 0 ? <div className="text-center py-12 text-gray-400">No hay bailarines/instructores en la BD aún</div>
+       : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {items.map(a => (
+            <div key={`${a.source}-${a.id}`} className="card-white p-4 text-center hover:shadow-card-hover transition-shadow">
+              {a.avatar
+                ? <img src={a.avatar} alt={a.name} className="w-16 h-16 rounded-full mx-auto mb-3 ring-2 ring-brand-orange/30 object-cover" />
+                : <div className="w-16 h-16 rounded-full mx-auto mb-3 bg-gradient-to-br from-pink-400 to-fuchsia-600 flex items-center justify-center text-white text-xl font-bold">{(a.name || '?')[0]?.toUpperCase()}</div>}
+              <p className="font-bold text-gray-900 text-sm">{a.name}</p>
+              <p className="text-gray-400 text-xs capitalize mt-0.5">{a.type} · {a.city || '—'}</p>
+              {a.rating > 0 && <div className="flex items-center justify-center gap-1 mt-1"><span className="text-brand-orange text-xs">⭐</span><span className="text-xs font-semibold">{a.rating}</span></div>}
+              <div className="flex gap-1 mt-3">
+                <button onClick={() => openEdit({ entity: 'artist', title: a.name, item: a, fields: FIELDS_ARTIST, onSaved: () => load() } as any)} className="flex-1 text-xs py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50">Editar</button>
+                <button onClick={() => handleDelete(a)} className="flex-1 text-xs py-1 rounded-lg border border-red-100 text-red-400 hover:bg-red-50">Eliminar</button>
+              </div>
             </div>
-            <div className="flex gap-1 mt-3">
-              <button onClick={() => openEdit({ entity: 'artist', title: a.name, item: a, fields: FIELDS_ARTIST })} className="flex-1 text-xs py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50">Editar</button>
-              <button onClick={() => addToast({ message: `${a.name} suspendido`, type: 'error' })} className="flex-1 text-xs py-1 rounded-lg border border-red-100 text-red-400 hover:bg-red-50">Suspender</button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
