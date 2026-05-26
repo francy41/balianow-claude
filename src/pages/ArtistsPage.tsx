@@ -49,6 +49,8 @@ const ArtistsPage: React.FC = () => {
 
   const [items, setItems] = useState<DbArtist[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadStats, setLoadStats] = useState<{ artists: number; profiles: number }>({ artists: 0, profiles: 0 });
   const [search, setSearch] = useState('');
   const [selectedType, setSelectedType] = useState([
     initialType === 'dj' ? 'DJ' :
@@ -70,10 +72,14 @@ const ArtistsPage: React.FC = () => {
 
     (async () => {
       const combined: DbArtist[] = [];
+      let artistCount = 0, profileCount = 0;
+      const errors: string[] = [];
 
       // 1) tabla artists (artistas tradicionales)
       try {
-        const { data } = await supabase.from('artists').select('*');
+        const { data, error } = await supabase.from('artists').select('*');
+        if (error) errors.push(`artists: ${error.message}`);
+        artistCount = data?.length || 0;
         data?.forEach((a: any) => {
           combined.push({
             id:         a.id,
@@ -95,11 +101,12 @@ const ArtistsPage: React.FC = () => {
             source:     'artist',
           });
         });
-      } catch (e) { console.warn('[artists] artists table', e); }
+      } catch (e: any) { errors.push(`artists fetch: ${e?.message}`); console.warn('[artists] artists table', e); }
 
       // 2) tabla profiles (usuarios con rol artista/dj/dancer/etc)
       try {
-        const { data } = await supabase.from('profiles').select('*');
+        const { data, error } = await supabase.from('profiles').select('*');
+        if (error) errors.push(`profiles: ${error.message}`);
         data?.forEach((p: any) => {
           const t = normalizeRoleToType(p.role);
           if (!t) return;
@@ -123,13 +130,19 @@ const ArtistsPage: React.FC = () => {
             source:     'profile',
           });
         });
-      } catch (e) { console.warn('[artists] profiles', e); }
+      } catch (e: any) { errors.push(`profiles fetch: ${e?.message}`); console.warn('[artists] profiles', e); }
+      profileCount = combined.length - artistCount;
 
       if (!cancelled) {
         setItems(combined);
+        setLoadStats({ artists: artistCount, profiles: profileCount });
+        if (errors.length > 0 && combined.length === 0) setLoadError(errors.join(' · '));
         setLoading(false);
       }
-    })().catch(e => { console.error('[artists] fatal', e); if (!cancelled) setLoading(false); });
+    })().catch(e => {
+      console.error('[artists] fatal', e);
+      if (!cancelled) { setLoadError(e?.message || 'Error desconocido'); setLoading(false); }
+    });
 
     return () => { cancelled = true; clearTimeout(safety); };
   }, []);
@@ -225,8 +238,21 @@ const ArtistsPage: React.FC = () => {
 
         <div className="mt-6">
           <p className="text-gray-400 text-sm mb-4">
-            {loading ? 'Cargando…' : `${filtered.length} artistas encontrados`}
+            {loading
+              ? 'Cargando…'
+              : `${filtered.length} de ${items.length} artistas`}
+            {!loading && items.length > 0 && (
+              <span className="text-[10px] text-gray-300 ml-2">
+                (BD: {loadStats.artists} artistas + {loadStats.profiles} perfiles)
+              </span>
+            )}
           </p>
+          {loadError && (
+            <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-700 rounded-lg p-3 mb-4 text-xs text-red-700 dark:text-red-300">
+              <strong>⚠ Error cargando datos:</strong> {loadError}
+              <div className="mt-1 text-[10px] text-red-500">Comprueba conexión o RLS de Supabase</div>
+            </div>
+          )}
           {loading ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
               {Array.from({ length: 6 }).map((_, i) => (

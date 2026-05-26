@@ -121,7 +121,12 @@ const VenuesList: React.FC = () => {
 
         <div className="mt-6">
           <p className="text-gray-400 text-sm mb-4">
-            {loading ? 'Cargando…' : `${filtered.length} venues`}
+            {loading
+              ? 'Cargando…'
+              : `${filtered.length} de ${allVenues.length} venues`}
+            {!loading && dbVenues.length > 0 && (
+              <span className="text-[10px] text-gray-300 ml-2">(BD: {dbVenues.length})</span>
+            )}
           </p>
           {loading && filtered.length === 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
