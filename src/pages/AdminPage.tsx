@@ -27,7 +27,7 @@ type AdminSection =
   | 'suscripciones' | 'artistas' | 'bailarinas' | 'eventos' | 'mercado'
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms'
-  | 'patrocinadores' | 'administradores' | 'importar';
+  | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -38,6 +38,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'radio',          label: 'Radio Online',            icon: <Radio className="w-4 h-4" />, badge: '2 live' },
   { id: 'usuarios',       label: 'Usuarios',                icon: <Users className="w-4 h-4" /> },
   { id: 'importar',       label: 'Importar perfiles',       icon: <FileText className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'integraciones',  label: 'Integraciones (GHL)',     icon: <Globe className="w-4 h-4" />, badge: 'GHL' },
   { id: 'localidades',    label: 'Localidades',             icon: <MapPin className="w-4 h-4" /> },
   { id: 'suscripciones',  label: 'Suscripciones Premium',  icon: <Crown className="w-4 h-4" /> },
   { id: 'artistas',       label: 'Artistas',                icon: <Music2 className="w-4 h-4" /> },
@@ -288,6 +289,7 @@ const AdminPage: React.FC = () => {
         {active === 'patrocinadores'  && <PatrocinadoresSection addToast={addToast} />}
         {active === 'administradores' && <AdministradoresSection addToast={addToast} isSuperAdmin={isSuperAdmin} />}
         {active === 'importar'        && <ProfileImporter />}
+        {active === 'integraciones'   && <IntegracionesSection addToast={addToast} />}
       </main>
 
       {/* Modal de edición global */}
@@ -3163,6 +3165,168 @@ const AdministradoresSection: React.FC<{ addToast: Function; isSuperAdmin: boole
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+};
+
+// ════════════════════════════════════════════════════════════════
+// INTEGRACIONES (GHL): chat widget, newsletter form, brands
+// ════════════════════════════════════════════════════════════════
+const IntegracionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const [cfg, setCfg] = useState<{ chatWidget?: string; formId?: string; webhook?: string; subs?: number }>({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    try {
+      const { data } = await supabase
+        .from('site_config')
+        .select('key, value')
+        .in('key', ['ghl_chat_widget_id', 'ghl_newsletter_form_id', 'ghl_newsletter_webhook']);
+      const next: typeof cfg = {};
+      for (const row of (data || [])) {
+        const v = (row as any).value;
+        const val = typeof v === 'string' ? v : (v?.id || v?.url || '');
+        if (row.key === 'ghl_chat_widget_id')        next.chatWidget = val;
+        if (row.key === 'ghl_newsletter_form_id')    next.formId = val;
+        if (row.key === 'ghl_newsletter_webhook')    next.webhook = val;
+      }
+      // Count newsletter subscribers
+      const { count } = await supabase.from('newsletter_subscribers').select('*', { count: 'exact', head: true });
+      next.subs = count ?? 0;
+      setCfg(next);
+    } catch (e) { console.warn('[integraciones] load', e); }
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const saveKey = async (key: string, raw: string, isUrl = false) => {
+    setSaving(true);
+    try {
+      const trimmed = raw.trim();
+      if (!trimmed) {
+        await supabase.from('site_config').delete().eq('key', key);
+        addToast({ message: 'Eliminado', type: 'info' });
+      } else {
+        const value = isUrl ? { url: trimmed } : { id: trimmed };
+        const { error } = await supabase.from('site_config')
+          .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+        if (error) throw error;
+        addToast({ message: '✅ Guardado', type: 'success' });
+      }
+      load();
+    } catch (e: any) {
+      addToast({ message: `Error: ${e.message}`, type: 'error' });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <div className="p-8 text-center text-gray-400"><RefreshCw className="w-6 h-6 animate-spin mx-auto" /></div>;
+
+  return (
+    <div className="space-y-6 max-w-3xl">
+      <PageHeader title="Integraciones GHL" subtitle="Conecta GoHighLevel: chat widget, newsletter, automatizaciones" />
+
+      {/* Chat widget */}
+      <div className="card-white p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">💬</span>
+          <div>
+            <h3 className="font-bold text-gray-900">Chat de soporte automático</h3>
+            <p className="text-xs text-gray-500">El widget de GHL aparecerá flotante en toda la app</p>
+          </div>
+        </div>
+        <div className="text-xs text-gray-500 bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="font-bold text-blue-700 mb-1">¿Dónde encontrar el Widget ID?</p>
+          <p>GHL → Sites → <b>Chat Widget</b> → crea o selecciona el widget → "Install Code" → copia el valor de <code className="bg-white px-1 rounded">data-widget-id</code></p>
+        </div>
+        <ConfigInput
+          label="Widget ID"
+          initial={cfg.chatWidget || ''}
+          placeholder="Ej: 6589abcd1234ef..."
+          onSave={(v) => saveKey('ghl_chat_widget_id', v)}
+          saving={saving}
+        />
+      </div>
+
+      {/* Newsletter */}
+      <div className="card-white p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">📬</span>
+          <div>
+            <h3 className="font-bold text-gray-900">Newsletter — Formulario GHL</h3>
+            <p className="text-xs text-gray-500">
+              {cfg.subs !== undefined && <span className="font-bold text-pink-600">{cfg.subs} suscriptores</span>}
+            </p>
+          </div>
+        </div>
+        <div className="text-xs text-gray-500 bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="font-bold text-blue-700 mb-1">Opción A — Form embed de GHL</p>
+          <p>GHL → Sites → <b>Forms → Builder</b> → crea form → Integrate → Inline embed → copia el Form ID (el código alfanumérico al final de la URL del iframe)</p>
+        </div>
+        <ConfigInput
+          label="Form ID (opcional)"
+          initial={cfg.formId || ''}
+          placeholder="Si lo configuras, sustituye el form propio por el de GHL"
+          onSave={(v) => saveKey('ghl_newsletter_form_id', v)}
+          saving={saving}
+        />
+
+        <div className="text-xs text-gray-500 bg-purple-50 border border-purple-200 rounded-lg p-3 mt-4">
+          <p className="font-bold text-purple-700 mb-1">Opción B — Webhook Inbound de GHL (recomendado)</p>
+          <p>GHL → Automation → Workflows → New → Trigger: <b>Webhook</b> → "Inbound Webhook" → copia la URL.</p>
+          <p className="mt-1">Crea un workflow que: añada el contacto, le ponga tag "newsletter", envíe email de bienvenida, etc.</p>
+        </div>
+        <ConfigInput
+          label="Webhook URL"
+          initial={cfg.webhook || ''}
+          placeholder="https://services.leadconnectorhq.com/hooks/..."
+          onSave={(v) => saveKey('ghl_newsletter_webhook', v, true)}
+          saving={saving}
+        />
+      </div>
+
+      {/* Info adicional */}
+      <div className="card-white p-5">
+        <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+          <span className="text-2xl">📊</span> Lo que GHL hace por ti
+        </h3>
+        <ul className="space-y-2 text-sm text-gray-700">
+          <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" /><span><b>Automatizaciones (Workflows)</b>: emails automáticos, SMS, secuencias de bienvenida</span></li>
+          <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" /><span><b>Chat de soporte</b>: AI responde 24/7, escala a humano cuando hace falta</span></li>
+          <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" /><span><b>Newsletter</b>: campaign builder + segmentación por tags</span></li>
+          <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" /><span><b>Social posting</b>: ya activo en /redes con 20+ marcas</span></li>
+          <li className="flex items-start gap-2"><CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" /><span><b>CRM completo</b>: gestiona todos los suscriptores y clientes</span></li>
+        </ul>
+      </div>
+    </div>
+  );
+};
+
+const ConfigInput: React.FC<{
+  label: string; initial: string; placeholder?: string;
+  onSave: (v: string) => void | Promise<void>; saving: boolean;
+}> = ({ label, initial, placeholder, onSave, saving }) => {
+  const [value, setValue] = useState(initial);
+  React.useEffect(() => setValue(initial), [initial]);
+  const dirty = value !== initial;
+  return (
+    <div>
+      <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">{label}</label>
+      <div className="flex gap-2">
+        <input
+          type="text" value={value} onChange={e => setValue(e.target.value)}
+          placeholder={placeholder}
+          className="input-field font-mono text-xs flex-1"
+        />
+        <button onClick={() => onSave(value)} disabled={!dirty || saving}
+          className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold px-4 py-2 rounded-xl text-xs disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap">
+          {saving ? '...' : value.trim() ? 'Guardar' : 'Vaciar'}
+        </button>
       </div>
     </div>
   );

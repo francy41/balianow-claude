@@ -6,6 +6,7 @@ import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useS
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
 import { Avatar, StarRating, SearchBar, AppImage } from '../components/ui';
 import { supabase } from '../lib/supabase';
+import NewsletterForm from '../components/NewsletterForm';
 
 // Category interface
 interface Category {
@@ -1363,6 +1364,11 @@ const HomePage: React.FC = () => {
 
       {/* ── EN DIRECTO AHORA ── */}
       <LiveNowHomeSection navigate={navigate} />
+
+      {/* ── NEWSLETTER ── */}
+      <section className="mx-3 sm:mx-4 mt-6">
+        <NewsletterForm variant="banner" />
+      </section>
 
       {/* ── DONDE BAILAR EN LA CIUDAD ── */}
       {isModuleOn('cities') && (
