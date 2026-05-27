@@ -7,8 +7,7 @@
 // Status 200 si todo OK, 503 si algo crítico falla.
 // ════════════════════════════════════════════════════════════════
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
+// Health check — usa fetch directo a Supabase REST (sin SDK, sin boot-error)
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -22,29 +21,33 @@ Deno.serve(async (req: Request) => {
   const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
   const startTime = Date.now();
-  const checks: Record<string, any> = { db: false };
-  let metrics: any = null;
+  const checks: Record<string, unknown> = { db: false };
+  let metrics: unknown = null;
 
   try {
-    const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
-    const { data, error } = await supabase.from('health_metrics').select('*').single();
-    if (!error && data) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/health_metrics?select=*`, {
+      headers: {
+        apikey: SERVICE_KEY,
+        Authorization: `Bearer ${SERVICE_KEY}`,
+        Accept: 'application/json',
+      },
+    });
+    if (res.ok) {
+      const rows = await res.json();
       checks.db = true;
-      metrics = data;
+      metrics = Array.isArray(rows) ? rows[0] : rows;
     } else {
-      checks.db_error = error?.message;
+      checks.db_error = `HTTP ${res.status}`;
     }
-  } catch (e: any) {
-    checks.db_error = e.message;
+  } catch (e) {
+    checks.db_error = (e as Error).message;
   }
 
-  const healthy = checks.db;
-  const responseTime = Date.now() - startTime;
-
+  const healthy = checks.db === true;
   return new Response(JSON.stringify({
     status: healthy ? 'healthy' : 'unhealthy',
     version: '1.0.0',
-    response_time_ms: responseTime,
+    response_time_ms: Date.now() - startTime,
     checks,
     metrics,
     checked_at: new Date().toISOString(),

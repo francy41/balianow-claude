@@ -6,8 +6,7 @@
 // Configurar en Vercel: /sitemap.xml → rewrite a esta función
 // ════════════════════════════════════════════════════════════════
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
+// Sitemap dinámico — usa fetch directo a Supabase REST
 const BASE = 'https://bailanow.com';
 const STATIC_URLS = [
   '', '/cerca', '/clases', '/eventos', '/artistas', '/venues',
@@ -18,67 +17,42 @@ const STATIC_URLS = [
 Deno.serve(async () => {
   const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
   const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-  const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+
+  const sbHeaders = {
+    apikey: SERVICE_KEY,
+    Authorization: `Bearer ${SERVICE_KEY}`,
+    Accept: 'application/json',
+  };
+  const sbGet = async (path: string): Promise<any[]> => {
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { headers: sbHeaders });
+      if (!r.ok) return [];
+      return await r.json();
+    } catch { return []; }
+  };
 
   const urls: { loc: string; lastmod?: string; priority: number; changefreq: string }[] = [];
 
-  // 1) URLs estáticas
   STATIC_URLS.forEach(path => {
-    urls.push({
-      loc: `${BASE}${path}`,
-      priority: path === '' ? 1.0 : 0.8,
-      changefreq: 'weekly',
-    });
+    urls.push({ loc: `${BASE}${path}`, priority: path === '' ? 1.0 : 0.8, changefreq: 'weekly' });
   });
 
-  // 2) Artistas
-  try {
-    const { data } = await supabase.from('artists').select('id, updated_at').limit(5000);
-    data?.forEach((a: any) => urls.push({
-      loc: `${BASE}/artistas/${a.id}`,
-      lastmod: a.updated_at || new Date().toISOString(),
-      priority: 0.7, changefreq: 'monthly',
-    }));
-  } catch { /* skip */ }
+  (await sbGet('artists?select=id,updated_at&limit=5000')).forEach((a: any) => urls.push({
+    loc: `${BASE}/artistas/${a.id}`, lastmod: a.updated_at, priority: 0.7, changefreq: 'monthly',
+  }));
 
-  // 3) Profiles públicos
-  try {
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, updated_at')
-      .neq('role', 'admin').neq('role', 'superadmin')
-      .is('deleted_at', null)
-      .limit(5000);
-    data?.forEach((p: any) => urls.push({
-      loc: `${BASE}/p/${p.id}`,
-      lastmod: p.updated_at || new Date().toISOString(),
-      priority: 0.6, changefreq: 'monthly',
-    }));
-  } catch { /* skip */ }
+  (await sbGet('profiles?select=id,updated_at&role=neq.admin&role=neq.superadmin&deleted_at=is.null&limit=5000')).forEach((p: any) => urls.push({
+    loc: `${BASE}/p/${p.id}`, lastmod: p.updated_at, priority: 0.6, changefreq: 'monthly',
+  }));
 
-  // 4) Eventos futuros
-  try {
-    const { data } = await supabase
-      .from('events')
-      .select('id, updated_at, date')
-      .gte('date', new Date().toISOString())
-      .limit(5000);
-    data?.forEach((e: any) => urls.push({
-      loc: `${BASE}/eventos/${e.id}`,
-      lastmod: e.updated_at || new Date().toISOString(),
-      priority: 0.9, changefreq: 'daily',
-    }));
-  } catch { /* skip */ }
+  const today = new Date().toISOString();
+  (await sbGet(`events?select=id,updated_at,date&date=gte.${today}&limit=5000`)).forEach((e: any) => urls.push({
+    loc: `${BASE}/eventos/${e.id}`, lastmod: e.updated_at, priority: 0.9, changefreq: 'daily',
+  }));
 
-  // 5) Venues
-  try {
-    const { data } = await supabase.from('venues').select('id, updated_at').limit(5000);
-    data?.forEach((v: any) => urls.push({
-      loc: `${BASE}/venues/${v.id}`,
-      lastmod: v.updated_at || new Date().toISOString(),
-      priority: 0.7, changefreq: 'monthly',
-    }));
-  } catch { /* skip */ }
+  (await sbGet('venues?select=id,updated_at&limit=5000')).forEach((v: any) => urls.push({
+    loc: `${BASE}/venues/${v.id}`, lastmod: v.updated_at, priority: 0.7, changefreq: 'monthly',
+  }));
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
