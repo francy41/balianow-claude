@@ -134,7 +134,6 @@ const EventsList: React.FC = () => {
         </div>
 
         <SearchTriggerBar placeholder="🔍 Buscar eventos, locales, artistas en todo BailaNow…" className="mb-3" />
-        <SearchBar placeholder="Filtrar en esta página..." value={search} onChange={setSearch} />
 
         <div className="mt-4 space-y-3">
           <FilterChips options={CATEGORIES} selected={selectedCat} onChange={setSelectedCat} />

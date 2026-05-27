@@ -1101,7 +1101,7 @@ const ArtistasSection: React.FC<{ addToast: Function; navigate: Function }> = ({
             <Badge variant={a.source === 'profile' ? 'blue' : 'orange'}>{a.source === 'profile' ? 'Usuario' : 'Artista'}</Badge>,
             <div className="flex gap-1">
               <button onClick={() => navigate(a.source === 'profile' ? `/p/${a.id}` : `/artistas/${a.id}`)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
-              <button onClick={() => openEdit({ entity: 'artist', title: a.name, item: a, fields: FIELDS_ARTIST, onSaved: () => load() } as any)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
+              <button onClick={() => navigate(a.source === 'profile' ? `/p/${a.id}?edit=1` : `/artistas/${a.id}?edit=1`)} title="Editar en el perfil real" className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-pink-500"><Edit className="w-4 h-4" /></button>
               <button onClick={() => handleDelete(a)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
             </div>
           ])}
@@ -1166,7 +1166,10 @@ const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
               <p className="text-gray-400 text-xs capitalize mt-0.5">{a.type} · {a.city || '—'}</p>
               {a.rating > 0 && <div className="flex items-center justify-center gap-1 mt-1"><span className="text-brand-orange text-xs">⭐</span><span className="text-xs font-semibold">{a.rating}</span></div>}
               <div className="flex gap-1 mt-3">
-                <button onClick={() => openEdit({ entity: 'artist', title: a.name, item: a, fields: FIELDS_ARTIST, onSaved: () => load() } as any)} className="flex-1 text-xs py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50">Editar</button>
+                <button onClick={() => {
+                  const url = a.source === 'profile' ? `/p/${a.id}?edit=1` : `/artistas/${a.id}?edit=1`;
+                  window.open(url, '_blank');
+                }} className="flex-1 text-xs py-1 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50">Editar</button>
                 <button onClick={() => handleDelete(a)} className="flex-1 text-xs py-1 rounded-lg border border-red-100 text-red-400 hover:bg-red-50">Eliminar</button>
               </div>
             </div>

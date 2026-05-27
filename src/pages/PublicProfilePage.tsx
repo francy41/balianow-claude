@@ -7,13 +7,15 @@
  * - Botones de compartir nativos
  */
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import {
   Instagram, Youtube, Facebook, Globe, Music, Twitch, Share2, MapPin,
-  Star, Calendar, MessageCircle, CheckCircle, Copy, Check, Heart, ExternalLink,
+  Star, Calendar, MessageCircle, CheckCircle, Copy, Check, Heart, ExternalLink, Edit,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { safeSocialUrl } from '../lib/security';
+import { useAuthStore } from '../store/appStore';
+import ProfileEditModal from '../components/ProfileEditModal';
 
 interface PublicProfile {
   id: string;
@@ -54,11 +56,22 @@ const ROLE_LABELS: Record<string, { label: string; color: string; emoji: string 
 const PublicProfilePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { user } = useAuthStore();
+  const isAdmin = ['admin','superadmin'].includes(user?.role ?? '');
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [editOpen, setEditOpen] = useState(searchParams.get('edit') === '1');
+
+  // Auto-abrir edición si llega con ?edit=1 y es admin (o es su propio perfil)
+  useEffect(() => {
+    if (searchParams.get('edit') === '1' && (isAdmin || user?.id === slug)) {
+      setEditOpen(true);
+    }
+  }, [searchParams, isAdmin, user, slug]);
 
   // Cargar perfil
   useEffect(() => {
@@ -322,6 +335,34 @@ const PublicProfilePage: React.FC = () => {
             </button>
           </div>
         </div>
+      )}
+
+      {/* ── Botón flotante de edición (solo admin u owner) ── */}
+      {(isAdmin || user?.id === profile?.id) && (
+        <button
+          onClick={() => setEditOpen(true)}
+          className="fixed bottom-24 right-4 z-30 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold rounded-full px-5 py-3 shadow-lg shadow-pink-500/40 flex items-center gap-2 active:scale-95"
+          title="Editar este perfil"
+        >
+          <Edit className="w-5 h-5" />
+          <span className="text-sm">Editar perfil</span>
+        </button>
+      )}
+
+      {/* Modal de edición (Edit Profile) — abre encima del perfil real */}
+      {editOpen && profile && (
+        <ProfileEditModal
+          open={editOpen}
+          onClose={() => {
+            setEditOpen(false);
+            if (searchParams.get('edit')) {
+              searchParams.delete('edit');
+              setSearchParams(searchParams, { replace: true });
+            }
+            // Recargar perfil para mostrar cambios
+            setTimeout(() => window.location.reload(), 500);
+          }}
+        />
       )}
     </div>
   );

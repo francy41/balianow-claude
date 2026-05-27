@@ -222,7 +222,7 @@ export const DEFAULT_HOME_CATEGORIES: HomeCategory[] = [
   { id: '5',  name: 'Bailarines',      icon: '💃', route: '/artistas?tipo=dancer',      section: 'main',      display_order: 5,  active: true },
   { id: '6',  name: 'Marketplace',     icon: '🏪', route: '/marketplace',               section: 'main',      display_order: 6,  active: true },
   { id: '20', name: 'Promociónate',    icon: '📢', route: '/promocionate',              section: 'main',      display_order: 7,  active: true },
-  { id: '7',  name: 'Clases en vivo',  icon: '🎥', route: '/live',                      section: 'main',      display_order: 8,  active: true },
+  { id: '7',  name: 'En Directo',      icon: '🔴', route: '/live',                      section: 'main',      display_order: 8,  active: true },
   { id: '8',  name: 'Comunidad',       icon: '💬', route: '/chat',                      section: 'main',      display_order: 9,  active: true },
   { id: '9',  name: 'Ruta de Hoy',     icon: '📍', route: '/eventos?type=featured',     section: 'mercado',   display_order: 1,  active: true },
   { id: '10', name: 'Proyectos',       icon: '🚀', route: '/marketplace?cat=Producción',section: 'mercado',   display_order: 2,  active: true },
