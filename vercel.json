@@ -51,6 +51,8 @@
     }
   ],
   "rewrites": [
-    { "source": "/((?!assets).*)", "destination": "/index.html" }
+    { "source": "/sitemap.xml", "destination": "https://lpwwdjujxwxdvyoznehp.supabase.co/functions/v1/sitemap" },
+    { "source": "/api/health",  "destination": "https://lpwwdjujxwxdvyoznehp.supabase.co/functions/v1/health" },
+    { "source": "/((?!assets|robots.txt|sitemap.xml|api).*)", "destination": "/index.html" }
   ]
 }

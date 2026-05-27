@@ -1,0 +1,35 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /dashboard
+Disallow: /chat
+Disallow: /wallet
+Disallow: /auth
+Disallow: /auth/*
+Disallow: /redes
+Disallow: /perfil
+
+Sitemap: https://bailanow.com/sitemap.xml
+
+# Specific bots that should NOT crawl
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+# Allow Google to index everything public
+User-agent: Googlebot
+Allow: /
+Allow: /artistas/
+Allow: /eventos/
+Allow: /venues/
+Allow: /p/
+
+# Allow Bing
+User-agent: Bingbot
+Allow: /
