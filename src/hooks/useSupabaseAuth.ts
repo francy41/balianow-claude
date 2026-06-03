@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { supabase, authService } from '../lib/supabase';
 import { useAuthStore } from '../store/appStore';
+import { setSentryUser } from '../lib/sentry';
 import type { User } from '../store/appStore';
 
 // ── Profile mapper ─────────────────────────────────────────────────────────
@@ -140,9 +141,11 @@ export function useSupabaseAuthListener() {
           } as any;
         }
         useAuthStore.setState({ user, isAuthenticated: true, isLoading: false });
+        if (user) setSentryUser({ id: user.id, email: user.email, name: user.name });
 
       } else if (event === 'SIGNED_OUT') {
         useAuthStore.setState({ user: null, isAuthenticated: false, isLoading: false });
+        setSentryUser(null);
 
       } else if (event === 'PASSWORD_RECOVERY') {
         // User clicked the reset link in their email — redirect to the reset form

@@ -8,6 +8,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import GlobalSearch from './components/GlobalSearch';
 import DarkModeToggle from './components/DarkModeToggle';
 import GhlChatWidget from './components/GhlChatWidget';
+import RouteErrorBoundary from './components/RouteErrorBoundary';
 import { ToastContainer, FullPageLoader } from './components/ui';
 import { useSupabaseAuthListener } from './hooks/useSupabaseAuth';
 import { useSiteConfigLoader } from './hooks/useSiteConfig';
@@ -125,6 +126,7 @@ const App: React.FC = () => {
 
             <main className="pt-14 pb-24 lg:pb-6 min-h-screen">
               <Suspense fallback={<FullPageLoader />}>
+                <RouteErrorBoundary>
                 <Routes>
                   {/* ── Main pages ── */}
                   <Route path="/"                    element={<HomePage />} />
@@ -178,6 +180,7 @@ const App: React.FC = () => {
                   {/* ── 404 ── */}
                   <Route path="*"                    element={<NotFoundPage />} />
                 </Routes>
+                </RouteErrorBoundary>
               </Suspense>
             </main>
           </div>

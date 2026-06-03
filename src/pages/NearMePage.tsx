@@ -108,23 +108,29 @@ const NearMePage: React.FC = () => {
       setPosition(CITY_COORDS[saved]);
       return;
     }
-    // No saved city: try silent GPS, fall back to picker
-    if (!navigator.geolocation) {
-      setShowCityPicker(true);
-      setGpsError('Tu navegador no soporta geolocalización');
-      return;
+    // Sin ciudad guardada: defaultear a Madrid pero NO bloquear con modal
+    // (el modal automatico es UX terrible para primer-time visitors)
+    const defaultCity = 'Madrid';
+    setCity(defaultCity);
+    setPosition(CITY_COORDS[defaultCity]);
+    // Intentar GPS silenciosamente en background
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          setPosition([pos.coords.latitude, pos.coords.longitude]);
+          setCity('');
+          setGpsError('');
+        },
+        err => {
+          const msg = err.code === 1 ? 'Permiso de ubicación denegado'
+                    : err.code === 2 ? 'GPS no disponible'
+                    : err.code === 3 ? 'Tiempo agotado' : '';
+          if (msg) setGpsError(msg);
+          // NO auto-abrir modal — el user puede pulsar "Tu ubicación" cuando quiera
+        },
+        { timeout: 10000, enableHighAccuracy: false, maximumAge: 600000 }
+      );
     }
-    navigator.geolocation.getCurrentPosition(
-      pos => { setPosition([pos.coords.latitude, pos.coords.longitude]); setGpsError(''); },
-      err => {
-        const msg = err.code === 1 ? 'Permiso denegado'
-                  : err.code === 2 ? 'GPS no disponible'
-                  : err.code === 3 ? 'Tiempo de espera agotado' : 'Error desconocido';
-        setGpsError(msg);
-        setShowCityPicker(true);
-      },
-      { timeout: 10000, enableHighAccuracy: false, maximumAge: 600000 }
-    );
   }, [searchParams]);
 
   // Load items from Supabase + fallbacks

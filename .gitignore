@@ -74,3 +74,7 @@ supabase/.branches
 .cache/
 .parcel-cache
 .eslintcache
+playwright-report/
+test-results/
+/blob-report/
+/playwright/.cache/
