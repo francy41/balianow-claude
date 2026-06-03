@@ -18,7 +18,12 @@
     "cap:add:android": "npx cap add android",
     "cap:add:ios": "npx cap add ios",
     "db:migrate": "node supabase/migrate.mjs",
-    "db:migrate:dry": "node supabase/migrate.mjs --dry"
+    "db:migrate:dry": "node supabase/migrate.mjs --dry",
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "test:local": "E2E_BASE_URL=http://localhost:3000 playwright test"
   },
   "dependencies": {
     "@capacitor/android": "^6.2.1",
@@ -49,6 +54,7 @@
     "zustand": "^4.5.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
     "@vitejs/plugin-react": "^4.7.0",

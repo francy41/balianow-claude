@@ -7,6 +7,7 @@ import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsS
 import { Avatar, StarRating, SearchBar, AppImage } from '../components/ui';
 import { supabase } from '../lib/supabase';
 import NewsletterForm from '../components/NewsletterForm';
+import HomeFabStack from '../components/HomeFabStack';
 
 // Category interface
 interface Category {
@@ -629,16 +630,35 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     return bySection !== 0 ? bySection : a.display_order - b.display_order;
   });
 
-  const CategoryButton: React.FC<{ cat: HomeCategory; index: number }> = ({ cat }) => {
+  // Paleta vibrante por categoria — un color de marca por cada slot
+  const COLOR_PALETTE = [
+    { bg: 'from-pink-500 to-fuchsia-600',    icon: 'bg-white/20',  text: 'text-white',   ring: 'shadow-pink-500/40' },
+    { bg: 'from-orange-400 to-red-500',      icon: 'bg-white/20',  text: 'text-white',   ring: 'shadow-orange-500/40' },
+    { bg: 'from-cyan-400 to-blue-600',       icon: 'bg-white/20',  text: 'text-white',   ring: 'shadow-cyan-500/40' },
+    { bg: 'from-purple-500 to-fuchsia-600',  icon: 'bg-white/20',  text: 'text-white',   ring: 'shadow-purple-500/40' },
+    { bg: 'from-green-400 to-emerald-600',   icon: 'bg-white/20',  text: 'text-white',   ring: 'shadow-emerald-500/40' },
+    { bg: 'from-yellow-400 to-orange-500',   icon: 'bg-white/20',  text: 'text-gray-900',ring: 'shadow-yellow-500/40' },
+    { bg: 'from-red-500 to-pink-600',        icon: 'bg-white/20',  text: 'text-white',   ring: 'shadow-red-500/40' },
+    { bg: 'from-indigo-500 to-purple-600',   icon: 'bg-white/20',  text: 'text-white',   ring: 'shadow-indigo-500/40' },
+    { bg: 'from-teal-400 to-cyan-600',       icon: 'bg-white/20',  text: 'text-white',   ring: 'shadow-teal-500/40' },
+    { bg: 'from-rose-400 to-pink-600',       icon: 'bg-white/20',  text: 'text-white',   ring: 'shadow-rose-500/40' },
+    { bg: 'from-violet-500 to-purple-700',   icon: 'bg-white/20',  text: 'text-white',   ring: 'shadow-violet-500/40' },
+    { bg: 'from-amber-400 to-orange-600',    icon: 'bg-white/20',  text: 'text-white',   ring: 'shadow-amber-500/40' },
+  ];
+
+  const CategoryButton: React.FC<{ cat: HomeCategory; index: number }> = ({ cat, index }) => {
+    const palette = COLOR_PALETTE[index % COLOR_PALETTE.length];
     return (
       <button
         onClick={() => navigate(cat.route)}
-        className="group bg-white dark:bg-gray-800/80 rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center gap-2 h-[88px] sm:h-24 border border-pink-200/60 dark:border-pink-500/20 shadow-sm hover:shadow-lg hover:shadow-pink-500/10 hover:border-pink-400 transition-all duration-300 hover:-translate-y-1"
+        className={`group relative overflow-hidden bg-gradient-to-br ${palette.bg} rounded-2xl p-3 sm:p-4 flex flex-col items-center justify-center gap-2 h-[100px] sm:h-28 shadow-lg ${palette.ring} hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300`}
       >
-        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-pink-50 flex items-center justify-center group-hover:bg-pink-100 transition-colors duration-300">
-          <span className="text-xl sm:text-2xl">{cat.icon}</span>
+        {/* Shine overlay */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className={`relative w-11 h-11 sm:w-12 sm:h-12 rounded-full ${palette.icon} backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform`}>
+          <span className="text-2xl sm:text-3xl drop-shadow">{cat.icon}</span>
         </div>
-        <span className="text-gray-700 dark:text-gray-300 text-[10px] sm:text-xs font-semibold leading-tight text-center line-clamp-2 group-hover:text-pink-600 transition-colors">{cat.name}</span>
+        <span className={`relative ${palette.text} text-[11px] sm:text-xs font-black leading-tight text-center line-clamp-2 drop-shadow-sm`}>{cat.name}</span>
       </button>
     );
   };
@@ -1500,6 +1520,9 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* Botones flotantes del home (FAB stack) */}
+      <HomeFabStack />
     </div>
   );
 };
