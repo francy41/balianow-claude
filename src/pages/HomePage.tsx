@@ -8,6 +8,7 @@ import { Avatar, StarRating, SearchBar, AppImage } from '../components/ui';
 import { supabase } from '../lib/supabase';
 import NewsletterForm from '../components/NewsletterForm';
 import HomeFabStack from '../components/HomeFabStack';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 // Category interface
 interface Category {
@@ -929,6 +930,10 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => (
 );
 
 const HomePage: React.FC = () => {
+  usePageMeta({
+    title: 'Inicio',
+    description: 'BailaNow: el ecosistema latino #1. Contrata DJs, artistas y bailarines. Descubre eventos, festivales y venues. Marketplace y livestreams 100% latino.',
+  });
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
   const { heroMedia, heroSliderImages } = useSiteConfigStore();
@@ -1516,6 +1521,11 @@ const HomePage: React.FC = () => {
             <a href="/legal/terminos" className="hover:text-pink-500 transition-colors">Términos</a>
             <a href="/legal/privacidad" className="hover:text-pink-500 transition-colors">Privacidad</a>
             <a href="/legal/cookies" className="hover:text-pink-500 transition-colors">Cookies</a>
+            <button onClick={() => window.dispatchEvent(new Event('bn:open-cookie-settings'))} className="hover:text-pink-500 transition-colors">Gestionar cookies</button>
+            <a href="/legal/aviso" className="hover:text-pink-500 transition-colors">Aviso Legal</a>
+            <a href="/legal/reembolsos" className="hover:text-pink-500 transition-colors">Reembolsos</a>
+            <a href="/legal/vendedores" className="hover:text-pink-500 transition-colors">Vendedores</a>
+            <a href="/legal/conducta" className="hover:text-pink-500 transition-colors">Conducta</a>
             <a href="mailto:hola@bailanow.com" className="hover:text-pink-500 transition-colors">Contacto</a>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { Badge, StarRating, Avatar, FilterChips, SearchBar, SectionHeader, EmptyState } from '../components/ui';
 import SearchTriggerBar from '../components/SearchTriggerBar';
 import LiveFab from '../components/LiveFab';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 interface DbArtist {
   id: string;
@@ -43,6 +44,10 @@ const normalizeRoleToType = (role: string): DbArtist['type'] | null => {
 const cleanCity = (s: string | null | undefined) => (s || '').split(/[,\-\/(]/)[0].trim();
 
 const ArtistsPage: React.FC = () => {
+  usePageMeta({
+    title: 'Artistas, DJs y Bailarines',
+    description: 'Encuentra los mejores DJs, bailarines, cantantes e instructores latinos. Contrata talento verificado para tu evento o clase.',
+  });
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const initialType = params.get('tipo') || 'Todos';

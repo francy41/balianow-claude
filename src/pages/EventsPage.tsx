@@ -15,6 +15,7 @@ import { VenueSectionsSelector } from '../components/VenueSections';
 import { useTicketStore } from '../store/ticketStore';
 import LiveFab from '../components/LiveFab';
 import { supabase } from '../lib/supabase';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 const cleanCity = (s: string | null | undefined) => (s || '').split(/[,\-\/(]/)[0].trim();
 
@@ -69,6 +70,10 @@ const eventGallery = (eventId: string) =>
    ROUTER WRAPPER — prevents React #300
    ══════════════════════════════════════════════════════════════════════════ */
 const EventsPage: React.FC = () => {
+  usePageMeta({
+    title: 'Eventos latinos',
+    description: 'Festivales, socials, masterclasses y noches latinas. Encuentra los mejores eventos de salsa, bachata, kizomba y reggaetón cerca de ti.',
+  });
   const { id } = useParams<{ id: string }>();
   if (id) return <EventDetail eventId={id} />;
   return <EventsList />;

@@ -11,6 +11,7 @@ import { VENUES, EVENTS, ARTISTS } from '../data/mockData';
 import { resolveCityCoords } from '../lib/geo';
 import LivePreviewModal, { type LiveSessionLite } from '../components/LivePreviewModal';
 import SearchTriggerBar from '../components/SearchTriggerBar';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 // Geo distance (Haversine in km)
 function distanceKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -79,6 +80,10 @@ function venueIsOpenNow(v: any): boolean {
 }
 
 const NearMePage: React.FC = () => {
+  usePageMeta({
+    title: 'Cerca de mí',
+    description: 'Descubre venues, eventos, artistas y lives latinos cerca de tu ubicación. Filtra por categoría y radio.',
+  });
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [position, setPosition] = useState<[number, number] | null>(null);

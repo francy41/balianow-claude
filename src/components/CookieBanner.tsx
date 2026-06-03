@@ -19,6 +19,17 @@ const CookieBanner: React.FC = () => {
       const t = setTimeout(() => setVisible(true), 1000);
       return () => clearTimeout(t);
     }
+    // Permite reabrir el banner desde otros sitios (ej. footer "Gestionar cookies")
+    const reopen = () => {
+      try {
+        const prev = JSON.parse(localStorage.getItem(COOKIE_KEY) || '{}');
+        if (prev?.prefs) setPrefs(prev.prefs);
+      } catch {}
+      setShowCustom(true);
+      setVisible(true);
+    };
+    window.addEventListener('bn:open-cookie-settings', reopen);
+    return () => window.removeEventListener('bn:open-cookie-settings', reopen);
   }, []);
 
   const save = (state: ConsentState, customPrefs?: Prefs) => {

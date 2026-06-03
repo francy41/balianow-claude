@@ -8,6 +8,7 @@ import SearchTriggerBar from '../components/SearchTriggerBar';
 import { useAuthStore, useUIStore, getYouTubeId } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
 import { supabase } from '../lib/supabase';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 // ── Carga venues reales de Supabase + merge con mock para no romper detalle ──
 const cleanCity = (s: string | null | undefined) => (s || '').split(/[,\-\/(]/)[0].trim();
@@ -49,6 +50,10 @@ const TYPES = ['Todos', 'Club', 'Bar', 'Studio', 'Rooftop', 'Lounge', 'Restauran
 const CITIES = ['Todas', 'Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'London', 'Santo Domingo', 'Buenos Aires', 'Cali', 'Miami', 'La Habana', 'Bogotá', 'Medellín', 'New York', 'Berlin', 'Ciudad de México', 'Caracas'];
 
 const VenuesPage: React.FC = () => {
+  usePageMeta({
+    title: 'Venues y locales latinos',
+    description: 'Encuentra los mejores clubs, bares, estudios y rooftops para bailar salsa, bachata, kizomba y más. Por ciudad y abiertos ahora.',
+  });
   const { id } = useParams<{ id: string }>();
   // Si hay :id, delegamos en el detalle (componente separado para que cada uno
   // mantenga su propio set estable de hooks — evita React error #300)
