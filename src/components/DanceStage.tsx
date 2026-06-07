@@ -27,9 +27,12 @@ interface Props {
   choreographer: Choreo;
   currentStep?: string;        // instrucción actual del profe
   onPhotoCaptured?: (dataUrl: string) => void;
+  hideChoreoOverlay?: boolean; // en modo clase el profe ya se muestra aparte
+  autoStart?: boolean;         // intentar activar cámara automáticamente
+  label?: string;              // etiqueta superior (ej. "TÚ")
 }
 
-const DanceStage: React.FC<Props> = ({ scenario, choreographer, currentStep, onPhotoCaptured }) => {
+const DanceStage: React.FC<Props> = ({ scenario, choreographer, currentStep, onPhotoCaptured, hideChoreoOverlay, autoStart, label }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -116,12 +119,18 @@ const DanceStage: React.FC<Props> = ({ scenario, choreographer, currentStep, onP
 
   useEffect(() => () => stopStream(), [stopStream]);
 
+  // Auto-activar cámara si se pide (modo clase)
+  useEffect(() => {
+    if (autoStart && !camOn && !loading) startCamera();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart]);
+
   const bgStyle = scenario.bg_image_url
     ? { backgroundImage: `url(${scenario.bg_image_url})`, backgroundSize: 'cover', backgroundPosition: 'center' }
     : { backgroundImage: `linear-gradient(${scenario.gradient})` };
 
   return (
-    <div ref={containerRef} className="relative w-full aspect-video rounded-2xl overflow-hidden bg-black" style={bgStyle}>
+    <div ref={containerRef} className={`relative w-full ${label ? 'h-full' : 'aspect-video'} rounded-2xl overflow-hidden bg-black`} style={bgStyle}>
       {/* Overlay oscuro para profundidad */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none" />
 
@@ -156,7 +165,15 @@ const DanceStage: React.FC<Props> = ({ scenario, choreographer, currentStep, onP
         </div>
       )}
 
+      {/* Etiqueta superior (ej. "TÚ") */}
+      {label && (
+        <div className="absolute top-3 left-3 z-20">
+          <span className="bg-black/60 text-white text-[11px] font-bold px-2.5 py-1 rounded-full">{label}</span>
+        </div>
+      )}
+
       {/* Avatar del coreógrafo (esquina inferior derecha) */}
+      {!hideChoreoOverlay && (
       <div className="absolute bottom-3 right-3 z-10">
         <div className={`w-20 h-28 sm:w-24 sm:h-32 rounded-xl overflow-hidden border-2 border-white/40 shadow-2xl bg-gradient-to-br ${choreographer.gradient}`}>
           {choreographer.video_url ? (
@@ -171,9 +188,10 @@ const DanceStage: React.FC<Props> = ({ scenario, choreographer, currentStep, onP
           {choreographer.name}
         </p>
       </div>
+      )}
 
-      {/* Instrucción actual (paso) */}
-      {currentStep && camOn && (
+      {/* Instrucción actual (paso) — solo si no se oculta el overlay */}
+      {currentStep && camOn && !hideChoreoOverlay && (
         <div className="absolute top-3 left-3 right-28 z-10">
           <div className="bg-black/60 backdrop-blur-md rounded-xl px-3 py-2 border border-white/10">
             <p className="text-white text-sm font-medium">{currentStep}</p>

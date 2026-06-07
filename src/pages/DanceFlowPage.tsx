@@ -393,10 +393,10 @@ const DanceSessionModal: React.FC<{
         ) : (
           /* CLASE VIRTUAL: profe baila + tu cámara + voz */
           <div className="flex-1 overflow-y-auto bg-[#060608]">
-            {/* Layout clase: profe (video) + tu cámara */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 p-2">
-              {/* PROFE — video del coreógrafo bailando */}
-              <div className="relative rounded-2xl overflow-hidden bg-black aspect-video">
+            {/* Split 50/50 tipo videollamada: PROFE | TÚ */}
+            <div className="grid grid-cols-2 gap-2 p-2">
+              {/* ── PROFE (izquierda) ── */}
+              <div className="relative rounded-2xl overflow-hidden bg-black aspect-[3/4] sm:aspect-video">
                 {choreographer.video_url ? (
                   isYouTube(choreographer.video_url) ? (
                     <iframe
@@ -405,35 +405,44 @@ const DanceSessionModal: React.FC<{
                       title={choreographer.name}
                     />
                   ) : (
-                    <video src={choreographer.video_url} className="w-full h-full object-cover" autoPlay loop muted={false} playsInline controls />
+                    <video src={choreographer.video_url} className="w-full h-full object-cover" autoPlay loop playsInline controls />
                   )
+                ) : choreographer.avatar_url ? (
+                  <img src={choreographer.avatar_url} alt={choreographer.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className={`w-full h-full bg-gradient-to-br ${choreographer.gradient} flex flex-col items-center justify-center`}>
                     <span className={`text-7xl ${speaking ? 'animate-bounce' : ''}`}>{choreographer.avatar_emoji}</span>
-                    <p className="text-white/80 text-xs mt-2 px-4 text-center">
-                      {speaking ? '🔊 hablando...' : 'Tu profe te guía con la voz'}
-                    </p>
                   </div>
                 )}
                 <span className="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded-full">
                   👨‍🏫 {choreographer.name}
                 </span>
                 {speaking && (
-                  <span className="absolute bottom-2 left-2 flex items-center gap-1 bg-[#ff3e6c] text-white text-[10px] font-bold px-2 py-1 rounded-full">
+                  <span className="absolute bottom-2 left-2 flex items-center gap-1 bg-[#ff3e6c] text-white text-[10px] font-bold px-2 py-1 rounded-full animate-pulse">
                     <Volume2 className="w-3 h-3" /> Hablando
                   </span>
                 )}
               </div>
 
-              {/* TÚ — cámara en el escenario */}
+              {/* ── TÚ (derecha) — tu cámara ── */}
               {scenario && (
-                <DanceStage scenario={scenario} choreographer={choreographer} currentStep={lastStep} />
+                <div className="aspect-[3/4] sm:aspect-video">
+                  <DanceStage
+                    scenario={scenario}
+                    choreographer={choreographer}
+                    hideChoreoOverlay
+                    label="🟢 TÚ"
+                  />
+                </div>
               )}
             </div>
 
-            {/* Instrucción del profe (subtítulo grande) */}
+            {/* Instrucción del profe (subtítulo grande tipo karaoke) */}
             {lastStep && (
-              <div className="mx-2 mb-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+              <div className="mx-2 mb-2 bg-gradient-to-r from-[#ff3e6c]/10 to-[#a855f7]/10 border border-[#ff3e6c]/20 rounded-xl px-4 py-3">
+                <p className="text-[10px] text-[#ff8c42] font-bold uppercase tracking-wider mb-0.5 flex items-center gap-1">
+                  {speaking ? <><Volume2 className="w-3 h-3" /> {choreographer.name} dice</> : `💬 ${choreographer.name}`}
+                </p>
                 <p className="text-white text-sm leading-relaxed">{lastStep}</p>
               </div>
             )}
