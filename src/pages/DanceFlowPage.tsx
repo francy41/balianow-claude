@@ -393,46 +393,56 @@ const DanceSessionModal: React.FC<{
         ) : (
           /* CLASE VIRTUAL: profe baila + tu cámara + voz */
           <div className="flex-1 overflow-y-auto bg-[#060608]">
-            {/* Split 50/50 tipo videollamada: PROFE | TÚ */}
-            <div className="grid grid-cols-2 gap-2 p-2">
-              {/* ── PROFE (izquierda) ── */}
-              <div className="relative rounded-2xl overflow-hidden bg-black aspect-[3/4] sm:aspect-video">
-                {choreographer.video_url ? (
-                  isYouTube(choreographer.video_url) ? (
-                    <iframe
-                      src={ytEmbed(choreographer.video_url)}
-                      className="w-full h-full" allow="autoplay; encrypted-media" allowFullScreen
-                      title={choreographer.name}
-                    />
+            {/* Stack vertical en móvil (paneles grandes), lado a lado en desktop */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2">
+              {/* ── PROFE (arriba en móvil) ── */}
+              <div>
+                <p className="text-[11px] font-bold text-white/70 mb-1 px-1 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-[#ff8c42]" /> EL PROFE
+                </p>
+                <div className="relative rounded-2xl overflow-hidden bg-black aspect-video">
+                  {choreographer.video_url ? (
+                    isYouTube(choreographer.video_url) ? (
+                      <iframe
+                        src={ytEmbed(choreographer.video_url)}
+                        className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen
+                        title={choreographer.name}
+                      />
+                    ) : (
+                      <video src={choreographer.video_url} className="w-full h-full object-cover" autoPlay loop playsInline controls />
+                    )
+                  ) : choreographer.avatar_url ? (
+                    <img src={choreographer.avatar_url} alt={choreographer.name} className="w-full h-full object-cover" />
                   ) : (
-                    <video src={choreographer.video_url} className="w-full h-full object-cover" autoPlay loop playsInline controls />
-                  )
-                ) : choreographer.avatar_url ? (
-                  <img src={choreographer.avatar_url} alt={choreographer.name} className="w-full h-full object-cover" />
-                ) : (
-                  <div className={`w-full h-full bg-gradient-to-br ${choreographer.gradient} flex flex-col items-center justify-center`}>
-                    <span className={`text-7xl ${speaking ? 'animate-bounce' : ''}`}>{choreographer.avatar_emoji}</span>
-                  </div>
-                )}
-                <span className="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded-full">
-                  👨‍🏫 {choreographer.name}
-                </span>
-                {speaking && (
-                  <span className="absolute bottom-2 left-2 flex items-center gap-1 bg-[#ff3e6c] text-white text-[10px] font-bold px-2 py-1 rounded-full animate-pulse">
-                    <Volume2 className="w-3 h-3" /> Hablando
+                    <div className={`w-full h-full bg-gradient-to-br ${choreographer.gradient} flex flex-col items-center justify-center`}>
+                      <span className={`text-7xl ${speaking ? 'animate-bounce' : ''}`}>{choreographer.avatar_emoji}</span>
+                    </div>
+                  )}
+                  <span className="absolute top-2 left-2 bg-black/70 text-white text-[11px] font-bold px-2.5 py-1 rounded-full z-10">
+                    👨‍🏫 {choreographer.name}
                   </span>
-                )}
+                  {speaking && (
+                    <span className="absolute bottom-2 left-2 flex items-center gap-1 bg-[#ff3e6c] text-white text-[10px] font-bold px-2 py-1 rounded-full animate-pulse z-10">
+                      <Volume2 className="w-3 h-3" /> Hablando
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {/* ── TÚ (derecha) — tu cámara ── */}
+              {/* ── TÚ (abajo en móvil) — tu cámara ── */}
               {scenario && (
-                <div className="aspect-[3/4] sm:aspect-video">
-                  <DanceStage
-                    scenario={scenario}
-                    choreographer={choreographer}
-                    hideChoreoOverlay
-                    label="🟢 TÚ"
-                  />
+                <div>
+                  <p className="text-[11px] font-bold text-white/70 mb-1 px-1 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" /> TÚ — sigue los pasos
+                  </p>
+                  <div className="aspect-video">
+                    <DanceStage
+                      scenario={scenario}
+                      choreographer={choreographer}
+                      hideChoreoOverlay
+                      label="🟢 TÚ"
+                    />
+                  </div>
                 </div>
               )}
             </div>
