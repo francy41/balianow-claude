@@ -40,15 +40,24 @@ const DanceFlowPage: React.FC = () => {
   const [activeSession, setActiveSession] = useState<Choreographer | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
+    const safety = setTimeout(() => { if (!cancelled) setLoading(false); }, 8000);
     (async () => {
-      const { data } = await supabase
-        .from('dance_choreographers')
-        .select('*')
-        .eq('active', true)
-        .order('display_order', { ascending: true });
-      setChoreos((data as Choreographer[]) || []);
-      setLoading(false);
+      try {
+        const { data, error } = await supabase
+          .from('dance_choreographers')
+          .select('*')
+          .eq('active', true)
+          .order('display_order', { ascending: true });
+        if (error) console.warn('[danceflow] choreos', error);
+        if (!cancelled) setChoreos((data as Choreographer[]) || []);
+      } catch (e) {
+        console.warn('[danceflow] choreos fetch failed', e);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     })();
+    return () => { cancelled = true; clearTimeout(safety); };
   }, []);
 
   const solo = choreos.filter(c => c.mode === 'solo');

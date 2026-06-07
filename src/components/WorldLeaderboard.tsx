@@ -36,38 +36,52 @@ const WorldLeaderboard: React.FC<{ variant?: 'full' | 'widget' }> = ({ variant =
 
   useEffect(() => {
     let cancelled = false;
+    const safety = setTimeout(() => { if (!cancelled) setLoading(false); }, 8000);
+    const limit = variant === 'widget' ? 5 : 100;
+
+    // 1) Cargar el ranking principal (esto desbloquea el spinner)
     (async () => {
-      const limit = variant === 'widget' ? 5 : 100;
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('dance_world_leaderboard')
           .select('*')
           .order('world_rank', { ascending: true })
           .limit(limit);
+        if (error) console.warn('[leaderboard] rows', error);
         if (!cancelled) setRows((data as RankRow[]) || []);
+      } catch (e) { console.warn('[leaderboard] rows fetch', e); }
+      finally { if (!cancelled) setLoading(false); }
+    })();
 
-        if (variant === 'full') {
-          const { data: c } = await supabase
+    // 2) Ranking por países (no bloquea, solo para tab)
+    if (variant === 'full') {
+      (async () => {
+        try {
+          const { data } = await supabase
             .from('dance_country_ranking')
             .select('*')
             .order('country_position', { ascending: true })
             .limit(50);
-          if (!cancelled) setCountries((c as CountryRow[]) || []);
-        }
+          if (!cancelled) setCountries((data as CountryRow[]) || []);
+        } catch (e) { console.warn('[leaderboard] countries', e); }
+      })();
+    }
 
-        // Tu posición
-        if (user?.id) {
-          const { data: mine } = await supabase
+    // 3) Tu posición (no bloquea el render del ranking)
+    if (user?.id) {
+      (async () => {
+        try {
+          const { data } = await supabase
             .from('dance_world_leaderboard')
             .select('*')
             .eq('uid', user.id)
             .maybeSingle();
-          if (!cancelled) setMyRank(mine as RankRow);
-        }
-      } catch (e) { console.warn('[leaderboard]', e); }
-      if (!cancelled) setLoading(false);
-    })();
-    return () => { cancelled = true; };
+          if (!cancelled) setMyRank(data as RankRow);
+        } catch (e) { console.warn('[leaderboard] myRank', e); }
+      })();
+    }
+
+    return () => { cancelled = true; clearTimeout(safety); };
   }, [variant, user?.id]);
 
   // ── WIDGET (home) ──────────────────────────────────────────
