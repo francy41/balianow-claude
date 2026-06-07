@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
 import { initSentry } from './lib/sentry';
+import { I18nProvider } from './lib/i18n';
 
 // Sentry: captura errores reales en producción (no-op en DEV o si falta DSN)
 initSentry();
@@ -75,6 +76,8 @@ if (typeof window !== 'undefined') {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <App />
+    <I18nProvider>
+      <App />
+    </I18nProvider>
   </React.StrictMode>
 );

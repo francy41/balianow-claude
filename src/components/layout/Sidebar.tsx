@@ -4,7 +4,7 @@ import {
   Compass, MapPin, Calendar, Users, Music2,
   Briefcase, BookOpen, Radio, Megaphone, MessageCircle,
   LayoutDashboard, User, ChevronDown, ChevronRight,
-  Ticket, Video, Gift
+  Ticket, Video, Gift, Sparkles
 } from 'lucide-react';
 import { useCMSStore } from '../../store/cmsStore';
 import { useSiteConfigStore } from '../../store/appStore';
@@ -38,6 +38,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { label: 'Clases y Academia',           icon: <BookOpen className="w-4 h-4" />,  to: '/marketplace?cat=clases' },
       { label: 'Eventos Sociales',            icon: <Users className="w-4 h-4" />,     to: '/eventos?cat=social' },
       { label: 'Competiciones',               icon: <Gift className="w-4 h-4" />,      to: '/eventos?cat=competiciones' },
+      { label: '🤖 Baila con IA',             icon: <Sparkles className="w-4 h-4" />,  to: '/baila-ia' },
     ],
   },
   {

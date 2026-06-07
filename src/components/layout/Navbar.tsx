@@ -4,6 +4,7 @@ import { Search, Bell, Globe, ChevronDown, Menu, LogOut, LayoutDashboard, User, 
 import ProfileEditModal from '../ProfileEditModal';
 import { useAuthStore, useUIStore, useCartStore, useSiteConfigStore } from '../../store/appStore';
 import { Avatar } from '../ui';
+import LanguageSelector from '../LanguageSelector';
 
 interface NavbarProps { onMenuToggle: () => void; }
 
@@ -22,7 +23,6 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
   const { siteLogo } = useSiteConfigStore();
   const { addToast } = useUIStore();
   const cart = useCartStore();
-  const [lang, setLang] = useState<'ES' | 'EN'>('ES');
   const [searchOpen, setSearchOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [showEdit, setShowEdit] = useState(false);
@@ -84,22 +84,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
           </div>
         )}
 
-        {/* Globe */}
-        <button className="hidden sm:flex p-2 rounded-lg hover:bg-white/10 text-gray-400">
-          <Globe className="w-4 h-4" />
-        </button>
-
-        {/* Language toggle */}
-        <div className="hidden sm:flex items-center gap-0 bg-white/10 rounded-lg p-0.5 border border-white/10">
-          <button onClick={() => setLang('ES')}
-            className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${lang === 'ES' ? 'bg-pink-500 shadow-sm text-white' : 'text-gray-500'}`}>
-            ES
-          </button>
-          <button onClick={() => setLang('EN')}
-            className={`px-2.5 py-1 rounded-md text-xs font-bold transition-all ${lang === 'EN' ? 'bg-pink-500 shadow-sm text-white' : 'text-gray-500'}`}>
-            EN
-          </button>
-        </div>
+        {/* Language selector — 8 idiomas */}
+        <LanguageSelector />
 
         {/* Search — abre el GlobalSearch global (Ctrl+K) */}
         <button

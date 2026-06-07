@@ -9,6 +9,7 @@ import { supabase } from '../lib/supabase';
 import NewsletterForm from '../components/NewsletterForm';
 import HomeFabStack from '../components/HomeFabStack';
 import HomeBackground from '../components/HomeBackground';
+import WorldLeaderboard from '../components/WorldLeaderboard';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { useJsonLd, organizationLd, websiteLd } from '../lib/structuredData';
 
@@ -1376,6 +1377,9 @@ const HomePage: React.FC = () => {
 
       {/* ── EN DIRECTO AHORA ── */}
       <LiveNowHomeSection navigate={navigate} />
+
+      {/* ── RANKING MUNDIAL DE BAILE ── */}
+      <WorldLeaderboard variant="widget" />
 
       {/* ── NEWSLETTER ── */}
       <section className="mx-3 sm:mx-4 mt-6">
