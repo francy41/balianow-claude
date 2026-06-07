@@ -190,6 +190,16 @@ const ChoreoEditModal: React.FC<{ choreo: Choreo; onClose: () => void; onSaved: 
             </div>
           </div>
 
+          {/* URL de video de clase (YouTube o mp4) */}
+          <div>
+            <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">🔗 O pega URL del video de clase (YouTube o .mp4)</label>
+            <input
+              value={form.video_url || ''} onChange={e => set('video_url', e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=... o https://.../baile.mp4"
+              className="input-field text-xs font-mono" />
+            <p className="text-[9px] text-gray-400 mt-1">El profe bailando que el usuario sigue en la clase. YouTube se embebe automático.</p>
+          </div>
+
           <div className="grid grid-cols-3 gap-2">
             <input value={form.avatar_emoji} onChange={e => set('avatar_emoji', e.target.value)} maxLength={2} placeholder="💃" className="input-field text-center text-xl col-span-1" />
             <input value={form.name} onChange={e => set('name', e.target.value)} placeholder="Nombre" className="input-field col-span-2" />

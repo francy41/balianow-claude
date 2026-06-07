@@ -8,7 +8,7 @@
  *  - Modal de sesión con el coreógrafo (chat IA — vía edge function danceflow-chat)
  *  - Ranking mundial (WorldLeaderboard)
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Sparkles, Loader2, Star, X, Send, Trophy, Globe, Play } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/appStore';
@@ -19,6 +19,8 @@ import { countryFlag, COUNTRIES } from '../lib/countries';
 import WorldLeaderboard from '../components/WorldLeaderboard';
 import LanguageSelector from '../components/LanguageSelector';
 import DanceStage from '../components/DanceStage';
+import { speak, stopSpeaking, createRecognizer, isRecognitionSupported, type Recognizer } from '../lib/speech';
+import { Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 
 interface Choreographer {
   id: string; name: string; mode: string; age_range: string; specialty: string[];
@@ -199,6 +201,12 @@ const DanceSessionModal: React.FC<{
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [scenario, setScenario] = useState<Scenario | null>(null);
   const [lastStep, setLastStep] = useState<string>('');
+  // Voz
+  const [voiceOn, setVoiceOn] = useState(true);
+  const [speaking, setSpeaking] = useState(false);
+  const [listening, setListening] = useState(false);
+  const recognizerRef = useRef<Recognizer | null>(null);
+  const micSupported = isRecognitionSupported();
 
   // Cargar escenarios
   useEffect(() => {
@@ -209,6 +217,20 @@ const DanceSessionModal: React.FC<{
       if (list.length) setScenario(list[0]);
     })();
   }, []);
+
+  // Limpiar voz al cerrar
+  useEffect(() => () => { stopSpeaking(); recognizerRef.current?.stop(); }, []);
+
+  // El avatar HABLA una respuesta
+  const speakReply = (text: string) => {
+    if (!voiceOn) return;
+    speak(text, {
+      lang: lang as any,
+      female: choreographer.name.match(/Valentina|Isabela|Sof|Luc|Amara|Elena|Carmen|Pilar|Rosa|Nadia|Valeria|Sara|Fatima|Aisha/) ? true : false,
+      onStart: () => setSpeaking(true),
+      onEnd: () => setSpeaking(false),
+    });
+  };
 
   const startSession = async () => {
     if (!isAuthenticated) { addToast({ type: 'warning', message: t('df.loginToCompete') }); return; }
@@ -241,23 +263,29 @@ const DanceSessionModal: React.FC<{
           ? `¡Hola ${userName || 'crack'}! Soy ${choreographer.name} 💃 ¿List@ para bailar ${genre}? Empecemos con un calentamiento suave... ¿cómo te sientes hoy?`
           : 'Buenísimo, sigue así. (⚠ Configura ANTHROPIC_API_KEY en Supabase para respuestas IA completas)';
         setMessages(m => [...m, { role: 'assistant', content: fallback }]);
+        setLastStep(fallback);
+        speakReply(fallback);
         setSending(false);
         return;
       }
       setMessages(m => [...m, { role: 'assistant', content: json.reply }]);
       setLastStep(json.reply);
-      // Sumar puntos por interacción
+      speakReply(json.reply);           // 🔊 el avatar habla la respuesta
       setSessionPoints(p => p + 25);
     } catch (e: any) {
-      setMessages(m => [...m, { role: 'assistant', content: `¡Vamos ${userName || 'crack'}! Sigamos bailando 🔥` }]);
+      const fb = `¡Vamos ${userName || 'crack'}! Sigamos bailando 🔥`;
+      setMessages(m => [...m, { role: 'assistant', content: fb }]);
+      speakReply(fb);
     } finally {
       setSending(false);
     }
   };
 
-  const send = async () => {
-    if (!input.trim() || sending) return;
-    const userMsg: Msg = { role: 'user', content: input.trim() };
+  const send = async (text?: string) => {
+    const content = (text ?? input).trim();
+    if (!content || sending) return;
+    stopSpeaking();
+    const userMsg: Msg = { role: 'user', content };
     const newHistory = [...messages, userMsg];
     setMessages(newHistory);
     setInput('');
@@ -265,7 +293,24 @@ const DanceSessionModal: React.FC<{
     await sendToAI(newHistory);
   };
 
+  // 🎤 El usuario habla por micrófono → pregunta al profe
+  const toggleMic = () => {
+    if (listening) { recognizerRef.current?.stop(); setListening(false); return; }
+    stopSpeaking();
+    const rec = createRecognizer(lang as any, {
+      onStart: () => setListening(true),
+      onEnd: () => setListening(false),
+      onError: () => setListening(false),
+      onResult: (text) => { setListening(false); send(text); },
+    });
+    if (!rec) { addToast({ type: 'warning', message: 'Tu navegador no soporta micrófono de voz. Usa el teclado.' }); return; }
+    recognizerRef.current = rec;
+    rec.start();
+  };
+
   const endSession = async () => {
+    stopSpeaking();
+    recognizerRef.current?.stop();
     if (userId && sessionPoints > 0) {
       const cc = country;
       const cn = COUNTRIES.find(c => c.code === cc)?.name || 'España';
@@ -346,42 +391,92 @@ const DanceSessionModal: React.FC<{
             {!isAuthenticated && <p className="text-[11px] text-center text-orange-500">{t('df.loginToCompete')}</p>}
           </div>
         ) : (
-          /* SESIÓN EN VIVO: pista con cámara + chat */
-          <div className="flex-1 overflow-y-auto">
-            {/* Pista de baile con cámara del usuario */}
-            {scenario && (
-              <div className="p-3">
-                <DanceStage
-                  scenario={scenario}
-                  choreographer={choreographer}
-                  currentStep={lastStep}
-                />
+          /* CLASE VIRTUAL: profe baila + tu cámara + voz */
+          <div className="flex-1 overflow-y-auto bg-[#060608]">
+            {/* Layout clase: profe (video) + tu cámara */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 p-2">
+              {/* PROFE — video del coreógrafo bailando */}
+              <div className="relative rounded-2xl overflow-hidden bg-black aspect-video">
+                {choreographer.video_url ? (
+                  isYouTube(choreographer.video_url) ? (
+                    <iframe
+                      src={ytEmbed(choreographer.video_url)}
+                      className="w-full h-full" allow="autoplay; encrypted-media" allowFullScreen
+                      title={choreographer.name}
+                    />
+                  ) : (
+                    <video src={choreographer.video_url} className="w-full h-full object-cover" autoPlay loop muted={false} playsInline controls />
+                  )
+                ) : (
+                  <div className={`w-full h-full bg-gradient-to-br ${choreographer.gradient} flex flex-col items-center justify-center`}>
+                    <span className={`text-7xl ${speaking ? 'animate-bounce' : ''}`}>{choreographer.avatar_emoji}</span>
+                    <p className="text-white/80 text-xs mt-2 px-4 text-center">
+                      {speaking ? '🔊 hablando...' : 'Tu profe te guía con la voz'}
+                    </p>
+                  </div>
+                )}
+                <span className="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded-full">
+                  👨‍🏫 {choreographer.name}
+                </span>
+                {speaking && (
+                  <span className="absolute bottom-2 left-2 flex items-center gap-1 bg-[#ff3e6c] text-white text-[10px] font-bold px-2 py-1 rounded-full">
+                    <Volume2 className="w-3 h-3" /> Hablando
+                  </span>
+                )}
+              </div>
+
+              {/* TÚ — cámara en el escenario */}
+              {scenario && (
+                <DanceStage scenario={scenario} choreographer={choreographer} currentStep={lastStep} />
+              )}
+            </div>
+
+            {/* Instrucción del profe (subtítulo grande) */}
+            {lastStep && (
+              <div className="mx-2 mb-2 bg-white/5 border border-white/10 rounded-xl px-4 py-3">
+                <p className="text-white text-sm leading-relaxed">{lastStep}</p>
               </div>
             )}
 
-            {/* Chat con el profesor */}
-            <div className="px-3 pb-2 space-y-2 max-h-48 overflow-y-auto">
-              {messages.map((m, i) => (
-                <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${m.role === 'user' ? 'bg-pink-500 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'}`}>
-                    {m.content}
-                  </div>
-                </div>
-              ))}
-              {sending && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-3"><Loader2 className="w-4 h-4 animate-spin text-pink-500" /></div>
-                </div>
+            {/* CONTROLES DE VOZ */}
+            <div className="sticky bottom-0 bg-[#0e0e14] border-t border-white/10 p-3">
+              <div className="flex items-center gap-2">
+                {/* Botón micrófono GRANDE (hablar al profe) */}
+                <button
+                  onClick={toggleMic}
+                  disabled={sending}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm transition-all ${
+                    listening
+                      ? 'bg-red-500 text-white animate-pulse'
+                      : 'bg-gradient-to-r from-[#ff3e6c] to-[#ff8c42] text-white hover:scale-[1.02]'
+                  }`}
+                >
+                  {listening ? <><MicOff className="w-5 h-5" /> Escuchando... (habla)</>
+                    : sending ? <><Loader2 className="w-5 h-5 animate-spin" /> El profe responde...</>
+                    : <><Mic className="w-5 h-5" /> Pregúntale al profe (voz)</>}
+                </button>
+
+                {/* Toggle voz on/off */}
+                <button onClick={() => { setVoiceOn(v => { if (v) stopSpeaking(); return !v; }); }}
+                  title={voiceOn ? 'Silenciar voz' : 'Activar voz'}
+                  className={`w-12 h-12 rounded-2xl flex items-center justify-center ${voiceOn ? 'bg-white/10 text-white' : 'bg-white/5 text-white/40'}`}>
+                  {voiceOn ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                </button>
+              </div>
+
+              {/* Input de texto como alternativa (plegado) */}
+              <div className="flex gap-2 mt-2">
+                <input
+                  value={input} onChange={e => setInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && send()}
+                  placeholder="...o escríbele por teclado"
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#ff3e6c]"
+                />
+                <button onClick={() => send()} disabled={sending || !input.trim()} className="bg-white/10 text-white px-4 rounded-xl disabled:opacity-40"><Send className="w-4 h-4" /></button>
+              </div>
+              {!micSupported && (
+                <p className="text-[10px] text-white/40 text-center mt-1.5">Tu navegador no soporta micrófono de voz — usa Chrome/Edge o el teclado.</p>
               )}
-            </div>
-            <div className="sticky bottom-0 bg-white dark:bg-[#0e0e14] border-t border-gray-100 dark:border-gray-800 p-3 flex gap-2">
-              <input
-                value={input} onChange={e => setInput(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && send()}
-                placeholder="Escribe a tu coreógrafo..."
-                className="input-field flex-1"
-              />
-              <button onClick={send} disabled={sending} className="btn-orange px-4"><Send className="w-5 h-5" /></button>
             </div>
           </div>
         )}
@@ -389,5 +484,15 @@ const DanceSessionModal: React.FC<{
     </div>
   );
 };
+
+// ── Helpers YouTube (para videos de clase) ──────────────────────
+function isYouTube(url: string): boolean {
+  return /youtube\.com|youtu\.be/.test(url || '');
+}
+function ytEmbed(url: string): string {
+  const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  const id = m?.[1] || '';
+  return `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=0&loop=1&playlist=${id}&controls=1`;
+}
 
 export default DanceFlowPage;
