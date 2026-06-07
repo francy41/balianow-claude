@@ -37,7 +37,6 @@ const DanceFlowPage: React.FC = () => {
 
   const [choreos, setChoreos] = useState<Choreographer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [modeFilter, setModeFilter] = useState<'all' | 'solo' | 'pareja'>('all');
   const [activeSession, setActiveSession] = useState<Choreographer | null>(null);
 
   useEffect(() => {
@@ -52,23 +51,65 @@ const DanceFlowPage: React.FC = () => {
     })();
   }, []);
 
-  const filtered = choreos.filter(c => modeFilter === 'all' || c.mode === modeFilter);
+  const solo = choreos.filter(c => c.mode === 'solo');
+  const pareja = choreos.filter(c => c.mode === 'pareja');
+
+  const AvatarRow: React.FC<{ title: string; emoji: string; list: Choreographer[] }> = ({ title, emoji, list }) => (
+    <div className="mb-6">
+      <h3 className="text-sm font-bold text-white/90 mb-3 flex items-center gap-2 px-1">
+        <span className="text-lg">{emoji}</span> {title}
+        <span className="text-[10px] text-white/40 font-normal">({list.length})</span>
+      </h3>
+      <div className="flex gap-3 overflow-x-auto pb-2 px-1" style={{ scrollbarWidth: 'none' }}>
+        {list.map(c => (
+          <button key={c.id} onClick={() => setActiveSession(c)}
+            className="group flex-shrink-0 w-32 sm:w-36 rounded-2xl overflow-hidden bg-[#0e0e14] border border-white/5 hover:border-[#ff3e6c]/50 hover:-translate-y-1 transition-all duration-300 text-left"
+            style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
+            <div className={`relative h-32 bg-gradient-to-br ${c.gradient} flex items-center justify-center overflow-hidden`}>
+              {c.video_url
+                ? <video src={c.video_url} className="w-full h-full object-cover" muted loop autoPlay playsInline />
+                : c.avatar_url
+                ? <img src={c.avatar_url} alt={c.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                : <span className="text-5xl drop-shadow-lg group-hover:scale-110 transition-transform">{c.avatar_emoji}</span>}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+              <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-1.5 py-0.5">
+                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+                <span className="text-white text-[10px] font-bold">{c.rating}</span>
+              </div>
+              {(c.avatar_url || c.video_url) && <span className="absolute top-2 left-2 text-[7px] bg-green-500 text-white px-1 rounded font-bold">REAL</span>}
+              {/* Play overlay on hover */}
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="w-10 h-10 rounded-full bg-[#ff3e6c] flex items-center justify-center shadow-lg">
+                  <Play className="w-5 h-5 text-white fill-white" />
+                </div>
+              </div>
+            </div>
+            <div className="p-2.5">
+              <p className="font-bold text-xs text-white truncate">{c.name}</p>
+              <p className="text-[10px] text-white/40 truncate">{(c.specialty || []).slice(0, 2).join(' · ')}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#060608] pb-24">
-      {/* HERO */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#1a0033] via-[#330066] to-[#060608] text-white">
-        <div className="absolute inset-0 opacity-20" style={{ background: 'radial-gradient(circle at 30% 20%, #ff3e6c 0%, transparent 50%), radial-gradient(circle at 70% 60%, #a855f7 0%, transparent 50%)' }} />
-        <div className="relative max-w-6xl mx-auto px-4 py-8 sm:py-12">
+    <div className="min-h-screen bg-[#060608] text-[#f0eeff] pb-24" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+      {/* HERO — clase virtual inmersiva */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1a0033] via-[#2d0052] to-[#060608]" />
+        <div className="absolute inset-0 opacity-30" style={{ background: 'radial-gradient(circle at 25% 15%, #ff3e6c 0%, transparent 45%), radial-gradient(circle at 75% 50%, #a855f7 0%, transparent 45%), radial-gradient(circle at 50% 90%, #ff8c42 0%, transparent 40%)' }} />
+        <div className="relative max-w-6xl mx-auto px-4 py-10 sm:py-16">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-bold mb-3">
-                <Sparkles className="w-3.5 h-3.5" /> AI · BETA
+              <div className="inline-flex items-center gap-1.5 bg-white/10 backdrop-blur-md rounded-full px-3 py-1 text-xs font-bold mb-4 border border-white/10">
+                <Sparkles className="w-3.5 h-3.5 text-[#ff3e6c]" /> ACADEMIA IA · BETA
               </div>
-              <h1 className="font-display font-black text-3xl sm:text-5xl leading-tight mb-2">
-                {t('df.title')}
+              <h1 className="font-display font-black text-4xl sm:text-6xl leading-[0.95] mb-3" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '1px' }}>
+                <span className="bg-gradient-to-r from-[#ff3e6c] to-[#ff8c42] bg-clip-text text-transparent">DANCEFLOW</span>
               </h1>
-              <p className="text-white/70 text-sm sm:text-base max-w-xl">{t('df.subtitle')}</p>
+              <p className="text-white/60 text-base sm:text-lg max-w-xl">{t('df.subtitle')}</p>
             </div>
             <LanguageSelector />
           </div>
@@ -76,61 +117,35 @@ const DanceFlowPage: React.FC = () => {
       </div>
 
       <div className="max-w-6xl mx-auto px-4">
-        {/* CHOREOGRAPHERS */}
-        <section className="mt-8">
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-            <h2 className="font-display font-black text-xl text-gray-900 dark:text-white">{t('df.choose')}</h2>
-            <div className="flex gap-1.5">
-              {(['all', 'solo', 'pareja'] as const).map(m => (
-                <button key={m} onClick={() => setModeFilter(m)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${modeFilter === m ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700'}`}>
-                  {m === 'all' ? t('df.all') : m === 'solo' ? t('df.solo') : t('df.pair')}
-                </button>
-              ))}
-            </div>
-          </div>
+        {/* AVATARES EN FILAS */}
+        <section className="mt-6">
+          <h2 className="font-display font-black text-xl text-white mb-1" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.5px' }}>
+            {t('df.choose')}
+          </h2>
+          <p className="text-white/40 text-xs mb-5">Elige tu coreógrafo y prepárate para tu clase virtual 💃</p>
 
           {loading ? (
-            <div className="py-12 text-center"><Loader2 className="w-7 h-7 animate-spin text-pink-500 mx-auto" /></div>
+            <div className="py-12 text-center"><Loader2 className="w-7 h-7 animate-spin text-[#ff3e6c] mx-auto" /></div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-              {filtered.map(c => (
-                <button key={c.id} onClick={() => setActiveSession(c)}
-                  className="group bg-white dark:bg-[#0e0e14] rounded-2xl overflow-hidden border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-left">
-                  <div className={`relative h-28 bg-gradient-to-br ${c.gradient} flex items-center justify-center`}>
-                    <span className="text-5xl drop-shadow-lg group-hover:scale-110 transition-transform">{c.avatar_emoji}</span>
-                    <span className={`absolute top-2 right-2 text-[9px] font-bold px-2 py-0.5 rounded-full ${c.mode === 'pareja' ? 'bg-purple-500' : 'bg-pink-500'} text-white`}>
-                      {c.mode === 'pareja' ? t('df.pair') : t('df.solo')}
-                    </span>
-                    <div className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-2 py-0.5">
-                      <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                      <span className="text-white text-[10px] font-bold">{c.rating}</span>
-                    </div>
-                  </div>
-                  <div className="p-3">
-                    <p className="font-black text-sm text-gray-900 dark:text-white truncate flex items-center gap-1">
-                      {(c.avatar_url || c.video_url) && <span className="text-[8px] bg-green-500 text-white px-1 rounded">📷 REAL</span>}
-                      {c.name}
-                    </p>
-                    <p className="text-[10px] text-gray-400 mt-0.5">{c.age_range} · {c.review_count} ⭐</p>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {(c.specialty || []).slice(0, 2).map(s => (
-                        <span key={s} className="text-[9px] bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-300 px-1.5 py-0.5 rounded-full font-semibold">{s}</span>
-                      ))}
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </div>
+            <>
+              <AvatarRow title={t('df.solo')} emoji="🕺" list={solo} />
+              <AvatarRow title={t('df.pair')} emoji="💑" list={pareja} />
+            </>
           )}
         </section>
 
-        {/* RANKING */}
-        <section className="mt-12">
-          <h2 className="font-display font-black text-xl text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-            <Trophy className="w-6 h-6 text-yellow-500" /> {t('df.topDancers')}
-          </h2>
-          <WorldLeaderboard variant="full" />
+        {/* RANKING DE USUARIOS (no avatares) */}
+        <section className="mt-10">
+          <div className="bg-[#0e0e14] border border-white/5 rounded-3xl p-5 sm:p-6">
+            <div className="flex items-center gap-2 mb-1">
+              <Trophy className="w-6 h-6 text-[#f5c542]" />
+              <h2 className="font-display font-black text-xl text-white" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.5px' }}>
+                {t('df.topDancers')}
+              </h2>
+            </div>
+            <p className="text-white/40 text-xs mb-5">Los bailarines que más avanzan en el mundo 🌍 — ¡compite y sube!</p>
+            <WorldLeaderboard variant="full" />
+          </div>
         </section>
       </div>
 
