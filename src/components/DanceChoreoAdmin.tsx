@@ -10,7 +10,7 @@
  *  - Crear nuevo coreógrafo
  */
 import React, { useEffect, useState } from 'react';
-import { Loader2, Upload, Plus, Trash2, Image as ImageIcon, Video, Save, X, Star } from 'lucide-react';
+import { Loader2, Upload, Plus, Trash2, Image as ImageIcon, Video, Save, X, Star, ListVideo, GripVertical } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { uploadImage, uploadVideo } from '../lib/uploadHelper';
 import { useUIStore } from '../store/appStore';
@@ -32,6 +32,7 @@ const DanceChoreoAdmin: React.FC = () => {
   const [items, setItems] = useState<Choreo[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Choreo | null>(null);
+  const [lessonsFor, setLessonsFor] = useState<Choreo | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -92,6 +93,9 @@ const DanceChoreoAdmin: React.FC = () => {
                   <button onClick={() => toggleActive(c)} className={`text-xs px-2 py-1 rounded-lg ${c.active ? 'text-green-600' : 'text-gray-400'}`}>{c.active ? '✓' : '○'}</button>
                   <button onClick={() => handleDelete(c)} className="text-xs px-2 py-1 rounded-lg text-red-400 hover:bg-red-50"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
+                <button onClick={() => setLessonsFor(c)} className="w-full mt-1 text-xs py-1.5 rounded-lg bg-purple-50 text-purple-600 font-bold hover:bg-purple-100 flex items-center justify-center gap-1">
+                  <ListVideo className="w-3.5 h-3.5" /> Pasos / Lecciones
+                </button>
               </div>
             </div>
           ))}
@@ -100,6 +104,10 @@ const DanceChoreoAdmin: React.FC = () => {
 
       {editing && (
         <ChoreoEditModal choreo={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); load(); }} />
+      )}
+
+      {lessonsFor && (
+        <LessonsModal choreo={lessonsFor} onClose={() => setLessonsFor(null)} />
       )}
     </div>
   );
@@ -235,6 +243,168 @@ const ChoreoEditModal: React.FC<{ choreo: Choreo; onClose: () => void; onSaved: 
           <button onClick={save} disabled={saving} className="btn-orange w-full flex items-center justify-center gap-2">
             {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />} Guardar
           </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Modal de Pasos / Lecciones (videos reales en secuencia) ─────
+interface Lesson {
+  id: string; choreographer_id: string; genre: string; sub_style?: string | null;
+  level: string; step_number: number; step_name: string; description?: string | null;
+  count_cue?: string | null; video_url: string; active: boolean;
+}
+
+const LEVELS = ['principiante', 'intermedio', 'avanzado'];
+
+const LessonsModal: React.FC<{ choreo: Choreo; onClose: () => void }> = ({ choreo, onClose }) => {
+  const addToast = useUIStore(s => s.addToast);
+  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const blankLesson = (): Lesson => ({
+    id: '', choreographer_id: choreo.id,
+    genre: (Array.isArray(choreo.specialty) ? choreo.specialty[0] : '') || 'Bachata',
+    sub_style: '', level: 'principiante',
+    step_number: lessons.length + 1, step_name: '', description: '', count_cue: '',
+    video_url: '', active: true,
+  });
+  const [form, setForm] = useState<Lesson>(blankLesson());
+  const set = (k: keyof Lesson, v: any) => setForm(f => ({ ...f, [k]: v }));
+
+  const load = async () => {
+    setLoading(true);
+    const { data } = await supabase.from('dance_lessons').select('*')
+      .eq('choreographer_id', choreo.id)
+      .order('level').order('step_number');
+    setLessons((data as Lesson[]) || []);
+    setLoading(false);
+  };
+  useEffect(() => { load(); /* eslint-disable-next-line */ }, [choreo.id]);
+
+  const handleVid = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    if (file.size > 50 * 1024 * 1024) { addToast({ type: 'error', message: 'Vídeo máx 50MB' }); return; }
+    setUploading(true);
+    const { url, error } = await uploadVideo(file, 'dance-videos');
+    setUploading(false);
+    if (error || !url) { addToast({ type: 'error', message: error || 'Error subiendo vídeo' }); return; }
+    set('video_url', url);
+  };
+
+  const save = async () => {
+    if (!form.step_name.trim()) { addToast({ type: 'error', message: 'Pon nombre al paso' }); return; }
+    if (!form.video_url.trim()) { addToast({ type: 'error', message: 'Falta el video del paso' }); return; }
+    setSaving(true);
+    const payload: any = {
+      choreographer_id: choreo.id, genre: form.genre, sub_style: form.sub_style || null,
+      level: form.level, step_number: Number(form.step_number) || 1, step_name: form.step_name,
+      description: form.description || null, count_cue: form.count_cue || null,
+      video_url: form.video_url, active: form.active,
+    };
+    let error;
+    if (form.id) ({ error } = await supabase.from('dance_lessons').update(payload).eq('id', form.id));
+    else ({ error } = await supabase.from('dance_lessons').insert(payload));
+    setSaving(false);
+    if (error) { addToast({ type: 'error', message: error.message }); return; }
+    addToast({ type: 'success', message: '✅ Paso guardado' });
+    setForm(blankLesson());
+    load();
+  };
+
+  const del = async (l: Lesson) => {
+    if (!confirm(`¿Eliminar el paso "${l.step_name}"?`)) return;
+    const { error } = await supabase.from('dance_lessons').delete().eq('id', l.id);
+    if (error) addToast({ type: 'error', message: error.message });
+    else { addToast({ type: 'success', message: 'Paso eliminado' }); load(); }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[120] bg-black/70 flex items-center justify-center p-4" onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
+        <div className={`bg-gradient-to-r ${choreo.gradient} text-white p-4 flex items-center justify-between sticky top-0 z-10`}>
+          <h3 className="font-black text-lg flex items-center gap-2"><ListVideo className="w-5 h-5" /> Pasos de {choreo.name}</h3>
+          <button onClick={onClose}><X className="w-5 h-5" /></button>
+        </div>
+
+        <div className="p-5 space-y-5">
+          {/* Lista de pasos existentes */}
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase mb-2">{loading ? 'Cargando…' : `${lessons.length} pasos`}</p>
+            {loading ? (
+              <div className="py-6 text-center"><Loader2 className="w-6 h-6 animate-spin text-pink-500 mx-auto" /></div>
+            ) : lessons.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-4">Aún no hay pasos. Añade el primero abajo 👇</p>
+            ) : (
+              <div className="space-y-2">
+                {lessons.map(l => (
+                  <div key={l.id} className="flex items-center gap-2 p-2 rounded-xl border border-gray-100 dark:border-gray-800">
+                    <GripVertical className="w-4 h-4 text-gray-300" />
+                    <div className="w-16 h-12 rounded-lg overflow-hidden bg-black flex-shrink-0">
+                      {/youtube|youtu\.be/.test(l.video_url)
+                        ? <div className="w-full h-full flex items-center justify-center text-white text-[9px]">YT</div>
+                        : <video src={l.video_url} className="w-full h-full object-cover" muted />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm truncate">{l.step_number}. {l.step_name}</p>
+                      <p className="text-[10px] text-gray-400 truncate">{l.genre}{l.sub_style ? ` · ${l.sub_style}` : ''} · {l.level}{l.count_cue ? ` · ${l.count_cue}` : ''}</p>
+                    </div>
+                    <button onClick={() => setForm(l)} className="text-xs px-2 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Editar</button>
+                    <button onClick={() => del(l)} className="text-xs px-2 py-1 rounded-lg text-red-400 hover:bg-red-50"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Formulario añadir/editar paso */}
+          <div className="border-t border-gray-100 dark:border-gray-800 pt-4 space-y-3">
+            <p className="text-xs font-bold text-pink-600 uppercase">{form.id ? '✏️ Editar paso' : '➕ Nuevo paso'}</p>
+
+            <div className="grid grid-cols-4 gap-2">
+              <input type="number" value={form.step_number} onChange={e => set('step_number', e.target.value)} placeholder="#" className="input-field col-span-1" />
+              <input value={form.step_name} onChange={e => set('step_name', e.target.value)} placeholder="Nombre del paso (Paso básico)" className="input-field col-span-3" />
+            </div>
+
+            <div className="grid grid-cols-3 gap-2">
+              <input value={form.genre} onChange={e => set('genre', e.target.value)} placeholder="Género" className="input-field" />
+              <input value={form.sub_style || ''} onChange={e => set('sub_style', e.target.value)} placeholder="Subestilo" className="input-field" />
+              <select value={form.level} onChange={e => set('level', e.target.value)} className="input-field capitalize">
+                {LEVELS.map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
+            </div>
+
+            <input value={form.count_cue || ''} onChange={e => set('count_cue', e.target.value)} placeholder="Conteo (ej: 1,2,3 - pausa - 5,6,7 - pausa)" className="input-field text-sm" />
+            <textarea value={form.description || ''} onChange={e => set('description', e.target.value)} rows={2} placeholder="Lo que el profe dice en este paso (corto)" className="input-field resize-none text-sm" />
+
+            {/* Video del paso */}
+            <div className="grid grid-cols-2 gap-2 items-start">
+              <div>
+                <label className="cursor-pointer block text-center text-xs bg-purple-50 text-purple-600 font-bold py-2 rounded-lg hover:bg-purple-100">
+                  {uploading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : <><Upload className="w-3 h-3 inline mr-1" />Subir video del paso</>}
+                  <input type="file" accept="video/*" hidden onChange={handleVid} />
+                </label>
+              </div>
+              <div className="relative aspect-video rounded-lg overflow-hidden bg-black">
+                {form.video_url
+                  ? (/youtube|youtu\.be/.test(form.video_url)
+                      ? <div className="w-full h-full flex items-center justify-center text-white text-xs">YouTube ✓</div>
+                      : <video src={form.video_url} className="w-full h-full object-cover" muted loop autoPlay playsInline />)
+                  : <div className="w-full h-full flex items-center justify-center text-gray-500"><Video className="w-6 h-6" /></div>}
+              </div>
+            </div>
+            <input value={form.video_url} onChange={e => set('video_url', e.target.value)} placeholder="O pega URL (YouTube o .mp4)" className="input-field text-xs font-mono" />
+
+            <div className="flex gap-2">
+              {form.id && <button onClick={() => setForm(blankLesson())} className="px-4 py-2 rounded-xl border border-gray-200 text-gray-600 text-sm font-bold">Cancelar edición</button>}
+              <button onClick={save} disabled={saving} className="btn-orange flex-1 flex items-center justify-center gap-2">
+                {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />} {form.id ? 'Actualizar paso' : 'Añadir paso'}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -30,6 +30,11 @@ interface Choreographer {
 interface Scenario {
   id: string; name: string; emoji: string; gradient: string; vibe: string; premium: boolean; bg_image_url?: string | null;
 }
+interface Lesson {
+  id: string; choreographer_id: string; genre: string; sub_style?: string | null;
+  level: string; step_number: number; step_name: string; description?: string | null;
+  count_cue?: string | null; video_url: string; active: boolean;
+}
 
 const DanceFlowPage: React.FC = () => {
   const { t } = useI18n();
@@ -192,6 +197,7 @@ const DanceSessionModal: React.FC<{
 }> = ({ choreographer, onClose, isAuthenticated, userId, userName, userCountry, addToast }) => {
   const { t, lang } = useI18n();
   const [genre, setGenre] = useState(choreographer.specialty?.[0] || 'Salsa');
+  const [level, setLevel] = useState<'principiante' | 'intermedio' | 'avanzado'>('principiante');
   const [started, setStarted] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
@@ -201,6 +207,9 @@ const DanceSessionModal: React.FC<{
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [scenario, setScenario] = useState<Scenario | null>(null);
   const [lastStep, setLastStep] = useState<string>('');
+  // Lecciones (pasos con videos reales en secuencia)
+  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [lessonIdx, setLessonIdx] = useState(0);
   // Voz
   const [voiceOn, setVoiceOn] = useState(true);
   const [speaking, setSpeaking] = useState(false);
@@ -218,6 +227,26 @@ const DanceSessionModal: React.FC<{
     })();
   }, []);
 
+  // Cargar lecciones (pasos) de este bailarín
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from('dance_lessons').select('*')
+        .eq('choreographer_id', choreographer.id).eq('active', true)
+        .order('step_number');
+      setLessons((data as Lesson[]) || []);
+    })();
+  }, [choreographer.id]);
+
+  // Pasos del nivel/género elegido (si no hay, usamos todos)
+  const activeLessons = lessons.filter(l =>
+    (!l.level || l.level === level) &&
+    (!genre || !l.genre || l.genre.toLowerCase() === genre.toLowerCase())
+  );
+  const lessonList = activeLessons.length ? activeLessons : lessons;
+  const currentLesson: Lesson | undefined = lessonList[lessonIdx];
+  // Video que se muestra en el panel del profe (paso actual > video del avatar)
+  const profeVideoUrl = currentLesson?.video_url || choreographer.video_url || null;
+
   // Limpiar voz al cerrar
   useEffect(() => () => { stopSpeaking(); recognizerRef.current?.stop(); }, []);
 
@@ -232,9 +261,26 @@ const DanceSessionModal: React.FC<{
     });
   };
 
+  // Cambiar de paso: el profe lo anuncia por voz y reproduce el video del paso
+  const goToStep = (idx: number) => {
+    if (idx < 0 || idx >= lessonList.length) return;
+    setLessonIdx(idx);
+    const l = lessonList[idx];
+    if (!l) return;
+    stopSpeaking();
+    const cue = [
+      `Paso ${l.step_number}: ${l.step_name}.`,
+      l.count_cue ? `Cuenta: ${l.count_cue}.` : '',
+      l.description || '',
+    ].filter(Boolean).join(' ');
+    setLastStep(cue);
+    speakReply(cue);
+  };
+
   const startSession = async () => {
     if (!isAuthenticated) { addToast({ type: 'warning', message: t('df.loginToCompete') }); return; }
     setStarted(true);
+    setLessonIdx(0);
     setSending(true);
     await sendToAI([], true);
   };
@@ -252,6 +298,9 @@ const DanceSessionModal: React.FC<{
           choreographer: choreographer.name,
           personality: choreographer.personality,
           genre, lang,
+          level,
+          mode: 'solo',
+          scenario: scenario?.name || '',
           userName: userName || 'amigo',
           isStart,
         }),
@@ -363,6 +412,17 @@ const DanceSessionModal: React.FC<{
               </div>
             </div>
 
+            {/* Nivel */}
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase block mb-2">📊 Tu nivel</label>
+              <div className="flex gap-2">
+                {(['principiante', 'intermedio', 'avanzado'] as const).map(l => (
+                  <button key={l} onClick={() => setLevel(l)}
+                    className={`flex-1 px-3 py-2 rounded-xl text-xs font-bold border capitalize transition-all ${level === l ? 'bg-pink-500 text-white border-pink-500' : 'border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300'}`}>{l}</button>
+                ))}
+              </div>
+            </div>
+
             {/* Escenario / pista de baile */}
             <div>
               <label className="text-xs font-bold text-gray-500 uppercase block mb-2">🪩 Pista de baile</label>
@@ -399,17 +459,19 @@ const DanceSessionModal: React.FC<{
               <div>
                 <p className="text-[11px] font-bold text-white/70 mb-1 px-1 flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-[#ff8c42]" /> EL PROFE
+                  {currentLesson && <span className="text-white/40">· {currentLesson.step_name}</span>}
                 </p>
                 <div className="relative rounded-2xl overflow-hidden bg-black aspect-video">
-                  {choreographer.video_url ? (
-                    isYouTube(choreographer.video_url) ? (
+                  {profeVideoUrl ? (
+                    isYouTube(profeVideoUrl) ? (
                       <iframe
-                        src={ytEmbed(choreographer.video_url)}
+                        key={profeVideoUrl}
+                        src={ytEmbed(profeVideoUrl)}
                         className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen
                         title={choreographer.name}
                       />
                     ) : (
-                      <video src={choreographer.video_url} className="w-full h-full object-cover" autoPlay loop playsInline controls />
+                      <video key={profeVideoUrl} src={profeVideoUrl} className="w-full h-full object-cover" autoPlay loop playsInline controls />
                     )
                   ) : choreographer.avatar_url ? (
                     <img src={choreographer.avatar_url} alt={choreographer.name} className="w-full h-full object-cover" />
@@ -421,12 +483,29 @@ const DanceSessionModal: React.FC<{
                   <span className="absolute top-2 left-2 bg-black/70 text-white text-[11px] font-bold px-2.5 py-1 rounded-full z-10">
                     👨‍🏫 {choreographer.name}
                   </span>
+                  {currentLesson?.count_cue && (
+                    <span className="absolute bottom-2 right-2 bg-black/70 text-[#ff8c42] text-[10px] font-bold px-2 py-1 rounded-full z-10">
+                      🎵 {currentLesson.count_cue}
+                    </span>
+                  )}
                   {speaking && (
                     <span className="absolute bottom-2 left-2 flex items-center gap-1 bg-[#ff3e6c] text-white text-[10px] font-bold px-2 py-1 rounded-full animate-pulse z-10">
                       <Volume2 className="w-3 h-3" /> Hablando
                     </span>
                   )}
                 </div>
+                {/* Navegación de pasos */}
+                {lessonList.length > 0 && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <button onClick={() => goToStep(lessonIdx - 1)} disabled={lessonIdx === 0}
+                      className="px-3 py-2 rounded-xl bg-white/10 text-white text-xs font-bold disabled:opacity-30">← Anterior</button>
+                    <span className="flex-1 text-center text-[11px] text-white/60 font-bold">
+                      Paso {lessonIdx + 1} / {lessonList.length}
+                    </span>
+                    <button onClick={() => goToStep(lessonIdx + 1)} disabled={lessonIdx >= lessonList.length - 1}
+                      className="px-3 py-2 rounded-xl bg-gradient-to-r from-[#ff3e6c] to-[#ff8c42] text-white text-xs font-bold disabled:opacity-30">Siguiente paso →</button>
+                  </div>
+                )}
               </div>
 
               {/* ── TÚ (abajo en móvil) — tu cámara ── */}
