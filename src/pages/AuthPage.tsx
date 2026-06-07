@@ -218,21 +218,21 @@ const AuthPage: React.FC = () => {
 
     const supa = await supabaseRegister(email, regPassword, { name, role: selectedRole, city: regCity.trim() || 'Madrid' });
     if (supa.success) {
-      if (supa.needsVerification) {
+      if (supa.hasSession) {
+        // Autoconfirm ON: el usuario ya tiene sesión → entrar directo
+        addToast({ message: `¡Bienvenido/a ${name}! Cuenta creada 🎉`, type: 'success' });
+        goAfterLogin();
+      } else if (supa.needsVerification) {
         setPendingEmail(email);
         setView('verify');
       } else {
-        addToast({ message: '¡Cuenta creada! Revisa tu email.', type: 'success' });
-        goAfterLogin();
+        addToast({ message: '¡Cuenta creada! Ya puedes iniciar sesión.', type: 'success' });
+        setView('login');
       }
       return;
     }
-    // Demo fallback
-    const ok = await register({ name, email, city: regCity.trim() || 'Madrid', role: selectedRole, password: regPassword });
-    if (ok) {
-      addToast({ message: '¡Cuenta creada! (modo demo)', type: 'success' });
-      navigate('/dashboard');
-    }
+    // Error real de Supabase — mostrarlo (no caer a demo silencioso)
+    addToast({ message: supa.error || 'No se pudo crear la cuenta. Intenta de nuevo.', type: 'error' });
   };
 
   // ── Forgot password ────────────────────────────────────────

@@ -11,7 +11,15 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 
 export const supabase = createClient(
   SUPABASE_URL ?? '',
-  SUPABASE_ANON_KEY ?? ''
+  SUPABASE_ANON_KEY ?? '',
+  {
+    auth: {
+      // Persistir sesión en localStorage para que editar/crear funcione tras recargar
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  }
 );
 
 // ── AUTH HELPERS ─────────────────────────────────────────────

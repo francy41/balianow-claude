@@ -210,16 +210,20 @@ export async function supabaseRegister(
   email: string,
   password: string,
   meta?: { name?: string; role?: string; city?: string }
-): Promise<{ success: boolean; error?: string; needsVerification?: boolean }> {
+): Promise<{ success: boolean; error?: string; needsVerification?: boolean; hasSession?: boolean }> {
   const { data, error } = await authService.signUp(email, password, meta);
   if (error) return { success: false, error: error.message };
 
-  // Supabase sets identities=[] when confirmation is required
+  // Si Supabase devolvió sesión (autoconfirm ON) → el usuario ya está dentro
+  const hasSession = !!data.session?.access_token;
+
+  // Solo pedir verificación si NO hay sesión Y identities está vacío
   const needsVerification =
+    !hasSession &&
     data.user?.identities !== undefined &&
     data.user.identities.length === 0;
 
-  return { success: true, needsVerification };
+  return { success: true, needsVerification, hasSession };
 }
 
 /** Send password reset email. */
