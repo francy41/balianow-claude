@@ -18,11 +18,15 @@ import { usePageMeta } from '../hooks/usePageMeta';
 import { countryFlag, COUNTRIES } from '../lib/countries';
 import WorldLeaderboard from '../components/WorldLeaderboard';
 import LanguageSelector from '../components/LanguageSelector';
+import DanceStage from '../components/DanceStage';
 
 interface Choreographer {
   id: string; name: string; mode: string; age_range: string; specialty: string[];
-  personality: string; avatar_emoji: string; gradient: string; rating: number;
-  review_count: number; bio: string;
+  personality: string; avatar_emoji: string; avatar_url?: string | null; video_url?: string | null;
+  gallery?: string[]; gradient: string; rating: number; review_count: number; bio: string;
+}
+interface Scenario {
+  id: string; name: string; emoji: string; gradient: string; vibe: string; premium: boolean; bg_image_url?: string | null;
 }
 
 const DanceFlowPage: React.FC = () => {
@@ -104,7 +108,10 @@ const DanceFlowPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="p-3">
-                    <p className="font-black text-sm text-gray-900 dark:text-white truncate">{c.name}</p>
+                    <p className="font-black text-sm text-gray-900 dark:text-white truncate flex items-center gap-1">
+                      {(c.avatar_url || c.video_url) && <span className="text-[8px] bg-green-500 text-white px-1 rounded">📷 REAL</span>}
+                      {c.name}
+                    </p>
                     <p className="text-[10px] text-gray-400 mt-0.5">{c.age_range} · {c.review_count} ⭐</p>
                     <div className="flex flex-wrap gap-1 mt-2">
                       {(c.specialty || []).slice(0, 2).map(s => (
@@ -165,6 +172,19 @@ const DanceSessionModal: React.FC<{
   const [sending, setSending] = useState(false);
   const [country, setCountry] = useState(userCountry && COUNTRIES.find(c => c.name === userCountry)?.code || 'ES');
   const [sessionPoints, setSessionPoints] = useState(0);
+  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [scenario, setScenario] = useState<Scenario | null>(null);
+  const [lastStep, setLastStep] = useState<string>('');
+
+  // Cargar escenarios
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from('dance_scenarios').select('*').eq('active', true).order('display_order');
+      const list = (data as Scenario[]) || [];
+      setScenarios(list);
+      if (list.length) setScenario(list[0]);
+    })();
+  }, []);
 
   const startSession = async () => {
     if (!isAuthenticated) { addToast({ type: 'warning', message: t('df.loginToCompete') }); return; }
@@ -201,6 +221,7 @@ const DanceSessionModal: React.FC<{
         return;
       }
       setMessages(m => [...m, { role: 'assistant', content: json.reply }]);
+      setLastStep(json.reply);
       // Sumar puntos por interacción
       setSessionPoints(p => p + 25);
     } catch (e: any) {
@@ -237,29 +258,32 @@ const DanceSessionModal: React.FC<{
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4">
-      <div className="bg-white dark:bg-[#0e0e14] w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl max-h-[95vh] flex flex-col overflow-hidden">
+      <div className={`bg-white dark:bg-[#0e0e14] w-full ${started ? 'sm:max-w-4xl' : 'sm:max-w-lg'} rounded-t-3xl sm:rounded-3xl max-h-[96vh] flex flex-col overflow-hidden transition-all`}>
         {/* Header */}
         <div className={`relative bg-gradient-to-br ${choreographer.gradient} text-white p-4 flex items-center gap-3`}>
-          <span className="text-4xl">{choreographer.avatar_emoji}</span>
-          <div className="flex-1">
+          {choreographer.avatar_url
+            ? <img src={choreographer.avatar_url} alt={choreographer.name} className="w-12 h-12 rounded-full object-cover border-2 border-white/40" />
+            : <span className="text-4xl">{choreographer.avatar_emoji}</span>}
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="font-black text-lg">{choreographer.name}</h3>
-              {started && <span className="flex items-center gap-1 text-[10px] bg-green-500 px-2 py-0.5 rounded-full"><span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> {t('df.live')}</span>}
+              <h3 className="font-black text-lg truncate">{choreographer.name}</h3>
+              {started && <span className="flex items-center gap-1 text-[10px] bg-green-500 px-2 py-0.5 rounded-full flex-shrink-0"><span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> {t('df.live')}</span>}
             </div>
-            <p className="text-white/80 text-xs">{choreographer.personality}</p>
+            <p className="text-white/80 text-xs truncate">{choreographer.personality}</p>
           </div>
+          <LanguageSelector compact />
           {started && sessionPoints > 0 && (
-            <div className="text-right">
-              <p className="text-2xl font-black">{sessionPoints}</p>
+            <div className="text-right flex-shrink-0">
+              <p className="text-2xl font-black leading-none">{sessionPoints}</p>
               <p className="text-[9px] opacity-80">{t('df.points')}</p>
             </div>
           )}
-          <button onClick={started ? endSession : onClose} className="p-1.5 hover:bg-white/20 rounded-lg"><X className="w-5 h-5" /></button>
+          <button onClick={started ? endSession : onClose} className="p-1.5 hover:bg-white/20 rounded-lg flex-shrink-0"><X className="w-5 h-5" /></button>
         </div>
 
         {!started ? (
           /* SETUP */
-          <div className="p-5 space-y-4">
+          <div className="p-5 space-y-4 overflow-y-auto">
             <div>
               <label className="text-xs font-bold text-gray-500 uppercase block mb-2">{t('df.specialty')}</label>
               <div className="flex flex-wrap gap-2">
@@ -269,48 +293,73 @@ const DanceSessionModal: React.FC<{
                 ))}
               </div>
             </div>
+
+            {/* Escenario / pista de baile */}
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase block mb-2">🏳️ País (para el ranking)</label>
+              <label className="text-xs font-bold text-gray-500 uppercase block mb-2">🪩 Pista de baile</label>
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                {scenarios.map(s => (
+                  <button key={s.id} onClick={() => setScenario(s)}
+                    className={`relative rounded-xl overflow-hidden h-16 flex flex-col items-center justify-center transition-all ${scenario?.id === s.id ? 'ring-2 ring-pink-500 scale-105' : 'opacity-80 hover:opacity-100'}`}
+                    style={{ backgroundImage: `linear-gradient(${s.gradient})` }}>
+                    <span className="text-2xl">{s.emoji}</span>
+                    <span className="text-white text-[8px] font-bold text-center px-1 leading-tight drop-shadow">{s.name}</span>
+                    {s.premium && <span className="absolute top-0.5 right-0.5 text-[7px] bg-yellow-400 text-yellow-900 px-1 rounded font-bold">PRO</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-gray-500 uppercase block mb-2">🏳️ {t('df.yourRank')} — País</label>
               <select value={country} onChange={e => setCountry(e.target.value)} className="input-field">
                 {COUNTRIES.map(c => <option key={c.code} value={c.code}>{countryFlag(c.code)} {c.name}</option>)}
               </select>
             </div>
-            <button onClick={startSession} className="btn-orange w-full flex items-center justify-center gap-2">
+            <button onClick={startSession} disabled={!scenario} className="btn-orange w-full flex items-center justify-center gap-2">
               <Play className="w-5 h-5" /> {t('df.start')}
             </button>
             {!isAuthenticated && <p className="text-[11px] text-center text-orange-500">{t('df.loginToCompete')}</p>}
           </div>
         ) : (
-          /* CHAT */
-          <>
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[300px]">
+          /* SESIÓN EN VIVO: pista con cámara + chat */
+          <div className="flex-1 overflow-y-auto">
+            {/* Pista de baile con cámara del usuario */}
+            {scenario && (
+              <div className="p-3">
+                <DanceStage
+                  scenario={scenario}
+                  choreographer={choreographer}
+                  currentStep={lastStep}
+                />
+              </div>
+            )}
+
+            {/* Chat con el profesor */}
+            <div className="px-3 pb-2 space-y-2 max-h-48 overflow-y-auto">
               {messages.map((m, i) => (
                 <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm ${m.role === 'user' ? 'bg-pink-500 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'}`}>
+                  <div className={`max-w-[85%] rounded-2xl px-3.5 py-2 text-sm ${m.role === 'user' ? 'bg-pink-500 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'}`}>
                     {m.content}
                   </div>
                 </div>
               ))}
               {sending && (
                 <div className="flex justify-start">
-                  <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-3">
-                    <Loader2 className="w-4 h-4 animate-spin text-pink-500" />
-                  </div>
+                  <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl px-4 py-3"><Loader2 className="w-4 h-4 animate-spin text-pink-500" /></div>
                 </div>
               )}
             </div>
-            <div className="border-t border-gray-100 dark:border-gray-800 p-3 flex gap-2">
+            <div className="sticky bottom-0 bg-white dark:bg-[#0e0e14] border-t border-gray-100 dark:border-gray-800 p-3 flex gap-2">
               <input
                 value={input} onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && send()}
                 placeholder="Escribe a tu coreógrafo..."
                 className="input-field flex-1"
               />
-              <button onClick={send} disabled={sending} className="btn-orange px-4">
-                <Send className="w-5 h-5" />
-              </button>
+              <button onClick={send} disabled={sending} className="btn-orange px-4"><Send className="w-5 h-5" /></button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

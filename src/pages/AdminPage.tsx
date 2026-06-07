@@ -18,6 +18,7 @@ import AdminEditModal, { type EditField } from '../components/AdminEditModal';
 import AdminLocationModal from '../components/AdminLocationModal';
 import ProfileImporter from '../components/ProfileImporter';
 import NewsletterAdminPanel from '../components/NewsletterAdminPanel';
+import DanceChoreoAdmin from '../components/DanceChoreoAdmin';
 import { uploadImage, uploadVideo } from '../lib/uploadHelper';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
 import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS, PROMO_SERVICES } from '../data/mockData';
@@ -28,7 +29,7 @@ type AdminSection =
   | 'suscripciones' | 'artistas' | 'bailarinas' | 'eventos' | 'mercado'
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms'
-  | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter';
+  | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter' | 'danceavatares';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -41,6 +42,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'importar',       label: 'Importar perfiles',       icon: <FileText className="w-4 h-4" />, badge: 'NEW' },
   { id: 'integraciones',  label: 'Integraciones (GHL)',     icon: <Globe className="w-4 h-4" />, badge: 'GHL' },
   { id: 'newsletter',     label: 'Newsletter',              icon: <Bell className="w-4 h-4" /> },
+  { id: 'danceavatares',  label: 'Avatares de Baile',       icon: <Sparkles className="w-4 h-4" />, badge: 'IA' },
   { id: 'localidades',    label: 'Localidades',             icon: <MapPin className="w-4 h-4" /> },
   { id: 'suscripciones',  label: 'Suscripciones Premium',  icon: <Crown className="w-4 h-4" /> },
   { id: 'artistas',       label: 'Artistas',                icon: <Music2 className="w-4 h-4" /> },
@@ -293,6 +295,7 @@ const AdminPage: React.FC = () => {
         {active === 'importar'        && <ProfileImporter />}
         {active === 'integraciones'   && <IntegracionesSection addToast={addToast} />}
         {active === 'newsletter'      && <NewsletterAdminPanel />}
+        {active === 'danceavatares'   && <DanceChoreoAdmin />}
       </main>
 
       {/* Modal de edición global */}
