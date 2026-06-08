@@ -4,6 +4,35 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── GameHUD animations ─────────────────────────────────────────── */
+@keyframes hudBannerIn {
+  0%   { opacity: 0; transform: scale(0.4) translateY(-20px); }
+  70%  { transform: scale(1.08) translateY(2px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes floatUp {
+  0%   { opacity: 1; transform: translateY(0) scale(1); }
+  80%  { opacity: 1; transform: translateY(-80px) scale(1.15); }
+  100% { opacity: 0; transform: translateY(-110px) scale(0.9); }
+}
+@keyframes heartBeat {
+  0%,100% { transform: scale(1); }
+  14%     { transform: scale(1.3); }
+  28%     { transform: scale(1); }
+  42%     { transform: scale(1.3); }
+  70%     { transform: scale(1); }
+}
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%     { transform: translateX(-8px); }
+  40%     { transform: translateX(8px); }
+  60%     { transform: translateX(-6px); }
+  80%     { transform: translateX(6px); }
+}
+.animate-hud-banner { animation: hudBannerIn 0.4s cubic-bezier(0.175,0.885,0.32,1.275) both; }
+.animate-float-up   { animation: floatUp 1.6s ease-out forwards; }
+.animate-shake      { animation: shake 0.5s ease-in-out; }
+
 /* ── Marquee animations (auto-scroll left) ──────────────────────── */
 @keyframes marquee-left {
   0%   { transform: translateX(0); }

@@ -5,9 +5,10 @@
  */
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Users, Clock, Video, AlertCircle, MessageCircle, ExternalLink, Maximize } from 'lucide-react';
+import { ArrowLeft, Video, AlertCircle, MessageCircle, ExternalLink, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/appStore';
+import DanceStudio from '../components/DanceStudio';
 
 interface Booking {
   id: string;
@@ -28,6 +29,8 @@ const ClassRoomPage: React.FC = () => {
   const [offering, setOffering] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  // Modo: videollamada en vivo (Jitsi) o práctica interactiva (DanceStudio)
+  const [mode, setMode] = useState<'live' | 'practice'>('live');
 
   // Cargar booking
   useEffect(() => {
@@ -125,34 +128,65 @@ const ClassRoomPage: React.FC = () => {
             <span>{isVendor ? '🎓 Profesor' : '👤 Estudiante'}</span>
           </p>
         </div>
-        <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">EN VIVO</span>
+        {mode === 'live' && <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-pulse">EN VIVO</span>}
       </header>
 
-      {/* Jitsi via iframe (simple y robusto) */}
-      <div className="flex-1 bg-black relative" style={{ minHeight: 'calc(100vh - 100px)' }}>
-        {jitsiUrl ? (
-          <iframe
-            src={jitsiUrl}
-            allow="camera; microphone; fullscreen; display-capture; autoplay"
-            allowFullScreen
-            className="absolute inset-0 w-full h-full border-0"
-            title="BailaNow Class Room"
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <p className="text-gray-400">Preparando sala...</p>
-          </div>
-        )}
-        {/* Botón abrir en nueva pestaña como fallback */}
-        <a
-          href={`https://meet.jit.si/${booking.jitsi_room}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="absolute top-3 right-3 z-10 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-black/80"
-        >
-          <ExternalLink className="w-3 h-3" /> Abrir en pestaña aparte
-        </a>
+      {/* Pestañas: videollamada en vivo / práctica interactiva */}
+      <div className="bg-gray-900 border-b border-gray-800 px-3 py-2 flex items-center gap-2">
+        <button onClick={() => setMode('live')}
+          className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full transition-all ${mode === 'live' ? 'bg-red-500 text-white' : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}>
+          <Video className="w-3.5 h-3.5" /> Clase en vivo
+        </button>
+        <button onClick={() => setMode('practice')}
+          className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full transition-all ${mode === 'practice' ? 'bg-gradient-to-r from-[#ff3e6c] to-[#ff8c42] text-white' : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}>
+          <Sparkles className="w-3.5 h-3.5" /> Practicar con sincronización
+        </button>
+        <span className="ml-auto text-[10px] text-gray-500 hidden sm:block">
+          {mode === 'practice' ? '🎮 Sigue los pasos y gana puntos' : '🎥 Videollamada con tu profe'}
+        </span>
       </div>
+
+      {/* Cuerpo según modo */}
+      {mode === 'live' ? (
+        <div className="flex-1 bg-black relative" style={{ minHeight: 'calc(100vh - 140px)' }}>
+          {jitsiUrl ? (
+            <iframe
+              src={jitsiUrl}
+              allow="camera; microphone; fullscreen; display-capture; autoplay"
+              allowFullScreen
+              className="absolute inset-0 w-full h-full border-0"
+              title="BailaNow Class Room"
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <p className="text-gray-400">Preparando sala...</p>
+            </div>
+          )}
+          <a
+            href={`https://meet.jit.si/${booking.jitsi_room}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute top-3 right-3 z-10 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 hover:bg-black/80"
+          >
+            <ExternalLink className="w-3 h-3" /> Abrir en pestaña aparte
+          </a>
+        </div>
+      ) : (
+        <div className="flex-1 relative" style={{ minHeight: 'calc(100vh - 140px)' }}>
+          <DanceStudio
+            genre={offering?.style?.[0] || 'Salsa'}
+            level={offering?.level && offering.level !== 'all' ? offering.level : 'principiante'}
+            teacherName={offering?.title ? `Clase: ${offering.title}` : 'Tu profe'}
+            teacherEmoji="🕺"
+            gradient="from-pink-500 to-fuchsia-600"
+            personality={offering?.description || 'Profe motivador de baile latino'}
+            userId={user?.id}
+            userName={user?.name}
+            country={user?.country}
+            fullscreen={false}
+          />
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="bg-gray-900 border-t border-gray-800 px-4 py-2 text-[11px] text-gray-400 flex items-center justify-between">

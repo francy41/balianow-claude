@@ -360,6 +360,25 @@ const LessonsModal: React.FC<{ choreo: Choreo; onClose: () => void }> = ({ chore
             )}
           </div>
 
+          {/* Guía de sincronización */}
+          <details className="bg-pink-50 dark:bg-pink-500/10 border border-pink-200 dark:border-pink-500/20 rounded-xl text-xs">
+            <summary className="cursor-pointer font-bold text-pink-600 dark:text-pink-400 px-3 py-2 select-none">
+              📐 Cómo grabar los vídeos para que sincronicen (pulsa para ver)
+            </summary>
+            <div className="px-3 pb-3 space-y-1.5 text-gray-600 dark:text-gray-300 leading-relaxed">
+              <p><b>Duración:</b> 8–15 s por paso, en <b>bucle perfecto</b> (la pose final = la inicial), repitiendo el conteo 1–2 veces.</p>
+              <p><b>Encuadre:</b> cuerpo entero visible (cabeza a pies), cámara fija frontal, fondo liso, buena luz.</p>
+              <p><b>Velocidad:</b> ritmo de aprendizaje (un poco lento y claro), marcando bien el conteo del género.</p>
+              <p><b>Formato:</b> MP4 (H.264) vertical 1080×1920 o 16:9 1920×1080, o enlace de YouTube.</p>
+              <p><b>Conteo:</b> escribe el <i>conteo</i> exacto abajo (ej. bachata <i>1,2,3 - pausa - 5,6,7 - pausa</i>). Es lo que el sistema usa para el ritmo.</p>
+              <p><b>Módulos:</b> numera los pasos <b>1 → 10</b>. Con 10 pasos se completa una clase; al terminar, crea la siguiente serie (otro nivel o coreografía) empezando de nuevo en el paso 1.</p>
+              <a href="/guia-grabacion-bailanow.pdf" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 mt-1 bg-pink-500 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] hover:bg-pink-600">
+                <Upload className="w-3 h-3 rotate-180" /> Descargar guía PDF para enviar a los bailarines
+              </a>
+            </div>
+          </details>
+
           {/* Formulario añadir/editar paso */}
           <div className="border-t border-gray-100 dark:border-gray-800 pt-4 space-y-3">
             <p className="text-xs font-bold text-pink-600 uppercase">{form.id ? '✏️ Editar paso' : '➕ Nuevo paso'}</p>

@@ -39,6 +39,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { label: 'Eventos Sociales',            icon: <Users className="w-4 h-4" />,     to: '/eventos?cat=social' },
       { label: 'Competiciones',               icon: <Gift className="w-4 h-4" />,      to: '/eventos?cat=competiciones' },
       { label: '🤖 Baila con IA',             icon: <Sparkles className="w-4 h-4" />,  to: '/baila-ia' },
+      { label: '🎬 Estudio Coreográfico',     icon: <Sparkles className="w-4 h-4" />,  to: '/coreografias' },
     ],
   },
   {

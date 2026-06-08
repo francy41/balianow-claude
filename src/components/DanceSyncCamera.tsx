@@ -1,17 +1,13 @@
 /**
- * DanceSyncCamera — Cámara del usuario con detección de pose y overlay de sincronización
- *
- * Sustituye a DanceStage en el modo clase activo.
- * Combina: getUserMedia + MediaPipe pose + DanceSyncOverlay.
- * El hook useDanceGameLoop maneja la lógica del juego externamente;
- * este componente solo captura video y muestra el overlay.
+ * DanceSyncCamera — Cámara con sincronización adaptada a 4 dispositivos
+ * mobile / tablet / desktop / smart TV
  */
-import React, { useRef, useEffect, useState, useCallback, useImperativeHandle, forwardRef } from 'react';
-import { Camera, CameraOff, Loader2, AlertCircle, SwitchCamera, FlipHorizontal2 } from 'lucide-react';
+import React, { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
+import { Camera, CameraOff, Loader2, AlertCircle, SwitchCamera, FlipHorizontal2, Tv2, Smartphone, Wifi } from 'lucide-react';
 import DanceSyncOverlay from './DanceSyncOverlay';
 import type { GamePhase } from '../hooks/useDanceGameLoop';
-import type { SyncScore } from '../lib/poseSync';
-import type { Landmark } from '../lib/poseSync';
+import type { SyncScore, Landmark } from '../lib/poseSync';
+import type { DeviceType } from '../lib/deviceDetect';
 
 export interface DanceSyncCameraHandle {
   videoEl: HTMLVideoElement | null;
@@ -28,29 +24,36 @@ interface Props {
   onCamOff?: () => void;
   camOn: boolean;
   setCamOn: (v: boolean) => void;
+  device?: DeviceType;
+  // ── Modo cámara remota (móvil como webcam) ──
+  remote?: boolean;
+  remoteConnected?: boolean;
+  remoteFrame?: string | null;   // miniatura JPEG (dataURL) recibida del móvil
+  objectFit?: 'cover' | 'contain'; // recortar (cover) o ver completo (contain)
 }
 
 const DanceSyncCamera = forwardRef<DanceSyncCameraHandle, Props>((
-  { phase, countdown, attemptProgress, syncScore, landmarks, label, onCamReady, onCamOff, camOn, setCamOn },
+  { phase, countdown, attemptProgress, syncScore, landmarks, label, onCamReady, onCamOff, camOn, setCamOn,
+    device = 'mobile', remote = false, remoteConnected = false, remoteFrame = null, objectFit = 'cover' },
   ref,
 ) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef    = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [mirror, setMirror] = useState(true);
-  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+  const streamRef   = useRef<MediaStream | null>(null);
+  const [loading, setLoading]     = useState(false);
+  const [error, setError]         = useState<string | null>(null);
+  const [mirror, setMirror]       = useState(true);
+  const [facingMode, setFacingMode] = useState<'user'|'environment'>('user');
   const [hasMultiple, setHasMultiple] = useState(false);
   const [dims, setDims] = useState({ w: 320, h: 180 });
 
   useImperativeHandle(ref, () => ({ videoEl: videoRef.current }));
 
-  // Actualizar dims cuando cambia el contenedor
+  // ResizeObserver para dims del canvas overlay
   useEffect(() => {
     if (!containerRef.current) return;
-    const ro = new ResizeObserver(entries => {
-      const e = entries[0];
+    const ro = new ResizeObserver(es => {
+      const e = es[0];
       setDims({ w: Math.round(e.contentRect.width), h: Math.round(e.contentRect.height) });
     });
     ro.observe(containerRef.current);
@@ -63,10 +66,8 @@ const DanceSyncCamera = forwardRef<DanceSyncCameraHandle, Props>((
     if (videoRef.current) videoRef.current.srcObject = null;
   }, []);
 
-  const startCamera = useCallback(async (mode: 'user' | 'environment' = facingMode) => {
-    setLoading(true);
-    setError(null);
-    stopStream();
+  const startCamera = useCallback(async (mode: 'user'|'environment' = facingMode) => {
+    setLoading(true); setError(null); stopStream();
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: mode, width: { ideal: 1280 }, height: { ideal: 720 } },
@@ -79,11 +80,11 @@ const DanceSyncCamera = forwardRef<DanceSyncCameraHandle, Props>((
         onCamReady?.(videoRef.current);
       }
       setCamOn(true);
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      setHasMultiple(devices.filter(d => d.kind === 'videoinput').length > 1);
+      const devs = await navigator.mediaDevices.enumerateDevices();
+      setHasMultiple(devs.filter(d => d.kind === 'videoinput').length > 1);
     } catch (e: any) {
       const msg = e?.name === 'NotAllowedError'
-        ? 'Permiso de cámara denegado. Actívalo en ajustes del navegador.'
+        ? 'Permiso de cámara denegado. Actívalo en los ajustes del navegador.'
         : 'No se pudo acceder a la cámara.';
       setError(msg); setCamOn(false);
     } finally { setLoading(false); }
@@ -91,8 +92,7 @@ const DanceSyncCamera = forwardRef<DanceSyncCameraHandle, Props>((
 
   const switchCamera = useCallback(() => {
     const next = facingMode === 'user' ? 'environment' : 'user';
-    setFacingMode(next);
-    startCamera(next);
+    setFacingMode(next); startCamera(next);
   }, [facingMode, startCamera]);
 
   const toggleCamera = useCallback(() => {
@@ -102,84 +102,151 @@ const DanceSyncCamera = forwardRef<DanceSyncCameraHandle, Props>((
 
   useEffect(() => () => stopStream(), [stopStream]);
 
+  const isTV = device === 'tv';
   const isSyncing = phase === 'attempt' || phase === 'prepare';
+  const dims2 = dims;
+
+  // ── MODO REMOTO: el móvil es la cámara, aquí solo mostramos el esqueleto + miniatura ──
+  if (remote) {
+    return (
+      <div ref={containerRef} className={`relative w-full overflow-hidden bg-[#0a0a18] ${isTV ? 'h-full rounded-3xl' : 'h-full rounded-2xl'}`}>
+        {/* Miniatura del móvil como fondo (si llega) */}
+        {remoteFrame ? (
+          <img src={remoteFrame} alt="Tu cámara" className={`absolute inset-0 w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'}`} style={{ transform: 'scaleX(-1)' }} />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1a1030] to-[#0a0a18]" />
+        )}
+
+        {/* Esqueleto recibido */}
+        {remoteConnected && (
+          <DanceSyncOverlay
+            landmarks={landmarks} syncScore={syncScore}
+            phase={phase} countdown={countdown} attemptProgress={attemptProgress}
+            width={dims2.w} height={dims2.h} device={device}
+          />
+        )}
+
+        {/* Etiqueta */}
+        {label && (
+          <span className={`absolute top-2 left-2 z-20 bg-black/70 text-white font-bold px-3 py-1 rounded-full ${isTV ? 'text-2xl px-6 py-2' : 'text-[11px]'}`}>{label}</span>
+        )}
+
+        {/* Badge de estado del enlace */}
+        <div className="absolute top-2 right-2 z-20">
+          {remoteConnected ? (
+            <span className={`flex items-center gap-1.5 bg-green-600/80 text-white font-bold rounded-full ${isTV ? 'text-xl px-6 py-3' : 'text-[10px] px-2 py-1'}`}>
+              <Smartphone className={isTV ? 'w-5 h-5' : 'w-3 h-3'} /> Móvil
+            </span>
+          ) : (
+            <span className={`flex items-center gap-1.5 bg-yellow-600/80 text-white font-bold rounded-full ${isTV ? 'text-xl px-6 py-3' : 'text-[10px] px-2 py-1'}`}>
+              <Loader2 className={`${isTV ? 'w-5 h-5' : 'w-3 h-3'} animate-spin`} /> …
+            </span>
+          )}
+        </div>
+
+        {/* Si no hay conexión todavía */}
+        {!remoteConnected && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center px-4">
+            <Wifi className={`text-white/30 ${isTV ? 'w-20 h-20' : 'w-10 h-10'}`} />
+            <p className={`text-white/50 ${isTV ? 'text-2xl' : 'text-sm'}`}>Esperando la cámara de tu móvil…</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ── SMART TV: sin cámara o con webcam externa ──
+  if (isTV && !camOn) {
+    return (
+      <div ref={containerRef} className="relative w-full h-full rounded-3xl overflow-hidden bg-[#0a0a18] flex flex-col items-center justify-center gap-8 border-2 border-white/10">
+        <Tv2 className="w-24 h-24 text-white/30" />
+        <div className="text-center">
+          <p className="text-3xl font-black text-white mb-3">Tu cámara</p>
+          <p className="text-xl text-white/50 mb-8 max-w-md">Conecta una webcam o usa la app desde tu móvil para ver tus movimientos</p>
+        </div>
+        {error && <p className="text-xl text-red-400">{error}</p>}
+        <button
+          onClick={toggleCamera}
+          disabled={loading}
+          className="bg-gradient-to-r from-[#ff3e6c] to-[#ff8c42] text-white font-black px-16 py-8 rounded-3xl text-3xl flex items-center gap-4 focus:ring-4 focus:ring-white focus:outline-none hover:scale-105 transition-transform"
+        >
+          {loading ? <Loader2 className="w-10 h-10 animate-spin" /> : <Camera className="w-10 h-10" />}
+          {loading ? 'Activando…' : 'Activar webcam'}
+        </button>
+        <p className="text-lg text-white/20">La cámara se procesa localmente. Nunca se envía a internet.</p>
+      </div>
+    );
+  }
 
   return (
-    <div ref={containerRef} className="relative w-full aspect-video rounded-2xl overflow-hidden bg-[#0a0a12]">
+    <div ref={containerRef} className={`relative w-full overflow-hidden bg-[#0a0a12] ${isTV ? 'h-full rounded-3xl' : 'h-full rounded-2xl'}`}>
       {/* Etiqueta */}
       {label && (
         <div className="absolute top-2 left-2 z-20">
-          <span className="bg-black/70 text-white text-[11px] font-bold px-2.5 py-1 rounded-full">{label}</span>
+          <span className={`bg-black/70 text-white font-bold px-3 py-1 rounded-full ${isTV ? 'text-2xl px-6 py-2' : 'text-[11px]'}`}>{label}</span>
         </div>
       )}
 
       {camOn ? (
         <>
-          {/* Video del usuario (espejo) */}
           <video
             ref={videoRef}
             autoPlay playsInline muted
-            className="absolute inset-0 w-full h-full object-cover"
+            className={`absolute inset-0 w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'}`}
             style={{ transform: mirror ? 'scaleX(-1)' : 'none' }}
           />
-
-          {/* Overlay de pose + score */}
           <DanceSyncOverlay
-            landmarks={landmarks}
-            syncScore={syncScore}
-            phase={phase}
-            countdown={countdown}
-            attemptProgress={attemptProgress}
-            width={dims.w}
-            height={dims.h}
+            landmarks={landmarks} syncScore={syncScore}
+            phase={phase} countdown={countdown} attemptProgress={attemptProgress}
+            width={dims.w} height={dims.h} device={device}
           />
 
-          {/* Badge LIVE / SYNC */}
+          {/* Badge SYNC / LIVE */}
           <div className="absolute top-2 right-2 z-20">
             {isSyncing ? (
-              <span className="flex items-center gap-1 bg-[#ff3e6c] text-white text-[10px] font-bold px-2 py-1 rounded-full animate-pulse">
+              <span className={`flex items-center gap-1 bg-[#ff3e6c] text-white font-bold rounded-full animate-pulse ${isTV ? 'text-xl px-6 py-3' : 'text-[10px] px-2 py-1'}`}>
                 🎯 SYNC
               </span>
             ) : (
-              <span className="flex items-center gap-1 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded-full">
-                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> LIVE
+              <span className={`flex items-center gap-1.5 bg-red-600 text-white font-bold rounded-full ${isTV ? 'text-xl px-6 py-3' : 'text-[10px] px-2 py-1'}`}>
+                <span className={`bg-white rounded-full animate-pulse ${isTV ? 'w-3 h-3' : 'w-1.5 h-1.5'}`} /> LIVE
               </span>
             )}
           </div>
 
           {/* Controles */}
-          <div className="absolute bottom-2 left-2 z-20 flex gap-1.5">
-            <CtrlBtn onClick={toggleCamera} title="Apagar cámara"><CameraOff className="w-3.5 h-3.5" /></CtrlBtn>
-            <CtrlBtn onClick={() => setMirror(m => !m)} title="Espejo" active={mirror}><FlipHorizontal2 className="w-3.5 h-3.5" /></CtrlBtn>
-            {hasMultiple && <CtrlBtn onClick={switchCamera} title="Cambiar cámara"><SwitchCamera className="w-3.5 h-3.5" /></CtrlBtn>}
+          <div className={`absolute z-20 flex gap-2 ${isTV ? 'bottom-4 left-4 gap-4' : 'bottom-2 left-2 gap-1.5'}`}>
+            <CtrlBtn onClick={toggleCamera} title="Apagar cámara" isTV={isTV}><CameraOff className={isTV ? 'w-7 h-7' : 'w-3.5 h-3.5'} /></CtrlBtn>
+            <CtrlBtn onClick={() => setMirror(m => !m)} title="Espejo" active={mirror} isTV={isTV}><FlipHorizontal2 className={isTV ? 'w-7 h-7' : 'w-3.5 h-3.5'} /></CtrlBtn>
+            {hasMultiple && <CtrlBtn onClick={switchCamera} title="Cambiar cámara" isTV={isTV}><SwitchCamera className={isTV ? 'w-7 h-7' : 'w-3.5 h-3.5'} /></CtrlBtn>}
           </div>
         </>
       ) : (
-        /* Pantalla de "Activa tu cámara" */
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-4 text-center">
+        /* Pantalla de activar cámara */
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-4 text-center gap-3">
           {error ? (
             <>
-              <AlertCircle className="w-10 h-10 text-red-400 mb-3" />
-              <p className="text-red-300 text-sm mb-4 max-w-xs">{error}</p>
+              <AlertCircle className={isTV ? 'w-20 h-20 text-red-400' : 'w-10 h-10 text-red-400'} />
+              <p className={`text-red-300 max-w-xs ${isTV ? 'text-2xl' : 'text-sm'}`}>{error}</p>
             </>
           ) : (
             <>
-              <div className="text-5xl mb-3">📷</div>
-              <p className="text-white/70 text-sm mb-4 max-w-xs">
-                Activa tu cámara para que el sistema detecte tus movimientos y te puntúe en tiempo real
+              <div className={isTV ? 'text-8xl mb-4' : 'text-5xl mb-1'}>📷</div>
+              <p className={`text-white/60 max-w-xs ${isTV ? 'text-2xl mb-6' : 'text-sm mb-3'}`}>
+                Activa tu cámara para que el sistema detecte tus movimientos y te puntúe
               </p>
             </>
           )}
           <button
             onClick={toggleCamera}
             disabled={loading}
-            className="bg-gradient-to-r from-[#ff3e6c] to-[#ff8c42] text-white font-bold px-6 py-3 rounded-2xl flex items-center gap-2 text-sm hover:scale-105 active:scale-95 transition-transform shadow-xl"
+            className={`bg-gradient-to-r from-[#ff3e6c] to-[#ff8c42] text-white font-bold flex items-center gap-2 hover:scale-105 active:scale-95 transition-transform shadow-xl focus:ring-4 focus:ring-white focus:outline-none ${isTV ? 'px-16 py-8 rounded-3xl text-3xl gap-4' : 'px-6 py-3 rounded-2xl text-sm'}`}
           >
             {loading
-              ? <><Loader2 className="w-5 h-5 animate-spin" /> Activando…</>
-              : <><Camera className="w-5 h-5" /> Activar cámara y sincronizar</>}
+              ? <><Loader2 className={isTV ? 'w-10 h-10 animate-spin' : 'w-5 h-5 animate-spin'} /> Activando…</>
+              : <><Camera className={isTV ? 'w-10 h-10' : 'w-5 h-5'} /> Activar cámara y sincronizar</>}
           </button>
-          <p className="text-white/30 text-[10px] mt-3">Cámara procesada localmente. Nunca se sube a internet.</p>
+          <p className={`text-white/25 mt-2 ${isTV ? 'text-lg' : 'text-[10px]'}`}>Procesado localmente. Nunca se sube a internet.</p>
         </div>
       )}
     </div>
@@ -188,9 +255,9 @@ const DanceSyncCamera = forwardRef<DanceSyncCameraHandle, Props>((
 
 DanceSyncCamera.displayName = 'DanceSyncCamera';
 
-const CtrlBtn: React.FC<{ onClick: () => void; title: string; active?: boolean; children: React.ReactNode }> = ({ onClick, title, active, children }) => (
+const CtrlBtn: React.FC<{ onClick: () => void; title: string; active?: boolean; isTV?: boolean; children: React.ReactNode }> = ({ onClick, title, active, isTV, children }) => (
   <button onClick={onClick} title={title}
-    className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 transition-all active:scale-90 ${active ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'}`}>
+    className={`flex items-center justify-center backdrop-blur-md border border-white/20 transition-all active:scale-90 focus:ring-2 focus:ring-white focus:outline-none ${active ? 'bg-pink-500 text-white' : 'bg-black/40 text-white'} ${isTV ? 'w-16 h-16 rounded-2xl' : 'w-8 h-8 rounded-full'}`}>
     {children}
   </button>
 );
