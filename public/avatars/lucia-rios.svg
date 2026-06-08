@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="Lucía Ríos, profesora de bachata">
+  <defs>
+    <radialGradient id="bg" cx="30%" cy="25%" r="90%">
+      <stop offset="0%" stop-color="#ff8c42"/>
+      <stop offset="45%" stop-color="#ff3e6c"/>
+      <stop offset="100%" stop-color="#7b1340"/>
+    </radialGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a0322"/>
+      <stop offset="100%" stop-color="#3a0a2a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <circle cx="200" cy="170" r="170" fill="url(#glow)"/>
+
+  <!-- notas musicales decorativas -->
+  <g fill="#ffffff" opacity="0.18">
+    <circle cx="70" cy="90" r="9"/><rect x="77" y="55" width="4" height="38"/>
+    <circle cx="330" cy="120" r="7"/><rect x="335" y="92" width="3" height="30"/>
+    <circle cx="60" cy="300" r="6"/><rect x="64" y="276" width="3" height="26"/>
+  </g>
+
+  <!-- bailarina (silueta estilizada en pose de bachata) -->
+  <g fill="url(#body)" stroke="#ff8c42" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <!-- cabeza -->
+    <circle cx="205" cy="118" r="26" fill="#2a0820"/>
+    <!-- pelo recogido -->
+    <path d="M183 110 q-14 -34 26 -42 q44 4 30 40 q-16 -16 -30 -14 q-16 -2 -26 16 z" fill="#150114" stroke="none"/>
+    <!-- torso inclinado -->
+    <path d="M205 144 q34 6 30 60 l-12 70 q-22 10 -44 0 l-10 -64 q-2 -56 36 -66 z"/>
+    <!-- brazo levantado (marca el ritmo) -->
+    <path d="M232 168 q40 -22 58 -58 q8 -2 10 6 q-14 44 -56 66 q-8 -4 -12 -14 z"/>
+    <!-- brazo de marco -->
+    <path d="M180 178 q-40 6 -58 36 q2 10 12 8 q34 -22 58 -28 q-4 -10 -12 -16 z"/>
+    <!-- falda en movimiento -->
+    <path d="M179 270 q26 14 50 0 l34 70 q-58 26 -118 4 z" fill="#ff3e6c" stroke="#ffd23f" stroke-width="2"/>
+    <!-- piernas -->
+    <path d="M196 286 l-10 70 q8 6 18 2 l6 -66 z"/>
+    <path d="M216 286 l16 64 q10 2 16 -6 l-22 -62 z"/>
+  </g>
+
+  <!-- nombre -->
+  <g font-family="'Segoe UI', Arial, sans-serif" text-anchor="middle">
+    <text x="200" y="362" font-size="30" font-weight="800" fill="#ffffff">Lucía Ríos</text>
+    <text x="200" y="386" font-size="15" font-weight="600" fill="#ffd9a8" letter-spacing="2">BACHATA · PROFE IA</text>
+  </g>
+</svg>
