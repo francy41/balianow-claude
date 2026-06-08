@@ -17,6 +17,7 @@ import { useI18n } from '../lib/i18n';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { countryFlag, COUNTRIES } from '../lib/countries';
 import WorldLeaderboard from '../components/WorldLeaderboard';
+import DanceProgressPanel from '../components/DanceProgressPanel';
 import LanguageSelector from '../components/LanguageSelector';
 import DanceSyncCamera from '../components/DanceSyncCamera';
 import GameHUD from '../components/GameHUD';
@@ -51,6 +52,7 @@ const DanceFlowPage: React.FC = () => {
   const [choreos, setChoreos] = useState<Choreographer[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeSession, setActiveSession] = useState<Choreographer | null>(null);
+  const [progressRefresh, setProgressRefresh] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -156,6 +158,22 @@ const DanceFlowPage: React.FC = () => {
           )}
         </section>
 
+        {/* MI PROGRESO */}
+        {isAuthenticated && (
+          <section className="mt-10">
+            <div className="bg-[#0e0e14] border border-white/5 rounded-3xl p-5 sm:p-6">
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="w-6 h-6 text-[#ff3e6c]" />
+                <h2 className="font-display font-black text-xl text-white" style={{ fontFamily: "'Bebas Neue', sans-serif", letterSpacing: '0.5px' }}>
+                  Mi progreso
+                </h2>
+              </div>
+              <p className="text-white/40 text-xs mb-5">Tus clases completadas, estrellas y sincronía media 📈</p>
+              <DanceProgressPanel userId={user?.id} refreshKey={progressRefresh} />
+            </div>
+          </section>
+        )}
+
         {/* RANKING DE USUARIOS (no avatares) */}
         <section className="mt-10">
           <div className="bg-[#0e0e14] border border-white/5 rounded-3xl p-5 sm:p-6">
@@ -175,7 +193,7 @@ const DanceFlowPage: React.FC = () => {
       {activeSession && (
         <DanceSessionModal
           choreographer={activeSession}
-          onClose={() => setActiveSession(null)}
+          onClose={() => { setActiveSession(null); setProgressRefresh(k => k + 1); }}
           isAuthenticated={isAuthenticated}
           userId={user?.id}
           userName={user?.name}
@@ -346,6 +364,39 @@ const DanceSessionModal: React.FC<{
       setLessonIdx(game.stepIdx);
     }
   }, [game.stepIdx, game.phase]);
+
+  // Registrar progreso del alumno al superar un paso
+  const loggedStepRef = useRef<string>('');
+  useEffect(() => {
+    if (game.phase !== 'pass' || !userId) return;
+    const key = `${game.stepIdx}-${game.stepResults.length}`;
+    if (loggedStepRef.current === key) return;
+    loggedStepRef.current = key;
+    const last = game.stepResults[game.stepResults.length - 1];
+    void supabase.from('dance_progress').insert({
+      user_id: userId, genre, level, choreographer: choreographer.name,
+      step_name: lessonList[game.stepIdx]?.step_name || `Paso ${game.stepIdx + 1}`,
+      score: last?.score ?? 0,
+      sync: game.lastBreakdown?.sync ?? -1,
+      rhythm: game.lastBreakdown?.rhythm ?? 0,
+      stars: game.stepStars, class_complete: false,
+    });
+  }, [game.phase]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Registrar la clase completa
+  const loggedClassRef = useRef(false);
+  useEffect(() => {
+    if (!game.completed || !userId || loggedClassRef.current) return;
+    loggedClassRef.current = true;
+    const scores = game.stepResults.map(r => r.score);
+    const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+    void supabase.from('dance_progress').insert({
+      user_id: userId, genre, level, choreographer: choreographer.name,
+      step_name: 'Clase completa', score: avg,
+      sync: game.lastBreakdown?.sync ?? -1, rhythm: game.lastBreakdown?.rhythm ?? 0,
+      stars: game.totalStars, class_complete: true,
+    });
+  }, [game.completed]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Cambiar de paso: el profe lo anuncia por voz y reproduce el video del paso
   const goToStep = (idx: number) => {
