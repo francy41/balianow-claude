@@ -1,52 +1,57 @@
 /**
- * DanceSyncOverlay — Canvas superpuesto a la cámara del usuario
- *
- * Dibuja:
- *  - Esqueleto de MediaPipe (33 landmarks conectados)
- *  - Score de sincronización en tiempo real con color (rojo→verde)
- *  - Barra de progreso del intento
- *  - Estado del loop de juego (DEMO / PREPARA / INTENTO / JUICIO)
+ * DanceSyncOverlay — Canvas de pose + score adaptado a todos los dispositivos
+ * mobile / tablet / desktop / smart TV
  */
 import React, { useRef, useEffect, useCallback } from 'react';
 import { LM, type Landmark, type SyncScore } from '../lib/poseSync';
+import type { DeviceType } from '../lib/deviceDetect';
 
 interface Props {
   landmarks: Landmark[] | null;
   syncScore: SyncScore | null;
-  phase: 'idle' | 'demo' | 'prepare' | 'attempt' | 'pass' | 'fail';
-  countdown: number;         // segundos restantes en la fase actual
-  attemptProgress: number;   // 0-1, progreso del intento actual
+  phase: 'idle' | 'demo' | 'prepare' | 'attempt' | 'pass' | 'fail' | 'gameover';
+  countdown: number;
+  attemptProgress: number;
   width: number;
   height: number;
+  device?: DeviceType;
 }
 
-// Conexiones del esqueleto MediaPipe Pose (33 landmarks)
 const CONNECTIONS: [number, number][] = [
   [LM.LEFT_SHOULDER, LM.RIGHT_SHOULDER],
-  [LM.LEFT_SHOULDER, LM.LEFT_ELBOW], [LM.LEFT_ELBOW, LM.LEFT_WRIST],
+  [LM.LEFT_SHOULDER, LM.LEFT_ELBOW],   [LM.LEFT_ELBOW, LM.LEFT_WRIST],
   [LM.RIGHT_SHOULDER, LM.RIGHT_ELBOW], [LM.RIGHT_ELBOW, LM.RIGHT_WRIST],
-  [LM.LEFT_SHOULDER, LM.LEFT_HIP], [LM.RIGHT_SHOULDER, LM.RIGHT_HIP],
+  [LM.LEFT_SHOULDER, LM.LEFT_HIP],     [LM.RIGHT_SHOULDER, LM.RIGHT_HIP],
   [LM.LEFT_HIP, LM.RIGHT_HIP],
-  [LM.LEFT_HIP, LM.LEFT_KNEE], [LM.LEFT_KNEE, LM.LEFT_ANKLE],
+  [LM.LEFT_HIP, LM.LEFT_KNEE],   [LM.LEFT_KNEE, LM.LEFT_ANKLE],
   [LM.RIGHT_HIP, LM.RIGHT_KNEE], [LM.RIGHT_KNEE, LM.RIGHT_ANKLE],
   [LM.LEFT_ANKLE, LM.LEFT_FOOT], [LM.RIGHT_ANKLE, LM.RIGHT_FOOT],
 ];
 
 function scoreToColor(score: number, alpha = 1): string {
-  if (score >= 75) return `rgba(52,211,153,${alpha})`;   // verde
-  if (score >= 50) return `rgba(251,191,36,${alpha})`;   // amarillo
-  return `rgba(239,68,68,${alpha})`;                     // rojo
+  if (score >= 75) return `rgba(52,211,153,${alpha})`;
+  if (score >= 50) return `rgba(251,191,36,${alpha})`;
+  return `rgba(239,68,68,${alpha})`;
 }
 
 const PHASE_LABELS: Record<string, string> = {
-  idle: '', demo: '👀 MÍRAME', prepare: '¡PREPÁRATE!', attempt: '🎯 ¡HAZLO TÚ!',
-  pass: '✅ ¡SUPERADO!', fail: '🔄 ¡VUELVE A INTENTARLO!',
+  idle: '', demo: '👀 MÍRAME', prepare: '¡PREPÁRATE!',
+  attempt: '🎯 ¡HAZLO TÚ!', pass: '✅ ¡SUPERADO!', fail: '🔄 ¡INTÉNTALO DE NUEVO!',
+};
+
+// Escalas por dispositivo
+const SCALE: Record<string, { lineW: number; dotR: number; fontSize: number; scoreFont: number; labelFont: number; cdFont: number; barH: number }> = {
+  mobile:  { lineW: 2.5, dotR: 4,  fontSize: 11, scoreFont: 22, labelFont: 13, cdFont: 60,  barH: 5  },
+  tablet:  { lineW: 3,   dotR: 5,  fontSize: 13, scoreFont: 28, labelFont: 15, cdFont: 72,  barH: 7  },
+  desktop: { lineW: 3,   dotR: 5,  fontSize: 13, scoreFont: 28, labelFont: 15, cdFont: 72,  barH: 7  },
+  tv:      { lineW: 5,   dotR: 10, fontSize: 24, scoreFont: 64, labelFont: 32, cdFont: 160, barH: 14 },
 };
 
 const DanceSyncOverlay: React.FC<Props> = ({
-  landmarks, syncScore, phase, countdown, attemptProgress, width, height,
+  landmarks, syncScore, phase, countdown, attemptProgress, width, height, device = 'mobile',
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const sc = SCALE[device] || SCALE.mobile;
 
   const draw = useCallback(() => {
     const canvas = canvasRef.current;
@@ -59,10 +64,9 @@ const DanceSyncOverlay: React.FC<Props> = ({
     const color = scoreToColor(score);
 
     // ── Esqueleto ──
-    if (landmarks && landmarks.length >= 33) {
-      // Conexiones
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = scoreToColor(score, 0.7);
+    if (landmarks != null && landmarks.length >= 33) {
+      ctx.lineWidth = sc.lineW;
+      ctx.strokeStyle = scoreToColor(score, 0.75);
       for (const [a, b] of CONNECTIONS) {
         const la = landmarks[a], lb = landmarks[b];
         if (!la || !lb) continue;
@@ -72,83 +76,79 @@ const DanceSyncOverlay: React.FC<Props> = ({
         ctx.lineTo(lb.x * width, lb.y * height);
         ctx.stroke();
       }
-      // Puntos (articulaciones)
       ctx.fillStyle = color;
       for (const lm of landmarks) {
         if ((lm.visibility ?? 1) < 0.3) continue;
         ctx.beginPath();
-        ctx.arc(lm.x * width, lm.y * height, 5, 0, Math.PI * 2);
+        ctx.arc(lm.x * width, lm.y * height, sc.dotR, 0, Math.PI * 2);
         ctx.fill();
       }
     }
 
-    // ── Barra de progreso del intento (fondo oscuro) ──
+    // ── Barra de progreso ──
     if (phase === 'attempt' && attemptProgress > 0) {
-      const barH = 6, barY = height - barH - 4, barW = width - 16;
-      ctx.fillStyle = 'rgba(0,0,0,0.4)';
-      ctx.roundRect(8, barY, barW, barH, 3);
+      const bH = sc.barH, bY = height - bH - 6, bW = width - 24;
+      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.roundRect(12, bY, bW, bH, 4);
       ctx.fill();
       ctx.fillStyle = color;
-      ctx.roundRect(8, barY, barW * attemptProgress, barH, 3);
+      ctx.roundRect(12, bY, bW * attemptProgress, bH, 4);
       ctx.fill();
     }
 
-    // ── Score en tiempo real (esquina superior derecha) ──
+    // ── Score (esquina superior derecha) ──
     if (phase === 'attempt' && syncScore) {
-      const s = syncScore.score;
-      ctx.save();
-      ctx.fillStyle = 'rgba(0,0,0,0.55)';
-      ctx.roundRect(width - 70, 8, 62, 38, 8);
+      const boxW = sc.scoreFont * 2.2, boxH = sc.scoreFont * 1.8;
+      const bx = width - boxW - 12, by = 10;
+      ctx.fillStyle = 'rgba(0,0,0,0.6)';
+      ctx.roundRect(bx, by, boxW, boxH, 10);
       ctx.fill();
-      ctx.font = 'bold 22px system-ui';
+      ctx.font = `bold ${sc.scoreFont}px system-ui`;
       ctx.fillStyle = color;
       ctx.textAlign = 'center';
-      ctx.fillText(`${s}`, width - 39, 36);
-      ctx.font = 'bold 10px system-ui';
-      ctx.fillStyle = 'rgba(255,255,255,0.7)';
-      ctx.fillText(syncScore.feedback, width - 39, 46);
-      ctx.restore();
+      ctx.fillText(`${syncScore.score}`, bx + boxW / 2, by + sc.scoreFont * 1.1);
+      ctx.font = `bold ${sc.fontSize}px system-ui`;
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.fillText(syncScore.feedback, bx + boxW / 2, by + sc.scoreFont * 1.55);
     }
 
-    // ── Etiqueta de fase (centro superior) ──
+    // ── Etiqueta de fase ──
     const label = PHASE_LABELS[phase];
     if (label) {
-      ctx.save();
-      ctx.font = 'bold 15px system-ui';
+      ctx.font = `bold ${sc.labelFont}px system-ui`;
       ctx.textAlign = 'center';
       const tw = ctx.measureText(label).width;
-      ctx.fillStyle = 'rgba(0,0,0,0.6)';
-      ctx.roundRect(width / 2 - tw / 2 - 10, 8, tw + 20, 30, 6);
+      const pad = sc.labelFont * 0.6;
+      ctx.fillStyle = 'rgba(0,0,0,0.65)';
+      ctx.roundRect(width / 2 - tw / 2 - pad, 10, tw + pad * 2, sc.labelFont * 1.8, 8);
       ctx.fill();
       ctx.fillStyle = phase === 'pass' ? '#34d399' : phase === 'fail' ? '#f87171' : '#fff';
-      ctx.fillText(label, width / 2, 29);
-      ctx.restore();
+      ctx.fillText(label, width / 2, 10 + sc.labelFont * 1.3);
     }
 
-    // ── Cuenta atrás (en PREPARE y ATTEMPT) ──
+    // ── Cuenta atrás ──
     if ((phase === 'prepare' || phase === 'attempt') && countdown > 0) {
-      ctx.save();
-      ctx.font = `bold ${phase === 'prepare' ? 64 : 28}px system-ui`;
+      const fontSize = phase === 'prepare' ? sc.cdFont : sc.cdFont * 0.5;
+      const cy = phase === 'prepare' ? height / 2 + fontSize * 0.3 : sc.labelFont * 3.5;
+      ctx.font = `bold ${fontSize}px system-ui`;
       ctx.textAlign = 'center';
-      ctx.fillStyle = phase === 'prepare' ? '#fbbf24' : 'rgba(255,255,255,0.8)';
-      ctx.shadowColor = '#000';
-      ctx.shadowBlur = 8;
-      ctx.fillText(String(countdown), width / 2, phase === 'prepare' ? height / 2 + 20 : 72);
-      ctx.restore();
+      ctx.fillStyle = phase === 'prepare' ? '#fbbf24' : 'rgba(255,255,255,0.85)';
+      ctx.shadowColor = '#000'; ctx.shadowBlur = 12;
+      ctx.fillText(String(countdown), width / 2, cy);
+      ctx.shadowBlur = 0;
     }
 
-    // ── PASS: flash verde ──
+    // ── Flash PASS ──
     if (phase === 'pass') {
       ctx.fillStyle = 'rgba(52,211,153,0.18)';
       ctx.fillRect(0, 0, width, height);
     }
-
-    // ── FAIL: flash rojo suave ──
+    // ── Flash FAIL ──
     if (phase === 'fail') {
       ctx.fillStyle = 'rgba(239,68,68,0.12)';
       ctx.fillRect(0, 0, width, height);
     }
-  }, [landmarks, syncScore, phase, countdown, attemptProgress, width, height]);
+  }, [landmarks, syncScore, phase, countdown, attemptProgress, width, height, sc]);
 
   useEffect(() => {
     const id = requestAnimationFrame(draw);

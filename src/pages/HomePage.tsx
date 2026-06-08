@@ -1246,6 +1246,9 @@ const HomePage: React.FC = () => {
       {/* ── SPONSORS SLIDER ── */}
       <SponsorsSlider navigate={navigate} />
 
+      {/* ── DANCEFLOW — Academia IA (debajo de Patrocinadores) ── */}
+      <DanceFlowPromo />
+
       {/* ── ULTRAMODERN SMART SEARCH ── */}
       <UltraModernSearchSection navigate={navigate} categories={DEFAULT_CATEGORIES} />
 
@@ -1377,9 +1380,6 @@ const HomePage: React.FC = () => {
 
       {/* ── EN DIRECTO AHORA ── */}
       <LiveNowHomeSection navigate={navigate} />
-
-      {/* ── DANCEFLOW — Academia IA ── */}
-      <DanceFlowPromo />
 
       {/* ── NEWSLETTER ── */}
       <section className="mx-3 sm:mx-4 mt-6">

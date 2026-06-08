@@ -9,7 +9,7 @@
  *  - Ranking mundial (WorldLeaderboard)
  */
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { Sparkles, Loader2, Star, X, Send, Trophy, Globe, Play, Zap } from 'lucide-react';
+import { Sparkles, Loader2, Star, X, Trophy, Globe, Play, Zap } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/appStore';
 import { useUIStore } from '../store/appStore';
@@ -19,9 +19,14 @@ import { countryFlag, COUNTRIES } from '../lib/countries';
 import WorldLeaderboard from '../components/WorldLeaderboard';
 import LanguageSelector from '../components/LanguageSelector';
 import DanceSyncCamera from '../components/DanceSyncCamera';
+import GameHUD from '../components/GameHUD';
+import RemoteCameraPairing from '../components/RemoteCameraPairing';
 import { useDanceGameLoop } from '../hooks/useDanceGameLoop';
+import { useRemoteCamera } from '../hooks/useRemoteCamera';
+import { useDeviceType, btnSizes, textSizes } from '../lib/deviceDetect';
 import { speak, stopSpeaking, createRecognizer, isRecognitionSupported, type Recognizer } from '../lib/speech';
-import { Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
+import { unlockAudio } from '../lib/gameAudio';
+import { Mic, MicOff, Volume2, VolumeX, RotateCcw } from 'lucide-react';
 
 interface Choreographer {
   id: string; name: string; mode: string; age_range: string; specialty: string[];
@@ -197,6 +202,13 @@ const DanceSessionModal: React.FC<{
   addToast: (t: any) => void;
 }> = ({ choreographer, onClose, isAuthenticated, userId, userName, userCountry, addToast }) => {
   const { t, lang } = useI18n();
+  // Detección de dispositivo
+  const device = useDeviceType();
+  const ts = textSizes[device];
+  const bs = btnSizes[device];
+  const isTV = device === 'tv';
+  const isMobile = device === 'mobile';
+
   const [genre, setGenre] = useState(choreographer.specialty?.[0] || 'Salsa');
   const [level, setLevel] = useState<'principiante' | 'intermedio' | 'avanzado'>('principiante');
   const [started, setStarted] = useState(false);
@@ -207,12 +219,13 @@ const DanceSessionModal: React.FC<{
   const [sessionPoints, setSessionPoints] = useState(0);
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
   const [scenario, setScenario] = useState<Scenario | null>(null);
-  const [lastStep, setLastStep] = useState<string>('');
   // Lecciones (pasos con videos reales en secuencia)
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [lessonIdx, setLessonIdx] = useState(0);
   // Voz
   const [voiceOn, setVoiceOn] = useState(true);
+  const voiceEnabledRef = useRef(true);           // ref para el game loop (sin re-renders)
+  useEffect(() => { voiceEnabledRef.current = voiceOn; }, [voiceOn]);
   const [speaking, setSpeaking] = useState(false);
   const [listening, setListening] = useState(false);
   const recognizerRef = useRef<Recognizer | null>(null);
@@ -220,6 +233,14 @@ const DanceSessionModal: React.FC<{
   // Cámara del usuario (para el game loop)
   const userVideoRef = useRef<HTMLVideoElement>(null);
   const [userCamOn, setUserCamOn] = useState(false);
+
+  // ── Fuente de cámara: este dispositivo o el móvil como webcam ──
+  // En TV sugerimos el móvil por defecto; en el resto, la cámara local.
+  const [camSource, setCamSource] = useState<'local' | 'remote'>('local');
+  const remoteCam = useRemoteCamera(camSource === 'remote');
+  const remoteActive = camSource === 'remote';
+  // Pre-seleccionar móvil como cámara en Smart TV (no suele tener webcam)
+  useEffect(() => { if (device === 'tv') setCamSource('remote'); }, [device]);
 
   // Cargar escenarios
   useEffect(() => {
@@ -268,7 +289,9 @@ const DanceSessionModal: React.FC<{
   // ── GAME LOOP DE SINCRONIZACIÓN ───────────────────────────────
   const game = useDanceGameLoop({
     videoRef: userVideoRef,
-    camOn: userCamOn,
+    camOn: remoteActive ? remoteCam.connected : userCamOn,
+    remote: remoteActive,
+    remoteLandmarksRef: remoteCam.landmarksRef,
     genre,
     lang,
     userName: userName || 'crack',
@@ -277,6 +300,7 @@ const DanceSessionModal: React.FC<{
     stepName: (i) => lessonList[i]?.step_name || `Paso ${i + 1}`,
     stepDescription: (i) => lessonList[i]?.description || '',
     stepCountCue: (i) => lessonList[i]?.count_cue || '',
+    voiceEnabledRef,                                // ✅ FIX: conecta voiceOn al game loop
     onStepPass: (idx, pts) => {
       setSessionPoints(p => p + pts);
       if (userId) {
@@ -288,6 +312,9 @@ const DanceSessionModal: React.FC<{
     },
     onClassComplete: (total, results) => {
       addToast({ type: 'success', message: `🏆 ¡Clase completa! +${total} puntos` });
+    },
+    onGameOver: (score) => {
+      addToast({ type: 'error', message: `💀 Game Over — ${score} puntos acumulados` });
     },
   });
 
@@ -310,12 +337,18 @@ const DanceSessionModal: React.FC<{
       l.count_cue ? `Cuenta: ${l.count_cue}.` : '',
       l.description || '',
     ].filter(Boolean).join(' ');
-    setLastStep(cue);
     speakReply(cue);
   };
 
   const startSession = async () => {
     if (!isAuthenticated) { addToast({ type: 'warning', message: t('df.loginToCompete') }); return; }
+    // ✅ Desbloquear AudioContext Y pre-calentar speechSynthesis ANTES de cualquier async
+    unlockAudio();
+    if ('speechSynthesis' in window) {
+      const warm = new SpeechSynthesisUtterance('');
+      warm.volume = 0;
+      speechSynthesis.speak(warm);
+    }
     setStarted(true);
     setLessonIdx(0);
     // Arrancar el game loop si hay lecciones (pasos reales)
@@ -353,13 +386,11 @@ const DanceSessionModal: React.FC<{
           ? `¡Hola ${userName || 'crack'}! Soy ${choreographer.name} 💃 ¿List@ para bailar ${genre}? Empecemos con un calentamiento suave... ¿cómo te sientes hoy?`
           : 'Buenísimo, sigue así. (⚠ Configura ANTHROPIC_API_KEY en Supabase para respuestas IA completas)';
         setMessages(m => [...m, { role: 'assistant', content: fallback }]);
-        setLastStep(fallback);
         speakReply(fallback);
         setSending(false);
         return;
       }
       setMessages(m => [...m, { role: 'assistant', content: json.reply }]);
-      setLastStep(json.reply);
       speakReply(json.reply);           // 🔊 el avatar habla la respuesta
       setSessionPoints(p => p + 25);
     } catch (e: any) {
@@ -415,224 +446,309 @@ const DanceSessionModal: React.FC<{
     onClose();
   };
 
+  // ── Layout adaptado a dispositivo ──────────────────────────────
+  // TV: fullscreen, texto enorme, botones grandes navegables con mando
+  // Desktop: modal grande 55/45 sin scroll
+  // Tablet: modal, lado a lado 50/50
+  // Mobile: fullscreen, stack vertical
+
+  const wrapCls = isTV
+    ? 'fixed inset-0 z-[100] bg-[#060608] flex flex-col'
+    : 'fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4';
+
+  const innerCls = isTV
+    ? 'flex-1 flex flex-col w-full h-full overflow-hidden'
+    : `bg-white dark:bg-[#0e0e14] w-full ${started ? 'sm:max-w-5xl' : 'sm:max-w-lg'} rounded-t-3xl sm:rounded-3xl max-h-[96vh] flex flex-col overflow-hidden transition-all`;
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4">
-      <div className={`bg-white dark:bg-[#0e0e14] w-full ${started ? 'sm:max-w-4xl' : 'sm:max-w-lg'} rounded-t-3xl sm:rounded-3xl max-h-[96vh] flex flex-col overflow-hidden transition-all`}>
-        {/* Header */}
-        <div className={`relative bg-gradient-to-br ${choreographer.gradient} text-white p-4 flex items-center gap-3`}>
+    <div className={wrapCls}>
+      <div className={innerCls}>
+
+        {/* ── HEADER ── */}
+        <div className={`relative bg-gradient-to-br ${choreographer.gradient} text-white flex items-center gap-3 flex-shrink-0 ${isTV ? 'p-6' : 'p-4'}`}>
           {choreographer.avatar_url
-            ? <img src={choreographer.avatar_url} alt={choreographer.name} className="w-12 h-12 rounded-full object-cover border-2 border-white/40" />
-            : <span className="text-4xl">{choreographer.avatar_emoji}</span>}
+            ? <img src={choreographer.avatar_url} alt={choreographer.name} className={`rounded-full object-cover border-2 border-white/40 ${isTV ? 'w-20 h-20' : 'w-12 h-12'}`} />
+            : <span className={isTV ? 'text-6xl' : 'text-4xl'}>{choreographer.avatar_emoji}</span>}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h3 className="font-black text-lg truncate">{choreographer.name}</h3>
-              {started && <span className="flex items-center gap-1 text-[10px] bg-green-500 px-2 py-0.5 rounded-full flex-shrink-0"><span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> {t('df.live')}</span>}
+              <h3 className={`font-black truncate ${isTV ? 'text-4xl' : 'text-lg'}`}>{choreographer.name}</h3>
+              {started && (
+                <span className={`flex items-center gap-1 bg-green-500 rounded-full flex-shrink-0 ${isTV ? 'text-base px-4 py-1' : 'text-[10px] px-2 py-0.5'}`}>
+                  <span className="w-2 h-2 bg-white rounded-full animate-pulse" /> {t('df.live')}
+                </span>
+              )}
             </div>
-            <p className="text-white/80 text-xs truncate">{choreographer.personality}</p>
+            <p className={`text-white/80 truncate ${isTV ? 'text-xl' : 'text-xs'}`}>{choreographer.personality}</p>
           </div>
-          <LanguageSelector compact />
-          {started && sessionPoints > 0 && (
-            <div className="text-right flex-shrink-0">
-              <p className="text-2xl font-black leading-none">{sessionPoints}</p>
-              <p className="text-[9px] opacity-80">{t('df.points')}</p>
+          {!isTV && <LanguageSelector compact />}
+          {started && game.lives > 0 && (
+            <div className="flex items-center gap-0.5 flex-shrink-0">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <span key={i} className={`text-sm transition-all ${i < game.lives ? '' : 'opacity-20'}`}>
+                  {i < game.lives ? '❤️' : '🖤'}
+                </span>
+              ))}
             </div>
           )}
-          <button onClick={started ? endSession : onClose} className="p-1.5 hover:bg-white/20 rounded-lg flex-shrink-0"><X className="w-5 h-5" /></button>
+          <button
+            onClick={started ? endSession : onClose}
+            className={`hover:bg-white/20 rounded-xl flex-shrink-0 flex items-center justify-center focus:ring-2 focus:ring-white focus:outline-none ${isTV ? 'w-16 h-16' : 'p-1.5'}`}
+          >
+            <X className={isTV ? 'w-10 h-10' : 'w-5 h-5'} />
+          </button>
         </div>
 
+        {/* ── SETUP (antes de iniciar) ── */}
         {!started ? (
-          /* SETUP */
-          <div className="p-5 space-y-4 overflow-y-auto">
+          <div className={`overflow-y-auto ${isTV ? 'flex-1 p-12 space-y-10' : 'p-5 space-y-4'}`}>
+
+            {/* Género */}
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase block mb-2">{t('df.specialty')}</label>
-              <div className="flex flex-wrap gap-2">
+              <label className={`font-bold text-gray-500 uppercase block mb-3 ${ts.small}`}>{t('df.specialty')}</label>
+              <div className="flex flex-wrap gap-3">
                 {(choreographer.specialty || []).map(s => (
                   <button key={s} onClick={() => setGenre(s)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold border ${genre === s ? 'bg-pink-500 text-white border-pink-500' : 'border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300'}`}>{s}</button>
+                    className={`rounded-full font-bold border transition-all focus:ring-2 focus:ring-pink-500 focus:outline-none ${isTV ? 'px-8 py-4 text-2xl' : 'px-3 py-1.5 text-xs'} ${genre === s ? 'bg-pink-500 text-white border-pink-500' : 'border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300'}`}>
+                    {s}
+                  </button>
                 ))}
               </div>
             </div>
 
             {/* Nivel */}
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase block mb-2">📊 Tu nivel</label>
-              <div className="flex gap-2">
+              <label className={`font-bold text-gray-500 uppercase block mb-3 ${ts.small}`}>📊 Tu nivel</label>
+              <div className="flex gap-3">
                 {(['principiante', 'intermedio', 'avanzado'] as const).map(l => (
                   <button key={l} onClick={() => setLevel(l)}
-                    className={`flex-1 px-3 py-2 rounded-xl text-xs font-bold border capitalize transition-all ${level === l ? 'bg-pink-500 text-white border-pink-500' : 'border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300'}`}>{l}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Escenario / pista de baile */}
-            <div>
-              <label className="text-xs font-bold text-gray-500 uppercase block mb-2">🪩 Pista de baile</label>
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                {scenarios.map(s => (
-                  <button key={s.id} onClick={() => setScenario(s)}
-                    className={`relative rounded-xl overflow-hidden h-16 flex flex-col items-center justify-center transition-all ${scenario?.id === s.id ? 'ring-2 ring-pink-500 scale-105' : 'opacity-80 hover:opacity-100'}`}
-                    style={{ backgroundImage: `linear-gradient(${s.gradient})` }}>
-                    <span className="text-2xl">{s.emoji}</span>
-                    <span className="text-white text-[8px] font-bold text-center px-1 leading-tight drop-shadow">{s.name}</span>
-                    {s.premium && <span className="absolute top-0.5 right-0.5 text-[7px] bg-yellow-400 text-yellow-900 px-1 rounded font-bold">PRO</span>}
+                    className={`flex-1 rounded-xl font-bold border capitalize transition-all focus:ring-2 focus:ring-pink-500 focus:outline-none ${isTV ? 'py-6 text-2xl' : 'px-3 py-2 text-xs'} ${level === l ? 'bg-pink-500 text-white border-pink-500' : 'border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300'}`}>
+                    {l}
                   </button>
                 ))}
               </div>
             </div>
 
+            {/* Escenario */}
             <div>
-              <label className="text-xs font-bold text-gray-500 uppercase block mb-2">🏳️ {t('df.yourRank')} — País</label>
-              <select value={country} onChange={e => setCountry(e.target.value)} className="input-field">
-                {COUNTRIES.map(c => <option key={c.code} value={c.code}>{countryFlag(c.code)} {c.name}</option>)}
-              </select>
+              <label className={`font-bold text-gray-500 uppercase block mb-3 ${ts.small}`}>🪩 Pista de baile</label>
+              <div className={`grid gap-3 ${isTV ? 'grid-cols-4' : 'grid-cols-3 sm:grid-cols-5'}`}>
+                {scenarios.map(s => (
+                  <button key={s.id} onClick={() => setScenario(s)}
+                    className={`relative rounded-xl overflow-hidden flex flex-col items-center justify-center transition-all focus:ring-2 focus:ring-pink-500 focus:outline-none ${isTV ? 'h-32' : 'h-16'} ${scenario?.id === s.id ? 'ring-2 ring-pink-500 scale-105' : 'opacity-80 hover:opacity-100'}`}
+                    style={{ backgroundImage: `linear-gradient(${s.gradient})` }}>
+                    <span className={isTV ? 'text-5xl' : 'text-2xl'}>{s.emoji}</span>
+                    <span className={`text-white font-bold text-center px-1 leading-tight drop-shadow ${isTV ? 'text-lg' : 'text-[8px]'}`}>{s.name}</span>
+                    {s.premium && <span className={`absolute top-1 right-1 bg-yellow-400 text-yellow-900 px-1 rounded font-bold ${isTV ? 'text-sm' : 'text-[7px]'}`}>PRO</span>}
+                  </button>
+                ))}
+              </div>
             </div>
-            <button onClick={startSession} disabled={!scenario} className="btn-orange w-full flex items-center justify-center gap-2">
-              <Play className="w-5 h-5" /> {t('df.start')}
-            </button>
-            {!isAuthenticated && <p className="text-[11px] text-center text-orange-500">{t('df.loginToCompete')}</p>}
-          </div>
-        ) : (
-          /* CLASE VIRTUAL: profe baila + tu cámara + voz */
-          <div className="flex-1 overflow-y-auto bg-[#060608]">
-            {/* Stack vertical en móvil (paneles grandes), lado a lado en desktop */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2">
-              {/* ── PROFE (arriba en móvil) ── */}
+
+            {/* Fuente de cámara */}
+            <div>
+              <label className={`font-bold text-gray-500 uppercase block mb-3 ${ts.small}`}>📷 ¿Qué cámara usar?</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => setCamSource('local')}
+                  className={`rounded-xl font-bold border transition-all focus:ring-2 focus:ring-pink-500 focus:outline-none flex flex-col items-center gap-1 ${isTV ? 'py-6 text-xl' : 'py-3 text-xs'} ${camSource === 'local' ? 'bg-pink-500 text-white border-pink-500' : 'border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300'}`}>
+                  <span className={isTV ? 'text-3xl' : 'text-xl'}>💻</span>
+                  Esta cámara / webcam
+                </button>
+                <button
+                  onClick={() => setCamSource('remote')}
+                  className={`rounded-xl font-bold border transition-all focus:ring-2 focus:ring-pink-500 focus:outline-none flex flex-col items-center gap-1 ${isTV ? 'py-6 text-xl' : 'py-3 text-xs'} ${camSource === 'remote' ? 'bg-pink-500 text-white border-pink-500' : 'border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300'}`}>
+                  <span className={isTV ? 'text-3xl' : 'text-xl'}>📱</span>
+                  Mi móvil como cámara
+                </button>
+              </div>
+            </div>
+
+            {/* Emparejamiento del móvil (si se eligió esa fuente) */}
+            {remoteActive && (
+              <div className="bg-[#0a0a18] border border-pink-500/20 rounded-2xl p-5">
+                <RemoteCameraPairing
+                  code={remoteCam.code}
+                  camUrl={remoteCam.camUrl}
+                  connected={remoteCam.connected}
+                  device={isTV ? 'tv' : 'mobile'}
+                  onCancel={() => setCamSource('local')}
+                />
+              </div>
+            )}
+
+            {/* País */}
+            {!isTV && (
               <div>
-                <p className="text-[11px] font-bold text-white/70 mb-1 px-1 flex items-center gap-1.5">
+                <label className={`font-bold text-gray-500 uppercase block mb-2 ${ts.small}`}>🏳️ {t('df.yourRank')} — País</label>
+                <select value={country} onChange={e => setCountry(e.target.value)} className="input-field">
+                  {COUNTRIES.map(c => <option key={c.code} value={c.code}>{countryFlag(c.code)} {c.name}</option>)}
+                </select>
+              </div>
+            )}
+
+            {/* Botón iniciar */}
+            <button
+              onClick={startSession}
+              disabled={!scenario || (remoteActive && !remoteCam.connected)}
+              className={`w-full flex items-center justify-center gap-3 font-black bg-gradient-to-r from-[#ff3e6c] to-[#ff8c42] text-white hover:scale-[1.02] active:scale-[0.98] transition-transform disabled:opacity-40 focus:ring-4 focus:ring-white focus:outline-none ${bs}`}
+            >
+              <Play className={isTV ? 'w-10 h-10' : 'w-5 h-5'} />
+              {remoteActive && !remoteCam.connected ? 'Conecta tu móvil para empezar' : t('df.start')}
+            </button>
+            {!isAuthenticated && (
+              <p className={`text-center text-orange-500 ${ts.small}`}>{t('df.loginToCompete')}</p>
+            )}
+          </div>
+
+        ) : (
+          /* ── CLASE VIRTUAL ── */
+          <div className="flex-1 overflow-hidden bg-[#060608] flex flex-col">
+
+            {/* Paneles profe + cámara — SIEMPRE ambos visibles (lado a lado) */}
+            <div className={`flex-1 grid gap-2 p-2 min-h-0 ${
+              isTV ? 'grid-cols-[60%_40%]' : 'grid-cols-2'
+            }`}>
+
+              {/* ── PROFE ── */}
+              <div className="flex flex-col gap-1 min-h-0">
+                <p className={`font-bold text-white/70 px-1 flex items-center gap-2 flex-shrink-0 ${ts.small}`}>
                   <span className="w-2 h-2 rounded-full bg-[#ff8c42]" /> EL PROFE
-                  {currentLesson && <span className="text-white/40">· {currentLesson.step_name}</span>}
+                  {currentLesson && <span className="text-white/40 truncate">· {currentLesson.step_name}</span>}
                 </p>
-                <div className="relative rounded-2xl overflow-hidden bg-black aspect-video">
+                <div className="relative rounded-2xl overflow-hidden bg-black flex-1 min-h-0">
                   {profeVideoUrl ? (
                     isYouTube(profeVideoUrl) ? (
-                      <iframe
-                        key={profeVideoUrl}
-                        src={ytEmbed(profeVideoUrl)}
-                        className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen
-                        title={choreographer.name}
-                      />
+                      <iframe key={profeVideoUrl} src={ytEmbed(profeVideoUrl)}
+                        className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen title={choreographer.name} />
                     ) : (
                       <video key={profeVideoUrl} src={profeVideoUrl} className="w-full h-full object-cover" autoPlay loop playsInline controls />
                     )
                   ) : choreographer.avatar_url ? (
                     <img src={choreographer.avatar_url} alt={choreographer.name} className="w-full h-full object-cover" />
                   ) : (
-                    <div className={`w-full h-full bg-gradient-to-br ${choreographer.gradient} flex flex-col items-center justify-center`}>
-                      <span className={`text-7xl ${speaking ? 'animate-bounce' : ''}`}>{choreographer.avatar_emoji}</span>
+                    <div className={`w-full h-full bg-gradient-to-br ${choreographer.gradient} flex items-center justify-center`}>
+                      <span className={`${speaking ? 'animate-bounce' : ''} ${isTV ? 'text-[12rem]' : 'text-7xl'}`}>{choreographer.avatar_emoji}</span>
                     </div>
                   )}
-                  <span className="absolute top-2 left-2 bg-black/70 text-white text-[11px] font-bold px-2.5 py-1 rounded-full z-10">
+                  <span className={`absolute top-2 left-2 bg-black/70 text-white font-bold px-2.5 py-1 rounded-full z-10 ${isTV ? 'text-xl px-5 py-2' : 'text-[11px]'}`}>
                     👨‍🏫 {choreographer.name}
                   </span>
                   {currentLesson?.count_cue && (
-                    <span className="absolute bottom-2 right-2 bg-black/70 text-[#ff8c42] text-[10px] font-bold px-2 py-1 rounded-full z-10">
+                    <span className={`absolute bottom-2 right-2 bg-black/70 text-[#ff8c42] font-bold px-2 py-1 rounded-full z-10 ${isTV ? 'text-xl px-5 py-2' : 'text-[10px]'}`}>
                       🎵 {currentLesson.count_cue}
                     </span>
                   )}
                   {speaking && (
-                    <span className="absolute bottom-2 left-2 flex items-center gap-1 bg-[#ff3e6c] text-white text-[10px] font-bold px-2 py-1 rounded-full animate-pulse z-10">
-                      <Volume2 className="w-3 h-3" /> Hablando
+                    <span className={`absolute bottom-2 left-2 flex items-center gap-1 bg-[#ff3e6c] text-white font-bold px-2 py-1 rounded-full animate-pulse z-10 ${isTV ? 'text-xl px-5 py-2' : 'text-[10px]'}`}>
+                      <Volume2 className={isTV ? 'w-6 h-6' : 'w-3 h-3'} /> Hablando
                     </span>
                   )}
                 </div>
                 {/* Navegación de pasos */}
                 {lessonList.length > 0 && (
-                  <div className="flex items-center gap-2 mt-2">
+                  <div className={`flex items-center gap-2 flex-shrink-0 ${isTV ? 'gap-4' : ''}`}>
                     <button onClick={() => goToStep(lessonIdx - 1)} disabled={lessonIdx === 0}
-                      className="px-3 py-2 rounded-xl bg-white/10 text-white text-xs font-bold disabled:opacity-30">← Anterior</button>
-                    <span className="flex-1 text-center text-[11px] text-white/60 font-bold">
-                      Paso {lessonIdx + 1} / {lessonList.length}
+                      className={`bg-white/10 text-white font-bold rounded-xl disabled:opacity-30 focus:ring-2 focus:ring-white focus:outline-none ${isTV ? 'px-8 py-4 text-xl' : 'px-3 py-2 text-xs'}`}>
+                      ← Anterior
+                    </button>
+                    <span className={`flex-1 text-center text-white/60 font-bold ${isTV ? 'text-2xl' : 'text-[11px]'}`}>
+                      Paso {lessonIdx + 1}/{lessonList.length}
                     </span>
                     <button onClick={() => goToStep(lessonIdx + 1)} disabled={lessonIdx >= lessonList.length - 1}
-                      className="px-3 py-2 rounded-xl bg-gradient-to-r from-[#ff3e6c] to-[#ff8c42] text-white text-xs font-bold disabled:opacity-30">Siguiente paso →</button>
+                      className={`bg-gradient-to-r from-[#ff3e6c] to-[#ff8c42] text-white font-bold rounded-xl disabled:opacity-30 focus:ring-2 focus:ring-white focus:outline-none ${isTV ? 'px-8 py-4 text-xl' : 'px-3 py-2 text-xs'}`}>
+                      Siguiente →
+                    </button>
                   </div>
                 )}
               </div>
 
-              {/* ── TÚ (abajo en móvil) — cámara con sincronización ── */}
+              {/* ── TÚ — cámara con sync + GameHUD ── */}
               {scenario && (
-                <div>
-                  <p className="text-[11px] font-bold text-white/70 mb-1 px-1 flex items-center gap-1.5">
+                <div className="flex flex-col gap-1 min-h-0">
+                  <p className={`font-bold text-white/70 px-1 flex items-center gap-2 flex-shrink-0 ${ts.small}`}>
                     <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" /> TÚ — sigue los pasos
+                    {remoteActive && <span className={`text-pink-400 font-bold ${isTV ? 'text-base' : 'text-[9px]'}`}>📱 móvil</span>}
                     {game.poseLandmarkerReady && (
-                      <span className="text-[9px] text-green-400 font-bold">● SYNC ACTIVO</span>
+                      <span className={`text-green-400 font-bold ${isTV ? 'text-base' : 'text-[9px]'}`}>● SYNC</span>
                     )}
                   </p>
-                  <DanceSyncCamera
-                    phase={game.phase}
-                    countdown={game.countdown}
-                    attemptProgress={game.attemptProgress}
-                    syncScore={game.syncScore}
-                    landmarks={game.landmarks}
-                    label="🟢 TÚ"
-                    camOn={userCamOn}
-                    setCamOn={setUserCamOn}
-                    onCamReady={(video) => { (userVideoRef as any).current = video; }}
-                  />
-                  {/* Score en tiempo real + puntos de sesión */}
-                  {game.sessionScore > 0 && (
-                    <div className="flex items-center justify-between mt-1 px-1">
-                      <span className="text-[11px] text-white/60">
-                        Paso {game.stepIdx + 1}/{lessonList.length}
-                        {game.attemptCount > 0 && ` · Intento ${game.attemptCount + 1}`}
-                      </span>
-                      <span className="text-[11px] text-[#ff8c42] font-black flex items-center gap-1">
-                        <Zap className="w-3 h-3" /> {game.sessionScore} pts
-                      </span>
-                    </div>
+                  {/* Contenedor relativo para cámara + HUD encima */}
+                  <div className="flex-1 min-h-0 relative">
+                    <DanceSyncCamera
+                      phase={game.phase} countdown={game.countdown}
+                      attemptProgress={game.attemptProgress} syncScore={game.syncScore}
+                      landmarks={game.landmarks} label="🟢 TÚ"
+                      camOn={userCamOn} setCamOn={setUserCamOn}
+                      onCamReady={(video) => { (userVideoRef as any).current = video; }}
+                      device={device}
+                      remote={remoteActive}
+                      remoteConnected={remoteCam.connected}
+                      remoteFrame={remoteCam.frame}
+                    />
+                    {/* 🎮 HUD superpuesto sobre la cámara */}
+                    <GameHUD
+                      phase={game.phase}
+                      lives={game.lives}
+                      combo={game.combo}
+                      comboMultiplier={game.comboMultiplier}
+                      stepStars={game.stepStars}
+                      totalStars={game.totalStars}
+                      sessionScore={game.sessionScore}
+                      stepIdx={game.stepIdx}
+                      stepCount={lessonList.length || 1}
+                      syncScore={game.syncScore?.score ?? null}
+                      device={device}
+                      userName={userName}
+                      onRestart={() => game.resetGame()}
+                    />
+                  </div>
+                  {/* Intento actual (subtítulo pequeño) */}
+                  {game.attemptCount > 0 && (
+                    <p className={`text-center text-white/50 flex-shrink-0 ${isTV ? 'text-lg' : 'text-[10px]'}`}>
+                      Intento {game.attemptCount + 1}
+                    </p>
                   )}
                 </div>
               )}
             </div>
 
-            {/* Instrucción del profe (subtítulo grande tipo karaoke) */}
-            {lastStep && (
-              <div className="mx-2 mb-2 bg-gradient-to-r from-[#ff3e6c]/10 to-[#a855f7]/10 border border-[#ff3e6c]/20 rounded-xl px-4 py-3">
-                <p className="text-[10px] text-[#ff8c42] font-bold uppercase tracking-wider mb-0.5 flex items-center gap-1">
-                  {speaking ? <><Volume2 className="w-3 h-3" /> {choreographer.name} dice</> : `💬 ${choreographer.name}`}
-                </p>
-                <p className="text-white text-sm leading-relaxed">{lastStep}</p>
-              </div>
-            )}
-
-            {/* CONTROLES DE VOZ */}
-            <div className="sticky bottom-0 bg-[#0e0e14] border-t border-white/10 p-3">
-              <div className="flex items-center gap-2">
-                {/* Botón micrófono GRANDE (hablar al profe) */}
+            {/* ── CONTROLES DE VOZ ── */}
+            <div className={`bg-[#0e0e14] border-t border-white/10 flex-shrink-0 ${isTV ? 'p-6' : 'p-3'}`}>
+              <div className={`flex items-center ${isTV ? 'gap-6' : 'gap-2'}`}>
+                {/* Reiniciar juego */}
+                {(game.gameOver || game.completed) && (
+                  <button
+                    onClick={() => game.resetGame()}
+                    className={`flex items-center justify-center gap-2 bg-white/10 text-white font-bold rounded-2xl hover:bg-white/20 focus:ring-2 focus:ring-white focus:outline-none transition-all ${isTV ? 'px-8 py-6 text-2xl rounded-3xl' : 'px-4 py-3 text-sm'}`}
+                  >
+                    <RotateCcw className={isTV ? 'w-8 h-8' : 'w-4 h-4'} /> {isMobile ? '' : 'Reiniciar'}
+                  </button>
+                )}
                 <button
-                  onClick={toggleMic}
-                  disabled={sending}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm transition-all ${
-                    listening
-                      ? 'bg-red-500 text-white animate-pulse'
-                      : 'bg-gradient-to-r from-[#ff3e6c] to-[#ff8c42] text-white hover:scale-[1.02]'
-                  }`}
+                  onClick={toggleMic} disabled={sending}
+                  className={`flex-1 flex items-center justify-center gap-2 font-bold transition-all focus:ring-2 focus:ring-white focus:outline-none ${
+                    listening ? 'bg-red-500 text-white animate-pulse' : 'bg-gradient-to-r from-[#ff3e6c] to-[#ff8c42] text-white hover:scale-[1.02]'
+                  } ${isTV ? 'py-6 rounded-3xl text-2xl gap-4' : 'py-3 rounded-2xl text-sm'}`}
                 >
-                  {listening ? <><MicOff className="w-5 h-5" /> Escuchando... (habla)</>
-                    : sending ? <><Loader2 className="w-5 h-5 animate-spin" /> El profe responde...</>
-                    : <><Mic className="w-5 h-5" /> Pregúntale al profe (voz)</>}
+                  {listening
+                    ? <><MicOff className={isTV ? 'w-8 h-8' : 'w-5 h-5'} /> Escuchando…</>
+                    : sending
+                    ? <><Loader2 className={`${isTV ? 'w-8 h-8' : 'w-5 h-5'} animate-spin`} /> El profe responde…</>
+                    : <><Mic className={isTV ? 'w-8 h-8' : 'w-5 h-5'} /> {isTV ? 'Pregúntale al profe' : 'Habla con el profe'}</>}
                 </button>
-
-                {/* Toggle voz on/off */}
-                <button onClick={() => { setVoiceOn(v => { if (v) stopSpeaking(); return !v; }); }}
-                  title={voiceOn ? 'Silenciar voz' : 'Activar voz'}
-                  className={`w-12 h-12 rounded-2xl flex items-center justify-center ${voiceOn ? 'bg-white/10 text-white' : 'bg-white/5 text-white/40'}`}>
-                  {voiceOn ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                <button
+                  onClick={() => { setVoiceOn(v => { if (v) stopSpeaking(); return !v; }); }}
+                  className={`flex items-center justify-center rounded-2xl focus:ring-2 focus:ring-white focus:outline-none ${voiceOn ? 'bg-white/10 text-white' : 'bg-white/5 text-white/40'} ${isTV ? 'w-20 h-20 rounded-3xl' : 'w-12 h-12'}`}
+                  title={voiceOn ? 'Silenciar voz del profe' : 'Activar voz del profe'}
+                >
+                  {voiceOn ? <Volume2 className={isTV ? 'w-8 h-8' : 'w-5 h-5'} /> : <VolumeX className={isTV ? 'w-8 h-8' : 'w-5 h-5'} />}
                 </button>
               </div>
 
-              {/* Input de texto como alternativa (plegado) */}
-              <div className="flex gap-2 mt-2">
-                <input
-                  value={input} onChange={e => setInput(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && send()}
-                  placeholder="...o escríbele por teclado"
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[#ff3e6c]"
-                />
-                <button onClick={() => send()} disabled={sending || !input.trim()} className="bg-white/10 text-white px-4 rounded-xl disabled:opacity-40"><Send className="w-4 h-4" /></button>
-              </div>
               {!micSupported && (
-                <p className="text-[10px] text-white/40 text-center mt-1.5">Tu navegador no soporta micrófono de voz — usa Chrome/Edge o el teclado.</p>
+                <p className="text-[10px] text-white/40 text-center mt-1.5">
+                  Para hablar con el profe usa Chrome o Edge.
+                </p>
               )}
             </div>
           </div>
