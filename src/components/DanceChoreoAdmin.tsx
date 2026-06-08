@@ -297,13 +297,13 @@ const LessonsModal: React.FC<{ choreo: Choreo; onClose: () => void }> = ({ chore
 
   const save = async () => {
     if (!form.step_name.trim()) { addToast({ type: 'error', message: 'Pon nombre al paso' }); return; }
-    if (!form.video_url.trim()) { addToast({ type: 'error', message: 'Falta el video del paso' }); return; }
+    // El vídeo es opcional: puedes crear/editar el paso ahora y subir el vídeo después.
     setSaving(true);
     const payload: any = {
       choreographer_id: choreo.id, genre: form.genre, sub_style: form.sub_style || null,
       level: form.level, step_number: Number(form.step_number) || 1, step_name: form.step_name,
       description: form.description || null, count_cue: form.count_cue || null,
-      video_url: form.video_url, active: form.active,
+      video_url: form.video_url || '', active: form.active,
     };
     let error;
     if (form.id) ({ error } = await supabase.from('dance_lessons').update(payload).eq('id', form.id));
@@ -366,12 +366,14 @@ const LessonsModal: React.FC<{ choreo: Choreo; onClose: () => void }> = ({ chore
               📐 Cómo grabar los vídeos para que sincronicen (pulsa para ver)
             </summary>
             <div className="px-3 pb-3 space-y-1.5 text-gray-600 dark:text-gray-300 leading-relaxed">
-              <p><b>Duración:</b> 8–15 s por paso, en <b>bucle perfecto</b> (la pose final = la inicial), repitiendo el conteo 1–2 veces.</p>
-              <p><b>Encuadre:</b> cuerpo entero visible (cabeza a pies), cámara fija frontal, fondo liso, buena luz.</p>
-              <p><b>Velocidad:</b> ritmo de aprendizaje (un poco lento y claro), marcando bien el conteo del género.</p>
+              <p><b>Duración pasos (1–9):</b> 8–15 s cada uno, en <b>bucle perfecto</b> (pose final = inicial), repitiendo el conteo 1–2 veces.</p>
+              <p><b>Duración clase 10 (baile completo):</b> 30–60 s con la rutina entera y la música completa. Es la prueba para pasar de nivel.</p>
+              <p><b>Encuadre:</b> cuerpo entero (cabeza a pies), cámara fija frontal, fondo liso, buena luz.</p>
+              <p><b>Velocidad:</b> ritmo de aprendizaje (claro), marcando bien el conteo del género.</p>
+              <p><b>🔊 Audio:</b> sube el vídeo <b>CON el audio/música incluido</b> (la clase usa el sonido del propio MP4). No hay campo de audio aparte: el audio va dentro del vídeo. La voz del profe IA habla por encima.</p>
               <p><b>Formato:</b> MP4 (H.264) vertical 1080×1920 o 16:9 1920×1080, o enlace de YouTube.</p>
               <p><b>Conteo:</b> escribe el <i>conteo</i> exacto abajo (ej. bachata <i>1,2,3 - pausa - 5,6,7 - pausa</i>). Es lo que el sistema usa para el ritmo.</p>
-              <p><b>Módulos:</b> numera los pasos <b>1 → 10</b>. Con 10 pasos se completa una clase; al terminar, crea la siguiente serie (otro nivel o coreografía) empezando de nuevo en el paso 1.</p>
+              <p><b>Estructura (1 clase = 10 módulos):</b> pasos <b>1 → 9</b> = un movimiento cada uno; <b>módulo 10 = BAILE COMPLETO</b> (une todo). Al superar el 10 se completa el nivel y se desbloquea el siguiente reto. Luego crea la siguiente serie (otro nivel) empezando en el paso 1.</p>
               <a href="/guia-grabacion-bailanow.pdf" target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 mt-1 bg-pink-500 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] hover:bg-pink-600">
                 <Upload className="w-3 h-3 rotate-180" /> Descargar guía PDF para enviar a los bailarines

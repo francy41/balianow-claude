@@ -45,7 +45,9 @@ data = [
     [Paragraph("Encuadre", cellb), Paragraph("Cuerpo entero: de la cabeza a los pies, con un poco de aire arriba y abajo.", cell)],
     [Paragraph("Personas", cellb), Paragraph("1 solo bailarín por vídeo de paso (el sistema sigue a una persona).", cell)],
     [Paragraph("Fondo / luz", cellb), Paragraph("Fondo liso y buena luz frontal (sin contraluz). Ropa que contraste con el fondo.", cell)],
-    [Paragraph("Duración", cellb), Paragraph("8 a 15 segundos, en BUCLE perfecto: la pose final debe ser igual que la inicial.", cell)],
+    [Paragraph("Duración pasos", cellb), Paragraph("Pasos 1 a 9: 8 a 15 s cada uno, en BUCLE perfecto (la pose final = la inicial).", cell)],
+    [Paragraph("Baile completo", cellb), Paragraph("Módulo 10: 30 a 60 s con la rutina entera y la música completa (prueba de nivel).", cell)],
+    [Paragraph("Audio", cellb), Paragraph("Sube el vídeo CON el audio/música incluido. No hay campo de audio aparte: el audio va dentro del MP4.", cell)],
     [Paragraph("Velocidad", cellb), Paragraph("Ritmo de aprendizaje (un punto más lento que en fiesta), movimiento claro.", cell)],
 ]
 t = Table(data, colWidths=[28 * mm, 150 * mm])
@@ -69,19 +71,21 @@ story.append(Paragraph(
     body))
 
 # Estructura
-story.append(Paragraph("3 · Estructura de la clase (módulos 1 → 10)", h2))
+story.append(Paragraph("3 · Estructura de la clase (1 clase = 10 módulos)", h2))
 story.append(Paragraph(
-    "Cada paso = <b>un movimiento claro</b> (no encadenes varias figuras). Numera los pasos del <b>1 al 10</b>, de lo simple a lo complejo: "
-    "con 10 pasos se completa una clase. Mantén el <b>mismo encuadre y distancia</b> en los 10 vídeos. Al terminar, empieza otra serie "
-    "(otro nivel o coreografía) de nuevo en el paso 1.",
+    "Pasos <b>1 a 9</b> = <b>un movimiento claro</b> cada uno (no encadenes varias figuras). El <b>módulo 10 = BAILE COMPLETO</b>: "
+    "la rutina entera con todo lo aprendido y la música completa. Al superar el módulo 10 se completa el nivel y se desbloquea el "
+    "siguiente reto. Mantén el <b>mismo encuadre y distancia</b> en todos los vídeos. Después, crea la siguiente serie (otro nivel) "
+    "empezando de nuevo en el paso 1.",
     body))
 
 # Subida
 story.append(Paragraph("4 · Subida y prueba", h2))
 story.append(Paragraph(
-    "Formato: <b>MP4 (H.264)</b>, vertical 1080×1920 o 16:9 1920×1080. En el panel de administración → Coreógrafos → Pasos/Lecciones: "
-    "sube el vídeo y rellena nº, nombre, género, nivel y el <b>conteo</b>. Entra a la clase y prueba: en \"Mírame\" debe verse el cuerpo entero; "
-    "al bailar debe aparecer el indicador <b>MATCH %</b>. Si no aparece, revisa que sea MP4 (no enlace de YouTube) y que se vea todo el cuerpo.",
+    "Formato: <b>MP4 (H.264)</b>, vertical 1080×1920 o 16:9 1920×1080, con el audio incluido. En el panel de administración → "
+    "Coreógrafos → Pasos/Lecciones: sube el vídeo y rellena nº, nombre, género, nivel y el <b>conteo</b> (puedes crear el paso sin vídeo "
+    "y subirlo después). Entra a la clase y prueba: en \"Mírame\" debe verse el cuerpo entero; al bailar debe aparecer el indicador "
+    "<b>MATCH %</b>. Si no aparece, revisa que sea MP4 (no enlace de YouTube) y que se vea todo el cuerpo.",
     body))
 
 story.append(Spacer(1, 6))
