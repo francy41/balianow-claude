@@ -8,8 +8,8 @@
  *  - Modal de sesión con el coreógrafo (chat IA — vía edge function danceflow-chat)
  *  - Ranking mundial (WorldLeaderboard)
  */
-import React, { useEffect, useState, useRef } from 'react';
-import { Sparkles, Loader2, Star, X, Send, Trophy, Globe, Play } from 'lucide-react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { Sparkles, Loader2, Star, X, Send, Trophy, Globe, Play, Zap } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/appStore';
 import { useUIStore } from '../store/appStore';
@@ -18,7 +18,8 @@ import { usePageMeta } from '../hooks/usePageMeta';
 import { countryFlag, COUNTRIES } from '../lib/countries';
 import WorldLeaderboard from '../components/WorldLeaderboard';
 import LanguageSelector from '../components/LanguageSelector';
-import DanceStage from '../components/DanceStage';
+import DanceSyncCamera from '../components/DanceSyncCamera';
+import { useDanceGameLoop } from '../hooks/useDanceGameLoop';
 import { speak, stopSpeaking, createRecognizer, isRecognitionSupported, type Recognizer } from '../lib/speech';
 import { Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
 
@@ -216,6 +217,9 @@ const DanceSessionModal: React.FC<{
   const [listening, setListening] = useState(false);
   const recognizerRef = useRef<Recognizer | null>(null);
   const micSupported = isRecognitionSupported();
+  // Cámara del usuario (para el game loop)
+  const userVideoRef = useRef<HTMLVideoElement>(null);
+  const [userCamOn, setUserCamOn] = useState(false);
 
   // Cargar escenarios
   useEffect(() => {
@@ -261,6 +265,39 @@ const DanceSessionModal: React.FC<{
     });
   };
 
+  // ── GAME LOOP DE SINCRONIZACIÓN ───────────────────────────────
+  const game = useDanceGameLoop({
+    videoRef: userVideoRef,
+    camOn: userCamOn,
+    genre,
+    lang,
+    userName: userName || 'crack',
+    choreographerName: choreographer.name,
+    stepCount: lessonList.length || 1,
+    stepName: (i) => lessonList[i]?.step_name || `Paso ${i + 1}`,
+    stepDescription: (i) => lessonList[i]?.description || '',
+    stepCountCue: (i) => lessonList[i]?.count_cue || '',
+    onStepPass: (idx, pts) => {
+      setSessionPoints(p => p + pts);
+      if (userId) {
+        void supabase.rpc('dance_add_points', {
+          p_user_id: userId, p_points: pts, p_genre: genre,
+          p_country_code: country, p_level: level,
+        });
+      }
+    },
+    onClassComplete: (total, results) => {
+      addToast({ type: 'success', message: `🏆 ¡Clase completa! +${total} puntos` });
+    },
+  });
+
+  // Sincronizar el paso actual del game loop con el video del profe
+  useEffect(() => {
+    if (game.phase === 'demo' || game.phase === 'prepare') {
+      setLessonIdx(game.stepIdx);
+    }
+  }, [game.stepIdx, game.phase]);
+
   // Cambiar de paso: el profe lo anuncia por voz y reproduce el video del paso
   const goToStep = (idx: number) => {
     if (idx < 0 || idx >= lessonList.length) return;
@@ -281,6 +318,10 @@ const DanceSessionModal: React.FC<{
     if (!isAuthenticated) { addToast({ type: 'warning', message: t('df.loginToCompete') }); return; }
     setStarted(true);
     setLessonIdx(0);
+    // Arrancar el game loop si hay lecciones (pasos reales)
+    if (lessonList.length > 0) {
+      game.startGame();
+    }
     setSending(true);
     await sendToAI([], true);
   };
@@ -508,20 +549,38 @@ const DanceSessionModal: React.FC<{
                 )}
               </div>
 
-              {/* ── TÚ (abajo en móvil) — tu cámara ── */}
+              {/* ── TÚ (abajo en móvil) — cámara con sincronización ── */}
               {scenario && (
                 <div>
                   <p className="text-[11px] font-bold text-white/70 mb-1 px-1 flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" /> TÚ — sigue los pasos
+                    {game.poseLandmarkerReady && (
+                      <span className="text-[9px] text-green-400 font-bold">● SYNC ACTIVO</span>
+                    )}
                   </p>
-                  <div className="aspect-video">
-                    <DanceStage
-                      scenario={scenario}
-                      choreographer={choreographer}
-                      hideChoreoOverlay
-                      label="🟢 TÚ"
-                    />
-                  </div>
+                  <DanceSyncCamera
+                    phase={game.phase}
+                    countdown={game.countdown}
+                    attemptProgress={game.attemptProgress}
+                    syncScore={game.syncScore}
+                    landmarks={game.landmarks}
+                    label="🟢 TÚ"
+                    camOn={userCamOn}
+                    setCamOn={setUserCamOn}
+                    onCamReady={(video) => { (userVideoRef as any).current = video; }}
+                  />
+                  {/* Score en tiempo real + puntos de sesión */}
+                  {game.sessionScore > 0 && (
+                    <div className="flex items-center justify-between mt-1 px-1">
+                      <span className="text-[11px] text-white/60">
+                        Paso {game.stepIdx + 1}/{lessonList.length}
+                        {game.attemptCount > 0 && ` · Intento ${game.attemptCount + 1}`}
+                      </span>
+                      <span className="text-[11px] text-[#ff8c42] font-black flex items-center gap-1">
+                        <Zap className="w-3 h-3" /> {game.sessionScore} pts
+                      </span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
