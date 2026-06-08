@@ -53,6 +53,7 @@ export interface GameState {
   totalStars: number;         // estrellas acumuladas
   landmarks: PoseResult;
   syncScore: SyncScore | null;
+  liveMatch: number;       // % de sincronía DTW en vivo (-1 si no hay referencia)
   stepResults: StepResult[];
   completed: boolean;
   gameOver: boolean;
@@ -198,6 +199,7 @@ export function useDanceGameLoop(opts: Options): GameState & {
   const [totalStars, setTotalStars] = useState(0);
   const [landmarks, setLandmarks] = useState<PoseResult>(null);
   const [syncScore, setSyncScore] = useState<SyncScore | null>(null);
+  const [liveMatch, setLiveMatch] = useState(-1);
   const [stepResults, setStepResults] = useState<StepResult[]>([]);
   const [completed, setCompleted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
@@ -206,6 +208,7 @@ export function useDanceGameLoop(opts: Options): GameState & {
   const scoresRef = useRef<number[]>([]);
   const userTrackRef = useRef<number[][]>([]);   // ángulos del usuario durante el intento
   const refTrackRef = useRef<number[][]>([]);    // ángulos del avatar durante la demo
+  const lastDtwRef = useRef(0);                  // throttle del cálculo DTW en vivo
   const phaseRef = useRef<GamePhase>('idle');
   const stepIdxRef = useRef(0);
   const attemptCountRef = useRef(0);
@@ -268,6 +271,13 @@ export function useDanceGameLoop(opts: Options): GameState & {
         setSyncScore(result);
         scoresRef.current.push(result.score);
         userTrackRef.current.push(angleVector(lm)); // para DTW
+        // Sincronía DTW en vivo (cada ~300ms si hay referencia del avatar)
+        const now = Date.now();
+        if (refTrackRef.current.length >= 5 && now - lastDtwRef.current > 300) {
+          lastDtwRef.current = now;
+          const live = scoreDTW(userTrackRef.current, refTrackRef.current);
+          if (live >= 0) setLiveMatch(live);
+        }
       }
     }
     rafRef.current = requestAnimationFrame(runPoseLoop);
@@ -390,6 +400,8 @@ export function useDanceGameLoop(opts: Options): GameState & {
     setPhase('attempt');
     scoresRef.current = [];
     userTrackRef.current = [];   // reiniciar pista de pose del usuario
+    lastDtwRef.current = 0;
+    setLiveMatch(-1);
     setSyncScore(null);
     setAttemptProgress(0);
     const total = attemptDuration * 1000;
@@ -431,6 +443,7 @@ export function useDanceGameLoop(opts: Options): GameState & {
     clearHistory();
     scoresRef.current = [];
     refTrackRef.current = [];   // reiniciar referencia del avatar para este paso
+    setLiveMatch(-1);
     playDemoStart();
     const msg = DEMO_MSGS(opts.userName, opts.stepName(idx), opts.stepCountCue(idx), opts.lang);
     // Pequeño delay para que el AudioContext esté desbloqueado tras el click
@@ -501,7 +514,7 @@ export function useDanceGameLoop(opts: Options): GameState & {
   return {
     phase, stepIdx, attemptCount, countdown, attemptProgress,
     sessionScore, lives, combo, comboMultiplier, stepStars, totalStars,
-    landmarks, syncScore, stepResults, completed, gameOver, poseLandmarkerReady,
+    landmarks, syncScore, liveMatch, stepResults, completed, gameOver, poseLandmarkerReady,
     startStep, startGame, stopGame, resetGame,
   };
 }

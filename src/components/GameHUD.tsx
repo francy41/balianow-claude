@@ -18,6 +18,7 @@ interface Props {
   stepIdx: number;
   stepCount: number;
   syncScore: number | null;
+  liveMatch?: number;       // % sincronía DTW en vivo (-1 si no aplica)
   device?: DeviceType;
   onRestart?: () => void;
   userName?: string;
@@ -113,7 +114,7 @@ const useFloatingScores = (phase: GamePhase, pts: number) => {
 // ── Componente principal ─────────────────────────────────────────
 const GameHUD: React.FC<Props> = ({
   phase, lives, maxLives = 3, combo, comboMultiplier, stepStars,
-  totalStars, sessionScore, stepIdx, stepCount, syncScore,
+  totalStars, sessionScore, stepIdx, stepCount, syncScore, liveMatch = -1,
   device = 'desktop', onRestart, userName = '',
 }) => {
   const isTV = device === 'tv';
@@ -223,6 +224,22 @@ const GameHUD: React.FC<Props> = ({
           {f.text}
         </div>
       ))}
+
+      {/* MATCH en vivo (DTW: sincronía con el avatar) durante ATTEMPT */}
+      {phase === 'attempt' && liveMatch >= 0 && (
+        <div className={`absolute left-1/2 -translate-x-1/2 flex flex-col items-center ${isTV ? 'bottom-24' : 'bottom-12'}`}>
+          <div className={`font-black ${isTV ? 'text-5xl' : 'text-2xl'} ${
+            liveMatch >= 75 ? 'text-emerald-300' : liveMatch >= 50 ? 'text-yellow-300' : 'text-red-300'
+          }`} style={{ textShadow: '0 0 12px currentColor' }}>
+            {liveMatch}% MATCH
+          </div>
+          <div className={`rounded-full bg-white/15 overflow-hidden ${isTV ? 'w-72 h-3' : 'w-36 h-2'}`}>
+            <div className="h-full rounded-full transition-all duration-200"
+              style={{ width: `${liveMatch}%`, background: liveMatch >= 75 ? '#34d399' : liveMatch >= 50 ? '#fbbf24' : '#f87171' }} />
+          </div>
+          <span className={`text-white/60 font-bold mt-0.5 ${isTV ? 'text-base' : 'text-[9px]'}`}>sincronía con el profe</span>
+        </div>
+      )}
 
       {/* Sync score en modo ATTEMPT */}
       {phase === 'attempt' && syncScore !== null && (

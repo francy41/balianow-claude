@@ -741,6 +741,7 @@ const DanceSessionModal: React.FC<{
                       stepIdx={game.stepIdx}
                       stepCount={lessonList.length || 1}
                       syncScore={game.syncScore?.score ?? null}
+                      liveMatch={game.liveMatch}
                       device={device}
                       userName={userName}
                       onRestart={() => game.resetGame()}

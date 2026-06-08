@@ -417,6 +417,7 @@ const DanceStudio: React.FC<Props> = ({
               phase={game.phase} lives={game.lives} combo={game.combo} comboMultiplier={game.comboMultiplier}
               stepStars={game.stepStars} totalStars={game.totalStars} sessionScore={game.sessionScore}
               stepIdx={game.stepIdx} stepCount={finalLessons.length || 1} syncScore={game.syncScore?.score ?? null}
+              liveMatch={game.liveMatch}
               device={device} userName={userName} onRestart={() => game.resetGame()}
             />
           </div>
