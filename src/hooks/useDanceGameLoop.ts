@@ -78,6 +78,7 @@ interface Options {
   stepDescription: (idx: number) => string;
   stepCountCue: (idx: number) => string;
   refAngles?: (idx: number) => PoseAngles | null;
+  refTrack?: (idx: number) => number[][] | null;   // ADN del paso grabado (pista de pose del avatar)
   voiceEnabledRef: React.MutableRefObject<boolean>; // respeta el toggle del usuario
   onStepPass: (idx: number, pts: number, isBonus: boolean) => void;
   onClassComplete: (totalScore: number, results: StepResult[]) => void;
@@ -166,6 +167,29 @@ const COMPLETE_MSGS = (name: string, stars: number, lang: string) => ({
   ru: `Невероятно! Класс завершён с ${stars} звёздами.`,
 }[lang] || `¡Increíble, ${name}! ${stars} estrellas.`);
 
+// Coaching por voz en vivo durante el intento (según el % de sincronía)
+const GENRE_FIX: Record<string, Record<string, string>> = {
+  bachata:   { es: 'marca mas la cadera', en: 'move your hips more', pt: 'marque mais o quadril' },
+  salsa:     { es: 'marca bien el uno y el cinco', en: 'hit the one and the five', pt: 'marque o um e o cinco' },
+  reggaeton: { es: 'suelta mas la cadera', en: 'loosen your hips', pt: 'solte mais o quadril' },
+  regueton:  { es: 'suelta mas la cadera', en: 'loosen your hips', pt: 'solte mais o quadril' },
+  kizomba:   { es: 'mas suave y conectado', en: 'softer and connected', pt: 'mais suave e conectado' },
+  default:   { es: 'sigue el conteo', en: 'follow the count', pt: 'siga a contagem' },
+};
+function coachLine(score: number, genre: string, name: string, lang: string): string {
+  const L = (lang as string) in { es: 1, en: 1, pt: 1 } ? lang : 'es';
+  if (score >= 80) {
+    return ({ es: `eso es ${name}, sigue asi`, en: `that's it ${name}, keep going`, pt: `isso ${name}, continua` } as any)[L];
+  }
+  if (score >= 55) {
+    return ({ es: 'casi, siente el ritmo', en: 'almost, feel the rhythm', pt: 'quase, sinta o ritmo' } as any)[L];
+  }
+  const g = genre.toLowerCase();
+  let key = 'default';
+  for (const k of Object.keys(GENRE_FIX)) if (g.includes(k)) { key = k; break; }
+  return (GENRE_FIX[key] as any)[L] || GENRE_FIX.default.es;
+}
+
 function starsForScore(score: number): number {
   if (score >= 88) return 3;
   if (score >= 75) return 2;
@@ -211,6 +235,7 @@ export function useDanceGameLoop(opts: Options): GameState & {
   const userTrackRef = useRef<number[][]>([]);   // ángulos del usuario durante el intento
   const refTrackRef = useRef<number[][]>([]);    // ángulos del avatar durante la demo
   const lastDtwRef = useRef(0);                  // throttle del cálculo DTW en vivo
+  const lastCoachRef = useRef(0);                // throttle del coaching por voz
   const phaseRef = useRef<GamePhase>('idle');
   const stepIdxRef = useRef(0);
   const attemptCountRef = useRef(0);
@@ -234,6 +259,13 @@ export function useDanceGameLoop(opts: Options): GameState & {
     loadPoseLandmarker().then(() => setPoseLandmarkerReady(true)).catch(console.warn);
   }, []);
 
+  // TTS con respeto a voiceEnabled
+  const say = useCallback((text: string) => {
+    if (!opts.voiceEnabledRef.current) return;
+    stopSpeaking();
+    speak(text, { lang: opts.lang as any, female: false, rate: 0.98 });
+  }, [opts.lang, opts.voiceEnabledRef]);
+
   // Loop de pose (RAF) — soporta cámara local o remota (móvil)
   // Comparte el detector en el tiempo: DEMO → muestrea al avatar (referencia),
   // ATTEMPT → muestrea al usuario (y puntúa). Así evitamos 2 detectores a la vez.
@@ -241,12 +273,14 @@ export function useDanceGameLoop(opts: Options): GameState & {
     if (!runningRef.current) return;
     const phase = phaseRef.current;
 
-    // ── DEMO: capturar la pista de referencia del avatar (solo MP4) ──
-    if (phase === 'demo' && opts.profeVideoRef?.current && isPoseLandmarkerReady()) {
-      const pv = opts.profeVideoRef.current;
-      if (pv.readyState >= 2 && !pv.paused) {
-        const plm = detectPose(pv);
-        if (plm) refTrackRef.current.push(angleVector(plm));
+    // ── DEMO: si NO hay ADN grabado, capturar referencia del avatar en vivo (MP4) ──
+    if (phase === 'demo') {
+      if (refTrackRef.current.length < 5 && opts.profeVideoRef?.current && isPoseLandmarkerReady()) {
+        const pv = opts.profeVideoRef.current;
+        if (pv.readyState >= 2 && !pv.paused) {
+          const plm = detectPose(pv);
+          if (plm) refTrackRef.current.push(angleVector(plm));
+        }
       }
       rafRef.current = requestAnimationFrame(runPoseLoop);
       return; // durante la demo no procesamos al usuario
@@ -278,19 +312,19 @@ export function useDanceGameLoop(opts: Options): GameState & {
         if (refTrackRef.current.length >= 5 && now - lastDtwRef.current > 300) {
           lastDtwRef.current = now;
           const live = scoreDTW(userTrackRef.current, refTrackRef.current);
-          if (live >= 0) setLiveMatch(live);
+          if (live >= 0) {
+            setLiveMatch(live);
+            // 🗣️ Coaching por voz en vivo (el avatar te corrige), cada ~4.5s
+            if (now - lastCoachRef.current > 4500 && userTrackRef.current.length >= 12) {
+              lastCoachRef.current = now;
+              say(coachLine(live, opts.genre, opts.userName, opts.lang));
+            }
+          }
         }
       }
     }
     rafRef.current = requestAnimationFrame(runPoseLoop);
-  }, [opts.videoRef, opts.camOn, opts.remote, opts.remoteLandmarksRef, opts.profeVideoRef, opts.genre, opts.refAngles]);
-
-  // TTS con respeto a voiceEnabled
-  const say = useCallback((text: string) => {
-    if (!opts.voiceEnabledRef.current) return;
-    stopSpeaking();
-    speak(text, { lang: opts.lang as any, female: false, rate: 0.98 });
-  }, [opts.lang, opts.voiceEnabledRef]);
+  }, [opts.videoRef, opts.camOn, opts.remote, opts.remoteLandmarksRef, opts.profeVideoRef, opts.genre, opts.refAngles, opts.userName, opts.lang, say]);
 
   const clear = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -446,7 +480,10 @@ export function useDanceGameLoop(opts: Options): GameState & {
     setAttemptCount(0);
     clearHistory();
     scoresRef.current = [];
-    refTrackRef.current = [];   // reiniciar referencia del avatar para este paso
+    // ADN del paso grabado (precargado). Si existe, se usa como referencia DTW directa.
+    const stored = opts.refTrack?.(idx);
+    refTrackRef.current = (stored && stored.length >= 5) ? stored.slice() : [];
+    lastCoachRef.current = 0;
     setLiveMatch(-1);
     playDemoStart();
     const msg = DEMO_MSGS(opts.userName, opts.stepName(idx), opts.stepCountCue(idx), opts.lang);

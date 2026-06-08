@@ -339,3 +339,74 @@ export function scoreDTW(userSeq: number[][], refSeq: number[][]): number {
 
 /** Extrae el vector de ángulos de una pose normalizada (alias práctico) */
 export function poseFeature(lm: Landmark[]): number[] { return angleVector(lm); }
+
+/**
+ * Analiza un vídeo COMPLETO una sola vez y devuelve la "pista de pose"
+ * (vector de ángulos por frame). Es el "ADN del paso" que se guarda en la
+ * lección y se usa luego como referencia para el DTW — fiable y consistente,
+ * sin depender de capturar en vivo durante la demo.
+ *
+ * Reproduce el vídeo en silencio y muestrea por frame (requestVideoFrameCallback
+ * si está disponible, si no requestAnimationFrame). Tarda lo que dura el vídeo.
+ */
+export async function extractPoseTrackFromVideo(
+  url: string,
+  opts: { maxSeconds?: number; onProgress?: (p: number) => void } = {},
+): Promise<number[][]> {
+  await loadPoseLandmarker();
+  const maxSeconds = opts.maxSeconds ?? 90;
+
+  return new Promise<number[][]>((resolve, reject) => {
+    const v = document.createElement('video');
+    v.crossOrigin = 'anonymous';
+    v.muted = true;
+    (v as any).playsInline = true;
+    v.preload = 'auto';
+    v.style.position = 'fixed';
+    v.style.left = '-9999px';
+    v.style.width = '320px';
+    document.body.appendChild(v);
+
+    const track: number[][] = [];
+    let done = false;
+    const useRVFC = typeof (HTMLVideoElement.prototype as any).requestVideoFrameCallback === 'function';
+
+    const cleanup = () => {
+      try { v.pause(); } catch { /* noop */ }
+      try { v.removeAttribute('src'); v.load(); } catch { /* noop */ }
+      try { document.body.removeChild(v); } catch { /* noop */ }
+    };
+    const finish = () => { if (done) return; done = true; cleanup(); resolve(track); };
+    const fail = (msg: string) => { if (done) return; done = true; cleanup(); reject(new Error(msg)); };
+
+    const sample = () => {
+      if (v.readyState >= 2) {
+        const lm = detectPose(v);
+        if (lm && lm.length >= 33) track.push(angleVector(lm).map(x => Math.round(x)));
+      }
+      if (v.duration && isFinite(v.duration)) opts.onProgress?.(Math.min(1, v.currentTime / v.duration));
+    };
+
+    const loop = () => {
+      if (done) return;
+      sample();
+      const reachedEnd = v.ended || (isFinite(v.duration) && v.currentTime >= Math.min(v.duration, maxSeconds));
+      if (reachedEnd) { finish(); return; }
+      if (useRVFC) (v as any).requestVideoFrameCallback(loop);
+      else requestAnimationFrame(loop);
+    };
+
+    v.onloadeddata = () => {
+      v.play().then(() => {
+        if (useRVFC) (v as any).requestVideoFrameCallback(loop);
+        else requestAnimationFrame(loop);
+      }).catch(() => fail('No se pudo reproducir el vídeo para analizarlo.'));
+    };
+    v.onended = finish;
+    v.onerror = () => fail('No se pudo cargar el vídeo (revisa el formato/CORS).');
+    v.src = url;
+
+    // Seguridad: no quedarse colgado
+    setTimeout(finish, (maxSeconds + 8) * 1000);
+  });
+}

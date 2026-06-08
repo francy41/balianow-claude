@@ -39,6 +39,7 @@ export interface StudioLesson {
   description?: string | null;
   count_cue?: string | null;
   video_url?: string | null;
+  pose_track?: number[][] | null;
 }
 
 interface Props {
@@ -172,6 +173,7 @@ const DanceStudio: React.FC<Props> = ({
     stepName: (i) => finalLessons[i]?.step_name || `Paso ${i + 1}`,
     stepDescription: (i) => finalLessons[i]?.description || '',
     stepCountCue: (i) => finalLessons[i]?.count_cue || '',
+    refTrack: (i) => finalLessons[i]?.pose_track || null,
     voiceEnabledRef,
     onStepPass: (idx, pts) => {
       onPoints?.(pts, genre);

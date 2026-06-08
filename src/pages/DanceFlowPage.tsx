@@ -41,6 +41,7 @@ interface Lesson {
   id: string; choreographer_id: string; genre: string; sub_style?: string | null;
   level: string; step_number: number; step_name: string; description?: string | null;
   count_cue?: string | null; video_url: string; active: boolean;
+  pose_track?: number[][] | null;
 }
 
 const DanceFlowPage: React.FC = () => {
@@ -340,6 +341,7 @@ const DanceSessionModal: React.FC<{
     stepName: (i) => lessonList[i]?.step_name || `Paso ${i + 1}`,
     stepDescription: (i) => lessonList[i]?.description || '',
     stepCountCue: (i) => lessonList[i]?.count_cue || '',
+    refTrack: (i) => lessonList[i]?.pose_track || null,
     voiceEnabledRef,                                // ✅ FIX: conecta voiceOn al game loop
     onStepPass: (idx, pts) => {
       setSessionPoints(p => p + pts);

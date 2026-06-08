@@ -10,7 +10,7 @@
  *  - Crear nuevo coreógrafo
  */
 import React, { useEffect, useState } from 'react';
-import { Loader2, Upload, Plus, Trash2, Image as ImageIcon, Video, Save, X, Star, ListVideo, GripVertical } from 'lucide-react';
+import { Loader2, Upload, Plus, Trash2, Image as ImageIcon, Video, Save, X, Star, ListVideo, GripVertical, Cpu, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { uploadImage, uploadVideo } from '../lib/uploadHelper';
 import { useUIStore } from '../store/appStore';
@@ -254,6 +254,7 @@ interface Lesson {
   id: string; choreographer_id: string; genre: string; sub_style?: string | null;
   level: string; step_number: number; step_name: string; description?: string | null;
   count_cue?: string | null; video_url: string; active: boolean;
+  pose_track?: number[][] | null;
 }
 
 const LEVELS = ['principiante', 'intermedio', 'avanzado'];
@@ -264,6 +265,27 @@ const LessonsModal: React.FC<{ choreo: Choreo; onClose: () => void }> = ({ chore
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [analyzingId, setAnalyzingId] = useState<string | null>(null);
+  const [analyzeProgress, setAnalyzeProgress] = useState(0);
+
+  // Analiza el vídeo del paso y guarda el "ADN" (pista de pose) para sincronizar
+  const analyzeLesson = async (l: Lesson) => {
+    if (!l.video_url) { addToast({ type: 'error', message: 'Este paso aún no tiene vídeo' }); return; }
+    if (/youtube|youtu\.be/.test(l.video_url)) { addToast({ type: 'error', message: 'Solo se puede analizar vídeo MP4 subido (no YouTube)' }); return; }
+    setAnalyzingId(l.id); setAnalyzeProgress(0);
+    try {
+      const { extractPoseTrackFromVideo } = await import('../lib/poseSync');
+      const track = await extractPoseTrackFromVideo(l.video_url, { onProgress: p => setAnalyzeProgress(Math.round(p * 100)) });
+      if (!track || track.length < 5) { addToast({ type: 'error', message: 'No se detectó el cuerpo. Revisa luz/encuadre (cuerpo entero).' }); setAnalyzingId(null); return; }
+      const { error } = await supabase.from('dance_lessons').update({ pose_track: track }).eq('id', l.id);
+      if (error) { addToast({ type: 'error', message: error.message }); setAnalyzingId(null); return; }
+      addToast({ type: 'success', message: `✅ Paso grabado en el sistema (${track.length} frames). ¡Sincronización lista!` });
+      setAnalyzingId(null); load();
+    } catch (e: any) {
+      addToast({ type: 'error', message: e?.message || 'Error analizando el vídeo' });
+      setAnalyzingId(null);
+    }
+  };
 
   const blankLesson = (): Lesson => ({
     id: '', choreographer_id: choreo.id,
@@ -349,9 +371,24 @@ const LessonsModal: React.FC<{ choreo: Choreo; onClose: () => void }> = ({ chore
                         : <video src={l.video_url} className="w-full h-full object-cover" muted />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-sm truncate">{l.step_number}. {l.step_name}</p>
+                      <p className="font-bold text-sm truncate flex items-center gap-1">
+                        {l.step_number}. {l.step_name}
+                        {l.pose_track && l.pose_track.length > 0 && (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] bg-green-100 text-green-700 px-1 rounded font-bold"><CheckCircle2 className="w-2.5 h-2.5" /> sync</span>
+                        )}
+                      </p>
                       <p className="text-[10px] text-gray-400 truncate">{l.genre}{l.sub_style ? ` · ${l.sub_style}` : ''} · {l.level}{l.count_cue ? ` · ${l.count_cue}` : ''}</p>
                     </div>
+                    {/* Analizar y grabar el paso (extrae el ADN de pose) */}
+                    {l.video_url && !/youtube|youtu\.be/.test(l.video_url) && (
+                      <button onClick={() => analyzeLesson(l)} disabled={!!analyzingId}
+                        title="Analizar el vídeo y dejar el paso listo para sincronizar"
+                        className={`text-xs px-2 py-1 rounded-lg font-bold flex items-center gap-1 ${l.pose_track && l.pose_track.length ? 'bg-green-50 text-green-600' : 'bg-pink-500 text-white hover:bg-pink-600'} disabled:opacity-50`}>
+                        {analyzingId === l.id
+                          ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> {analyzeProgress}%</>
+                          : <><Cpu className="w-3.5 h-3.5" /> {l.pose_track && l.pose_track.length ? 'Regrabar' : 'Analizar'}</>}
+                      </button>
+                    )}
                     <button onClick={() => setForm(l)} className="text-xs px-2 py-1 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Editar</button>
                     <button onClick={() => del(l)} className="text-xs px-2 py-1 rounded-lg text-red-400 hover:bg-red-50"><Trash2 className="w-3.5 h-3.5" /></button>
                   </div>
