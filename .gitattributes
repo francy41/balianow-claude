@@ -1,0 +1,12 @@
+# Tratar binarios como tal (evita corrupción por normalización de saltos de línea)
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.mp4 binary
+*.webm binary
+*.ico binary
+*.woff binary
+*.woff2 binary
