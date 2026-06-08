@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="Diego Salcedo, profesor de salsa">
+  <defs>
+    <radialGradient id="bg" cx="30%" cy="25%" r="90%">
+      <stop offset="0%" stop-color="#ffd23f"/>
+      <stop offset="45%" stop-color="#ff5a3c"/>
+      <stop offset="100%" stop-color="#7a1020"/>
+    </radialGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#160316"/>
+      <stop offset="100%" stop-color="#301020"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <circle cx="200" cy="170" r="170" fill="url(#glow)"/>
+  <g fill="#ffffff" opacity="0.16">
+    <circle cx="70" cy="90" r="9"/><rect x="77" y="55" width="4" height="38"/>
+    <circle cx="332" cy="120" r="7"/><rect x="337" y="92" width="3" height="30"/>
+  </g>
+  <!-- bailarin (salsa, brazo en marco) -->
+  <g fill="url(#body)" stroke="#ffd23f" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <circle cx="200" cy="116" r="25" fill="#241018"/>
+    <path d="M178 106 q4 -28 22 -28 q20 0 24 26 q-12 -12 -24 -12 q-12 0 -22 14 z" fill="#0d0410" stroke="none"/>
+    <!-- torso -->
+    <path d="M200 141 q30 4 30 52 l-8 66 q-22 8 -44 0 l-8 -64 q0 -50 30 -54 z"/>
+    <!-- brazo extendido al lado -->
+    <path d="M226 162 q44 -8 70 6 q4 8 -4 12 q-40 -2 -66 8 q-6 -16 0 -26 z"/>
+    <!-- brazo doblado -->
+    <path d="M176 172 q-30 -2 -42 24 q4 8 12 6 q22 -18 38 -16 q-2 -8 -8 -14 z"/>
+    <!-- pantalones -->
+    <path d="M180 256 q22 10 42 0 l4 92 q-12 6 -24 0 l-4 -64 -4 64 q-12 6 -22 0 z" fill="#160316" stroke="#ff5a3c" stroke-width="2"/>
+    <!-- zapatos -->
+    <path d="M156 348 q18 -8 30 -2 l0 10 q-16 6 -32 0 z" fill="#ffd23f" stroke="none"/>
+    <path d="M214 348 q18 -8 30 -2 l0 10 q-16 6 -32 0 z" fill="#ffd23f" stroke="none"/>
+  </g>
+  <g font-family="'Segoe UI', Arial, sans-serif" text-anchor="middle">
+    <text x="200" y="362" font-size="29" font-weight="800" fill="#ffffff">Diego Salcedo</text>
+    <text x="200" y="386" font-size="15" font-weight="600" fill="#ffe2a8" letter-spacing="2">SALSA · PROFE IA</text>
+  </g>
+</svg>

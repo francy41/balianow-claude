@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="Mia Flow, profesora de reggaeton">
+  <defs>
+    <radialGradient id="bg" cx="32%" cy="22%" r="92%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="42%" stop-color="#a855f7"/>
+      <stop offset="100%" stop-color="#2a0a4a"/>
+    </radialGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d0220"/>
+      <stop offset="100%" stop-color="#21103a"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="38%" r="62%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.30"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <circle cx="200" cy="170" r="170" fill="url(#glow)"/>
+  <!-- destellos urbanos -->
+  <g fill="#ffffff" opacity="0.18">
+    <rect x="66" y="70" width="26" height="4" rx="2"/><rect x="300" y="110" width="30" height="4" rx="2"/>
+    <rect x="70" y="300" width="22" height="4" rx="2"/>
+  </g>
+  <!-- bailarina urbana (cadera marcada, gorra) -->
+  <g fill="url(#body)" stroke="#22d3ee" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+    <circle cx="198" cy="116" r="25" fill="#1a0a30"/>
+    <!-- gorra -->
+    <path d="M172 106 q2 -26 26 -26 q26 0 28 24 l-54 2 z" fill="#0d0220" stroke="none"/>
+    <path d="M170 108 l40 0 q-2 8 -40 6 z" fill="#a855f7" stroke="none"/>
+    <!-- torso inclinado -->
+    <path d="M198 141 q32 6 28 54 l-10 60 q-20 8 -40 0 l-6 -58 q-2 -52 28 -56 z"/>
+    <!-- brazo arriba (flow) -->
+    <path d="M222 158 q30 -34 36 -64 q9 -2 10 6 q-6 36 -34 70 q-8 -4 -12 -12 z"/>
+    <!-- brazo abajo -->
+    <path d="M174 176 q-26 10 -34 40 q6 8 13 4 q14 -26 32 -30 q-4 -8 -11 -14 z"/>
+    <!-- pantalon ancho (cadera lateral) -->
+    <path d="M170 252 q30 14 56 2 l10 96 q-14 6 -26 0 l-6 -60 -10 60 q-14 6 -26 -2 z" fill="#0d0220" stroke="#a855f7" stroke-width="2"/>
+    <!-- zapatillas -->
+    <path d="M150 348 q20 -8 34 -2 l0 10 q-18 6 -34 0 z" fill="#22d3ee" stroke="none"/>
+    <path d="M214 348 q20 -8 34 -2 l0 10 q-18 6 -34 0 z" fill="#22d3ee" stroke="none"/>
+  </g>
+  <g font-family="'Segoe UI', Arial, sans-serif" text-anchor="middle">
+    <text x="200" y="362" font-size="30" font-weight="800" fill="#ffffff">Mia Flow</text>
+    <text x="200" y="386" font-size="15" font-weight="600" fill="#c9e9ff" letter-spacing="2">REGGAETON · PROFE IA</text>
+  </g>
+</svg>
