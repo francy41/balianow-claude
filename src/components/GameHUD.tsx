@@ -19,6 +19,8 @@ interface Props {
   stepCount: number;
   syncScore: number | null;
   liveMatch?: number;       // % sincronía DTW en vivo (-1 si no aplica)
+  passSync?: number;        // sincronía final del paso superado (-1 si no aplica)
+  passRhythm?: number;      // ritmo/movimiento final del paso superado
   device?: DeviceType;
   onRestart?: () => void;
   userName?: string;
@@ -115,6 +117,7 @@ const useFloatingScores = (phase: GamePhase, pts: number) => {
 const GameHUD: React.FC<Props> = ({
   phase, lives, maxLives = 3, combo, comboMultiplier, stepStars,
   totalStars, sessionScore, stepIdx, stepCount, syncScore, liveMatch = -1,
+  passSync = -1, passRhythm = -1,
   device = 'desktop', onRestart, userName = '',
 }) => {
   const isTV = device === 'tv';
@@ -167,10 +170,24 @@ const GameHUD: React.FC<Props> = ({
             <p className={`font-black text-center ${cfg.color} ${isTV ? 'text-6xl' : isMobile ? 'text-2xl' : 'text-4xl'}`}>
               {cfg.label}
             </p>
-            {/* Estrellas ganadas en PASS */}
+            {/* Estrellas + desglose ganados en PASS */}
             {phase === 'pass' && (
-              <div className="flex justify-center mt-2">
+              <div className="flex flex-col items-center mt-2 gap-1.5">
                 <Stars count={stepStars} max={3} size={isTV ? 'text-5xl' : 'text-3xl'} animate />
+                <div className={`flex items-center gap-3 text-white/80 font-bold ${isTV ? 'text-2xl' : 'text-sm'}`}>
+                  {passSync >= 0 && (
+                    <span className="flex items-center gap-1">
+                      🎯 <span className={passSync >= 75 ? 'text-emerald-300' : passSync >= 50 ? 'text-yellow-300' : 'text-red-300'}>{passSync}%</span>
+                      <span className="text-white/40 font-normal">sync</span>
+                    </span>
+                  )}
+                  {passRhythm >= 0 && (
+                    <span className="flex items-center gap-1">
+                      🎵 <span className={passRhythm >= 75 ? 'text-emerald-300' : passRhythm >= 50 ? 'text-yellow-300' : 'text-red-300'}>{passRhythm}%</span>
+                      <span className="text-white/40 font-normal">ritmo</span>
+                    </span>
+                  )}
+                </div>
               </div>
             )}
           </div>

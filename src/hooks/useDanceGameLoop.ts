@@ -54,6 +54,7 @@ export interface GameState {
   landmarks: PoseResult;
   syncScore: SyncScore | null;
   liveMatch: number;       // % de sincronía DTW en vivo (-1 si no hay referencia)
+  lastBreakdown: { sync: number; rhythm: number } | null; // desglose del último paso superado
   stepResults: StepResult[];
   completed: boolean;
   gameOver: boolean;
@@ -200,6 +201,7 @@ export function useDanceGameLoop(opts: Options): GameState & {
   const [landmarks, setLandmarks] = useState<PoseResult>(null);
   const [syncScore, setSyncScore] = useState<SyncScore | null>(null);
   const [liveMatch, setLiveMatch] = useState(-1);
+  const [lastBreakdown, setLastBreakdown] = useState<{ sync: number; rhythm: number } | null>(null);
   const [stepResults, setStepResults] = useState<StepResult[]>([]);
   const [completed, setCompleted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
@@ -309,8 +311,9 @@ export function useDanceGameLoop(opts: Options): GameState & {
   }, []);
 
   // ── PASS ────────────────────────────────────────────────────────
-  const runPass = useCallback((idx: number, avgScore: number) => {
+  const runPass = useCallback((idx: number, avgScore: number, breakdown?: { sync: number; rhythm: number }) => {
     setPhase('pass');
+    setLastBreakdown(breakdown ?? null);
     const stars = starsForScore(avgScore);
     setStepStars(stars);
     totalStarsRef.current += stars;
@@ -422,7 +425,8 @@ export function useDanceGameLoop(opts: Options): GameState & {
         // Si hay referencia del avatar: 70% sincronía DTW + 30% ritmo/movimiento.
         // Si no: usamos solo ritmo/movimiento (como antes).
         const avg = dtw >= 0 ? Math.round(dtw * 0.7 + movementAvg * 0.3) : Math.round(movementAvg);
-        if (avg >= PASS_THRESHOLD) runPass(idx, avg);
+        const breakdown = { sync: dtw, rhythm: Math.round(movementAvg) };
+        if (avg >= PASS_THRESHOLD) runPass(idx, avg, breakdown);
         else runFail(idx);
       }
     };
@@ -514,7 +518,7 @@ export function useDanceGameLoop(opts: Options): GameState & {
   return {
     phase, stepIdx, attemptCount, countdown, attemptProgress,
     sessionScore, lives, combo, comboMultiplier, stepStars, totalStars,
-    landmarks, syncScore, liveMatch, stepResults, completed, gameOver, poseLandmarkerReady,
+    landmarks, syncScore, liveMatch, lastBreakdown, stepResults, completed, gameOver, poseLandmarkerReady,
     startStep, startGame, stopGame, resetGame,
   };
 }
