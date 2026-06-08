@@ -372,6 +372,10 @@ const LessonsModal: React.FC<{ choreo: Choreo; onClose: () => void }> = ({ chore
               <p><b>Formato:</b> MP4 (H.264) vertical 1080×1920 o 16:9 1920×1080, o enlace de YouTube.</p>
               <p><b>Conteo:</b> escribe el <i>conteo</i> exacto abajo (ej. bachata <i>1,2,3 - pausa - 5,6,7 - pausa</i>). Es lo que el sistema usa para el ritmo.</p>
               <p><b>Módulos:</b> numera los pasos <b>1 → 10</b>. Con 10 pasos se completa una clase; al terminar, crea la siguiente serie (otro nivel o coreografía) empezando de nuevo en el paso 1.</p>
+              <a href="/guia-grabacion-bailanow.pdf" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 mt-1 bg-pink-500 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] hover:bg-pink-600">
+                <Upload className="w-3 h-3 rotate-180" /> Descargar guía PDF para enviar a los bailarines
+              </a>
             </div>
           </details>
 
