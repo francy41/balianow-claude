@@ -232,6 +232,7 @@ const DanceSessionModal: React.FC<{
   const micSupported = isRecognitionSupported();
   // Cámara del usuario (para el game loop)
   const userVideoRef = useRef<HTMLVideoElement>(null);
+  const profeVideoElRef = useRef<HTMLVideoElement>(null); // vídeo del avatar (para referencia DTW)
   const [userCamOn, setUserCamOn] = useState(false);
 
   // ── Pantalla completa + ajuste de vídeo ──
@@ -312,6 +313,7 @@ const DanceSessionModal: React.FC<{
     camOn: remoteActive ? remoteCam.connected : userCamOn,
     remote: remoteActive,
     remoteLandmarksRef: remoteCam.landmarksRef,
+    profeVideoRef: profeVideoElRef,
     genre,
     lang,
     userName: userName || 'crack',
@@ -662,7 +664,7 @@ const DanceSessionModal: React.FC<{
                       <iframe key={profeVideoUrl} src={ytEmbed(profeVideoUrl)}
                         className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen title={choreographer.name} />
                     ) : (
-                      <video key={profeVideoUrl} src={profeVideoUrl} className={`w-full h-full ${fit === 'contain' ? 'object-contain' : 'object-cover'}`} autoPlay loop playsInline controls />
+                      <video ref={profeVideoElRef} key={profeVideoUrl} src={profeVideoUrl} className={`w-full h-full ${fit === 'contain' ? 'object-contain' : 'object-cover'}`} autoPlay loop playsInline controls crossOrigin="anonymous" />
                     )
                   ) : choreographer.avatar_url ? (
                     <img src={choreographer.avatar_url} alt={choreographer.name} className={`w-full h-full ${fit === 'contain' ? 'object-contain' : 'object-cover'}`} />

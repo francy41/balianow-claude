@@ -97,6 +97,7 @@ const DanceStudio: React.FC<Props> = ({
 
   // Cámara
   const userVideoRef = useRef<HTMLVideoElement>(null);
+  const profeVideoElRef = useRef<HTMLVideoElement>(null);
   const [userCamOn, setUserCamOn] = useState(false);
   const [camSource, setCamSource] = useState<'local' | 'remote'>('local');
   const remoteCam = useRemoteCamera(camSource === 'remote');
@@ -162,6 +163,7 @@ const DanceStudio: React.FC<Props> = ({
     camOn: remoteActive ? remoteCam.connected : userCamOn,
     remote: remoteActive,
     remoteLandmarksRef: remoteCam.landmarksRef,
+    profeVideoRef: profeVideoElRef,
     genre,
     lang,
     userName,
@@ -364,7 +366,7 @@ const DanceStudio: React.FC<Props> = ({
             ) : profeVideoUrl ? (
               isYouTube(profeVideoUrl)
                 ? <iframe key={profeVideoUrl} src={ytEmbed(profeVideoUrl)} className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen title={teacherName} />
-                : <video key={profeVideoUrl} src={profeVideoUrl} className={`w-full h-full ${fitClass}`} autoPlay loop playsInline controls />
+                : <video ref={profeVideoElRef} key={profeVideoUrl} src={profeVideoUrl} className={`w-full h-full ${fitClass}`} autoPlay loop playsInline controls crossOrigin="anonymous" />
             ) : teacherAvatarUrl ? (
               <img src={teacherAvatarUrl} alt={teacherName} className={`w-full h-full ${fitClass}`} />
             ) : (

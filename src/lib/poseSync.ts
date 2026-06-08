@@ -277,3 +277,65 @@ export function combinedScore(
 }
 
 export { PASS_THRESHOLD };
+
+// ════════════════════════════════════════════════════════════════
+// NIVEL C: Sincronización temporal con DTW (usuario vs avatar)
+// Compara la SECUENCIA de movimiento del usuario contra la del avatar
+// alineando el tiempo (Dynamic Time Warping). Tolera ir un poco
+// adelantado/atrasado y diferencias de velocidad.
+// ════════════════════════════════════════════════════════════════
+
+/** Vector de características por frame: ángulos articulares clave (grados) */
+export function angleVector(lm: Landmark[]): number[] {
+  const a = extractAngles(lm);
+  return [a.leftKnee, a.rightKnee, a.leftHip, a.rightHip, a.leftElbow, a.rightElbow2, a.spine];
+}
+
+/** Distancia normalizada (0..1) entre dos vectores de ángulos */
+function angleDist(a: number[], b: number[]): number {
+  let s = 0;
+  const n = Math.min(a.length, b.length);
+  for (let i = 0; i < n; i++) { const d = (a[i] - b[i]) / 180; s += d * d; }
+  return Math.sqrt(s / n);
+}
+
+/** Submuestrea una secuencia a como máximo `max` frames (uniforme) */
+function downsample(seq: number[][], max: number): number[][] {
+  if (seq.length <= max) return seq;
+  const out: number[][] = [];
+  for (let i = 0; i < max; i++) out.push(seq[Math.floor((i * seq.length) / max)]);
+  return out;
+}
+
+/**
+ * Puntúa la similitud temporal entre dos secuencias de pose con DTW.
+ * Devuelve 0..100. Necesita al menos ~5 frames en cada una.
+ */
+export function scoreDTW(userSeq: number[][], refSeq: number[][]): number {
+  if (userSeq.length < 5 || refSeq.length < 5) return -1; // sin datos suficientes
+  const U = downsample(userSeq, 64);
+  const R = downsample(refSeq, 64);
+  const n = U.length, m = R.length;
+
+  // Matriz DTW (n+1 x m+1)
+  const prev = new Array(m + 1).fill(Infinity);
+  let curr = new Array(m + 1).fill(Infinity);
+  prev[0] = 0;
+  // Nota: clásico DTW recorre por filas reutilizando 2 filas
+  let prevRow = prev.slice();
+  for (let i = 1; i <= n; i++) {
+    curr = new Array(m + 1).fill(Infinity);
+    for (let j = 1; j <= m; j++) {
+      const cost = angleDist(U[i - 1], R[j - 1]);
+      curr[j] = cost + Math.min(prevRow[j], curr[j - 1], prevRow[j - 1]);
+    }
+    prevRow = curr;
+  }
+  const pathLen = Math.max(n, m);
+  const avg = curr[m] / pathLen;          // distancia media por paso (~0..1)
+  // 0 → 100; 0.5 o más → ~0
+  return Math.round(Math.max(0, Math.min(100, (1 - avg / 0.5) * 100)));
+}
+
+/** Extrae el vector de ángulos de una pose normalizada (alias práctico) */
+export function poseFeature(lm: Landmark[]): number[] { return angleVector(lm); }

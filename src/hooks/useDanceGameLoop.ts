@@ -20,7 +20,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   loadPoseLandmarker, detectPose, pushHistory, clearHistory,
   extractAngles, scoreMovementLevel, scoreExactMatch, combinedScore,
-  getBodyFocus, isPoseLandmarkerReady,
+  getBodyFocus, isPoseLandmarkerReady, angleVector, scoreDTW,
   type PoseResult, type SyncScore, type PoseAngles,
 } from '../lib/poseSync';
 import { speak, stopSpeaking } from '../lib/speech';
@@ -65,6 +65,8 @@ interface Options {
   // ── Modo cámara remota (móvil como webcam) ──
   remote?: boolean;                                       // si true, usa landmarks remotos
   remoteLandmarksRef?: React.MutableRefObject<PoseResult>; // landmarks recibidos por Realtime
+  // Vídeo del profe (MP4) para extraer la referencia de pose y comparar con DTW
+  profeVideoRef?: React.RefObject<HTMLVideoElement>;
   genre: string;
   lang: string;
   userName: string;
@@ -202,6 +204,8 @@ export function useDanceGameLoop(opts: Options): GameState & {
   const [poseLandmarkerReady, setPoseLandmarkerReady] = useState(false);
 
   const scoresRef = useRef<number[]>([]);
+  const userTrackRef = useRef<number[][]>([]);   // ángulos del usuario durante el intento
+  const refTrackRef = useRef<number[][]>([]);    // ángulos del avatar durante la demo
   const phaseRef = useRef<GamePhase>('idle');
   const stepIdxRef = useRef(0);
   const attemptCountRef = useRef(0);
@@ -226,25 +230,36 @@ export function useDanceGameLoop(opts: Options): GameState & {
   }, []);
 
   // Loop de pose (RAF) — soporta cámara local o remota (móvil)
+  // Comparte el detector en el tiempo: DEMO → muestrea al avatar (referencia),
+  // ATTEMPT → muestrea al usuario (y puntúa). Así evitamos 2 detectores a la vez.
   const runPoseLoop = useCallback(() => {
     if (!runningRef.current) return;
+    const phase = phaseRef.current;
 
+    // ── DEMO: capturar la pista de referencia del avatar (solo MP4) ──
+    if (phase === 'demo' && opts.profeVideoRef?.current && isPoseLandmarkerReady()) {
+      const pv = opts.profeVideoRef.current;
+      if (pv.readyState >= 2 && !pv.paused) {
+        const plm = detectPose(pv);
+        if (plm) refTrackRef.current.push(angleVector(plm));
+      }
+      rafRef.current = requestAnimationFrame(runPoseLoop);
+      return; // durante la demo no procesamos al usuario
+    }
+
+    // ── Resto de fases: usuario (cámara local o móvil remoto) ──
     let lm: PoseResult = null;
     if (opts.remote) {
-      // Modo remoto: landmarks recibidos del móvil por Realtime
       lm = opts.remoteLandmarksRef?.current ?? null;
     } else {
-      // Modo local: detectar de la cámara de este dispositivo
       const video = opts.videoRef.current;
-      if (video && opts.camOn && isPoseLandmarkerReady()) {
-        lm = detectPose(video);
-      }
+      if (video && opts.camOn && isPoseLandmarkerReady()) lm = detectPose(video);
     }
 
     if (lm) {
       pushHistory(lm);
       setLandmarks(lm);
-      if (phaseRef.current === 'attempt') {
+      if (phase === 'attempt') {
         const focus = getBodyFocus(opts.genre);
         const movement = scoreMovementLevel(lm, focus, true);
         const refA = opts.refAngles?.(stepIdxRef.current);
@@ -252,10 +267,11 @@ export function useDanceGameLoop(opts: Options): GameState & {
         const result = combinedScore(movement, exact);
         setSyncScore(result);
         scoresRef.current.push(result.score);
+        userTrackRef.current.push(angleVector(lm)); // para DTW
       }
     }
     rafRef.current = requestAnimationFrame(runPoseLoop);
-  }, [opts.videoRef, opts.camOn, opts.remote, opts.remoteLandmarksRef, opts.genre, opts.refAngles]);
+  }, [opts.videoRef, opts.camOn, opts.remote, opts.remoteLandmarksRef, opts.profeVideoRef, opts.genre, opts.refAngles]);
 
   // TTS con respeto a voiceEnabled
   const say = useCallback((text: string) => {
@@ -373,6 +389,7 @@ export function useDanceGameLoop(opts: Options): GameState & {
   const runAttempt = useCallback((idx: number) => {
     setPhase('attempt');
     scoresRef.current = [];
+    userTrackRef.current = [];   // reiniciar pista de pose del usuario
     setSyncScore(null);
     setAttemptProgress(0);
     const total = attemptDuration * 1000;
@@ -387,8 +404,13 @@ export function useDanceGameLoop(opts: Options): GameState & {
         timerRef.current = setTimeout(tick, 100);
       } else {
         const scores = scoresRef.current;
-        const avg = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
-        if (avg >= PASS_THRESHOLD) runPass(idx, Math.round(avg));
+        const movementAvg = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+        // Sincronía temporal con el avatar (DTW). -1 si no hay referencia suficiente.
+        const dtw = scoreDTW(userTrackRef.current, refTrackRef.current);
+        // Si hay referencia del avatar: 70% sincronía DTW + 30% ritmo/movimiento.
+        // Si no: usamos solo ritmo/movimiento (como antes).
+        const avg = dtw >= 0 ? Math.round(dtw * 0.7 + movementAvg * 0.3) : Math.round(movementAvg);
+        if (avg >= PASS_THRESHOLD) runPass(idx, avg);
         else runFail(idx);
       }
     };
@@ -408,6 +430,7 @@ export function useDanceGameLoop(opts: Options): GameState & {
     setAttemptCount(0);
     clearHistory();
     scoresRef.current = [];
+    refTrackRef.current = [];   // reiniciar referencia del avatar para este paso
     playDemoStart();
     const msg = DEMO_MSGS(opts.userName, opts.stepName(idx), opts.stepCountCue(idx), opts.lang);
     // Pequeño delay para que el AudioContext esté desbloqueado tras el click

@@ -31,11 +31,16 @@ export interface Keyframe {
   videoUrl?: string;// vídeo de movimiento asignado (opcional)
 }
 
+export type MusicSource = 'youtube' | 'spotify' | 'local';
+
 export interface MusicTrack {
   id: string;
   label: string;
+  source?: MusicSource;   // por defecto 'youtube' (compatibilidad)
   youtubeUrl?: string;
-  start: number;    // segundos en la línea de tiempo
+  spotifyUrl?: string;
+  audioUrl?: string;      // archivo local subido (mp3/wav…)
+  start: number;          // segundos en la línea de tiempo
 }
 
 /** Movimiento grabado con la cámara (vídeo real + pista de pose opcional) */
@@ -201,4 +206,13 @@ export function ytId(url?: string): string {
   if (!url) return '';
   const m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
   return m?.[1] || '';
+}
+
+/** Convierte un enlace de Spotify en URL de reproductor embebido */
+export function spotifyEmbed(url?: string): string {
+  if (!url) return '';
+  // Soporta track, playlist, album, episode, show
+  const m = url.match(/open\.spotify\.com\/(track|playlist|album|episode|show)\/([A-Za-z0-9]+)/);
+  if (!m) return '';
+  return `https://open.spotify.com/embed/${m[1]}/${m[2]}`;
 }

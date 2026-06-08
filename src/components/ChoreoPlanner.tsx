@@ -14,13 +14,15 @@ import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import {
   Play, Pause, Plus, Trash2, Save, Users, Music, Settings2, SkipBack,
   Sparkles, X, Square, Circle as CircleIcon, Diamond, Video, Film,
+  Youtube, Music2, Upload, Loader2,
 } from 'lucide-react';
 import {
   type ProductionData, type Dancer, type Keyframe, type Formation, type Gender, type StageShape, type Move,
   emptyProduction, newDancer, positionAt, moveAt, formationPositions, FORMATION_LABELS,
-  fmtTime, ytId, DANCER_PALETTE,
+  fmtTime, ytId, spotifyEmbed, DANCER_PALETTE,
 } from '../lib/choreo';
 import MoveRecorder from './MoveRecorder';
+import { supabase } from '../lib/supabase';
 
 interface Props {
   initialData?: ProductionData;
@@ -47,6 +49,9 @@ const ChoreoPlanner: React.FC<Props> = ({ initialData, userId, onSave, onChange,
   const [positions, setPositions] = useState<Positions>({});
   const [panel, setPanel] = useState<'dancers' | 'formations' | 'moves' | 'music' | 'stage' | null>('dancers');
   const [showRecorder, setShowRecorder] = useState(false);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const activeMusicRef = useRef<ProductionData['music'][number] | null>(null);
 
   const stageRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number>(0);
@@ -194,12 +199,31 @@ const ChoreoPlanner: React.FC<Props> = ({ initialData, userId, onSave, onChange,
   const removeMove = (id: string) =>
     setData(prev => ({ ...prev, moves: prev.moves.filter(m => m.id !== id) }));
 
-  // Música
-  const addMusic = () => {
+  // ── Música ──
+  const addYouTube = () => {
     const url = window.prompt('Pega el enlace de YouTube de la canción:');
     if (!url) return;
     const label = window.prompt('Nombre de la canción:') || 'Canción';
-    setData(prev => ({ ...prev, music: [...prev.music, { id: `m_${Date.now()}`, label, youtubeUrl: url, start: Math.round(currentTime) }] }));
+    setData(prev => ({ ...prev, music: [...prev.music, { id: `m_${Date.now()}`, label, source: 'youtube', youtubeUrl: url, start: Math.round(currentTime) }] }));
+  };
+
+  const addSpotify = () => {
+    const url = window.prompt('Pega el enlace de Spotify (canción, álbum o playlist):');
+    if (!url) return;
+    if (!spotifyEmbed(url)) { window.alert('Enlace de Spotify no válido. Copia el enlace desde "Compartir".'); return; }
+    const label = window.prompt('Nombre de la canción:') || 'Spotify';
+    setData(prev => ({ ...prev, music: [...prev.music, { id: `m_${Date.now()}`, label, source: 'spotify', spotifyUrl: url, start: Math.round(currentTime) }] }));
+  };
+
+  const onLocalAudio = async (file: File) => {
+    setUploadingAudio(true);
+    const id = `au_${Date.now()}`;
+    const path = `${userId || 'anon'}/audio/${id}-${file.name.replace(/[^\w.\-]/g, '_')}`;
+    let url = '';
+    const { error } = await supabase.storage.from('choreo-moves').upload(path, file, { contentType: file.type || 'audio/mpeg', upsert: true });
+    url = error ? URL.createObjectURL(file) : supabase.storage.from('choreo-moves').getPublicUrl(path).data.publicUrl;
+    setUploadingAudio(false);
+    setData(prev => ({ ...prev, music: [...prev.music, { id, label: file.name.replace(/\.[^.]+$/, ''), source: 'local', audioUrl: url, start: Math.round(currentTime) }] }));
   };
 
   const seek = (t: number) => {
@@ -207,6 +231,11 @@ const ChoreoPlanner: React.FC<Props> = ({ initialData, userId, onSave, onChange,
     const nt = Math.max(0, Math.min(data.duration, t));
     setCurrentTime(nt);
     setPositions(computePositions(nt));
+    // Reposicionar el audio local
+    const a = audioRef.current;
+    if (a && activeMusicRef.current?.source === 'local') {
+      a.currentTime = Math.max(0, nt - activeMusicRef.current.start);
+    }
   };
 
   const selected = data.dancers.find(d => d.id === selectedId) || null;
@@ -216,6 +245,26 @@ const ChoreoPlanner: React.FC<Props> = ({ initialData, userId, onSave, onChange,
   const activeMusic = useMemo(() =>
     [...data.music].filter(m => m.start <= currentTime).sort((a, b) => b.start - a.start)[0] || null,
     [data.music, currentTime]);
+  activeMusicRef.current = activeMusic;
+
+  // Sincronizar el audio LOCAL con la reproducción de la coreografía
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    if (activeMusic?.source === 'local' && activeMusic.audioUrl) {
+      if (a.getAttribute('src') !== activeMusic.audioUrl) a.src = activeMusic.audioUrl;
+      if (playing) {
+        const target = Math.max(0, currentTime - activeMusic.start);
+        if (Math.abs(a.currentTime - target) > 0.35) a.currentTime = target;
+        a.play().catch(() => {});
+      } else {
+        a.pause();
+      }
+    } else {
+      a.pause();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [playing, activeMusic?.id, activeMusic?.source]);
 
   const shapeClip = (shape: StageShape): string =>
     shape === 'circle' ? 'ellipse(50% 50% at 50% 50%)'
@@ -473,20 +522,40 @@ const ChoreoPlanner: React.FC<Props> = ({ initialData, userId, onSave, onChange,
           {/* Música */}
           {panel === 'music' && (
             <div className="space-y-2">
-              <button onClick={addMusic} className="w-full bg-emerald-500/20 text-emerald-300 font-bold py-2 rounded-lg text-xs flex items-center justify-center gap-1">
-                <Plus className="w-3 h-3" /> Añadir canción (YouTube)
-              </button>
-              {activeMusic && ytId(activeMusic.youtubeUrl) && (
+              {/* Fuentes de audio */}
+              <div className="grid grid-cols-3 gap-2">
+                <button onClick={addYouTube} className="bg-red-500/15 text-red-300 font-bold py-2 rounded-lg text-[10px] flex flex-col items-center gap-0.5">
+                  <Youtube className="w-4 h-4" /> YouTube
+                </button>
+                <button onClick={addSpotify} className="bg-green-500/15 text-green-300 font-bold py-2 rounded-lg text-[10px] flex flex-col items-center gap-0.5">
+                  <Music2 className="w-4 h-4" /> Spotify
+                </button>
+                <label className="bg-blue-500/15 text-blue-300 font-bold py-2 rounded-lg text-[10px] flex flex-col items-center gap-0.5 cursor-pointer">
+                  {uploadingAudio ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />} Mi archivo
+                  <input type="file" accept="audio/*" hidden onChange={e => { const f = e.target.files?.[0]; if (f) onLocalAudio(f); }} />
+                </label>
+              </div>
+
+              {/* Reproductor del audio activo */}
+              {activeMusic?.source === 'spotify' && spotifyEmbed(activeMusic.spotifyUrl) && (
+                <iframe key={activeMusic.id} src={spotifyEmbed(activeMusic.spotifyUrl)} className="w-full rounded-lg" height="152"
+                  allow="autoplay; encrypted-media; clipboard-write; fullscreen; picture-in-picture" title={activeMusic.label} />
+              )}
+              {activeMusic?.source !== 'spotify' && activeMusic && ytId(activeMusic.youtubeUrl) && (
                 <div className="rounded-lg overflow-hidden aspect-video">
-                  <iframe
-                    src={`https://www.youtube-nocookie.com/embed/${ytId(activeMusic.youtubeUrl)}`}
+                  <iframe src={`https://www.youtube-nocookie.com/embed/${ytId(activeMusic.youtubeUrl)}`}
                     className="w-full h-full" allow="autoplay; encrypted-media" title={activeMusic.label} />
                 </div>
               )}
+              {/* Audio local: se sincroniza con la reproducción de la pista */}
+              <audio ref={audioRef} className="w-full" controls preload="auto" />
+
               <div className="space-y-1">
                 {data.music.map(m => (
                   <div key={m.id} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                    <Music className="w-3.5 h-3.5 text-emerald-400" />
+                    {m.source === 'spotify' ? <Music2 className="w-3.5 h-3.5 text-green-400" />
+                      : m.source === 'local' ? <Upload className="w-3.5 h-3.5 text-blue-400" />
+                      : <Youtube className="w-3.5 h-3.5 text-red-400" />}
                     <span className="flex-1 text-white text-xs truncate">{m.label}</span>
                     <span className="text-[9px] text-white/40">{fmtTime(m.start)}</span>
                     <button onClick={() => setData(prev => ({ ...prev, music: prev.music.filter(x => x.id !== m.id) }))}
@@ -494,7 +563,9 @@ const ChoreoPlanner: React.FC<Props> = ({ initialData, userId, onSave, onChange,
                   </div>
                 ))}
               </div>
-              <p className="text-[10px] text-white/40">La música se muestra desde el segundo en que la añades. Úsala para ensayar entradas.</p>
+              <p className="text-[10px] text-white/40">
+                El <b className="text-blue-300">archivo local</b> se sincroniza al reproducir la coreografía. Spotify/YouTube se reproducen aparte (referencia).
+              </p>
             </div>
           )}
 
