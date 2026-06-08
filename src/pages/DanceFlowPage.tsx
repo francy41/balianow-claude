@@ -26,7 +26,7 @@ import { useRemoteCamera } from '../hooks/useRemoteCamera';
 import { useDeviceType, btnSizes, textSizes } from '../lib/deviceDetect';
 import { speak, stopSpeaking, createRecognizer, isRecognitionSupported, type Recognizer } from '../lib/speech';
 import { unlockAudio } from '../lib/gameAudio';
-import { Mic, MicOff, Volume2, VolumeX, RotateCcw } from 'lucide-react';
+import { Mic, MicOff, Volume2, VolumeX, RotateCcw, Maximize2, Minimize2, Scan } from 'lucide-react';
 
 interface Choreographer {
   id: string; name: string; mode: string; age_range: string; specialty: string[];
@@ -233,6 +233,26 @@ const DanceSessionModal: React.FC<{
   // Cámara del usuario (para el game loop)
   const userVideoRef = useRef<HTMLVideoElement>(null);
   const [userCamOn, setUserCamOn] = useState(false);
+
+  // ── Pantalla completa + ajuste de vídeo ──
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [fit, setFit] = useState<'cover' | 'contain'>('cover');
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await rootRef.current?.requestFullscreen?.();
+        setFit('contain'); // en pantalla completa, mostrar todo el cuerpo
+      } else {
+        await document.exitFullscreen?.();
+      }
+    } catch { /* algunos navegadores móviles lo limitan */ }
+  };
+  useEffect(() => {
+    const onFs = () => setExpanded(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFs);
+    return () => document.removeEventListener('fullscreenchange', onFs);
+  }, []);
 
   // ── Fuente de cámara: este dispositivo o el móvil como webcam ──
   // En TV sugerimos el móvil por defecto; en el resto, la cámara local.
@@ -452,17 +472,18 @@ const DanceSessionModal: React.FC<{
   // Tablet: modal, lado a lado 50/50
   // Mobile: fullscreen, stack vertical
 
-  const wrapCls = isTV
+  const fullView = isTV || expanded;
+  const wrapCls = fullView
     ? 'fixed inset-0 z-[100] bg-[#060608] flex flex-col'
     : 'fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4';
 
-  const innerCls = isTV
-    ? 'flex-1 flex flex-col w-full h-full overflow-hidden'
+  const innerCls = fullView
+    ? 'flex-1 flex flex-col w-full h-full overflow-hidden bg-[#060608]'
     : `bg-white dark:bg-[#0e0e14] w-full ${started ? 'sm:max-w-5xl' : 'sm:max-w-lg'} rounded-t-3xl sm:rounded-3xl max-h-[96vh] flex flex-col overflow-hidden transition-all`;
 
   return (
     <div className={wrapCls}>
-      <div className={innerCls}>
+      <div ref={rootRef} className={innerCls}>
 
         {/* ── HEADER ── */}
         <div className={`relative bg-gradient-to-br ${choreographer.gradient} text-white flex items-center gap-3 flex-shrink-0 ${isTV ? 'p-6' : 'p-4'}`}>
@@ -489,6 +510,26 @@ const DanceSessionModal: React.FC<{
                 </span>
               ))}
             </div>
+          )}
+          {/* Ajuste de vídeo (recortar / ver completo) */}
+          {started && (
+            <button
+              onClick={() => setFit(f => f === 'cover' ? 'contain' : 'cover')}
+              title={fit === 'cover' ? 'Ver completo (sin recortar)' : 'Rellenar pantalla'}
+              className={`hover:bg-white/20 rounded-xl flex-shrink-0 flex items-center justify-center focus:ring-2 focus:ring-white focus:outline-none ${isTV ? 'w-14 h-14' : 'p-1.5'} ${fit === 'contain' ? 'bg-white/20' : ''}`}
+            >
+              <Scan className={isTV ? 'w-8 h-8' : 'w-5 h-5'} />
+            </button>
+          )}
+          {/* Pantalla completa */}
+          {started && (
+            <button
+              onClick={toggleFullscreen}
+              title={expanded ? 'Salir de pantalla completa' : 'Pantalla completa'}
+              className={`hover:bg-white/20 rounded-xl flex-shrink-0 flex items-center justify-center focus:ring-2 focus:ring-white focus:outline-none ${isTV ? 'w-14 h-14' : 'p-1.5'}`}
+            >
+              {expanded ? <Minimize2 className={isTV ? 'w-8 h-8' : 'w-5 h-5'} /> : <Maximize2 className={isTV ? 'w-8 h-8' : 'w-5 h-5'} />}
+            </button>
           )}
           <button
             onClick={started ? endSession : onClose}
@@ -621,10 +662,10 @@ const DanceSessionModal: React.FC<{
                       <iframe key={profeVideoUrl} src={ytEmbed(profeVideoUrl)}
                         className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen title={choreographer.name} />
                     ) : (
-                      <video key={profeVideoUrl} src={profeVideoUrl} className="w-full h-full object-cover" autoPlay loop playsInline controls />
+                      <video key={profeVideoUrl} src={profeVideoUrl} className={`w-full h-full ${fit === 'contain' ? 'object-contain' : 'object-cover'}`} autoPlay loop playsInline controls />
                     )
                   ) : choreographer.avatar_url ? (
-                    <img src={choreographer.avatar_url} alt={choreographer.name} className="w-full h-full object-cover" />
+                    <img src={choreographer.avatar_url} alt={choreographer.name} className={`w-full h-full ${fit === 'contain' ? 'object-contain' : 'object-cover'}`} />
                   ) : (
                     <div className={`w-full h-full bg-gradient-to-br ${choreographer.gradient} flex items-center justify-center`}>
                       <span className={`${speaking ? 'animate-bounce' : ''} ${isTV ? 'text-[12rem]' : 'text-7xl'}`}>{choreographer.avatar_emoji}</span>
@@ -681,6 +722,7 @@ const DanceSessionModal: React.FC<{
                       camOn={userCamOn} setCamOn={setUserCamOn}
                       onCamReady={(video) => { (userVideoRef as any).current = video; }}
                       device={device}
+                      objectFit={fit}
                       remote={remoteActive}
                       remoteConnected={remoteCam.connected}
                       remoteFrame={remoteCam.frame}

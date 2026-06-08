@@ -17,7 +17,7 @@
  */
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
-  Play, X, Mic, MicOff, Volume2, VolumeX, Loader2, RotateCcw, Zap,
+  Play, X, Mic, MicOff, Volume2, VolumeX, Loader2, RotateCcw, Zap, Maximize2, Minimize2, Scan,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useI18n } from '../lib/i18n';
@@ -102,6 +102,23 @@ const DanceStudio: React.FC<Props> = ({
   const remoteCam = useRemoteCamera(camSource === 'remote');
   const remoteActive = camSource === 'remote';
   useEffect(() => { if (device === 'tv') setCamSource('remote'); }, [device]);
+
+  // Pantalla completa + ajuste de vídeo
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [fit, setFit] = useState<'cover' | 'contain'>('cover');
+  const fitClass = fit === 'contain' ? 'object-contain' : 'object-cover';
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) { await rootRef.current?.requestFullscreen?.(); setFit('contain'); }
+      else await document.exitFullscreen?.();
+    } catch { /* limitado en algunos móviles */ }
+  };
+  useEffect(() => {
+    const onFs = () => setExpanded(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFs);
+    return () => document.removeEventListener('fullscreenchange', onFs);
+  }, []);
 
   // ── Cargar lecciones si no se pasaron ──
   useEffect(() => {
@@ -304,7 +321,7 @@ const DanceStudio: React.FC<Props> = ({
 
   // ── ESTUDIO INTERACTIVO ──
   return (
-    <div className={wrapCls}>
+    <div ref={rootRef} className={wrapCls}>
       {/* Header */}
       <div className={`relative bg-gradient-to-br ${gradient} text-white flex items-center gap-3 flex-shrink-0 ${isTV ? 'p-6' : 'p-3'}`}>
         {teacherAvatarUrl
@@ -320,6 +337,14 @@ const DanceStudio: React.FC<Props> = ({
             <p className={`opacity-80 ${isTV ? 'text-base' : 'text-[9px]'}`}>pts</p>
           </div>
         )}
+        <button onClick={() => setFit(f => f === 'cover' ? 'contain' : 'cover')} title="Ver completo / rellenar"
+          className={`hover:bg-white/20 rounded-xl flex items-center justify-center ${isTV ? 'w-12 h-12' : 'p-1.5'} ${fit === 'contain' ? 'bg-white/20' : ''}`}>
+          <Scan className={isTV ? 'w-7 h-7' : 'w-5 h-5'} />
+        </button>
+        <button onClick={toggleFullscreen} title="Pantalla completa"
+          className={`hover:bg-white/20 rounded-xl flex items-center justify-center ${isTV ? 'w-12 h-12' : 'p-1.5'}`}>
+          {expanded ? <Minimize2 className={isTV ? 'w-7 h-7' : 'w-5 h-5'} /> : <Maximize2 className={isTV ? 'w-7 h-7' : 'w-5 h-5'} />}
+        </button>
         <button onClick={endSession} className={`hover:bg-white/20 rounded-xl flex items-center justify-center ${isTV ? 'w-14 h-14' : 'p-1.5'}`}>
           <X className={isTV ? 'w-8 h-8' : 'w-5 h-5'} />
         </button>
@@ -339,9 +364,9 @@ const DanceStudio: React.FC<Props> = ({
             ) : profeVideoUrl ? (
               isYouTube(profeVideoUrl)
                 ? <iframe key={profeVideoUrl} src={ytEmbed(profeVideoUrl)} className="w-full h-full" allow="autoplay; encrypted-media; fullscreen" allowFullScreen title={teacherName} />
-                : <video key={profeVideoUrl} src={profeVideoUrl} className="w-full h-full object-cover" autoPlay loop playsInline controls />
+                : <video key={profeVideoUrl} src={profeVideoUrl} className={`w-full h-full ${fitClass}`} autoPlay loop playsInline controls />
             ) : teacherAvatarUrl ? (
-              <img src={teacherAvatarUrl} alt={teacherName} className="w-full h-full object-cover" />
+              <img src={teacherAvatarUrl} alt={teacherName} className={`w-full h-full ${fitClass}`} />
             ) : (
               <div className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}>
                 <span className={`${speaking ? 'animate-bounce' : ''} ${isTV ? 'text-[12rem]' : 'text-7xl'}`}>{teacherEmoji}</span>
@@ -383,6 +408,7 @@ const DanceStudio: React.FC<Props> = ({
               camOn={userCamOn} setCamOn={setUserCamOn}
               onCamReady={(video) => { (userVideoRef as any).current = video; }}
               device={device}
+              objectFit={fit}
               remote={remoteActive} remoteConnected={remoteCam.connected} remoteFrame={remoteCam.frame}
             />
             <GameHUD

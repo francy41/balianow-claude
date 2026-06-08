@@ -29,11 +29,12 @@ interface Props {
   remote?: boolean;
   remoteConnected?: boolean;
   remoteFrame?: string | null;   // miniatura JPEG (dataURL) recibida del móvil
+  objectFit?: 'cover' | 'contain'; // recortar (cover) o ver completo (contain)
 }
 
 const DanceSyncCamera = forwardRef<DanceSyncCameraHandle, Props>((
   { phase, countdown, attemptProgress, syncScore, landmarks, label, onCamReady, onCamOff, camOn, setCamOn,
-    device = 'mobile', remote = false, remoteConnected = false, remoteFrame = null },
+    device = 'mobile', remote = false, remoteConnected = false, remoteFrame = null, objectFit = 'cover' },
   ref,
 ) => {
   const videoRef    = useRef<HTMLVideoElement>(null);
@@ -111,7 +112,7 @@ const DanceSyncCamera = forwardRef<DanceSyncCameraHandle, Props>((
       <div ref={containerRef} className={`relative w-full overflow-hidden bg-[#0a0a18] ${isTV ? 'h-full rounded-3xl' : 'h-full rounded-2xl'}`}>
         {/* Miniatura del móvil como fondo (si llega) */}
         {remoteFrame ? (
-          <img src={remoteFrame} alt="Tu cámara" className="absolute inset-0 w-full h-full object-cover" style={{ transform: 'scaleX(-1)' }} />
+          <img src={remoteFrame} alt="Tu cámara" className={`absolute inset-0 w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'}`} style={{ transform: 'scaleX(-1)' }} />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-[#1a1030] to-[#0a0a18]" />
         )}
@@ -191,7 +192,7 @@ const DanceSyncCamera = forwardRef<DanceSyncCameraHandle, Props>((
           <video
             ref={videoRef}
             autoPlay playsInline muted
-            className="absolute inset-0 w-full h-full object-cover"
+            className={`absolute inset-0 w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'}`}
             style={{ transform: mirror ? 'scaleX(-1)' : 'none' }}
           />
           <DanceSyncOverlay
