@@ -120,7 +120,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
             </div>
           )}
 
-          {NAV.filter(g => g.section !== 'EXPLORADOR' && g.section !== 'CATEGORÍAS' && g.section !== 'CERCA DE MÍ').map(group => (
+          {NAV.filter(g => g.section !== 'EXPLORADOR').map(group => (
             <div key={group.section}>
               <p className="nav-section">{group.section}</p>
               {group.items.map(item => (
