@@ -5,9 +5,9 @@ const config: CapacitorConfig = {
   appName: 'BailaNow',
   webDir: 'dist',
   server: {
-    // ✅ La APK siempre carga la web en vivo — cualquier cambio en la web
-    // se refleja automáticamente en la app sin necesitar rebuild del APK
-    url: 'https://bailanow-app.vercel.app',
+    // ✅ La APK siempre carga la web en vivo (dominio de producción) — cualquier
+    // cambio que despleguemos se refleja en la app sin recompilar el APK.
+    url: 'https://bailanow.com',
     cleartext: false,
   },
   plugins: {
