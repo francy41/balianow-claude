@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 500" width="1024" height="500">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a0033"/>
+      <stop offset="55%" stop-color="#2d0052"/>
+      <stop offset="100%" stop-color="#08010f"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff8c42"/>
+      <stop offset="50%" stop-color="#ff3e6c"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="20%" cy="25%" r="80%">
+      <stop offset="0%" stop-color="#ff3e6c" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#ff3e6c" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="500" fill="url(#bg)"/>
+  <rect width="1024" height="500" fill="url(#glow)"/>
+
+  <!-- icono a la izquierda -->
+  <g transform="translate(70 110) scale(0.27)">
+    <rect width="1024" height="1024" rx="220" fill="url(#mark)"/>
+    <g fill="#ffffff">
+      <circle cx="560" cy="300" r="58"/>
+      <path d="M560 372 q70 8 66 120 l-22 150 q-46 18 -92 0 l-18 -140 q-6 -122 66 -130 z"/>
+      <path d="M616 410 q86 -52 120 -128 q20 -2 22 16 q-30 92 -120 142 q-16 -10 -22 -30 z"/>
+      <path d="M512 430 q-86 14 -120 86 q4 20 24 16 q70 -50 120 -64 q-10 -22 -24 -38 z"/>
+      <path d="M520 622 q44 22 88 0 l64 150 q-110 46 -220 6 z" opacity="0.95"/>
+      <path d="M540 648 l-20 150 q16 12 34 4 l10 -140 z"/>
+      <path d="M574 648 l34 138 q18 6 30 -8 l-42 -132 z"/>
+    </g>
+  </g>
+
+  <!-- texto -->
+  <g font-family="'Segoe UI', Arial, sans-serif">
+    <text x="400" y="210" font-size="90" font-weight="800" fill="#ffffff">BailaNow</text>
+    <text x="402" y="270" font-size="34" font-weight="700" fill="#ffd9a8">Baila con IA · tu academia de baile</text>
+    <text x="402" y="330" font-size="26" font-weight="600" fill="#c9b8ff">Bachata · Salsa · Reggaetón · Kizomba</text>
+    <g transform="translate(402 366)">
+      <rect width="250" height="58" rx="29" fill="url(#mark)"/>
+      <text x="125" y="39" font-size="26" font-weight="800" fill="#ffffff" text-anchor="middle">▶  Empieza gratis</text>
+    </g>
+  </g>
+</svg>
