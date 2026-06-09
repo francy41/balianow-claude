@@ -88,3 +88,11 @@ test-results/
 /android/.gradle/
 
 /android/build/
+
+/android/key.properties
+
+*.aab
+
+/android/app/release/
+
+/rasterize.cjs
