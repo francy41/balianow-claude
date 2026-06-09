@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1920" width="1080" height="1920">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a0033"/><stop offset="55%" stop-color="#2d0052"/><stop offset="100%" stop-color="#08010f"/>
+    </linearGradient>
+    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ff8c42"/><stop offset="100%" stop-color="#ff3e6c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1920" fill="url(#bg)"/>
+  <text x="540" y="230" font-family="Arial" font-size="74" font-weight="800" fill="#fff" text-anchor="middle">Aprende con tu cámara</text>
+  <text x="540" y="310" font-family="Arial" font-size="40" font-weight="600" fill="#ffd9a8" text-anchor="middle">La IA mide tu ritmo en tiempo real</text>
+
+  <!-- mock pantalla -->
+  <g transform="translate(140 400)">
+    <rect width="800" height="1000" rx="48" fill="#0e0e1a" stroke="#ffffff22" stroke-width="2"/>
+    <!-- profe -->
+    <rect x="40" y="40" width="350" height="500" rx="24" fill="#241038"/>
+    <text x="215" y="300" font-size="150" text-anchor="middle">🕺</text>
+    <text x="60" y="80" font-size="26" fill="#ff8c42" font-weight="700">EL PROFE</text>
+    <!-- tú -->
+    <rect x="410" y="40" width="350" height="500" rx="24" fill="#10231c"/>
+    <text x="585" y="300" font-size="150" text-anchor="middle">💃</text>
+    <text x="430" y="80" font-size="26" fill="#34d399" font-weight="700">TÚ</text>
+    <!-- MATCH -->
+    <text x="400" y="660" font-size="120" font-weight="800" fill="#34d399" text-anchor="middle">92% MATCH</text>
+    <rect x="150" y="700" width="500" height="26" rx="13" fill="#ffffff22"/>
+    <rect x="150" y="700" width="460" height="26" rx="13" fill="#34d399"/>
+    <text x="400" y="770" font-size="30" fill="#ffffff99" text-anchor="middle">sincronía con el profe</text>
+    <!-- vidas/estrellas -->
+    <text x="400" y="880" font-size="60" text-anchor="middle">❤️ ❤️ ❤️   ⭐ ⭐ ⭐</text>
+  </g>
+  <text x="540" y="1500" font-family="Arial" font-size="34" fill="#c9b8ff" text-anchor="middle">🔒 Tu vídeo nunca sale del móvil</text>
+  <text x="540" y="1840" font-family="Arial" font-size="44" font-weight="800" fill="#fff" text-anchor="middle">BailaNow</text>
+</svg>
