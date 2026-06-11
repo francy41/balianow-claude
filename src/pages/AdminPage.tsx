@@ -3419,7 +3419,7 @@ const IntegracionesSection: React.FC<{ addToast: Function }> = ({ addToast }) =>
               <pre className="bg-gray-900 text-green-400 p-2 rounded mt-1 text-[10px] overflow-x-auto">supabase functions deploy ghl-bulk-post --project-ref lpwwdjujxwxdvyoznehp</pre>
             </li>
           </ol>
-          <p className="mt-2">Una vez hecho, en <a href="/redes" className="font-bold text-purple-700 underline">/redes</a> aparecerá el botón <b>"Publicar en varias"</b> 📡</p>
+          <p className="mt-2">Una vez hecho, la publicación masiva quedará disponible vía GHL 📡</p>
         </div>
       </div>
 

@@ -48,7 +48,6 @@ const NAV: { section: string; items: NavItem[] }[] = [
       { label: 'Ruta de Hoy',    icon: <Compass className="w-4 h-4" />,    to: '/' },
       { label: 'Proyectos',      icon: <Briefcase className="w-4 h-4" />,  to: '/marketplace' },
       { label: '📢 Promociónate',icon: <Megaphone className="w-4 h-4" />, to: '/promocionate' },
-      { label: 'Clases en vivo', icon: <Video className="w-4 h-4" />,      to: '/live' },
       { label: 'Ofertas',        icon: <Gift className="w-4 h-4" />,       to: '/marketplace?cat=ofertas' },
     ],
   },
@@ -65,7 +64,6 @@ const NAV: { section: string; items: NavItem[] }[] = [
     items: [
       { label: 'Mi Dashboard',  icon: <LayoutDashboard className="w-4 h-4" />, to: '/dashboard' },
       { label: 'Mi Perfil',     icon: <User className="w-4 h-4" />,            to: '/perfil' },
-      { label: '📱 Redes Sociales', icon: <Megaphone className="w-4 h-4" />,   to: '/redes' },
     ],
   },
 ];

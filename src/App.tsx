@@ -36,7 +36,6 @@ const ChatPage          = lazy(() => import('./pages/ChatPage'));
 const DashboardPage     = lazy(() => import('./pages/DashboardPage'));
 const WalletPage        = lazy(() => import('./pages/WalletPage'));
 const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'));
-const SocialPage        = lazy(() => import('./pages/SocialPage'));
 const DanceFlowPage     = lazy(() => import('./pages/DanceFlowPage'));
 const DanceCameraPage   = lazy(() => import('./pages/DanceCameraPage'));
 const ChoreographyPage  = lazy(() => import('./pages/ChoreographyPage'));
@@ -156,8 +155,6 @@ const App: React.FC = () => {
                   <Route path="/perfil"              element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
                   <Route path="/wallet"              element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
                   <Route path="/subscripciones"      element={<ProtectedRoute><SubscriptionsPage /></ProtectedRoute>} />
-                  <Route path="/redes"               element={<ProtectedRoute><SocialPage /></ProtectedRoute>} />
-                  <Route path="/social"              element={<ProtectedRoute><SocialPage /></ProtectedRoute>} />
                   <Route path="/baila-ia"            element={<DanceFlowPage />} />
                   <Route path="/danceflow"           element={<DanceFlowPage />} />
                   <Route path="/baila-camara"        element={<DanceCameraPage />} />
