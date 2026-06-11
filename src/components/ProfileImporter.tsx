@@ -76,8 +76,36 @@ interface SmartResult { type: SmartType; confidence?: number; data: Row; source:
 const TYPE_META: Record<SmartType, { label: string; icon: React.ReactNode; color: string; table: string }> = {
   event:   { label: 'Evento',  icon: <Calendar className="w-4 h-4" />, color: 'bg-purple-100 text-purple-700', table: 'events' },
   venue:   { label: 'Local',   icon: <MapPin className="w-4 h-4" />,   color: 'bg-emerald-100 text-emerald-700', table: 'venues' },
-  profile: { label: 'Perfil',  icon: <User className="w-4 h-4" />,     color: 'bg-pink-100 text-pink-700', table: 'profiles' },
+  profile: { label: 'Perfil',  icon: <User className="w-4 h-4" />,     color: 'bg-pink-100 text-pink-700', table: 'artists' },
 };
+
+/** Slug simple para ids de artistas importados */
+const slugify = (s: string) =>
+  'imp-' + s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').slice(0, 40);
+
+/** Mapea un perfil extraído al esquema de la tabla artists (perfiles sin cuenta van ahí) */
+function profileToArtist(clean: Row): Row {
+  const social: Row = {};
+  if (clean.instagram_url) social.instagram = clean.instagram_url;
+  if (clean.tiktok_url) social.tiktok = clean.tiktok_url;
+  if (clean.youtube_url) social.youtube = clean.youtube_url;
+  if (clean.spotify_url) social.spotify = clean.spotify_url;
+  if (clean.website || clean.website_url) social.website = clean.website || clean.website_url;
+  return {
+    id: slugify(String(clean.name || 'artista')),
+    name: clean.name,
+    type: ['dj', 'dancer', 'teacher', 'artist', 'singer', 'band'].includes(String(clean.role)) ? clean.role : 'dancer',
+    genre: clean.styles,
+    avatar: clean.avatar_url,
+    city: clean.city,
+    country: clean.country,
+    bio: clean.bio,
+    social: Object.keys(social).length ? social : undefined,
+    tags: clean.tags,
+    lat: clean.lat, lng: clean.lng,
+  };
+}
 
 const ProfileImporter: React.FC = () => {
   const addToast = useUIStore(s => s.addToast);
@@ -169,8 +197,9 @@ const ProfileImporter: React.FC = () => {
         };
         ({ error } = await supabase.from('venues').insert(strip(row)));
       } else {
-        const row = normalizeRow(clean);
-        ({ error } = await supabase.from('profiles').insert(strip(row)));
+        // Perfiles importados (sin cuenta de usuario) → tabla artists
+        const row = profileToArtist(clean);
+        ({ error } = await supabase.from('artists').upsert(strip(row), { onConflict: 'id' }));
       }
 
       if (error) addToast({ type: 'error', message: error.message });
@@ -195,22 +224,20 @@ const ProfileImporter: React.FC = () => {
     const errors: { row: number; msg: string }[] = [];
     let ok = 0;
 
+    // Los perfiles importados (sin cuenta de usuario) van a la tabla artists
+    const artistRows = rows.map(r => {
+      const a = profileToArtist(r);
+      const out: Row = {}; for (const k of Object.keys(a)) if (a[k] !== undefined && a[k] !== null && a[k] !== '') out[k] = a[k];
+      return out;
+    }).filter(r => r.name);
+
     const BATCH = 20;
-    for (let i = 0; i < rows.length; i += BATCH) {
-      const chunk = rows.slice(i, i + BATCH);
-      const hasEmail = chunk.every(r => !!r.email);
-      let res;
-      if (hasEmail) {
-        res = await supabase.from('profiles').upsert(chunk, { onConflict: 'email' }).select('id');
-      } else {
-        res = await supabase.from('profiles').insert(chunk).select('id');
-      }
+    for (let i = 0; i < artistRows.length; i += BATCH) {
+      const chunk = artistRows.slice(i, i + BATCH);
+      const res = await supabase.from('artists').upsert(chunk, { onConflict: 'id' }).select('id');
       if (res.error) {
         for (let j = 0; j < chunk.length; j++) {
-          const r = chunk[j];
-          const single = r.email
-            ? await supabase.from('profiles').upsert(r, { onConflict: 'email' })
-            : await supabase.from('profiles').insert(r);
+          const single = await supabase.from('artists').upsert(chunk[j], { onConflict: 'id' });
           if (single.error) errors.push({ row: i + j + 1, msg: single.error.message });
           else ok++;
         }
