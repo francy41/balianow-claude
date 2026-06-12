@@ -119,7 +119,8 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
             </div>
           )}
 
-          {NAV.filter(g => g.section !== 'EXPLORADOR' && g.section !== 'CATEGORÍAS' && g.section !== 'CERCA DE MÍ').map(group => (
+          {/* CERCA DE MÍ se oculta porque sus enlaces ya están en el MENÚ dinámico (CMS) */}
+          {NAV.filter(g => g.section !== 'EXPLORADOR' && g.section !== 'CERCA DE MÍ').map(group => (
             <div key={group.section}>
               <p className="nav-section">{group.section}</p>
               {group.items.map(item => (
