@@ -1,10 +1,14 @@
 name: Deploy Supabase Edge Functions
 
+# Solo ejecución MANUAL. Las funciones se despliegan normalmente con el script
+# local `node supabase/deploy-functions-v2.mjs` (Management API), así que este
+# workflow no debe correr en cada push. Para usarlo desde Actions, configura
+# antes los secrets del repo: SUPABASE_ACCESS_TOKEN, SUPABASE_PROJECT_REF,
+# STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, PAYPAL_CLIENT_ID,
+# PAYPAL_CLIENT_SECRET y RESEND_API_KEY — si faltan, el paso de secrets
+# sobrescribiría los valores reales con vacíos.
 on:
-  push:
-    branches: [master]
-    paths:
-      - 'supabase/functions/**'
+  workflow_dispatch:
 
 jobs:
   deploy:
