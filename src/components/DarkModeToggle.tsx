@@ -21,7 +21,7 @@ const DarkModeToggle: React.FC = () => {
   return (
     <button
       onClick={() => setDarkMode(v => !v)}
-      className="fixed bottom-36 lg:bottom-4 right-4 z-[60] w-11 h-11 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 border-2 border-pink-500/30 hover:border-pink-500 hover:scale-110 active:scale-95"
+      className="fixed bottom-20 left-4 lg:bottom-4 lg:left-auto lg:right-4 z-[60] w-11 h-11 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 border-2 border-pink-500/30 hover:border-pink-500 hover:scale-110 active:scale-95"
       style={{
         background: darkMode
           ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'

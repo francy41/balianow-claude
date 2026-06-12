@@ -2900,7 +2900,16 @@ const PatrocinadoresSection: React.FC<{ addToast: Function }> = ({ addToast }) =
                       </optgroup>
                       <optgroup label="🎵 Estilos de baile">
                         <option value="/cerca?style=Bachata">Bachata</option>
+                        <option value="/cerca?style=Bachata Dominicana">Bachata Dominicana</option>
+                        <option value="/cerca?style=Bachata Moderna">Bachata Moderna</option>
+                        <option value="/cerca?style=Bachata Sensual">Bachata Sensual</option>
+                        <option value="/cerca?style=Bachata Urbana">Bachata Urbana</option>
                         <option value="/cerca?style=Salsa">Salsa</option>
+                        <option value="/cerca?style=Salsa Cubana">Salsa Cubana</option>
+                        <option value="/cerca?style=Salsa Colombiana (Caleña)">Salsa Colombiana (Caleña)</option>
+                        <option value="/cerca?style=Cha-cha-chá">Cha-cha-chá</option>
+                        <option value="/cerca?style=Cumbia">Cumbia</option>
+                        <option value="/cerca?style=Reparto Cubano">Reparto Cubano</option>
                         <option value="/cerca?style=Kizomba">Kizomba</option>
                         <option value="/cerca?style=Reggaeton">Reggaeton</option>
                         <option value="/cerca?style=Merengue">Merengue</option>

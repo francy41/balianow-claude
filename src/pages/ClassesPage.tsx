@@ -32,7 +32,7 @@ interface ClassOffering {
   slots_count?: number;
 }
 
-const STYLES = ['Todos', 'Bachata', 'Salsa', 'Kizomba', 'Reggaeton', 'Merengue', 'Cumbia', 'Latin Mix'];
+const STYLES = ['Todos', 'Bachata', 'Bachata Dominicana', 'Bachata Moderna', 'Bachata Sensual', 'Bachata Urbana', 'Salsa', 'Salsa Cubana', 'Salsa Colombiana (Caleña)', 'Cha-cha-chá', 'Cumbia', 'Reparto Cubano', 'Kizomba', 'Reggaeton', 'Merengue', 'Latin Mix'];
 const LEVELS = ['Todos', 'Principiante', 'Intermedio', 'Avanzado', 'Profesional'];
 
 const ClassesPage: React.FC = () => {

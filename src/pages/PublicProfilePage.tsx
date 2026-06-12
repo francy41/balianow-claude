@@ -341,7 +341,7 @@ const PublicProfilePage: React.FC = () => {
       {(isAdmin || user?.id === profile?.id) && (
         <button
           onClick={() => setEditOpen(true)}
-          className="fixed bottom-24 right-4 z-30 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold rounded-full px-5 py-3 shadow-lg shadow-pink-500/40 flex items-center gap-2 active:scale-95"
+          className="fixed bottom-36 lg:bottom-6 right-4 z-30 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold rounded-full px-5 py-3 shadow-lg shadow-pink-500/40 flex items-center gap-2 active:scale-95"
           title="Editar este perfil"
         >
           <Edit className="w-5 h-5" />

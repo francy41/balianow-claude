@@ -324,7 +324,7 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
                   <span className="text-[10px] text-gray-400 ml-1 normal-case">— Aparecerás en estos filtros</span>
                 </label>
                 <div className="flex flex-wrap gap-1.5">
-                  {['Bachata','Salsa','Kizomba','Reggaeton','Merengue','Cumbia','Latin Mix','Bachata Sensual','Salsa Cubana','Tango','Mambo','Cha-cha'].map(s => {
+                  {['Bachata','Bachata Dominicana','Bachata Moderna','Bachata Sensual','Bachata Urbana','Salsa','Salsa Cubana','Salsa Colombiana (Caleña)','Cha-cha-chá','Cumbia','Reparto Cubano','Kizomba','Reggaeton','Merengue','Latin Mix','Tango','Mambo'].map(s => {
                     const styles = (form as any).styles || [];
                     const active = styles.includes(s);
                     return (

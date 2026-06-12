@@ -58,7 +58,7 @@ type Booking = {
   starts_at?: string;
 };
 
-const STYLES = ['Bachata', 'Salsa', 'Kizomba', 'Reggaeton', 'Merengue', 'Cumbia', 'Latin Mix'];
+const STYLES = ['Bachata', 'Bachata Dominicana', 'Bachata Moderna', 'Bachata Sensual', 'Bachata Urbana', 'Salsa', 'Salsa Cubana', 'Salsa Colombiana (Caleña)', 'Cha-cha-chá', 'Cumbia', 'Reparto Cubano', 'Kizomba', 'Reggaeton', 'Merengue', 'Latin Mix'];
 const LEVELS = ['Principiante', 'Intermedio', 'Avanzado', 'Profesional', 'all'];
 const CATEGORIES = [
   { id: 'class', label: 'Clase regular' },

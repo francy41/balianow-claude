@@ -28,7 +28,7 @@ interface DbArtist {
 }
 
 const TYPES = ['Todos', 'DJ', 'Bailarín/a', 'Banda', 'Instructor/a', 'Cantante'];
-const GENRES = ['Todos', 'Salsa', 'Bachata', 'Merengue', 'Cumbia', 'Reggaeton', 'Timba', 'Afrobeats', 'Kizomba'];
+const GENRES = ['Todos', 'Salsa', 'Salsa Cubana', 'Salsa Colombiana (Caleña)', 'Bachata', 'Bachata Dominicana', 'Bachata Moderna', 'Bachata Sensual', 'Bachata Urbana', 'Cha-cha-chá', 'Cumbia', 'Reparto Cubano', 'Merengue', 'Reggaeton', 'Timba', 'Afrobeats', 'Kizomba'];
 
 const normalizeRoleToType = (role: string): DbArtist['type'] | null => {
   const r = String(role || '').toLowerCase();

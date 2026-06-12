@@ -120,8 +120,11 @@ export function extractAngles(lm: Landmark[]): PoseAngles {
 export type GenreBodyFocus = 'hips' | 'feet' | 'arms' | 'whole' | 'upper';
 
 export const GENRE_FOCUS: Record<string, GenreBodyFocus> = {
+  // bachata/salsa por substring cubren también sus variantes
+  // (dominicana, moderna, sensual, urbana, cubana, caleña…)
   'bachata': 'hips', 'salsa': 'feet', 'kizomba': 'hips', 'reggaeton': 'hips',
-  'regueton': 'hips', 'merengue': 'feet', 'cumbia': 'feet', 'hip-hop': 'whole',
+  'regueton': 'hips', 'merengue': 'feet', 'cumbia': 'feet', 'cha-cha': 'feet',
+  'cha cha': 'feet', 'reparto': 'hips', 'hip-hop': 'whole',
   'hip hop': 'whole', 'dancehall': 'whole', 'afrobeats': 'whole', 'tango': 'upper',
   'flamenco': 'arms', 'default': 'whole',
 };

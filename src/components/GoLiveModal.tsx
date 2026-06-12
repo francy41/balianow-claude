@@ -29,7 +29,12 @@ const PRICING: { v: PricingMode; label: string; emoji: string; hint: string }[] 
   { v: 'donation',    label: 'Donación',    emoji: '💝', hint: 'Voluntario, propinas' },
 ];
 
-const STYLES_OPTIONS = ['Salsa', 'Bachata', 'Kizomba', 'Mambo', 'Cha-cha-cha', 'Reggaetón', 'Zouk', 'Merengue', 'Son', 'Rueda'];
+const STYLES_OPTIONS = [
+  'Salsa', 'Salsa Cubana', 'Salsa Colombiana (Caleña)',
+  'Bachata', 'Bachata Dominicana', 'Bachata Moderna', 'Bachata Sensual', 'Bachata Urbana',
+  'Kizomba', 'Mambo', 'Cha-cha-chá', 'Cumbia', 'Reparto Cubano',
+  'Reggaetón', 'Zouk', 'Merengue', 'Son', 'Rueda',
+];
 
 const GoLiveModal: React.FC<Props> = ({ isOpen, onClose, defaultCategory = 'show' }) => {
   const navigate = useNavigate();

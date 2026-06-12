@@ -45,7 +45,7 @@ function mapDbEvent(e: any): EventType {
   };
 }
 
-const CATEGORIES = ['Todos', 'Salsa', 'Bachata', 'Festival', 'Masterclass', 'Online', 'Reggaeton', 'Timba'];
+const CATEGORIES = ['Todos', 'Salsa', 'Salsa Cubana', 'Salsa Colombiana (Caleña)', 'Bachata', 'Bachata Dominicana', 'Bachata Moderna', 'Bachata Sensual', 'Bachata Urbana', 'Cha-cha-chá', 'Cumbia', 'Reparto Cubano', 'Festival', 'Masterclass', 'Online', 'Reggaeton', 'Timba'];
 const CITIES = ['Todas', 'Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'Online'];
 
 // ── Event featured videos (mock) ──

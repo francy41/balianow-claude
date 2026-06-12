@@ -13,7 +13,7 @@ const LiveFab: React.FC<Props> = ({ defaultCategory = 'show', label, className =
   return (
     <>
       <button onClick={() => setOpen(true)}
-        className={`fixed bottom-24 right-4 z-40 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold rounded-full px-5 py-3 shadow-lg shadow-pink-500/40 flex items-center gap-2 active:scale-95 transition-transform ${className}`}>
+        className={`fixed bottom-36 lg:bottom-6 right-4 z-40 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold rounded-full px-5 py-3 shadow-lg shadow-pink-500/40 flex items-center gap-2 active:scale-95 transition-transform ${className}`}>
         <Radio className="w-5 h-5 animate-pulse" />
         <span className="text-sm">{label || 'Iniciar Live'}</span>
       </button>
