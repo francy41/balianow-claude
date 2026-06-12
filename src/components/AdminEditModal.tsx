@@ -38,9 +38,26 @@ const TABLE_MAP: Record<string, string> = {
 
 // La columna que identifica al "dueño" del registro, usada para RLS
 const OWNER_COL: Record<string, string> = {
-  venue: 'user_id', event: 'host_id', artist: 'user_id',
+  venue: 'user_id', event: 'created_by', artist: 'user_id',
   service: 'vendor_id', course: 'instructor_id',
 };
+
+// ── Mapeo UI → columna real de la BD ─────────────────────────────
+// La UI histórica usa camelCase; las tablas usan snake_case. Sin este mapeo
+// el guardado "tenía éxito" pero descartaba esos campos en silencio.
+const KEY_ALIASES: Record<string, Record<string, string>> = {
+  user:  { name: 'full_name', phone: 'whatsapp', website: 'website_url', isVerified: 'verified', avatar: 'avatar_url', coverPhoto: 'cover_photo' },
+  artist:{ priceFrom: 'price_from' },
+  venue: { image: 'image_url', mapLink: 'map_link', priceLevel: 'price_level' },
+  event: { imageUrl: 'image_url', venueName: 'venue_name', priceOriginal: 'price_original' },
+};
+const toSnake = (k: string) => k.replace(/[A-Z]/g, c => '_' + c.toLowerCase());
+function mapKeysToDb(entity: string, obj: Record<string, any>): Record<string, any> {
+  const aliases = KEY_ALIASES[entity] || {};
+  const out: Record<string, any> = {};
+  for (const k of Object.keys(obj)) out[aliases[k] ?? toSnake(k)] = obj[k];
+  return out;
+}
 
 const AdminEditModal: React.FC<Props> = ({ open, onClose, title, entity, item, fields, onSaved }) => {
   const { addToast } = useUIStore();
@@ -82,10 +99,12 @@ const AdminEditModal: React.FC<Props> = ({ open, onClose, title, entity, item, f
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { addToast({ message: 'Inicia sesión para crear', type: 'error' }); setSaving(false); return; }
 
-      const payload: Record<string, any> = {};
+      const raw: Record<string, any> = {};
       for (const f of fields) {
-        if (form[f.key] !== undefined && form[f.key] !== '') payload[f.key] = form[f.key];
+        if (form[f.key] !== undefined && form[f.key] !== '') raw[f.key] = form[f.key];
       }
+      // Traducir claves de UI a columnas reales de la BD
+      const payload = mapKeysToDb(entity, raw);
       // Auto-owner
       const ownerCol = OWNER_COL[entity];
       if (ownerCol && !payload[ownerCol]) payload[ownerCol] = session.user.id;
@@ -96,21 +115,25 @@ const AdminEditModal: React.FC<Props> = ({ open, onClose, title, entity, item, f
         if (c) { payload.lat = c.lat; payload.lng = c.lng; }
       }
 
-      // Retry sobre columnas inexistentes
+      // Retry sobre columnas inexistentes — avisando de lo que se descartó
       let lastErr: any = null;
       let inserted: any = null;
+      const dropped: string[] = [];
       for (let attempt = 0; attempt < 10; attempt++) {
         const { data, error } = await supabase.from(table).insert(payload).select().single();
         if (!error) { inserted = data; break; }
         lastErr = error;
         const m = /column "?([a-z_]+)"? of relation .* does not exist/i.exec(error.message || '');
-        if (m && payload[m[1]] !== undefined) { delete payload[m[1]]; continue; }
+        if (m && payload[m[1]] !== undefined) { dropped.push(m[1]); delete payload[m[1]]; continue; }
         break;
       }
       setSaving(false);
       if (!inserted) {
         addToast({ message: `No se pudo crear: ${lastErr?.message || 'error'}`, type: 'error' });
         return;
+      }
+      if (dropped.length) {
+        addToast({ message: `⚠ Creado, pero estos campos no existen en la BD y no se guardaron: ${dropped.join(', ')}`, type: 'warning' });
       }
       addToast({ message: `✅ Creado "${inserted.name || inserted.title || inserted.id}"`, type: 'success' });
       onSaved?.(inserted);
@@ -136,17 +159,26 @@ const AdminEditModal: React.FC<Props> = ({ open, onClose, title, entity, item, f
           addToast({ message: '⚠ Guardado solo local (inicia sesión para sincronizar)', type: 'warning' });
         } else {
           let lastErr: any = null;
-          const p = { ...patch };
+          // Traducir claves de UI a columnas reales de la BD
+          const p = mapKeysToDb(entity, patch);
+          const dropped: string[] = [];
+          let savedRows: any[] | null = null;
           for (let attempt = 0; attempt < 10; attempt++) {
-            const { error } = await supabase.from(table).update(p).eq('id', item.id);
-            if (!error) { lastErr = null; break; }
+            if (Object.keys(p).length === 0) { lastErr = { message: 'ningún campo válido para guardar' }; break; }
+            const { data, error } = await supabase.from(table).update(p).eq('id', item.id).select('id');
+            if (!error) { lastErr = null; savedRows = data; break; }
             lastErr = error;
             const m = /column "?([a-z_]+)"? of relation .* does not exist/i.exec(error.message || '');
-            if (m && p[m[1]] !== undefined) { delete p[m[1]]; continue; }
+            if (m && p[m[1]] !== undefined) { dropped.push(m[1]); delete p[m[1]]; continue; }
             break;
           }
           if (lastErr) {
-            addToast({ message: `⚠ Local guardado, BD falló: ${lastErr.message}`, type: 'warning' });
+            addToast({ message: `⚠ Guardado solo local, BD falló: ${lastErr.message}`, type: 'warning' });
+          } else if (!savedRows || savedRows.length === 0) {
+            // RLS bloqueó el update (0 filas) — el clásico "dice que guarda pero no guarda"
+            addToast({ message: '⚠ La BD no aplicó el cambio (sin permisos sobre este registro o id inexistente)', type: 'warning' });
+          } else if (dropped.length) {
+            addToast({ message: `✅ Guardado, salvo campos inexistentes en BD: ${dropped.join(', ')}`, type: 'warning' });
           } else {
             addToast({ message: `✅ Guardado en la BD`, type: 'success' });
           }

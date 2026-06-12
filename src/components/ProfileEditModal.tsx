@@ -180,10 +180,12 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
 
       // Retry quitando columnas inexistentes (ej. lat/lng/styles antes de la migración)
       let lastErr: any = null;
+      let affected = 0;
       const payload = { ...dbUpdate };
       for (let attempt = 0; attempt < 12; attempt++) {
-        const { error } = await supabase.from('profiles').update(payload).eq('id', realId);
-        if (!error) { lastErr = null; break; }
+        // .select() nos dice CUÁNTAS filas se tocaron — clave para detectar RLS/0 filas
+        const { data, error } = await supabase.from('profiles').update(payload).eq('id', realId).select('id');
+        if (!error) { lastErr = null; affected = (data?.length ?? 0); break; }
         lastErr = error;
         const m = /column "?([a-z_]+)"? of relation .* does not exist/i.exec(error.message || '')
               || /Could not find the '([a-z_]+)' column/i.exec(error.message || '');
@@ -192,8 +194,27 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
       }
       if (lastErr) throw lastErr;
 
-      // Sync local Zustand store
-      updateUser({ ...form, id: realId });
+      // Si el UPDATE no tocó ninguna fila, la fila de perfil no existía → la creamos (upsert)
+      if (affected === 0) {
+        const { error: upErr } = await supabase
+          .from('profiles')
+          .upsert({ id: realId, email: session.user.email, ...payload }, { onConflict: 'id' });
+        if (upErr) throw upErr;
+      }
+
+      // Releer desde la BD para sincronizar el estado local con lo realmente guardado
+      const { data: fresh } = await supabase.from('profiles').select('*').eq('id', realId).maybeSingle();
+      updateUser({
+        ...form,
+        id: realId,
+        ...(fresh ? {
+          name: fresh.full_name ?? form.name,
+          avatar: fresh.avatar_url ?? form.avatar,
+          coverPhoto: fresh.cover_photo ?? (form as any).coverPhoto,
+          bio: fresh.bio ?? form.bio,
+          city: fresh.city ?? form.city,
+        } : {}),
+      });
       addToast({ message: '✅ Perfil guardado correctamente', type: 'success' });
       onClose();
     } catch (err: any) {

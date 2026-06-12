@@ -143,8 +143,9 @@ export const FIELDS_USER: EditField[] = [
     { value: 'venue', label: 'Venue' }, { value: 'admin', label: 'Admin' }
   ]},
   { key: 'city', label: 'Ciudad', type: 'text' },
+  { key: 'bio', label: 'Bio', type: 'textarea', cols: 2 },
+  { key: 'avatar', label: 'Foto de perfil', type: 'image' },
   { key: 'isVerified', label: 'Verificado', type: 'checkbox' },
-  { key: 'isPremium', label: 'Premium', type: 'checkbox' },
 ];
 
 export const FIELDS_SERVICE: EditField[] = [

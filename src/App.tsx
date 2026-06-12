@@ -138,6 +138,7 @@ const App: React.FC = () => {
                   <Route path="/p/:slug"             element={<PublicProfilePage />} />
                   <Route path="/u/:slug"             element={<PublicProfilePage />} />
                   <Route path="/explorar"            element={<Navigate to="/cerca" replace />} />
+                  <Route path="/comunidad"           element={<Navigate to="/chat" replace />} />
                   <Route path="/artistas"            element={<ArtistsPage />} />
                   <Route path="/artistas/:id"        element={<ArtistProfilePage />} />
                   <Route path="/eventos"             element={<EventsPage />} />
