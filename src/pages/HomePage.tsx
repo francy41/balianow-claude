@@ -500,7 +500,7 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
                       <span className="text-lg">📍</span>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-gray-900 text-sm">{city.name}</p>
-                        <p className="text-gray-500 text-xs">{city.venues} locales • {city.events} eventos</p>
+                        <p className="text-gray-500 text-xs">{city.monument} {city.landmark}</p>
                       </div>
                       <ArrowRight className="w-4 h-4 text-gray-300 flex-shrink-0" />
                     </button>
@@ -858,60 +858,78 @@ const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
   );
 };
 
-// ── LIVE NOW HOME SECTION ────────────────────────────────────────
-const LIVE_STREAMS = [
-  { id: 'l1', name: 'DJ Mambo King', type: 'DJ Set', viewers: 342, city: 'Madrid', img: 'https://picsum.photos/seed/live-dj1/400/600', isLive: true },
-  { id: 'l2', name: 'La Reina del Ritmo', type: 'Bachata Show', viewers: 189, city: 'Barcelona', img: 'https://picsum.photos/seed/live-dancer1/400/600', isLive: true },
-  { id: 'l3', name: 'Orquesta Tropical', type: 'Concierto', viewers: 567, city: 'Valencia', img: 'https://picsum.photos/seed/live-band1/400/600', isLive: true },
-  { id: 'l4', name: 'Salsa Night Madrid', type: 'Club Live', viewers: 891, city: 'Madrid', img: 'https://picsum.photos/seed/live-club1/400/600', isLive: true },
-];
+// ── LIVE NOW HOME SECTION (datos reales de live_sessions) ────────
+interface LiveCard { id: string; title: string; category: string | null; viewers: number; city: string | null; cover: string | null }
 
-const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => (
-  <section className="mx-3 sm:mx-4 mt-5 sm:mt-8">
-    <div className="flex items-center justify-between mb-3 sm:mb-4">
-      <div className="flex items-center gap-2">
-        <span className="relative flex h-3 w-3">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-          <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
-        </span>
-        <h2 className="font-display font-black text-base sm:text-lg text-gray-900 dark:text-white">En Directo Ahora</h2>
-      </div>
-      <button onClick={() => navigate('/live')} className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform">
-        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/30">
-          <ArrowRight className="w-4 h-4 text-white" />
+const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
+  const [lives, setLives] = useState<LiveCard[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('live_sessions')
+        .select('id, title, category, viewers_count, city, cover_url, status')
+        .eq('status', 'live')
+        .order('viewers_count', { ascending: false })
+        .limit(12);
+      if (cancelled) return;
+      setLives((data || []).map((s: any) => ({
+        id: s.id, title: s.title, category: s.category,
+        viewers: s.viewers_count || 0, city: s.city, cover: s.cover_url,
+      })));
+      setLoaded(true);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Si no hay directos reales, no mostramos la sección (nada de streams falsos)
+  if (loaded && lives.length === 0) return null;
+
+  return (
+    <section className="mx-3 sm:mx-4 mt-5 sm:mt-8">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-3 w-3">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
+          </span>
+          <h2 className="font-display font-black text-base sm:text-lg text-gray-900 dark:text-white">En Directo Ahora</h2>
         </div>
-        <span className="text-[9px] font-black uppercase tracking-widest text-red-500">Ver Todos</span>
-      </button>
-    </div>
-    <div className="flex gap-3 overflow-x-auto pb-3 px-0.5" style={{ scrollbarWidth: 'none' }}>
-      {LIVE_STREAMS.map(s => (
-        <button key={s.id} onClick={() => navigate(`/live/${s.id}`)}
-          className="flex-shrink-0 w-32 sm:w-36 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 group relative border-2 border-red-500/30 hover:border-red-500">
-          <AppImage src={s.img} alt={s.name} fallback="portrait" className="w-full h-44 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-500" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-          {/* LIVE badge */}
-          <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded flex items-center gap-1 shadow-lg animate-pulse">
-            <span className="w-1.5 h-1.5 bg-white rounded-full" /> LIVE
+        <button onClick={() => navigate('/live')} className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/30">
+            <ArrowRight className="w-4 h-4 text-white" />
           </div>
-          {/* Viewers */}
-          <div className="absolute top-2 right-2 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">
-            👁 {s.viewers}
-          </div>
-          {/* Bottom info */}
-          <div className="absolute bottom-2 left-2 right-2">
-            <p className="text-white font-bold text-xs truncate">{s.name}</p>
-            <p className="text-white/70 text-[10px]">{s.type}</p>
-            <p className="text-white/50 text-[9px] flex items-center gap-0.5 mt-0.5">
-              <MapPin className="w-2.5 h-2.5" />{s.city}
-            </p>
-          </div>
-          {/* Glow border */}
-          <div className="absolute inset-0 rounded-2xl ring-1 ring-red-500/50 group-hover:ring-2 group-hover:ring-red-500 transition-all" />
+          <span className="text-[9px] font-black uppercase tracking-widest text-red-500">Ver Todos</span>
         </button>
-      ))}
-    </div>
-  </section>
-);
+      </div>
+      <div className="flex gap-3 overflow-x-auto pb-3 px-0.5" style={{ scrollbarWidth: 'none' }}>
+        {lives.map(s => (
+          <button key={s.id} onClick={() => navigate(`/live/session/${s.id}`)}
+            className="flex-shrink-0 w-32 sm:w-36 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 group relative border-2 border-red-500/30 hover:border-red-500">
+            <AppImage src={s.cover || ''} alt={s.title} fallback="portrait" className="w-full h-44 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-500" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+            <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded flex items-center gap-1 shadow-lg animate-pulse">
+              <span className="w-1.5 h-1.5 bg-white rounded-full" /> LIVE
+            </div>
+            {s.viewers > 0 && (
+              <div className="absolute top-2 right-2 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">
+                👁 {s.viewers}
+              </div>
+            )}
+            <div className="absolute bottom-2 left-2 right-2">
+              <p className="text-white font-bold text-xs truncate">{s.title}</p>
+              {s.category && <p className="text-white/70 text-[10px] capitalize">{s.category}</p>}
+              {s.city && <p className="text-white/50 text-[9px] flex items-center gap-0.5 mt-0.5"><MapPin className="w-2.5 h-2.5" />{s.city}</p>}
+            </div>
+            <div className="absolute inset-0 rounded-2xl ring-1 ring-red-500/50 group-hover:ring-2 group-hover:ring-red-500 transition-all" />
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+};
 
 const HomePage: React.FC = () => {
   usePageMeta({
@@ -1424,8 +1442,7 @@ const HomePage: React.FC = () => {
                     <p className="text-white font-display font-bold text-base sm:text-lg leading-tight drop-shadow-lg">{city.name}</p>
                     <p className="text-white/70 text-[10px] font-medium mt-0.5">{city.landmark}</p>
                     <div className="flex items-center gap-2 mt-1.5">
-                      <span className="bg-pink-500/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{city.venues} venues</span>
-                      <span className="bg-fuchsia-500/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{city.events} eventos</span>
+                      <span className="bg-pink-500/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{city.monument} Descubre</span>
                     </div>
                   </div>
                 </button>

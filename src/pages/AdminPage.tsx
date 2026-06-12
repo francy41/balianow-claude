@@ -333,10 +333,12 @@ const StatCard: React.FC<typeof STATS[0]> = ({ label, value, change, up, icon, c
       <p className="text-gray-400 text-xs font-medium">{label}</p>
       <p className="font-black text-2xl text-gray-900 mt-0.5">{value}</p>
     </div>
-    <div className={`flex items-center gap-0.5 text-sm font-bold ${up ? 'text-green-600' : 'text-red-500'}`}>
-      {up ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
-      {change}
-    </div>
+    {change ? (
+      <div className={`flex items-center gap-0.5 text-sm font-bold ${up ? 'text-green-600' : 'text-red-500'}`}>
+        {up ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+        {change}
+      </div>
+    ) : null}
   </div>
 );
 
@@ -367,62 +369,85 @@ const AdminTable: React.FC<{ headers: string[]; rows: React.ReactNode[][]; }> = 
   </div>
 );
 
-// ── 1. OVERVIEW ────────────────────────────────────────────────────────────
-const OverviewSection: React.FC<{ addToast: Function }> = ({ addToast }) => (
-  <div>
-    <PageHeader title="Dashboard" subtitle="Resumen general de la plataforma" action={
-      <button onClick={() => addToast({ message: 'Datos actualizados', type: 'success' })} className="btn-orange flex items-center gap-2 text-sm">
-        <RefreshCw className="w-4 h-4" /> Actualizar
-      </button>
-    } />
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-      {STATS.map(s => <StatCard key={s.label} {...s} />)}
-    </div>
-    {/* Recent activity */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+// ── 1. OVERVIEW (stats reales de la BD) ─────────────────────────────────────
+const OverviewSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const [counts, setCounts] = useState({ users: 0, artists: 0, events: 0, venues: 0, lives: 0, disputes: 0 });
+  const [recent, setRecent] = useState<{ text: string; time: string; color: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const c = (t: string, b?: (q: any) => any) => {
+      let q = supabase.from(t).select('*', { count: 'exact', head: true });
+      if (b) q = b(q);
+      return q;
+    };
+    const [users, artists, events, venues, lives, disputes, recentArtists, recentEvents] = await Promise.all([
+      c('profiles'),
+      c('artists'),
+      c('events'),
+      c('venues'),
+      c('live_sessions', q => q.eq('status', 'live')),
+      c('disputes', q => q.eq('status', 'open')),
+      supabase.from('artists').select('name, created_at').order('created_at', { ascending: false }).limit(3),
+      supabase.from('events').select('title, created_at').order('created_at', { ascending: false }).limit(3),
+    ]);
+    setCounts({
+      users: users.count || 0, artists: artists.count || 0, events: events.count || 0,
+      venues: venues.count || 0, lives: lives.count || 0, disputes: disputes.count || 0,
+    });
+    const ago = (d: string) => {
+      const diff = Date.now() - new Date(d).getTime(); const m = Math.floor(diff / 60000);
+      if (m < 60) return `Hace ${m} min`; const h = Math.floor(m / 60); if (h < 24) return `Hace ${h}h`; return `Hace ${Math.floor(h / 24)}d`;
+    };
+    const act = [
+      ...((recentArtists.data || []).map((a: any) => ({ text: `Artista: ${a.name}`, time: ago(a.created_at), color: 'bg-green-500' }))),
+      ...((recentEvents.data || []).map((e: any) => ({ text: `Evento: ${e.title}`, time: ago(e.created_at), color: 'bg-purple-500' }))),
+    ].slice(0, 6);
+    setRecent(act);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const cards = [
+    { label: 'Usuarios totales', value: counts.users.toLocaleString(), icon: <Users className="w-6 h-6 text-blue-500" />, color: 'bg-blue-50' },
+    { label: 'Artistas / perfiles', value: counts.artists.toLocaleString(), icon: <Music2 className="w-6 h-6 text-purple-500" />, color: 'bg-purple-50' },
+    { label: 'Eventos', value: counts.events.toLocaleString(), icon: <Calendar className="w-6 h-6 text-green-500" />, color: 'bg-green-50' },
+    { label: 'Locales', value: counts.venues.toLocaleString(), icon: <MapPin className="w-6 h-6 text-pink-500" />, color: 'bg-pink-50' },
+    { label: 'Directos ahora', value: counts.lives.toLocaleString(), icon: <Radio className="w-6 h-6 text-red-500" />, color: 'bg-red-50' },
+    { label: 'Disputas abiertas', value: counts.disputes.toLocaleString(), icon: <AlertTriangle className="w-6 h-6 text-yellow-600" />, color: 'bg-yellow-50' },
+  ];
+
+  return (
+    <div>
+      <PageHeader title="Dashboard" subtitle="Resumen general (datos reales de la base de datos)" action={
+        <button onClick={() => { load(); addToast({ message: 'Datos actualizados', type: 'success' }); }} className="btn-orange flex items-center gap-2 text-sm">
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar
+        </button>
+      } />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        {cards.map(s => <StatCard key={s.label} {...s} change="" up={true} />)}
+      </div>
       <div className="card-white p-5">
         <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><Clock className="w-4 h-4 text-brand-orange" /> Actividad Reciente</h3>
-        <div className="space-y-3">
-          {[
-            { text: 'Nuevo artista registrado: DJ Mambo King', time: 'Hace 5 min', color: 'bg-green-500' },
-            { text: 'Disputa abierta: Pedido #1089', time: 'Hace 12 min', color: 'bg-red-500' },
-            { text: 'Suscripción Pro activada: venue_madrid', time: 'Hace 30 min', color: 'bg-blue-500' },
-            { text: 'Nuevo evento aprobado: Festival BCN', time: 'Hace 1h', color: 'bg-purple-500' },
-            { text: 'Pago completado: €450 → DJ Mambo King', time: 'Hace 2h', color: 'bg-brand-orange' },
-          ].map((item, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <div className={`w-2 h-2 ${item.color} rounded-full flex-shrink-0`} />
-              <p className="text-gray-700 text-sm flex-1">{item.text}</p>
-              <span className="text-gray-400 text-xs flex-shrink-0">{item.time}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="card-white p-5">
-        <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-brand-orange" /> Revenue por Mes</h3>
-        <div className="space-y-3">
-          {[
-            { month: 'Mayo 2026',    amount: 48200, pct: 90 },
-            { month: 'Abril 2026',   amount: 39400, pct: 73 },
-            { month: 'Marzo 2026',   amount: 35100, pct: 65 },
-            { month: 'Febrero 2026', amount: 28600, pct: 53 },
-            { month: 'Enero 2026',   amount: 24300, pct: 45 },
-          ].map(row => (
-            <div key={row.month}>
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-600">{row.month}</span>
-                <span className="font-bold text-gray-900">€{row.amount.toLocaleString()}</span>
+        {recent.length === 0 ? (
+          <p className="text-gray-400 text-sm">Sin actividad reciente.</p>
+        ) : (
+          <div className="space-y-3">
+            {recent.map((item, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <div className={`w-2 h-2 ${item.color} rounded-full flex-shrink-0`} />
+                <p className="text-gray-700 text-sm flex-1">{item.text}</p>
+                <span className="text-gray-400 text-xs flex-shrink-0">{item.time}</span>
               </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-brand-orange rounded-full" style={{ width: `${row.pct}%` }} />
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // ── 2. CATEGORÍAS ──────────────────────────────────────────────────────────
 
