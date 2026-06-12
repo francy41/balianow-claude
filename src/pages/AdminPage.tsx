@@ -7,7 +7,7 @@ import {
   Star, Lock, TrendingUp, Eye, CheckCircle, XCircle,
   Edit, Trash2, Plus, Search, Filter, RefreshCw,
   ChevronRight, ArrowUpRight, ArrowDownRight, Clock,
-  Wifi, Globe, Bell, Database, Server, FileText
+  Wifi, Globe, Bell, Database, Server, FileText, Save, Loader2
 } from 'lucide-react';
 import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useAdminOverridesStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_CATEGORIES, type HeroMediaType, type CommissionSource, type HeroSliderImage, type HomeCategory, type Sponsor } from '../store/appStore';
 import { supabase } from '../lib/supabase';
@@ -79,6 +79,7 @@ interface EditRequest {
   title: string;
   item: Record<string, any> & { id: string };
   fields: EditField[];
+  onSaved?: (item: Record<string, any>) => void;
 }
 const EditContext = React.createContext<{
   openEdit: (req: EditRequest) => void;
@@ -158,13 +159,14 @@ export const FIELDS_SERVICE: EditField[] = [
 
 export const FIELDS_COURSE: EditField[] = [
   { key: 'title', label: 'Título', type: 'text', required: true },
+  { key: 'instructor', label: 'Instructor', type: 'text' },
   { key: 'price', label: 'Precio (€)', type: 'number' },
-  { key: 'durationMin', label: 'Duración (min)', type: 'number' },
+  { key: 'duration', label: 'Duración (ej. 3h)', type: 'text' },
+  { key: 'category', label: 'Categoría', type: 'text' },
   { key: 'level', label: 'Nivel', type: 'select', options: [
     { value: 'beginner', label: 'Principiante' }, { value: 'intermediate', label: 'Intermedio' }, { value: 'advanced', label: 'Avanzado' }
   ]},
-  { key: 'description', label: 'Descripción', type: 'textarea' },
-  { key: 'isPublished', label: 'Publicado', type: 'checkbox' },
+  { key: 'image_url', label: 'Imagen', type: 'image', cols: 2 },
 ];
 
 export const FIELDS_SUBSCRIPTION: EditField[] = [
@@ -308,6 +310,7 @@ const AdminPage: React.FC = () => {
           entity={editReq.entity}
           item={editReq.item}
           fields={editReq.fields}
+          onSaved={editReq.onSaved}
         />
       )}
     </div>
@@ -1297,37 +1300,60 @@ const MercadoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 // ── 11. CURSOS ────────────────────────────────────────────────────────────
 const CursosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const { openEdit } = useAdminEdit();
-  const { getMerged } = useAdminOverridesStore();
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
+    setCourses(data || []); setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const del = async (c: any) => {
+    if (!confirm(`¿Eliminar el curso "${c.title}"?`)) return;
+    const { error } = await supabase.from('courses').delete().eq('id', c.id);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: '✅ Curso eliminado', type: 'success' });
+    setCourses(cs => cs.filter(x => x.id !== c.id));
+  };
+
   return (
   <div>
-    <PageHeader title="Cursos y Academia" subtitle="Gestiona los cursos de la plataforma" action={
-      <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => addToast({ message: 'Nuevo curso creado', type: 'success' })}>Nuevo curso</Button>
+    <PageHeader title="Cursos y Academia" subtitle="Cursos reales de la base de datos" action={
+      <Button variant="orange" icon={<Plus className="w-4 h-4" />}
+        onClick={() => openEdit({ entity: 'course', title: 'Nuevo curso', item: { id: 'new' }, fields: FIELDS_COURSE, onSaved: load })}>
+        Nuevo curso
+      </Button>
     } />
+    {loading ? (
+      <div className="py-12 text-center text-gray-400">Cargando…</div>
+    ) : courses.length === 0 ? (
+      <div className="card-white p-10 text-center text-gray-400">
+        <BookOpen className="w-10 h-10 mx-auto mb-2 opacity-40" />
+        <p>No hay cursos todavía. Crea el primero con "Nuevo curso".</p>
+      </div>
+    ) : (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {[
-        { id: 'crs-1', title: 'Bachata Sensual — Nivel Principiante', instructor: 'DJ Bacha Flow', students: 234, price: 49, status: 'active', level: 'beginner', durationMin: 180 },
-        { id: 'crs-2', title: 'Salsa On2 — Curso Completo',           instructor: 'La Reina del Ritmo', students: 567, price: 89, status: 'active', level: 'intermediate', durationMin: 360 },
-        { id: 'crs-3', title: 'Kizomba Fusion',                        instructor: 'Instructora Celia', students: 123, price: 39, status: 'draft', level: 'beginner', durationMin: 120 },
-        { id: 'crs-4', title: 'DJ Latinity — Producción Musical',      instructor: 'DJ Mambo King', students: 89, price: 149, status: 'active', level: 'advanced', durationMin: 480 },
-        { id: 'crs-5', title: 'Técnicas de Improvisación en Salsa',    instructor: 'Marcos & Elena', students: 45, price: 59, status: 'active', level: 'intermediate', durationMin: 240 },
-      ].map(orig => getMerged('course', orig)).map(course => (
-        <div key={course.title} className="card-white p-5 hover:shadow-card-hover transition-shadow">
+      {courses.map(course => (
+        <div key={course.id} className="card-white p-5 hover:shadow-card-hover transition-shadow">
           <div className="flex items-start justify-between mb-3">
-            <Badge variant={course.status === 'active' ? 'green' : 'gray'}>{course.status === 'active' ? 'Publicado' : 'Borrador'}</Badge>
-            <span className="font-black text-brand-orange text-lg">€{course.price}</span>
+            <Badge variant={course.admin_status === 'approved' ? 'green' : 'gray'}>{course.admin_status === 'approved' ? 'Publicado' : 'Pendiente'}</Badge>
+            <span className="font-black text-brand-orange text-lg">€{course.price ?? 0}</span>
           </div>
           <h3 className="font-bold text-gray-900 text-sm line-clamp-2 mb-1">{course.title}</h3>
-          <p className="text-gray-400 text-xs mb-3">por {course.instructor}</p>
+          <p className="text-gray-400 text-xs mb-3">por {course.instructor || '—'}{course.level ? ` · ${course.level}` : ''}</p>
           <div className="flex items-center justify-between">
-            <span className="text-gray-500 text-xs">👥 {course.students} estudiantes</span>
+            <span className="text-gray-500 text-xs">{course.category || 'Sin categoría'}</span>
             <div className="flex gap-1">
-              <button onClick={() => openEdit({ entity: 'course', title: course.title, item: course, fields: FIELDS_COURSE })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
-              <button onClick={() => addToast({ message: 'Curso eliminado', type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
+              <button onClick={() => openEdit({ entity: 'course', title: course.title, item: course, fields: FIELDS_COURSE, onSaved: load })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
+              <button onClick={() => del(course)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
             </div>
           </div>
         </div>
       ))}
     </div>
+    )}
   </div>
   );
 };
@@ -2204,54 +2230,77 @@ const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 };
 
 // ── 14. CONFIGURACIÓN ─────────────────────────────────────────────────────
-const ConfiguracionSection: React.FC<{ addToast: Function }> = ({ addToast }) => (
-  <div>
-    <PageHeader title="Configuración" subtitle="Ajustes generales de la plataforma" action={
-      <Button variant="orange" onClick={() => addToast({ message: 'Configuración guardada', type: 'success' })}>Guardar</Button>
-    } />
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {[
-        { title: 'General', icon: <Settings className="w-5 h-5 text-brand-orange" />, fields: [
-          { label: 'Nombre plataforma', val: '¡Ritmo Latino!' },
-          { label: 'Email contacto', val: 'admin@ritmolatino.com' },
-          { label: 'Teléfono soporte', val: '+34 900 000 000' },
-          { label: 'Zona horaria', val: 'Europe/Madrid (UTC+2)' },
-        ]},
-        { title: 'Pagos & Comisiones', icon: <DollarSign className="w-5 h-5 text-green-500" />, fields: [
-          { label: 'Comisión plataforma', val: '15%' },
-          { label: 'Pasarela de pago', val: 'Stripe Connect' },
-          { label: 'Moneda principal', val: 'EUR (€)' },
-          { label: 'Período escrow', val: '48 horas tras evento' },
-        ]},
-        { title: 'Notificaciones', icon: <Bell className="w-5 h-5 text-blue-500" />, fields: [
-          { label: 'Email nuevo usuario', val: '✅ Activado' },
-          { label: 'Email nuevo pago', val: '✅ Activado' },
-          { label: 'Alerta disputa', val: '✅ Activado (inmediato)' },
-          { label: 'Resumen diario', val: '✅ 08:00 AM' },
-        ]},
-        { title: 'Integraciones API', icon: <Globe className="w-5 h-5 text-purple-500" />, fields: [
-          { label: 'Google Maps', val: '✅ Conectado' },
-          { label: 'Stripe', val: '✅ Conectado' },
-          { label: 'Agora.io (Live)', val: '⚠️ Pendiente configurar' },
-          { label: 'SendGrid', val: '✅ Conectado' },
-        ]},
-      ].map(section => (
-        <div key={section.title} className="card-white p-5">
-          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">{section.icon} {section.title}</h3>
-          <div className="space-y-3">
-            {section.fields.map(f => (
-              <div key={f.label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-                <span className="text-gray-500 text-sm">{f.label}</span>
-                <span className="text-gray-900 font-semibold text-sm">{f.val}</span>
+const CONFIG_FIELDS: { key: string; label: string; placeholder: string; group: string }[] = [
+  { key: 'platform_name', label: 'Nombre de la plataforma', placeholder: 'BailaNow', group: 'General' },
+  { key: 'contact_email', label: 'Email de contacto', placeholder: 'soporte@bailanow.com', group: 'General' },
+  { key: 'support_phone', label: 'Teléfono de soporte', placeholder: '+34 ...', group: 'General' },
+  { key: 'commission_pct', label: 'Comisión plataforma (%)', placeholder: '15', group: 'Pagos' },
+  { key: 'main_currency', label: 'Moneda principal', placeholder: 'EUR', group: 'Pagos' },
+  { key: 'escrow_hours', label: 'Período escrow (horas)', placeholder: '48', group: 'Pagos' },
+];
+
+const ConfiguracionSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const [vals, setVals] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const keys = CONFIG_FIELDS.map(f => `cfg_${f.key}`);
+      const { data } = await supabase.from('site_config').select('key, value').in('key', keys);
+      const map: Record<string, string> = {};
+      (data || []).forEach((r: any) => {
+        const k = String(r.key).replace(/^cfg_/, '');
+        map[k] = typeof r.value === 'string' ? r.value : (r.value?.v ?? '');
+      });
+      setVals(map); setLoading(false);
+    })();
+  }, []);
+
+  const save = async () => {
+    setSaving(true);
+    const rows = CONFIG_FIELDS
+      .filter(f => vals[f.key] !== undefined)
+      .map(f => ({ key: `cfg_${f.key}`, value: { v: vals[f.key] ?? '' } }));
+    const { error } = await supabase.from('site_config').upsert(rows, { onConflict: 'key' });
+    setSaving(false);
+    addToast(error
+      ? { message: `Error: ${error.message}`, type: 'error' }
+      : { message: '✅ Configuración guardada en la BD', type: 'success' });
+  };
+
+  const groups = Array.from(new Set(CONFIG_FIELDS.map(f => f.group)));
+  return (
+    <div>
+      <PageHeader title="Configuración" subtitle="Ajustes generales (se guardan en la base de datos)" action={
+        <Button variant="orange" onClick={save} icon={saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}>
+          {saving ? 'Guardando…' : 'Guardar'}
+        </Button>
+      } />
+      {loading ? <div className="py-10 text-center text-gray-400">Cargando…</div> : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {groups.map(g => (
+            <div key={g} className="card-white p-5">
+              <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                {g === 'General' ? <Settings className="w-5 h-5 text-brand-orange" /> : <DollarSign className="w-5 h-5 text-green-500" />} {g}
+              </h3>
+              <div className="space-y-3">
+                {CONFIG_FIELDS.filter(f => f.group === g).map(f => (
+                  <div key={f.key}>
+                    <label className="text-gray-500 text-xs font-semibold block mb-1">{f.label}</label>
+                    <input value={vals[f.key] ?? ''} placeholder={f.placeholder}
+                      onChange={e => setVals(v => ({ ...v, [f.key]: e.target.value }))}
+                      className="input-field" />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-          <button onClick={() => addToast({ message: `Editando: ${section.title}`, type: 'info' })} className="mt-4 text-brand-orange text-sm font-semibold hover:underline">Editar configuración →</button>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 // ── 15. ROLES Y PERMISOS ──────────────────────────────────────────────────
 interface SupaProfile {
@@ -2533,50 +2582,78 @@ const RolesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   );
 };
 
-// ── 16. DISPUTAS ──────────────────────────────────────────────────────────
+// ── 16. DISPUTAS (tabla real) ──────────────────────────────────────────────
 const DisputasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
-  const disputes = [
-    { id: '#D-001', buyer: 'Luis G.',  seller: 'Celia',      issue: 'Servicio no completado',   amount: 80,  days: 3, status: 'open' },
-    { id: '#D-002', buyer: 'Ana P.',   seller: 'DJ Kumbé',   issue: 'Artista no se presentó',   amount: 300, days: 1, status: 'reviewing' },
-    { id: '#D-003', buyer: 'Pedro R.', seller: 'Orquesta F.',issue: 'Calidad inferior acordada', amount: 500, days: 7, status: 'resolved' },
-    { id: '#D-004', buyer: 'Marta L.', seller: 'Bacha Flow', issue: 'Retraso en entrega',        amount: 75,  days: 2, status: 'open' },
-    { id: '#D-005', buyer: 'David M.', seller: 'La Reina',   issue: 'Cancelación tardía',        amount: 120, days: 5, status: 'reviewing' },
-  ];
+  const [disputes, setDisputes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from('disputes').select('*').order('created_at', { ascending: false });
+    setDisputes(data || []); setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const setStatus = async (d: any, status: string, msg: string) => {
+    const { error } = await supabase.from('disputes').update({ status }).eq('id', d.id);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: msg, type: 'success' });
+    setDisputes(ds => ds.map(x => x.id === d.id ? { ...x, status } : x));
+  };
+
+  const counts = {
+    open: disputes.filter(d => d.status === 'open').length,
+    reviewing: disputes.filter(d => d.status === 'reviewing').length,
+    resolved: disputes.filter(d => d.status === 'resolved' || d.status === 'refunded' || d.status === 'released').length,
+  };
+
   return (
     <div>
-      <PageHeader title="Disputas" subtitle="Gestiona los conflictos entre compradores y vendedores" />
+      <PageHeader title="Disputas" subtitle="Conflictos reales entre compradores y vendedores" action={
+        <button onClick={load} className="btn-orange flex items-center gap-2 text-sm"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar</button>
+      } />
       <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
-        {[{ l: 'Abiertas', v: 2, c: 'text-red-600' }, { l: 'En revisión', v: 2, c: 'text-yellow-600' }, { l: 'Resueltas', v: 1, c: 'text-green-600' }].map(s => (
+        {[{ l: 'Abiertas', v: counts.open, c: 'text-red-600' }, { l: 'En revisión', v: counts.reviewing, c: 'text-yellow-600' }, { l: 'Resueltas', v: counts.resolved, c: 'text-green-600' }].map(s => (
           <div key={s.l} className="card-white p-4 text-center"><p className={`text-3xl font-black ${s.c}`}>{s.v}</p><p className="text-gray-400 text-sm">{s.l}</p></div>
         ))}
       </div>
-      <div className="space-y-3">
-        {disputes.map(d => (
-          <div key={d.id} className="card-white p-4 flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-mono text-xs text-gray-400">{d.id}</span>
-                <Badge variant={d.status === 'open' ? 'red' : d.status === 'reviewing' ? 'orange' : 'green'}>
-                  {d.status === 'open' ? 'Abierta' : d.status === 'reviewing' ? 'Revisando' : 'Resuelta'}
-                </Badge>
-                <span className="text-gray-400 text-xs">Hace {d.days} día{d.days > 1 ? 's' : ''}</span>
+      {loading ? (
+        <div className="py-12 text-center text-gray-400">Cargando…</div>
+      ) : disputes.length === 0 ? (
+        <div className="card-white p-10 text-center text-gray-400">
+          <Shield className="w-10 h-10 mx-auto mb-2 opacity-40" />
+          <p>No hay disputas. 🎉 Cuando un usuario abra una, aparecerá aquí.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {disputes.map(d => {
+            const resolved = ['resolved', 'refunded', 'released'].includes(d.status);
+            return (
+            <div key={d.id} className="card-white p-4 flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-mono text-xs text-gray-400">{String(d.id).slice(0, 8)}</span>
+                  <Badge variant={d.status === 'open' ? 'red' : d.status === 'reviewing' ? 'orange' : 'green'}>
+                    {d.status === 'open' ? 'Abierta' : d.status === 'reviewing' ? 'Revisando' : 'Resuelta'}
+                  </Badge>
+                </div>
+                <p className="font-semibold text-gray-900 text-sm">{d.reason || 'Sin motivo'}</p>
+                {d.description && <p className="text-gray-400 text-xs mt-0.5 line-clamp-2">{d.description}</p>}
               </div>
-              <p className="font-semibold text-gray-900 text-sm">{d.issue}</p>
-              <p className="text-gray-400 text-xs mt-0.5">{d.buyer} (comprador) vs {d.seller} (vendedor) · €{d.amount}</p>
+              <div className="flex gap-2 flex-shrink-0">
+                {!resolved && (
+                  <>
+                    <button onClick={() => setStatus(d, 'refunded', 'Disputa marcada como reembolsada')} className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-green-200">Reembolsar</button>
+                    <button onClick={() => setStatus(d, 'released', 'Pago liberado al vendedor')} className="text-xs bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-blue-200">Liberar pago</button>
+                    <button onClick={() => setStatus(d, 'resolved', 'Disputa cerrada')} className="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg font-semibold hover:bg-gray-200">Cerrar</button>
+                  </>
+                )}
+              </div>
             </div>
-            <div className="flex gap-2 flex-shrink-0">
-              {d.status !== 'resolved' && (
-                <>
-                  <button onClick={() => addToast({ message: `Reembolso enviado a ${d.buyer}`, type: 'success' })} className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-green-200">Reembolsar</button>
-                  <button onClick={() => addToast({ message: `Pago liberado a ${d.seller}`, type: 'success' })} className="text-xs bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg font-semibold hover:bg-blue-200">Liberar pago</button>
-                  <button onClick={() => addToast({ message: `Disputa ${d.id} cerrada`, type: 'info' })} className="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg font-semibold hover:bg-gray-200">Cerrar</button>
-                </>
-              )}
-              <button className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
-            </div>
-          </div>
-        ))}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
@@ -2642,45 +2719,62 @@ const SeguridadSection: React.FC = () => (
 
 // ── 18. RESEÑAS ───────────────────────────────────────────────────────────
 const ResenasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
-  const reviews = [
-    { author: 'María G.',  target: 'DJ Mambo King',     rating: 5, text: '¡Increíble! Hizo que nuestra boda fuera perfecta.', status: 'approved', date: '12 May' },
-    { author: 'Carlos P.', target: 'La Reina del Ritmo', rating: 5, text: 'Profesional y puntual. Lo contrataré de nuevo.', status: 'pending', date: '13 May' },
-    { author: 'Ana M.',    target: 'Instructora Celia',  rating: 4, text: 'Muy buena clase aunque llegó un poco tarde.', status: 'approved', date: '11 May' },
-    { author: 'Luis S.',   target: 'Club Tropicana',     rating: 2, text: 'El sonido era muy malo y el ambiente no estaba bien.', status: 'pending', date: '14 May' },
-    { author: 'Rosa T.',   target: 'DJ Bacha Flow',      rating: 5, text: 'Excelente selección musical, ¡bailamos toda la noche!', status: 'approved', date: '10 May' },
-    { author: 'SPAM123',   target: 'DJ Mambo King',      rating: 1, text: 'Fake review para bajar competencia...', status: 'spam', date: '15 May' },
-  ];
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from('reviews').select('*').order('created_at', { ascending: false }).limit(100);
+    setReviews(data || []); setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const del = async (r: any) => {
+    if (!confirm('¿Eliminar esta reseña?')) return;
+    const { error } = await supabase.from('reviews').delete().eq('id', r.id);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: '✅ Reseña eliminada', type: 'success' });
+    setReviews(rs => rs.filter(x => x.id !== r.id));
+  };
+
+  const avg = reviews.length ? (reviews.reduce((a, r) => a + (r.rating || 0), 0) / reviews.length).toFixed(1) : '—';
+
   return (
     <div>
-      <PageHeader title="Reseñas" subtitle="Modera las reseñas de la plataforma" />
-      <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
-        {[{ l: 'Aprobadas', v: 3, c: 'text-green-600' }, { l: 'Pendientes', v: 2, c: 'text-yellow-600' }, { l: 'Spam', v: 1, c: 'text-red-600' }].map(s => (
-          <div key={s.l} className="card-white p-4 text-center"><p className={`text-3xl font-black ${s.c}`}>{s.v}</p><p className="text-gray-400 text-sm">{s.l}</p></div>
-        ))}
+      <PageHeader title="Reseñas" subtitle="Reseñas reales de la plataforma" action={
+        <button onClick={load} className="btn-orange flex items-center gap-2 text-sm"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar</button>
+      } />
+      <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-6">
+        <div className="card-white p-4 text-center"><p className="text-3xl font-black text-gray-900">{reviews.length}</p><p className="text-gray-400 text-sm">Total reseñas</p></div>
+        <div className="card-white p-4 text-center"><p className="text-3xl font-black text-brand-orange">★ {avg}</p><p className="text-gray-400 text-sm">Media</p></div>
       </div>
-      <div className="space-y-3">
-        {reviews.map((r, i) => (
-          <div key={i} className={`card-white p-4 flex gap-4 ${r.status === 'spam' ? 'border border-red-100' : ''}`}>
-            <div className="w-10 h-10 rounded-full bg-brand-orange/10 flex items-center justify-center font-bold text-brand-orange flex-shrink-0">{r.author[0]}</div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2 flex-wrap mb-1">
-                <span className="font-semibold text-gray-900 text-sm">{r.author}</span>
-                <span className="text-gray-400 text-xs">→ {r.target}</span>
-                <div className="flex">{[1,2,3,4,5].map(s => <span key={s} className={`text-xs ${s <= r.rating ? 'text-brand-orange' : 'text-gray-200'}`}>★</span>)}</div>
-                <Badge variant={r.status === 'approved' ? 'green' : r.status === 'spam' ? 'red' : 'orange'}>
-                  {r.status === 'approved' ? 'Aprobada' : r.status === 'spam' ? '🚫 Spam' : 'Pendiente'}
-                </Badge>
-                <span className="text-gray-400 text-xs ml-auto">{r.date}</span>
+      {loading ? (
+        <div className="py-12 text-center text-gray-400">Cargando…</div>
+      ) : reviews.length === 0 ? (
+        <div className="card-white p-10 text-center text-gray-400">
+          <Star className="w-10 h-10 mx-auto mb-2 opacity-40" />
+          <p>Aún no hay reseñas. Aparecerán aquí cuando los usuarios valoren.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {reviews.map(r => (
+            <div key={r.id} className="card-white p-4 flex gap-4">
+              <div className="w-10 h-10 rounded-full bg-brand-orange/10 flex items-center justify-center font-bold text-brand-orange flex-shrink-0">★</div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <div className="flex">{[1,2,3,4,5].map(s => <span key={s} className={`text-xs ${s <= (r.rating || 0) ? 'text-brand-orange' : 'text-gray-200'}`}>★</span>)}</div>
+                  {r.target_type && <span className="text-gray-400 text-xs">{r.target_type}</span>}
+                  <span className="text-gray-400 text-xs ml-auto">{r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}</span>
+                </div>
+                <p className="text-gray-600 text-sm">{r.comment || '(sin comentario)'}</p>
               </div>
-              <p className="text-gray-600 text-sm">{r.text}</p>
+              <div className="flex flex-col gap-1 flex-shrink-0">
+                <button onClick={() => del(r)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
+              </div>
             </div>
-            <div className="flex flex-col gap-1 flex-shrink-0">
-              {r.status !== 'approved' && <button onClick={() => addToast({ message: 'Reseña aprobada', type: 'success' })} className="p-1.5 hover:bg-green-50 rounded-lg text-green-500"><CheckCircle className="w-4 h-4" /></button>}
-              <button onClick={() => addToast({ message: 'Reseña eliminada', type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

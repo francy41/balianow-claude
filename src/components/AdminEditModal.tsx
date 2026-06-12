@@ -39,7 +39,7 @@ const TABLE_MAP: Record<string, string> = {
 // La columna que identifica al "dueño" del registro, usada para RLS
 const OWNER_COL: Record<string, string> = {
   venue: 'user_id', event: 'created_by', artist: 'user_id',
-  service: 'vendor_id', course: 'instructor_id',
+  service: 'vendor_id', course: 'owner_id',
 };
 
 // ── Mapeo UI → columna real de la BD ─────────────────────────────
