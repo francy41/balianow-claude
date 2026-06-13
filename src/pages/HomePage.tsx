@@ -964,6 +964,58 @@ const HomePage: React.FC = () => {
   const [radiosOpen, setRadiosOpen] = useState(false);
   const [playlistsOpen, setPlaylistsOpen] = useState(false);
 
+  // ── Radio real (emisoras latinas en vivo desde radio-browser) ──
+  const [radioStations, setRadioStations] = useState(RADIO_STATIONS);
+  const [radioStatus, setRadioStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      // El API filtra por UN tag a la vez (/bytag/{tag}); pedimos varios géneros y mezclamos
+      const tags = ['bachata', 'salsa', 'reggaeton', 'kizomba', 'merengue'];
+      const clean = (n: string) => n.trim().replace(/\s+/g, ' ').slice(0, 38);
+      try {
+        const results = await Promise.all(tags.map(async t => {
+          try {
+            const r = await fetch(`https://de1.api.radio-browser.info/json/stations/bytag/${t}?hidebroken=true&order=clickcount&reverse=true&limit=4`);
+            if (!r.ok) return [];
+            const d = await r.json();
+            return (d || []).filter((s: any) => s.url_resolved && s.name).map((s: any) => ({ ...s, _genre: t }));
+          } catch { return []; }
+        }));
+        const seen = new Set<string>();
+        const mapped = results.flat()
+          .filter((s: any) => { const k = s.name.trim().toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })
+          .slice(0, 14)
+          .map((s: any, i: number) => ({
+            id: s.stationuuid || `rb-${i}`,
+            name: clean(s.name),
+            sub: s.bitrate ? `${s.bitrate} kbps` : 'En directo',
+            genre: s._genre.charAt(0).toUpperCase() + s._genre.slice(1),
+            img: s.favicon || `https://ui-avatars.com/api/?name=${encodeURIComponent(clean(s.name))}&background=EC4899&color=fff&size=120&bold=true`,
+            streamUrl: s.url_resolved,
+          }));
+        if (!cancelled && mapped.length) setRadioStations(mapped);
+      } catch { if (!cancelled) setRadioStatus('error'); }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Sincroniza el <audio> con la emisora seleccionada
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    if (playing !== null && playing < 100 && radioStations[playing]?.streamUrl) {
+      const url = radioStations[playing].streamUrl;
+      if (a.src !== url) a.src = url;
+      setRadioStatus('loading');
+      a.play().then(() => setRadioStatus('idle')).catch(() => setRadioStatus('error'));
+    } else {
+      a.pause();
+    }
+  }, [playing, radioStations]);
+
   return (
     <div className="relative isolate min-h-screen bg-white/40 dark:bg-transparent dark:text-gray-100 transition-colors duration-300">
 
@@ -973,8 +1025,8 @@ const HomePage: React.FC = () => {
       {/* ── RADIOS · PLAYLISTS · REDES SOCIALES ── */}
       {isModuleOn('radio') && (
       <section className="mx-4 mt-4 space-y-2">
-        {/* Fila 1: Radios · Playlists · App · Abierto · Live — 5 cards iguales */}
-        <div className="grid grid-cols-5 gap-1.5 sm:gap-2 max-w-3xl mx-auto">
+        {/* Fila 1: Radios · App · Abierto · Live — cards iguales */}
+        <div className="grid grid-cols-4 gap-1.5 sm:gap-2 max-w-3xl mx-auto">
           {/* RADIOS */}
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
             <button onClick={() => setRadiosOpen(v => !v)}
@@ -986,18 +1038,6 @@ const HomePage: React.FC = () => {
               <span className="text-white/80 text-[8px] font-bold flex items-center gap-0.5">
                 <span className="w-1 h-1 bg-white rounded-full animate-pulse" /> En vivo
               </span>
-            </button>
-          </div>
-
-          {/* PLAYLISTS */}
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
-            <button onClick={() => setPlaylistsOpen(v => !v)}
-              className="w-full h-[44px] bg-gradient-to-br from-fuchsia-600 to-purple-700 px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all">
-              <div className="flex items-center gap-1">
-                <ListMusic className="w-3 h-3 text-white" />
-                <span className="text-white font-black text-[10px] sm:text-[11px]">Playlists</span>
-              </div>
-              <span className="text-white/80 text-[8px] font-bold">{PLAYLISTS.length} mixes</span>
             </button>
           </div>
 
@@ -1062,48 +1102,17 @@ const HomePage: React.FC = () => {
                 <X className="w-3 h-3 text-white/80" />
               </button>
             </div>
-            <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[200px] overflow-y-auto">
-              {RADIO_STATIONS.map((station, i) => (
+            <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[240px] overflow-y-auto">
+              {radioStations.map((station, i) => (
                 <button key={station.id} onClick={() => setPlaying(playing === i ? null : i)}
                   className={`w-full flex items-center gap-2 p-2 hover:bg-pink-50/50 dark:hover:bg-pink-900/10 transition-all text-left ${playing === i ? 'bg-pink-50 dark:bg-pink-900/20 border-l-2 border-pink-500' : ''}`}>
-                  <img src={station.img} alt={station.name} className="w-8 h-8 rounded-lg object-cover flex-shrink-0 bg-gray-200" />
+                  <img src={station.img} alt={station.name} className="w-8 h-8 rounded-lg object-cover flex-shrink-0 bg-gray-200" onError={e => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(station.name)}&background=EC4899&color=fff&size=120`; }} />
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-gray-900 dark:text-white text-xs truncate">{station.name}</p>
-                    <p className="text-gray-400 text-[10px]">{station.genre}</p>
+                    <p className="text-gray-400 text-[10px] capitalize">{station.genre}{playing === i && radioStatus === 'loading' ? ' · conectando…' : playing === i && radioStatus === 'error' ? ' · no disponible' : ''}</p>
                   </div>
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${playing === i ? 'bg-pink-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
                     {playing === i ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {playlistsOpen && (
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden max-w-3xl mx-auto">
-            <div className="bg-gradient-to-r from-fuchsia-600 to-purple-700 px-3 py-1.5 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <ListMusic className="w-3 h-3 text-white" />
-                <span className="text-white font-bold text-[11px]">Playlists</span>
-              </div>
-              <button onClick={() => setPlaylistsOpen(false)}>
-                <X className="w-3 h-3 text-white/80" />
-              </button>
-            </div>
-            <div className="divide-y divide-gray-50 dark:divide-gray-800 max-h-[200px] overflow-y-auto">
-              {PLAYLISTS.map((pl, idx) => (
-                <button key={pl.id} onClick={() => setPlaying(playing === 100 + idx ? null : 100 + idx)}
-                  className={`w-full flex items-center gap-2 p-2 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 transition-all text-left ${playing === 100 + idx ? 'bg-purple-50 dark:bg-purple-900/20 border-l-2 border-purple-500' : ''}`}>
-                  <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${pl.color} flex items-center justify-center flex-shrink-0`}>
-                    <ListMusic className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-gray-900 dark:text-white text-xs truncate">{pl.name}</p>
-                    <p className="text-gray-400 text-[10px]">{pl.tracks} tracks</p>
-                  </div>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${playing === 100 + idx ? 'bg-purple-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
-                    {playing === 100 + idx ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3 ml-0.5" />}
                   </div>
                 </button>
               ))}
@@ -1197,53 +1206,33 @@ const HomePage: React.FC = () => {
       </section>
       )}
 
+      {/* Elemento de audio real para la radio en vivo */}
+      <audio ref={audioRef} className="hidden" preload="none" />
+
       {/* ── PERSISTENT MINI PLAYER (when playing) ── */}
-      {playing !== null && (
+      {playing !== null && playing < 100 && radioStations[playing] && (
         <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-pink-500/20 px-4 py-2 flex items-center gap-3 backdrop-blur-xl shadow-2xl">
           <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-700">
-            {playing < 100 && RADIO_STATIONS[playing] && (
-              <img src={RADIO_STATIONS[playing].img} alt="" className="w-full h-full object-cover" />
-            )}
-            {playing >= 100 && PLAYLISTS[playing - 100] && (
-              <div className={`w-full h-full bg-gradient-to-br ${PLAYLISTS[playing - 100].color} flex items-center justify-center`}>
-                <ListMusic className="w-5 h-5 text-white" />
-              </div>
-            )}
+            <img src={radioStations[playing].img} alt="" className="w-full h-full object-cover"
+              onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-xs truncate">
-              {playing < 100 ? RADIO_STATIONS[playing]?.name : PLAYLISTS[playing - 100]?.name}
-            </p>
+            <p className="text-white font-bold text-xs truncate">{radioStations[playing]?.name}</p>
             <p className="text-white/50 text-[10px] flex items-center gap-1">
-              {playing < 100 ? (
-                <><span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" /> En directo</>
-              ) : (
-                <>{PLAYLISTS[playing - 100]?.tracks} tracks</>
-              )}
+              {radioStatus === 'loading'
+                ? <>conectando…</>
+                : radioStatus === 'error'
+                ? <span className="text-red-400">emisora no disponible</span>
+                : <><span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" /> En directo</>}
             </p>
           </div>
-          {/* Controls */}
           <div className="flex items-center gap-1">
-            <button className="p-1.5 text-white/50 hover:text-white transition-colors">
-              <SkipBack className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setPlaying(null)}
-              className="w-9 h-9 rounded-full bg-pink-500 text-white flex items-center justify-center hover:bg-pink-600 transition-all shadow-lg shadow-pink-500/30"
-            >
+            <button onClick={() => setPlaying(null)}
+              className="w-9 h-9 rounded-full bg-pink-500 text-white flex items-center justify-center hover:bg-pink-600 transition-all shadow-lg shadow-pink-500/30">
               <Pause className="w-4 h-4" />
             </button>
-            <button className="p-1.5 text-white/50 hover:text-white transition-colors">
-              <SkipForward className="w-4 h-4" />
-            </button>
           </div>
-          <button className="p-1.5 text-white/50 hover:text-white transition-colors hidden sm:block">
-            <Volume2 className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => setPlaying(null)}
-            className="p-1 text-white/30 hover:text-white transition-colors"
-          >
+          <button onClick={() => setPlaying(null)} className="p-1 text-white/30 hover:text-white transition-colors">
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
