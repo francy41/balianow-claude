@@ -31,6 +31,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
   {
     section: 'CATEGORÍAS',
     items: [
+      { label: '🪩 Discotecas Latinas',        icon: <MapPin className="w-4 h-4" />,    to: '/venues?type=Discoteca' },
       { label: 'Conciertos y Música en Vivo', icon: <Music2 className="w-4 h-4" />,    to: '/eventos?cat=conciertos' },
       { label: 'Festivales y Congresos',      icon: <Ticket className="w-4 h-4" />,    to: '/eventos?cat=festivales' },
       { label: 'Noches de club',              icon: <Video className="w-4 h-4" />,     to: '/eventos?cat=club' },

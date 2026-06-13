@@ -69,6 +69,7 @@ const AdminLocationModal: React.FC<Props> = ({ open, mode, onClose, onSaved }) =
   // Venue-specific
   const [style, setStyle]     = useState('');
   const [capacity, setCapacity] = useState('');
+  const [venueType, setVenueType] = useState('Discoteca');
 
   // Event-specific
   const [date, setDate]       = useState('');
@@ -156,7 +157,7 @@ const AdminLocationModal: React.FC<Props> = ({ open, mode, onClose, onSaved }) =
           capacity: capacity ? parseInt(capacity) : null,
           lat: position[0], lng: position[1],
           status: 'active', admin_status: 'approved',
-          type: 'club',
+          type: venueType.toLowerCase(),
         };
         console.log('Inserting venue:', payload);
         const { data, error } = await supabase.from('venues').insert(payload).select().single();
@@ -296,6 +297,13 @@ const AdminLocationModal: React.FC<Props> = ({ open, mode, onClose, onSaved }) =
 
             {mode === 'venue' ? (
               <>
+                <div>
+                  <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Tipo de local</label>
+                  <select value={venueType} onChange={e => setVenueType(e.target.value)}
+                    className="w-full mt-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500">
+                    {['Discoteca', 'Club', 'Bar', 'Studio', 'Rooftop', 'Lounge', 'Restaurante'].map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
                 <div>
                   <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Estilos (coma separados)</label>
                   <input value={style} onChange={e => setStyle(e.target.value)} placeholder="Bachata, Salsa, Kizomba"

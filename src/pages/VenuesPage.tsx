@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { MapPin, Users, Clock, CheckCircle, Star, MessageSquare, Bell, Heart, Share2, Calendar, Music2, Instagram, Youtube, Facebook, Globe, Headphones, Video } from 'lucide-react';
 import { VENUES } from '../data/mockData';
 import type { Venue } from '../data/mockData';
@@ -46,7 +46,7 @@ function mapDbVenue(v: any): Venue {
   } as Venue;
 }
 
-const TYPES = ['Todos', 'Club', 'Bar', 'Studio', 'Rooftop', 'Lounge', 'Restaurante'];
+const TYPES = ['Todos', 'Discoteca', 'Club', 'Bar', 'Studio', 'Rooftop', 'Lounge', 'Restaurante'];
 const CITIES = ['Todas', 'Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'London', 'Santo Domingo', 'Buenos Aires', 'Cali', 'Miami', 'La Habana', 'Bogotá', 'Medellín', 'New York', 'Berlin', 'Ciudad de México', 'Caracas'];
 
 const VenuesPage: React.FC = () => {
@@ -63,8 +63,16 @@ const VenuesPage: React.FC = () => {
 
 const VenuesList: React.FC = () => {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  // Permite entrar filtrado por tipo desde una categoría (ej. /venues?type=Discoteca)
+  const initialType = (() => {
+    const t = params.get('type');
+    if (!t) return ['Todos'];
+    const match = TYPES.find(x => x.toLowerCase() === t.toLowerCase());
+    return match ? [match] : ['Todos'];
+  })();
   const [search, setSearch] = useState('');
-  const [selectedType, setSelectedType] = useState(['Todos']);
+  const [selectedType, setSelectedType] = useState(initialType);
   const [selectedCity, setSelectedCity] = useState(['Todas']);
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [dbVenues, setDbVenues] = useState<Venue[]>([]);
