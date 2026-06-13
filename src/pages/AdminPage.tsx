@@ -1256,17 +1256,55 @@ const EventosSection: React.FC<{ addToast: Function; navigate: Function }> = ({ 
 
 // ── 10. MERCADO Y ESCROW ─────────────────────────────────────────────────
 const MercadoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
-  const orders = [
-    { id: '#1089', buyer: 'Carlos R.', seller: 'DJ Mambo King', service: 'Set DJ 4h', amount: 450, commission: 67.5, status: 'escrow' },
-    { id: '#1088', buyer: 'Ana M.',    seller: 'La Reina',       service: 'Clase privada', amount: 120, commission: 18, status: 'completed' },
-    { id: '#1087', buyer: 'Luis G.',   seller: 'Celia',          service: 'Pack clases online', amount: 80, commission: 12, status: 'dispute' },
-    { id: '#1086', buyer: 'María P.',  seller: 'Bacha Flow',     service: 'Mix bachata', amount: 75, commission: 11.25, status: 'completed' },
+  const [rows, setRows] = useState<any[]>([]);
+  const [names, setNames] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from('escrows').select('*').order('created_at', { ascending: false }).limit(200);
+    const list = data || [];
+    setRows(list);
+    // Resolver nombres de payer/payee (best-effort) desde profiles
+    const ids = Array.from(new Set(list.flatMap((e: any) => [e.payer_id, e.payee_id]).filter(Boolean)));
+    if (ids.length) {
+      const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', ids);
+      const map: Record<string, string> = {};
+      (profs || []).forEach((p: any) => { map[p.id] = p.full_name || p.id.slice(0, 8); });
+      setNames(map);
+    }
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const setStatus = async (e: any, status: string, msg: string) => {
+    const patch: any = { status };
+    if (status === 'released') patch.release_date = new Date().toISOString();
+    const { error } = await supabase.from('escrows').update(patch).eq('id', e.id);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: msg, type: 'success' });
+    setRows(rs => rs.map(x => x.id === e.id ? { ...x, ...patch } : x));
+  };
+
+  const eur = (n: number) => '€' + (Number(n) || 0).toLocaleString('es-ES', { maximumFractionDigits: 2 });
+  const sum = (pred: (e: any) => boolean, field = 'amount') => rows.filter(pred).reduce((a, e) => a + (Number(e[field]) || 0), 0);
+  const inEscrow = (e: any) => ['pending', 'held', 'escrow'].includes(e.status);
+  const done = (e: any) => ['released', 'completed'].includes(e.status);
+
+  const stats = [
+    { l: 'En escrow', v: eur(sum(inEscrow)), c: 'bg-yellow-50', i: '🔒' },
+    { l: 'Liberado', v: eur(sum(done)), c: 'bg-green-50', i: '✅' },
+    { l: 'Reembolsado', v: eur(sum(e => e.status === 'refunded')), c: 'bg-red-50', i: '↩️' },
+    { l: 'Comisión total', v: eur(sum(() => true, 'commission')), c: 'bg-pink-50', i: '💰' },
   ];
+
   return (
     <div>
-      <PageHeader title="Mercado y Depósito en Garantía" subtitle="Control de transacciones y escrow" />
+      <PageHeader title="Mercado y Depósito en Garantía" subtitle="Escrow real (tabla escrows)" action={
+        <button onClick={load} className="btn-orange flex items-center gap-2 text-sm"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar</button>
+      } />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {[{ l: 'En escrow', v: '€1,240', c: 'bg-yellow-50', i: '🔒' }, { l: 'Completados', v: '€38.4k', c: 'bg-green-50', i: '✅' }, { l: 'En disputa', v: '€80', c: 'bg-red-50', i: '⚠️' }, { l: 'Comisión (15%)', v: '€6.2k', c: 'bg-pink-50', i: '💰' }].map(s => (
+        {stats.map(s => (
           <div key={s.l} className="card-white p-4">
             <div className={`w-10 h-10 ${s.c} rounded-xl flex items-center justify-center text-xl mb-2`}>{s.i}</div>
             <p className="text-gray-400 text-xs">{s.l}</p>
@@ -1274,25 +1312,35 @@ const MercadoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           </div>
         ))}
       </div>
-      <AdminTable
-        headers={['Pedido', 'Comprador', 'Vendedor', 'Servicio', 'Importe', 'Comisión', 'Estado', 'Acciones']}
-        rows={orders.map(o => [
-          <span className="font-mono text-xs text-gray-500">{o.id}</span>,
-          <span className="font-semibold text-sm">{o.buyer}</span>,
-          <span className="text-gray-600 text-sm">{o.seller}</span>,
-          <span className="text-gray-500 text-sm">{o.service}</span>,
-          <span className="font-bold">€{o.amount}</span>,
-          <span className="text-brand-orange font-semibold">€{o.commission}</span>,
-          <Badge variant={o.status === 'completed' ? 'green' : o.status === 'dispute' ? 'red' : 'orange'}>
-            {o.status === 'escrow' ? '🔒 Escrow' : o.status === 'completed' ? '✅ Completado' : '⚠️ Disputa'}
-          </Badge>,
-          <div className="flex gap-1">
-            {o.status === 'escrow' && <button onClick={() => addToast({ message: `Pago liberado: ${o.id}`, type: 'success' })} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-lg font-semibold hover:bg-green-200">Liberar</button>}
-            {o.status === 'dispute' && <button onClick={() => addToast({ message: `Disputa ${o.id} asignada a revisión`, type: 'info' })} className="text-xs px-2 py-1 bg-red-100 text-red-600 rounded-lg font-semibold hover:bg-red-200">Revisar</button>}
-            <button onClick={() => addToast({ message: `Viendo detalle ${o.id}`, type: 'info' })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
-          </div>
-        ])}
-      />
+      {loading ? (
+        <div className="py-12 text-center text-gray-400">Cargando…</div>
+      ) : rows.length === 0 ? (
+        <div className="card-white p-10 text-center text-gray-400">
+          <DollarSign className="w-10 h-10 mx-auto mb-2 opacity-40" />
+          <p>No hay operaciones en escrow todavía. Aparecerán cuando se realicen pagos con depósito en garantía.</p>
+        </div>
+      ) : (
+        <AdminTable
+          headers={['ID', 'Pagador', 'Cobra', 'Importe', 'Comisión', 'Neto', 'Estado', 'Acciones']}
+          rows={rows.map(e => [
+            <span className="font-mono text-xs text-gray-500">{String(e.id).slice(0, 8)}</span>,
+            <span className="font-semibold text-sm">{names[e.payer_id] || (e.payer_id ? String(e.payer_id).slice(0, 8) : '—')}</span>,
+            <span className="text-gray-600 text-sm">{names[e.payee_id] || (e.payee_id ? String(e.payee_id).slice(0, 8) : '—')}</span>,
+            <span className="font-bold">{eur(e.amount)}</span>,
+            <span className="text-brand-orange font-semibold">{eur(e.commission)}</span>,
+            <span className="text-gray-600">{eur(e.net_amount)}</span>,
+            <Badge variant={done(e) ? 'green' : e.status === 'refunded' ? 'red' : 'orange'}>
+              {inEscrow(e) ? '🔒 Escrow' : done(e) ? '✅ Liberado' : e.status === 'refunded' ? '↩️ Reembolsado' : e.status}
+            </Badge>,
+            <div className="flex gap-1">
+              {inEscrow(e) && <>
+                <button onClick={() => setStatus(e, 'released', 'Pago liberado al vendedor')} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-lg font-semibold hover:bg-green-200">Liberar</button>
+                <button onClick={() => setStatus(e, 'refunded', 'Importe reembolsado al pagador')} className="text-xs px-2 py-1 bg-red-100 text-red-600 rounded-lg font-semibold hover:bg-red-200">Reembolsar</button>
+              </>}
+            </div>,
+          ])}
+        />
+      )}
     </div>
   );
 };
