@@ -57,8 +57,7 @@ const DashboardPage: React.FC = () => {
   }
 
   const isPerformer = PERFORMER_ROLES.includes(user.role);
-  // Mock: si no es admin, mapeamos al id 'a1' como su perfil performer
-  const performerId = user.role === 'admin' ? 'a1' : (user.id === 'u1' ? 'a1' : 'a1');
+  const performerId = user.id;
 
   return (
     <div className="min-h-screen bg-gray-50 py-6">

@@ -1,45 +1,65 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, ShoppingBag } from 'lucide-react';
-import { SERVICES } from '../data/mockData';
-import type { Service } from '../data/mockData';
-import { Avatar, Badge, StarRating, SearchBar, FilterChips, EmptyState, SectionHeader } from '../components/ui';
+import { Clock, ShoppingBag, Loader2 } from 'lucide-react';
+import { Avatar, Badge, StarRating, SearchBar, FilterChips, EmptyState } from '../components/ui';
 import SearchTriggerBar from '../components/SearchTriggerBar';
 import { useAuthStore, useCartStore } from '../store/appStore';
+import { supabase } from '../lib/supabase';
 import PaymentGateway from '../components/payment/PaymentGateway';
 
 const CATEGORIES = ['Todos', 'DJ Set', 'Clases', 'Clases Online', 'Música en Vivo', 'Show Baile', 'Producción', 'Fotografía'];
 const PRICE_RANGES = ['Todos', '< €100', '€100–€500', '€500–€1000', '> €1000'];
 
+type SvcRow = {
+  id: string; title: string; cover: string; category: string;
+  artistId: string; artistName: string; artistAvatar: string;
+  price: number; rating: number; reviews: number; orders: number;
+  tags: string[]; deliveryDays: number;
+};
+
+function normalize(r: any): SvcRow {
+  return {
+    id: r.id, title: r.title || r.name || '', cover: r.cover || r.image_url || '',
+    category: r.category || '', artistId: r.artist_id || r.owner_id || '',
+    artistName: r.artist_name || r.name || '', artistAvatar: r.artist_avatar || '',
+    price: Number(r.price) || Number(r.price_base) || 0,
+    rating: Number(r.rating) || 0, reviews: Number(r.reviews) || 0,
+    orders: Number(r.orders) || 0, tags: Array.isArray(r.tags) ? r.tags : [],
+    deliveryDays: Number(r.delivery_days) || 1,
+  };
+}
+
 const MarketplacePage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
   const { addItem, clearCart } = useCartStore();
+  const [services, setServices] = useState<SvcRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState(['Todos']);
   const [selectedPrice, setSelectedPrice] = useState(['Todos']);
   const [sortBy, setSortBy] = useState<'rating' | 'price_asc' | 'price_desc' | 'orders'>('rating');
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
-  const handleQuickBuy = (service: Service, e: React.MouseEvent) => {
+  useEffect(() => {
+    supabase.from('services').select('*').eq('admin_status', 'approved').order('rating', { ascending: false }).limit(200)
+      .then(({ data }) => { setServices((data || []).map(normalize)); setLoading(false); });
+  }, []);
+
+  const handleQuickBuy = (service: SvcRow, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isAuthenticated) { navigate('/auth'); return; }
     clearCart();
     addItem({
-      serviceId: service.id,
-      sellerId: service.artistId,
-      sellerName: service.artistName,
-      sellerAvatar: service.artistAvatar,
-      title: service.title,
-      price: service.price,
-      extras: [],
-      currency: 'EUR',
+      serviceId: service.id, sellerId: service.artistId,
+      sellerName: service.artistName, sellerAvatar: service.artistAvatar,
+      title: service.title, price: service.price, extras: [], currency: 'EUR',
     });
     setCheckoutOpen(true);
   };
 
   const filtered = useMemo(() => {
-    return SERVICES.filter(s => {
+    return services.filter(s => {
       const matchSearch = !search || s.title.toLowerCase().includes(search.toLowerCase()) ||
         s.artistName.toLowerCase().includes(search.toLowerCase());
       const matchCat = selectedCat.includes('Todos') || selectedCat.includes(s.category);
@@ -55,7 +75,7 @@ const MarketplacePage: React.FC = () => {
       if (sortBy === 'price_desc') return b.price - a.price;
       return b.orders - a.orders;
     });
-  }, [search, selectedCat, selectedPrice, sortBy]);
+  }, [services, search, selectedCat, selectedPrice, sortBy]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-6">
@@ -107,18 +127,30 @@ const MarketplacePage: React.FC = () => {
         </div>
 
         <div className="mt-6">
-          <p className="text-gray-400 text-sm mb-4">{filtered.length} servicios disponibles</p>
-          {filtered.length === 0 ? (
-            <EmptyState icon="💼" title="No hay servicios" description="Prueba con otros filtros"
-              action={<button onClick={() => { setSearch(''); setSelectedCat(['Todos']); }} className="btn-outline text-sm">Limpiar</button>} />
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-              {filtered.map(service => (
-                <ServiceCard key={service.id} service={service}
-                  onClick={() => navigate(`/marketplace/${service.id}`)}
-                  onQuickBuy={(e) => handleQuickBuy(service, e)} />
-              ))}
+          {loading ? (
+            <div className="py-16 text-center text-gray-400"><Loader2 className="w-8 h-8 mx-auto mb-2 animate-spin" /><p>Cargando servicios…</p></div>
+          ) : services.length === 0 ? (
+            <div className="card-white p-10 text-center text-gray-400">
+              <ShoppingBag className="w-10 h-10 mx-auto mb-2 opacity-40" />
+              <p className="font-semibold text-gray-600 mb-1">Aún no hay servicios publicados</p>
+              <p className="text-sm">Los artistas pueden ofrecer sus servicios desde su perfil. ¡Pronto habrá ofertas aquí!</p>
             </div>
+          ) : (
+            <>
+              <p className="text-gray-400 text-sm mb-4">{filtered.length} servicios disponibles</p>
+              {filtered.length === 0 ? (
+                <EmptyState icon="💼" title="No hay servicios" description="Prueba con otros filtros"
+                  action={<button onClick={() => { setSearch(''); setSelectedCat(['Todos']); }} className="btn-outline text-sm">Limpiar filtros</button>} />
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                  {filtered.map(service => (
+                    <ServiceCard key={service.id} service={service}
+                      onClick={() => navigate(`/marketplace/${service.id}`)}
+                      onQuickBuy={(e) => handleQuickBuy(service, e)} />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -128,7 +160,7 @@ const MarketplacePage: React.FC = () => {
   );
 };
 
-const ServiceCard: React.FC<{ service: Service; onClick: () => void; onQuickBuy: (e: React.MouseEvent) => void }> = ({ service, onClick, onQuickBuy }) => (
+const ServiceCard: React.FC<{ service: SvcRow; onClick: () => void; onQuickBuy: (e: React.MouseEvent) => void }> = ({ service, onClick, onQuickBuy }) => (
   <div onClick={onClick} className="card-white overflow-hidden cursor-pointer hover:shadow-card-hover hover:scale-[1.02] transition-all duration-300">
     <div className="relative h-44 overflow-hidden">
       <img src={service.cover} alt={service.title} className="w-full h-full object-cover" />

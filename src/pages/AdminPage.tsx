@@ -994,43 +994,61 @@ const UsuariosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 // ── 5. LOCALIDADES ────────────────────────────────────────────────────────
 const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const { openEdit } = useAdminEdit();
-  const { getMerged } = useAdminOverridesStore();
+  const [venues, setVenues] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showAddVenue, setShowAddVenue] = React.useState(false);
   const [showAddEvent, setShowAddEvent] = React.useState(false);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from('venues').select('*').is('deleted_at', null).order('created_at', { ascending: false });
+    setVenues(data || []);
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const cities = new Set(venues.map(v => v.city).filter(Boolean)).size;
+  const active = venues.filter(v => v.status !== 'inactive').length;
+  const pending = venues.filter(v => v.admin_status === 'pending').length;
+
   return (
   <div>
-    <PageHeader title="Localidades" subtitle="Gestiona los venues y locales de la plataforma" action={
+    <PageHeader title="Localidades" subtitle={`${venues.length} venues en la plataforma`} action={
       <div className="flex gap-2">
         <Button variant="dark" icon={<Plus className="w-4 h-4" />} onClick={() => setShowAddEvent(true)}>Nuevo evento</Button>
         <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => setShowAddVenue(true)}>Nueva localidad</Button>
       </div>
     } />
-    <AdminLocationModal open={showAddVenue} mode="venue" onClose={() => setShowAddVenue(false)} onSaved={() => addToast({ message: '✅ Local guardado en la base de datos', type: 'success' })} />
-    <AdminLocationModal open={showAddEvent} mode="event" onClose={() => setShowAddEvent(false)} onSaved={() => addToast({ message: '✅ Evento guardado en la base de datos', type: 'success' })} />
+    <AdminLocationModal open={showAddVenue} mode="venue" onClose={() => setShowAddVenue(false)} onSaved={() => { addToast({ message: '✅ Local guardado', type: 'success' }); load(); }} />
+    <AdminLocationModal open={showAddEvent} mode="event" onClose={() => setShowAddEvent(false)} onSaved={() => addToast({ message: '✅ Evento guardado', type: 'success' })} />
     <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
-      {[{ label: 'Localidades activas', val: '47' }, { label: 'Ciudades', val: '12' }, { label: 'Pendientes aprobación', val: '3' }].map(s => (
+      {[{ label: 'Localidades activas', val: active }, { label: 'Ciudades', val: cities }, { label: 'Pendientes aprobación', val: pending }].map(s => (
         <div key={s.label} className="card-white p-4 text-center"><p className="text-3xl font-black text-brand-orange">{s.val}</p><p className="text-gray-400 text-sm mt-1">{s.label}</p></div>
       ))}
     </div>
-    <AdminTable
-      headers={['Nombre', 'Ciudad', 'Tipo', 'Estado', 'Eventos', 'Suscripción', 'Acciones']}
-      rows={VENUES.map(orig => getMerged('venue', orig)).map(v => [
-        <span className="font-semibold">{v.name}</span>,
-        <span>{v.city}</span>,
-        <Badge variant="gray" className="capitalize">{v.type}</Badge>,
-        <Badge variant={v.isOpen ? 'green' : 'gray'}>{v.isOpen ? '🟢 Abierto' : 'Cerrado'}</Badge>,
-        <span>3</span>,
-        v.isPremium ? <Badge variant="orange">Premium</Badge> : <Badge variant="gray">Básico</Badge>,
-        <div className="flex gap-1">
-          <button onClick={() => openEdit({ entity: 'venue', title: v.name, item: v, fields: FIELDS_VENUE })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
-          <button onClick={async () => {
-            if (!confirm(`¿Eliminar el local "${v.name}"?`)) return;
-            const { error } = await supabase.from('venues').delete().eq('id', v.id);
-            addToast({ message: error ? `Error: ${error.message}` : `✅ ${v.name} eliminado de BD`, type: error ? 'error' : 'success' });
-          }} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
-        </div>
-      ])}
-    />
+    {loading ? <div className="py-12 text-center text-gray-400">Cargando…</div> : venues.length === 0 ? (
+      <div className="card-white p-10 text-center text-gray-400"><MapPin className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No hay venues. Usa "Nueva localidad" para añadir el primero.</p></div>
+    ) : (
+      <AdminTable
+        headers={['Nombre', 'Ciudad', 'Tipo', 'Estado', 'Suscripción', 'Acciones']}
+        rows={venues.map(v => [
+          <span className="font-semibold">{v.name}</span>,
+          <span>{v.city || '—'}</span>,
+          <Badge variant="gray" className="capitalize">{v.type || 'local'}</Badge>,
+          <Badge variant={v.is_open ? 'green' : 'gray'}>{v.is_open ? '🟢 Abierto' : 'Cerrado'}</Badge>,
+          v.is_premium ? <Badge variant="orange">Premium</Badge> : <Badge variant="gray">Básico</Badge>,
+          <div className="flex gap-1">
+            <button onClick={() => openEdit({ entity: 'venue', title: v.name, item: v, fields: FIELDS_VENUE, onSaved: load })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
+            <button onClick={async () => {
+              if (!confirm(`¿Eliminar el local "${v.name}"?`)) return;
+              const { error } = await supabase.from('venues').delete().eq('id', v.id);
+              if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
+              addToast({ message: `✅ ${v.name} eliminado`, type: 'success' }); load();
+            }} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
+          </div>
+        ])}
+      />
+    )}
   </div>
   );
 };
@@ -1267,38 +1285,55 @@ const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 // ── 9. EVENTOS ────────────────────────────────────────────────────────────
 const EventosSection: React.FC<{ addToast: Function; navigate: Function }> = ({ addToast, navigate }) => {
   const { openEdit } = useAdminEdit();
-  const { getMerged } = useAdminOverridesStore();
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from('events').select('*').is('deleted_at', null).order('date', { ascending: false }).limit(200);
+    setEvents(data || []);
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
   return (
   <div>
-    <PageHeader title="Eventos" subtitle={`${EVENTS.length} eventos en la plataforma`} action={
-      <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => addToast({ message: 'Redirigiendo a crear evento', type: 'info' })}>Crear evento</Button>
+    <PageHeader title="Eventos" subtitle={`${events.length} eventos en la plataforma`} action={
+      <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => navigate('/eventos')}>Ver eventos</Button>
     } />
-    <AdminTable
-      headers={['Evento', 'Ciudad', 'Fecha', 'Precio', 'Capacidad', 'Estado', 'Acciones']}
-      rows={EVENTS.map(orig => getMerged('event', orig)).map(e => [
-        <div className="flex items-center gap-2">
-          <img src={e.cover} alt="" className="w-10 h-8 rounded-lg object-cover" />
-          <p className="font-semibold text-sm line-clamp-1 max-w-[180px]">{e.title}</p>
-        </div>,
-        <span>{e.city}</span>,
-        <span className="text-sm">{new Date(e.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</span>,
-        <span className="font-semibold">€{e.price}</span>,
-        <div>
-          <div className="flex items-center gap-1 text-sm"><span>{e.attending}/{e.capacity}</span></div>
-          <div className="h-1 bg-gray-100 rounded-full mt-1 w-20"><div className="h-full bg-brand-orange rounded-full" style={{ width: `${(e.attending / e.capacity) * 100}%` }} /></div>
-        </div>,
-        <Badge variant={e.isFeatured ? 'orange' : 'green'}>{e.isFeatured ? 'Destacado' : 'Activo'}</Badge>,
-        <div className="flex gap-1">
-          <button onClick={() => navigate(`/eventos/${e.id}`)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
-          <button onClick={() => openEdit({ entity: 'event', title: e.title, item: e, fields: FIELDS_EVENT })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
-          <button onClick={async () => {
-            if (!confirm(`¿Eliminar el evento "${e.title}"?`)) return;
-            const { error } = await supabase.from('events').delete().eq('id', e.id);
-            addToast({ message: error ? `Error: ${error.message}` : `✅ "${e.title}" eliminado de BD`, type: error ? 'error' : 'success' });
-          }} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
-        </div>
-      ])}
-    />
+    {loading ? <div className="py-12 text-center text-gray-400">Cargando…</div> : events.length === 0 ? (
+      <div className="card-white p-10 text-center text-gray-400"><Calendar className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No hay eventos. Crea el primero desde la sección Localidades.</p></div>
+    ) : (
+      <AdminTable
+        headers={['Evento', 'Ciudad', 'Fecha', 'Precio', 'Capacidad', 'Estado', 'Acciones']}
+        rows={events.map(e => [
+          <div className="flex items-center gap-2">
+            {e.cover && <img src={e.cover} alt="" className="w-10 h-8 rounded-lg object-cover" />}
+            <p className="font-semibold text-sm line-clamp-1 max-w-[180px]">{e.title}</p>
+          </div>,
+          <span>{e.city || e.location || '—'}</span>,
+          <span className="text-sm">{e.date ? new Date(e.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'}</span>,
+          <span className="font-semibold">{e.price != null ? `€${e.price}` : '—'}</span>,
+          <div>
+            {e.capacity ? <>
+              <div className="flex items-center gap-1 text-sm"><span>{e.attending || 0}/{e.capacity}</span></div>
+              <div className="h-1 bg-gray-100 rounded-full mt-1 w-20"><div className="h-full bg-brand-orange rounded-full" style={{ width: `${Math.min(((e.attending || 0) / e.capacity) * 100, 100)}%` }} /></div>
+            </> : <span className="text-gray-400 text-sm">—</span>}
+          </div>,
+          <Badge variant={e.is_featured ? 'orange' : 'green'}>{e.is_featured ? 'Destacado' : 'Activo'}</Badge>,
+          <div className="flex gap-1">
+            <button onClick={() => navigate(`/eventos/${e.id}`)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
+            <button onClick={() => openEdit({ entity: 'event', title: e.title, item: e, fields: FIELDS_EVENT, onSaved: load })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
+            <button onClick={async () => {
+              if (!confirm(`¿Eliminar el evento "${e.title}"?`)) return;
+              const { error } = await supabase.from('events').delete().eq('id', e.id);
+              if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
+              addToast({ message: `✅ "${e.title}" eliminado`, type: 'success' }); load();
+            }} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
+          </div>
+        ])}
+      />
+    )}
   </div>
   );
 };

@@ -56,7 +56,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
     section: 'COMUNIDAD',
     items: [
       { label: 'Anuncios',  icon: <Megaphone className="w-4 h-4" />,      to: '/comunidad' },
-      { label: 'Academia',  icon: <BookOpen className="w-4 h-4" />,       to: '/academia' },
+      { label: 'Academia',  icon: <BookOpen className="w-4 h-4" />,       to: '/clases' },
       { label: 'Comunidad', icon: <MessageCircle className="w-4 h-4" />,  to: '/chat' },
     ],
   },
