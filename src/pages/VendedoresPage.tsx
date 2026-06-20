@@ -1,26 +1,53 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Star, MapPin, Filter, Store, ChevronRight } from 'lucide-react';
-import { ARTISTS, SERVICES } from '../data/mockData';
+import { Search, Star, MapPin, Filter, Store, ChevronRight, Loader2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 const TYPES = ['Todos', 'DJ', 'Bailarín', 'Cantante', 'Instructor', 'Banda'];
 const CITIES_LIST = ['Todas', 'Madrid', 'Barcelona', 'Valencia', 'Cali', 'Buenos Aires', 'Miami', 'Paris', 'London'];
 
+type ArtRow = { id: string; name: string; type: string; city: string; cover: string; avatar: string; isPremium: boolean; isLive: boolean; rating: number; reviews: number; priceFrom: number; completedBookings: number; };
+type SvcRow = { id: string; title: string; cover: string; artistName: string; rating: number; price: number; };
+
+function normArtist(a: any): ArtRow {
+  return {
+    id: a.id, name: a.name || a.full_name || '', type: a.type || a.role || '',
+    city: a.city || '', cover: a.cover || a.avatar || a.image_url || '',
+    avatar: a.avatar || '', isPremium: !!a.is_premium, isLive: !!a.is_live,
+    rating: Number(a.rating) || 0, reviews: Number(a.reviews) || 0,
+    priceFrom: Number(a.price_from) || 0, completedBookings: Number(a.completed_bookings) || 0,
+  };
+}
+
 const VendedoresPage: React.FC = () => {
   const navigate = useNavigate();
+  const [artists, setArtists] = useState<ArtRow[]>([]);
+  const [services, setServices] = useState<SvcRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedType, setSelectedType] = useState('Todos');
   const [selectedCity, setSelectedCity] = useState('Todas');
   const [showFilters, setShowFilters] = useState(false);
 
+  useEffect(() => {
+    Promise.all([
+      supabase.from('artists').select('id,name,type,city,cover,avatar,image_url,is_premium,is_live,rating,reviews,price_from,completed_bookings').order('rating', { ascending: false }).limit(200),
+      supabase.from('services').select('id,title,cover,image_url,artist_name,rating,price').eq('admin_status', 'approved').order('rating', { ascending: false }).limit(5),
+    ]).then(([{ data: arts }, { data: svcs }]) => {
+      setArtists((arts || []).map(normArtist));
+      setServices((svcs || []).map(s => ({ id: s.id, title: s.title || '', cover: s.cover || s.image_url || '', artistName: s.artist_name || '', rating: Number(s.rating) || 0, price: Number(s.price) || 0 })));
+      setLoading(false);
+    });
+  }, []);
+
   const filtered = useMemo(() => {
-    return ARTISTS.filter(a => {
-      const matchSearch = !search || a.name.toLowerCase().includes(search.toLowerCase()) || a.genre.some(g => g.toLowerCase().includes(search.toLowerCase()));
-      const matchType = selectedType === 'Todos' || a.type.toLowerCase() === selectedType.toLowerCase();
+    return artists.filter(a => {
+      const matchSearch = !search || a.name.toLowerCase().includes(search.toLowerCase()) || a.type.toLowerCase().includes(search.toLowerCase());
+      const matchType = selectedType === 'Todos' || a.type.toLowerCase().includes(selectedType.toLowerCase());
       const matchCity = selectedCity === 'Todas' || a.city === selectedCity;
       return matchSearch && matchType && matchCity;
     });
-  }, [search, selectedType, selectedCity]);
+  }, [artists, search, selectedType, selectedCity]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a]">
@@ -32,7 +59,7 @@ const VendedoresPage: React.FC = () => {
           </div>
           <div>
             <h1 className="text-white font-black text-xl">Vendedores</h1>
-            <p className="text-white/60 text-xs">{filtered.length} artistas disponibles</p>
+            <p className="text-white/60 text-xs">{loading ? 'Cargando…' : `${filtered.length} artistas disponibles`}</p>
           </div>
         </div>
         {/* Search */}
@@ -81,25 +108,31 @@ const VendedoresPage: React.FC = () => {
               Ver todos <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
-          <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
-            {SERVICES.slice(0, 5).map(svc => (
-              <button key={svc.id} onClick={() => navigate(`/marketplace/${svc.id}`)}
-                className="flex-shrink-0 w-52 bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-700 transition-all text-left">
-                <img src={svc.cover} alt={svc.title} className="w-full h-28 object-cover" />
-                <div className="p-3">
-                  <p className="font-bold text-gray-900 dark:text-white text-xs line-clamp-2">{svc.title}</p>
-                  <p className="text-gray-500 text-[10px] mt-1">{svc.artistName}</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                      <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{svc.rating}</span>
+          {loading ? (
+            <div className="py-6 text-center"><Loader2 className="w-6 h-6 mx-auto animate-spin text-pink-400" /></div>
+          ) : services.length === 0 ? (
+            <p className="text-gray-400 text-sm py-4">Aún no hay servicios publicados. <button onClick={() => navigate('/marketplace')} className="text-pink-500 font-bold underline">Ver marketplace</button></p>
+          ) : (
+            <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
+              {services.map(svc => (
+                <button key={svc.id} onClick={() => navigate(`/marketplace/${svc.id}`)}
+                  className="flex-shrink-0 w-52 bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-700 transition-all text-left">
+                  {svc.cover ? <img src={svc.cover} alt={svc.title} className="w-full h-28 object-cover" /> : <div className="w-full h-28 bg-gradient-to-br from-purple-900 to-pink-900" />}
+                  <div className="p-3">
+                    <p className="font-bold text-gray-900 dark:text-white text-xs line-clamp-2">{svc.title}</p>
+                    <p className="text-gray-500 text-[10px] mt-1">{svc.artistName}</p>
+                    <div className="flex items-center justify-between mt-2">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{svc.rating || '—'}</span>
+                      </div>
+                      <span className="text-pink-500 font-black text-sm">€{svc.price}</span>
                     </div>
-                    <span className="text-pink-500 font-black text-sm">€{svc.price}</span>
                   </div>
-                </div>
-              </button>
-            ))}
-          </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Vendedores grid */}
@@ -110,13 +143,14 @@ const VendedoresPage: React.FC = () => {
           )}
         </h2>
 
-        {filtered.length === 0 ? (
+        {loading ? (
+          <div className="py-16 text-center"><Loader2 className="w-8 h-8 mx-auto animate-spin text-pink-400" /></div>
+        ) : filtered.length === 0 ? (
           <div className="text-center py-16">
-            <div className="text-5xl mb-3">🔍</div>
-            <p className="font-bold text-gray-700 dark:text-gray-300">Sin resultados</p>
-            <p className="text-gray-400 text-sm mt-1">Prueba con otros filtros</p>
-            <button onClick={() => { setSearch(''); setSelectedType('Todos'); setSelectedCity('Todas'); }}
-              className="mt-4 text-pink-500 text-sm font-bold underline">Limpiar filtros</button>
+            <div className="text-5xl mb-3">{artists.length === 0 ? '🎧' : '🔍'}</div>
+            <p className="font-bold text-gray-700 dark:text-gray-300">{artists.length === 0 ? 'Aún no hay artistas registrados' : 'Sin resultados'}</p>
+            <p className="text-gray-400 text-sm mt-1">{artists.length === 0 ? 'Los artistas aparecerán aquí cuando se registren en la plataforma.' : 'Prueba con otros filtros'}</p>
+            {artists.length > 0 && <button onClick={() => { setSearch(''); setSelectedType('Todos'); setSelectedCity('Todas'); }} className="mt-4 text-pink-500 text-sm font-bold underline">Limpiar filtros</button>}
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -124,31 +158,26 @@ const VendedoresPage: React.FC = () => {
               <button key={artist.id} onClick={() => navigate(`/artistas/${artist.id}`)}
                 className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border border-gray-100 dark:border-gray-700 transition-all hover:-translate-y-1 group text-left">
                 <div className="relative">
-                  <img src={artist.cover} alt={artist.name} className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-500" />
-                  {artist.isPremium && (
-                    <span className="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-[8px] font-black px-1.5 py-0.5 rounded">PRO</span>
+                  {artist.cover ? (
+                    <img src={artist.cover} alt={artist.name} className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-500" />
+                  ) : (
+                    <div className="w-full h-32 bg-gradient-to-br from-gray-800 to-purple-900 flex items-center justify-center text-3xl">🎧</div>
                   )}
-                  {artist.isLive && (
-                    <span className="absolute top-2 right-2 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded flex items-center gap-0.5">
-                      <span className="w-1 h-1 bg-white rounded-full animate-pulse" /> LIVE
-                    </span>
-                  )}
+                  {artist.isPremium && <span className="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-[8px] font-black px-1.5 py-0.5 rounded">PRO</span>}
+                  {artist.isLive && <span className="absolute top-2 right-2 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded flex items-center gap-0.5"><span className="w-1 h-1 bg-white rounded-full animate-pulse" /> LIVE</span>}
                 </div>
                 <div className="p-3">
                   <p className="font-bold text-gray-900 dark:text-white text-xs truncate">{artist.name}</p>
-                  <p className="text-gray-400 text-[10px] capitalize">{artist.type} · {artist.city}</p>
+                  <p className="text-gray-400 text-[10px] capitalize">{artist.type}{artist.city ? ` · ${artist.city}` : ''}</p>
                   <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center gap-1">
                       <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                      <span className="text-[10px] font-semibold text-gray-700 dark:text-gray-300">{artist.rating}</span>
-                      <span className="text-[9px] text-gray-400">({artist.reviews})</span>
+                      <span className="text-[10px] font-semibold text-gray-700 dark:text-gray-300">{artist.rating || '—'}</span>
+                      {artist.reviews > 0 && <span className="text-[9px] text-gray-400">({artist.reviews})</span>}
                     </div>
-                    <span className="text-[10px] font-bold text-pink-500">€{artist.priceFrom}</span>
+                    {artist.priceFrom > 0 && <span className="text-[10px] font-bold text-pink-500">€{artist.priceFrom}</span>}
                   </div>
-                  <div className="mt-2 flex items-center gap-1">
-                    <MapPin className="w-2.5 h-2.5 text-gray-400" />
-                    <span className="text-[9px] text-gray-400">{artist.completedBookings} reservas</span>
-                  </div>
+                  {artist.completedBookings > 0 && <div className="mt-2 flex items-center gap-1"><MapPin className="w-2.5 h-2.5 text-gray-400" /><span className="text-[9px] text-gray-400">{artist.completedBookings} reservas</span></div>}
                 </div>
               </button>
             ))}

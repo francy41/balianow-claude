@@ -1,11 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Clock, ShoppingBag, CheckCircle, Shield, MessageSquare } from 'lucide-react';
-import { SERVICES } from '../data/mockData';
+import { Clock, ShoppingBag, CheckCircle, Shield, MessageSquare, Loader2 } from 'lucide-react';
 import { Avatar, StarRating, Badge, Button } from '../components/ui';
 import { useAuthStore, useUIStore, useCartStore } from '../store/appStore';
+import { supabase } from '../lib/supabase';
 import BookingModal from '../components/BookingModal';
 import PaymentGateway from '../components/payment/PaymentGateway';
+
+type SvcDetail = {
+  id: string; title: string; cover: string; category: string; description: string;
+  artistId: string; artistName: string; artistAvatar: string;
+  price: number; rating: number; reviews: number; orders: number;
+  tags: string[]; includes: string[]; deliveryDays: number;
+};
+
+function normalize(r: any): SvcDetail {
+  return {
+    id: r.id, title: r.title || r.name || '',
+    cover: r.cover || r.image_url || '',
+    category: r.category || '',
+    description: r.description || '',
+    artistId: r.artist_id || r.owner_id || '',
+    artistName: r.artist_name || '',
+    artistAvatar: r.artist_avatar || '',
+    price: Number(r.price) || 0,
+    rating: Number(r.rating) || 0,
+    reviews: Number(r.reviews) || 0,
+    orders: Number(r.orders) || 0,
+    tags: Array.isArray(r.tags) ? r.tags : [],
+    includes: Array.isArray(r.includes) ? r.includes : [],
+    deliveryDays: Number(r.delivery_days) || 1,
+  };
+}
 
 const ServiceDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,9 +39,26 @@ const ServiceDetailPage: React.FC = () => {
   const { isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
   const { addItem, clearCart } = useCartStore();
-  const service = SERVICES.find(s => s.id === id) || SERVICES[0];
+  const [service, setService] = useState<SvcDetail | null>(null);
+  const [loading, setLoading] = useState(true);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+
+  useEffect(() => {
+    if (!id) return;
+    supabase.from('services').select('*').eq('id', id).maybeSingle()
+      .then(({ data }) => { setService(data ? normalize(data) : null); setLoading(false); });
+  }, [id]);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-orange" /></div>;
+  if (!service) return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 text-center">
+      <p className="text-5xl">💼</p>
+      <h2 className="font-display font-black text-xl text-gray-900">Servicio no encontrado</h2>
+      <p className="text-gray-400 text-sm">Este servicio ya no existe o fue eliminado.</p>
+      <button onClick={() => navigate('/marketplace')} className="btn-orange px-6 py-2">Ver marketplace</button>
+    </div>
+  );
 
   const platform = Math.round(service.price * 0.15);
 

@@ -7,7 +7,7 @@ import {
   Star, Sparkles, Send, Video, Bell, Headphones, Award, Image as ImageIcon,
   ChevronRight, Lock
 } from 'lucide-react';
-import { ARTISTS, LIVE_STREAMS, SOCIAL_NETWORK_URLS } from '../data/mockData';
+import { SOCIAL_NETWORK_URLS } from '../data/mockData';
 import type { Artist, MediaItem, OfferPackage } from '../data/mockData';
 import { useAuthStore, useUIStore, useCartStore, getYouTubeId } from '../store/appStore';
 import { Avatar, Modal, Button } from '../components/ui';
@@ -104,15 +104,15 @@ const ArtistProfilePage: React.FC = () => {
   const { isAuthenticated, user } = useAuthStore();
   const { addToast } = useUIStore();
 
-  const mockArtist = ARTISTS.find(a => a.id === id);
   const [dbArtist, setDbArtist] = useState<Artist | null>(null);
-  const [loadingDb, setLoadingDb] = useState(!mockArtist);
+  const [loadingDb, setLoadingDb] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
-  // Si no hay mock para este id, intenta cargar desde BD (artists luego profiles)
+  // Carga desde BD: primero tabla artists, luego profiles (para usuarios con perfil propio)
   useEffect(() => {
-    if (mockArtist || !id) { setLoadingDb(false); return; }
+    if (!id) { setLoadingDb(false); setNotFound(true); return; }
     let cancelled = false;
+    setLoadingDb(true);
     (async () => {
       try {
         const { data: art } = await supabase.from('artists').select('*').eq('id', id).maybeSingle();
@@ -121,15 +121,14 @@ const ArtistProfilePage: React.FC = () => {
         const { data: prof } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
         if (cancelled) return;
         if (prof) { setDbArtist(mapProfileToArtist(prof)); setLoadingDb(false); return; }
-        setNotFound(true);
-        setLoadingDb(false);
+        setNotFound(true); setLoadingDb(false);
       } catch (e) {
         console.warn('[artist-profile] load', e);
         if (!cancelled) { setNotFound(true); setLoadingDb(false); }
       }
     })();
     return () => { cancelled = true; };
-  }, [id, mockArtist]);
+  }, [id]);
 
   // ⚠ TODOS los hooks DEBEN ir antes de cualquier return condicional (rules of hooks)
   const [activeTab, setActiveTab] = useState<TabId>('about');
@@ -154,7 +153,7 @@ const ArtistProfilePage: React.FC = () => {
     );
   }
 
-  if (notFound || (!mockArtist && !dbArtist)) {
+  if (notFound || !dbArtist) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center gap-4">
         <p className="text-6xl">🔍</p>
@@ -167,10 +166,8 @@ const ArtistProfilePage: React.FC = () => {
     );
   }
 
-  const artist = (mockArtist || dbArtist)!;
-  const currentStream = artist.currentStreamId
-    ? LIVE_STREAMS.find(s => s.id === artist.currentStreamId)
-    : null;
+  const artist = dbArtist!;
+  const currentStream = null; // live streams se cargan de live_sessions, no de mock
 
   const openBooking = (concept: string, price: number) => {
     setBookingPreset({ concept, price });
@@ -227,11 +224,11 @@ const ArtistProfilePage: React.FC = () => {
         </button>
 
         {/* Live badge */}
-        {artist.isLive && currentStream && (
+        {artist.isLive && (
           <button onClick={() => navigate('/live')}
             className="absolute top-4 right-4 bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-xl font-bold text-sm flex items-center gap-1.5 shadow-lg animate-pulse">
             <span className="w-2 h-2 bg-white rounded-full" />
-            EN VIVO · {currentStream.viewers.toLocaleString()} viendo
+            EN VIVO
           </button>
         )}
 
