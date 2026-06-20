@@ -3,22 +3,39 @@ import { useNavigate } from 'react-router-dom';
 import { Check, Zap } from 'lucide-react';
 import { SUBSCRIPTION_PLANS } from '../data/mockData';
 import { useAuthStore, useUIStore } from '../store/appStore';
+import { supabase } from '../lib/supabase';
 import { Button, Badge } from '../components/ui';
 
 const SubscriptionsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, updateUser } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
   const [loading, setLoading] = useState<string | null>(null);
   const [period, setPeriod] = useState<'month' | 'year'>('month');
 
   const handleSubscribe = async (planId: string) => {
     if (!isAuthenticated) { navigate('/auth'); return; }
+    const plan = SUBSCRIPTION_PLANS.find(p => p.id === planId);
+    if (!plan) return;
     setLoading(planId);
-    await new Promise(r => setTimeout(r, 1500));
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { setLoading(null); navigate('/auth'); return; }
+
+    // Registramos una SOLICITUD real de suscripción (status 'pending').
+    // El equipo la activa tras confirmar el pago (o se conectará Stripe).
+    const now = new Date();
+    const end = new Date(now); end.setMonth(end.getMonth() + (period === 'year' ? 12 : 1));
+    const { error } = await supabase.from('subscriptions').insert({
+      user_id: session.user.id,
+      plan: plan.id, plan_name: plan.name,
+      price: plan.price, currency: 'EUR',
+      period: period === 'year' ? 'yearly' : 'monthly',
+      status: 'pending', provider: 'manual',
+      started_at: now.toISOString(), current_period_end: end.toISOString(),
+    });
     setLoading(null);
-    updateUser({ isPremium: true, subscriptionPlan: planId });
-    addToast({ message: `Plan ${planId.toUpperCase()} activado. ¡Bienvenido al ecosistema premium! 🎉`, type: 'success' });
+    if (error) { addToast({ message: `No se pudo registrar: ${error.message}`, type: 'error' }); return; }
+    addToast({ message: `✅ Solicitud del plan ${plan.name} registrada. Te activaremos en breve para completar el pago.`, type: 'success' });
   };
 
   return (

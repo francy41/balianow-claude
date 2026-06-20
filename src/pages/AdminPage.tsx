@@ -1035,39 +1035,88 @@ const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   );
 };
 
-// ── 6. SUSCRIPCIONES ─────────────────────────────────────────────────────
+// ── 6. SUSCRIPCIONES (suscriptores reales de la tabla subscriptions) ────────
 const SuscripcionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
-  const { openEdit } = useAdminEdit();
-  const { getMerged } = useAdminOverridesStore();
+  const [subs, setSubs] = useState<any[]>([]);
+  const [names, setNames] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from('subscriptions').select('*').order('created_at', { ascending: false }).limit(200);
+    const list = data || [];
+    setSubs(list);
+    const ids = Array.from(new Set(list.map((s: any) => s.user_id).filter(Boolean)));
+    if (ids.length) {
+      const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', ids);
+      const map: Record<string, string> = {};
+      (profs || []).forEach((p: any) => { map[p.id] = p.full_name || String(p.id).slice(0, 8); });
+      setNames(map);
+    }
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const setStatus = async (s: any, status: string, msg: string) => {
+    if (status === 'canceled' && !confirm('¿Cancelar esta suscripción?')) return;
+    const { error } = await supabase.from('subscriptions').update({ status }).eq('id', s.id);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: msg, type: 'success' });
+    setSubs(ss => ss.map(x => x.id === s.id ? { ...x, status } : x));
+  };
+
+  const activeByPlan = (planId: string) => subs.filter(s => s.status === 'active' && (s.plan === planId || s.plan === SUBSCRIPTION_PLANS.find(p => p.id === planId)?.name)).length;
+  const mrr = subs.filter(s => s.status === 'active').reduce((a, s) => a + (Number(s.price) || 0), 0);
+
   return (
   <div>
-    <PageHeader title="Suscripciones Premium" subtitle="Gestiona planes y suscriptores activos" />
+    <PageHeader title="Suscripciones Premium" subtitle="Planes y suscriptores reales" action={
+      <button onClick={load} className="btn-orange flex items-center gap-2 text-sm"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar</button>
+    } />
+    <div className="card-white p-4 mb-6 flex items-center gap-3">
+      <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-xl">💶</div>
+      <div><p className="text-gray-400 text-xs">Ingreso recurrente mensual (MRR)</p><p className="font-black text-2xl text-gray-900">€{mrr.toLocaleString('es-ES')}</p></div>
+      <div className="ml-auto text-right"><p className="text-gray-400 text-xs">Activas</p><p className="font-black text-2xl text-green-600">{subs.filter(s => s.status === 'active').length}</p></div>
+    </div>
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      {SUBSCRIPTION_PLANS.map(orig => getMerged('subscription', orig)).map(plan => (
+      {SUBSCRIPTION_PLANS.map(plan => (
         <div key={plan.id} className="card-white p-5 text-center">
           <div className={`w-10 h-10 bg-gradient-to-r ${plan.color} rounded-xl mx-auto mb-3 flex items-center justify-center`}>
             <Crown className="w-5 h-5 text-white" />
           </div>
           <p className="font-display font-black text-gray-900">{plan.name}</p>
           <p className="text-brand-orange font-black text-2xl mt-1">€{plan.price}<span className="text-sm text-gray-400 font-normal">/mes</span></p>
-          <p className="text-gray-400 text-xs mt-1">{Math.floor(Math.random() * 80) + 10} activos</p>
-          <button onClick={() => openEdit({ entity: 'subscription', title: plan.name, item: plan, fields: FIELDS_SUBSCRIPTION })} className="mt-3 text-brand-orange text-xs font-semibold hover:underline">Editar plan →</button>
+          <p className="text-gray-400 text-xs mt-1">{activeByPlan(plan.id)} activos</p>
         </div>
       ))}
     </div>
-    <h3 className="font-bold text-gray-900 mb-3">Suscriptores recientes</h3>
-    <AdminTable
-      headers={['Usuario', 'Plan', 'Inicio', 'Próxima factura', 'Estado', 'Acciones']}
-      rows={[
-        ['DJ Mambo King', <Badge variant="orange">Pro €50</Badge>, '1 May 2026', '1 Jun 2026', <Badge variant="green">Activa</Badge>],
-        ['Instructora Celia', <Badge variant="orange">Elite €150</Badge>, '15 Apr 2026', '15 Jun 2026', <Badge variant="green">Activa</Badge>],
-        ['Club Tropicana', <Badge variant="gray">Básico €9</Badge>, '10 May 2026', '10 Jun 2026', <Badge variant="green">Activa</Badge>],
-        ['Orquesta Fuego', <Badge variant="orange">Estándar €20</Badge>, '1 Apr 2026', '—', <Badge variant="red">Cancelada</Badge>],
-      ].map(row => [...row, <div className="flex gap-1">
-        <button onClick={() => openEdit({ entity: 'subscription', title: 'Suscripción', item: { id: 'sub-row-' + Math.random(), name: 'Suscripción', period: 'monthly' }, fields: FIELDS_SUBSCRIPTION })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
-        <button onClick={() => addToast({ message: 'Suscripción cancelada', type: 'error' })} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><XCircle className="w-4 h-4" /></button>
-      </div>])}
-    />
+    <h3 className="font-bold text-gray-900 mb-3">Suscriptores</h3>
+    {loading ? (
+      <div className="py-12 text-center text-gray-400">Cargando…</div>
+    ) : subs.length === 0 ? (
+      <div className="card-white p-10 text-center text-gray-400">
+        <Crown className="w-10 h-10 mx-auto mb-2 opacity-40" />
+        <p>Aún no hay suscriptores. Aparecerán aquí cuando los usuarios contraten un plan.</p>
+      </div>
+    ) : (
+      <AdminTable
+        headers={['Usuario', 'Plan', 'Importe', 'Inicio', 'Próx. factura', 'Estado', 'Acciones']}
+        rows={subs.map(s => [
+          <span className="font-semibold text-sm">{names[s.user_id] || (s.user_id ? String(s.user_id).slice(0, 8) : '—')}</span>,
+          <Badge variant="orange">{s.plan_name || s.plan}</Badge>,
+          <span className="font-bold">€{Number(s.price) || 0}</span>,
+          <span className="text-gray-500 text-sm">{s.started_at ? new Date(s.started_at).toLocaleDateString() : '—'}</span>,
+          <span className="text-gray-500 text-sm">{s.current_period_end ? new Date(s.current_period_end).toLocaleDateString() : '—'}</span>,
+          <Badge variant={s.status === 'active' ? 'green' : s.status === 'pending' ? 'orange' : s.status === 'past_due' ? 'orange' : 'red'}>
+            {s.status === 'active' ? 'Activa' : s.status === 'pending' ? 'Pendiente' : s.status === 'past_due' ? 'Impago' : 'Cancelada'}
+          </Badge>,
+          <div className="flex gap-1">
+            {s.status !== 'active' && s.status !== 'canceled' && <button onClick={() => setStatus(s, 'active', '✅ Suscripción activada')} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-lg font-semibold hover:bg-green-200" title="Activar">Activar</button>}
+            {s.status === 'active' && <button onClick={() => setStatus(s, 'canceled', 'Suscripción cancelada')} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400" title="Cancelar"><XCircle className="w-4 h-4" /></button>}
+          </div>,
+        ])}
+      />
+    )}
   </div>
   );
 };
