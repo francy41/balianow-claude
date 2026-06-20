@@ -1,0 +1,30 @@
+# .claudeignore — BailaNow
+# Carpetas que Claude NO debe indexar (grandes, generadas o irrelevantes para tareas de código)
+
+node_modules/
+dist/
+.vercel/
+android/
+android/**
+.gradle/
+build/
+*.apk
+*.aab
+
+# Assets pesados
+public/assets/
+src/assets/
+
+# Archivos generados
+*.map
+*.d.ts.map
+
+# Docs de referencia (grandes, no código del proyecto)
+*.pdf
+*.txt
+RESUMEN_*.txt
+*.zip
+
+# Configs que no necesita leer
+.git/
+coverage/
