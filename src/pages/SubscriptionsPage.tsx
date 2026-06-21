@@ -4,6 +4,7 @@ import { Check, Zap } from 'lucide-react';
 import { SUBSCRIPTION_PLANS } from '../data/mockData';
 import { useAuthStore, useUIStore } from '../store/appStore';
 import { supabase } from '../lib/supabase';
+import { createSubscriptionCheckout } from '../lib/payments';
 import { Button, Badge } from '../components/ui';
 
 const SubscriptionsPage: React.FC = () => {
@@ -21,21 +22,49 @@ const SubscriptionsPage: React.FC = () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) { setLoading(null); navigate('/auth'); return; }
 
-    // Registramos una SOLICITUD real de suscripción (status 'pending').
-    // El equipo la activa tras confirmar el pago (o se conectará Stripe).
+    const periodKey = period === 'year' ? 'yearly' : 'monthly';
     const now = new Date();
     const end = new Date(now); end.setMonth(end.getMonth() + (period === 'year' ? 12 : 1));
-    const { error } = await supabase.from('subscriptions').insert({
+
+    // 1. Insertamos la fila de suscripción en estado 'pending' y recuperamos su id.
+    const { data: row, error } = await supabase.from('subscriptions').insert({
       user_id: session.user.id,
       plan: plan.id, plan_name: plan.name,
       price: plan.price, currency: 'EUR',
-      period: period === 'year' ? 'yearly' : 'monthly',
-      status: 'pending', provider: 'manual',
+      period: periodKey,
+      status: 'pending', provider: 'stripe',
       started_at: now.toISOString(), current_period_end: end.toISOString(),
-    });
-    setLoading(null);
-    if (error) { addToast({ message: `No se pudo registrar: ${error.message}`, type: 'error' }); return; }
-    addToast({ message: `✅ Solicitud del plan ${plan.name} registrada. Te activaremos en breve para completar el pago.`, type: 'success' });
+    }).select('id').single();
+
+    if (error || !row) {
+      setLoading(null);
+      addToast({ message: `No se pudo registrar: ${error?.message || 'error'}`, type: 'error' });
+      return;
+    }
+
+    // 2. Pedimos la sesión de Stripe Checkout (recurrente).
+    try {
+      const res = await createSubscriptionCheckout({
+        planId: plan.id, planName: plan.name, price: plan.price,
+        period: periodKey, currency: 'eur', subscriptionRowId: row.id,
+      });
+
+      if (res.url) {
+        // Redirige a Stripe; el webhook activará la suscripción al completar el pago.
+        window.location.href = res.url;
+        return;
+      }
+
+      // Stripe aún no configurado → dejamos la solicitud como manual.
+      await supabase.from('subscriptions').update({ provider: 'manual' }).eq('id', row.id);
+      setLoading(null);
+      addToast({ message: `✅ Solicitud del plan ${plan.name} registrada. Te activaremos en breve para completar el pago.`, type: 'success' });
+    } catch (e: any) {
+      // La función no está desplegada o falló → flujo manual, sin romper la experiencia.
+      await supabase.from('subscriptions').update({ provider: 'manual' }).eq('id', row.id);
+      setLoading(null);
+      addToast({ message: `✅ Solicitud del plan ${plan.name} registrada. Te contactaremos para completar el pago.`, type: 'success' });
+    }
   };
 
   return (

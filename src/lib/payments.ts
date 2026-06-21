@@ -88,6 +88,24 @@ export async function createStripePaymentIntent(params: {
   return callEdgeFunction<PaymentIntentResult>('create-payment-intent', params);
 }
 
+// ─── Stripe Subscriptions (checkout recurrente) ────────────
+export interface SubscriptionCheckoutResult {
+  url?: string;
+  notConfigured?: boolean;
+  error?: string;
+}
+
+export async function createSubscriptionCheckout(params: {
+  planId: string;
+  planName: string;
+  price: number;
+  period: 'monthly' | 'yearly';
+  currency?: string;
+  subscriptionRowId: string;
+}): Promise<SubscriptionCheckoutResult> {
+  return callEdgeFunction<SubscriptionCheckoutResult>('create-subscription-checkout', params);
+}
+
 // ─── PayPal ─────────────────────────────────────────────────
 export async function createPayPalOrder(params: {
   amount: number;

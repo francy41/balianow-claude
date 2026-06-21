@@ -97,6 +97,56 @@ serve(async (req) => {
         .eq('provider_id', charge.payment_intent);
       break;
     }
+
+    // ── SUSCRIPCIONES ──────────────────────────────────────────
+    case 'checkout.session.completed': {
+      const s = event.data.object as Stripe.Checkout.Session;
+      if (s.mode !== 'subscription') break;
+      const rowId = s.client_reference_id || s.metadata?.subscriptionRowId;
+      if (!rowId) break;
+      await supabase.from('subscriptions').update({
+        status: 'active',
+        provider: 'stripe',
+        provider_sub_id: typeof s.subscription === 'string' ? s.subscription : null,
+        updated_at: new Date().toISOString(),
+      }).eq('id', rowId);
+      console.log(`✅ Suscripción activada (row ${rowId})`);
+      break;
+    }
+
+    case 'invoice.paid': {
+      const inv = event.data.object as Stripe.Invoice;
+      const subId = typeof inv.subscription === 'string' ? inv.subscription : null;
+      if (!subId) break;
+      const periodEnd = inv.lines?.data?.[0]?.period?.end;
+      await supabase.from('subscriptions').update({
+        status: 'active',
+        current_period_end: periodEnd ? new Date(periodEnd * 1000).toISOString() : undefined,
+        updated_at: new Date().toISOString(),
+      }).eq('provider_sub_id', subId);
+      console.log(`✅ Factura pagada — suscripción ${subId} renovada`);
+      break;
+    }
+
+    case 'invoice.payment_failed': {
+      const inv = event.data.object as Stripe.Invoice;
+      const subId = typeof inv.subscription === 'string' ? inv.subscription : null;
+      if (!subId) break;
+      await supabase.from('subscriptions')
+        .update({ status: 'past_due', updated_at: new Date().toISOString() })
+        .eq('provider_sub_id', subId);
+      console.log(`⚠️ Pago de suscripción fallido: ${subId}`);
+      break;
+    }
+
+    case 'customer.subscription.deleted': {
+      const sub = event.data.object as Stripe.Subscription;
+      await supabase.from('subscriptions')
+        .update({ status: 'canceled', updated_at: new Date().toISOString() })
+        .eq('provider_sub_id', sub.id);
+      console.log(`↩️ Suscripción cancelada: ${sub.id}`);
+      break;
+    }
   }
 
   return new Response(JSON.stringify({ received: true }), {
