@@ -19,9 +19,7 @@ Archivos a tocar: `src/pages/AdminPage.tsx` (MercadoSection)
 
 ## Media prioridad
 
-### #5 — NearMePage fallback a mock
-`src/pages/NearMePage.tsx` carga de Supabase primero pero cae a mockData si no hay resultados.
-Fix: eliminar fallback, mostrar empty state honesto.
+### ~~#5 — NearMePage fallback a mock~~ ✅ 2026-06-21 (import huérfano eliminado; ya cargaba solo de Supabase)
 
 ### #6 — Android build actualización
 El APK existe (keystore BailaNow#Key2026). Verificar que el build de Capacitor incluye los últimos cambios.
@@ -29,19 +27,15 @@ Comando: `npm run build && npx cap sync android && npx cap open android`
 
 ### ~~#7 — VendedoresPage mock~~ ✅ 2026-06-20
 
-### #8 — PromocionatePage mock
-`src/pages/PromocionatePage.tsx` usa PROMO_SERVICES/PROMO_SELLERS mock.
-Fix: crear tabla `promo_services` o reutilizar `services` con un tipo especial.
+### #8 — PromocionatePage mock (FEATURE, no simple cleanup)
+`src/pages/PromocionatePage.tsx` (945 líneas) usa PROMO_SERVICES/PROMO_SELLERS mock con estructura rica (plataformas, métricas, extras).
+Requiere: crear tabla `promo_services` (+ posiblemente `promo_sellers`) con JSON para platforms/extras, sección admin para gestionarla, y reescribir el data layer de la página.
+Equivalente en esfuerzo a la sección de afiliados.
 
 ## Baja prioridad / mejoras
 
-### #9 — LiveNowPage streams schedule mock
-`src/pages/LiveNowPage.tsx` usa LIVE_STREAMS / SCHEDULED_STREAMS mock.
-Fix: conectar a `live_sessions` con status='scheduled'.
-
-### #10 — MapPage fallback a mock
-`src/pages/MapPage.tsx` intenta Supabase pero cae a mock.
-Fix: eliminar fallback.
+### ~~#9 — LiveNowPage streams schedule mock~~ ✅ 2026-06-21 (carga de live_sessions_enriched, empty states honestos, chat sin mensajes falsos)
+### ~~#10 — MapPage fallback a mock~~ ✅ 2026-06-21 (bloque fallback eliminado)
 
 ### #11 — Tipificación: reducir `as any`
 23 ocurrencias en src/pages/. No crítico pero mejora DX y detecta bugs en typecheck.

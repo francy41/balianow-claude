@@ -5,7 +5,6 @@ import 'leaflet/dist/leaflet.css';
 import { useNavigate } from 'react-router-dom';
 import { Navigation, Star, Music, X, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { VENUES, EVENTS, ARTISTS } from '../data/mockData';
 import MapErrorBoundary from '../components/MapErrorBoundary';
 
 // ── Leaflet icon fix (bundled icons) ────────────────────────────────────
@@ -176,39 +175,6 @@ const MapPage: React.FC = () => {
           });
         }
       } catch {}
-
-      // 4. Fallback: use mockData if Supabase returned nothing
-      if (combined.length === 0) {
-        VENUES.forEach(v => {
-          const baseCoord = jitter(cityCoord(v.city), v.id);
-          combined.push({
-            id: v.id, type: 'venue', name: v.name, city: v.city, country: 'España',
-            lat: baseCoord[0], lng: baseCoord[1],
-            genre: (v as any).style || 'Latin', rating: v.rating || 4.5,
-            open: (v as any).status !== 'closed',
-            img: (v as any).coverImage || 'https://images.unsplash.com/photo-1566737236500-c8ac43014a67?w=400&h=200&fit=crop',
-            color: '#EC4899', emoji: '💃',
-          });
-        });
-        EVENTS.slice(0, 25).forEach(e => {
-          const baseCoord = jitter(cityCoord(e.city || 'Madrid'), e.id);
-          combined.push({
-            id: e.id, type: 'event', name: e.title, city: e.city || '', country: 'España',
-            lat: baseCoord[0], lng: baseCoord[1], date: e.date,
-            img: (e as any).coverImage || 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=400&h=200&fit=crop',
-            color: '#F59E0B', emoji: '🎉',
-          });
-        });
-        ARTISTS.slice(0, 20).forEach(a => {
-          const baseCoord = jitter(cityCoord(a.city || 'Madrid'), a.id);
-          combined.push({
-            id: a.id, type: 'artist', name: a.name, city: a.city || '',
-            lat: baseCoord[0], lng: baseCoord[1], genre: Array.isArray(a.genre) ? a.genre.join(', ') : a.genre,
-            img: a.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(a.name)}&background=8B5CF6&color=fff`,
-            color: '#8B5CF6', emoji: '🎤',
-          });
-        });
-      }
 
       setItems(combined);
       setLoading(false);

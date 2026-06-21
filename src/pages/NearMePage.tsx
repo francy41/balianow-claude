@@ -7,7 +7,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapPin, Navigation, Search, Star, Calendar, Music, Users, X, Map, ChevronRight, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { VENUES, EVENTS, ARTISTS } from '../data/mockData';
 import { resolveCityCoords } from '../lib/geo';
 import LivePreviewModal, { type LiveSessionLite } from '../components/LivePreviewModal';
 import SearchTriggerBar from '../components/SearchTriggerBar';

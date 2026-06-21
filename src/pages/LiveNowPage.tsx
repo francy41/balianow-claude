@@ -2,16 +2,22 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Radio, Heart, MessageCircle, Share2, Bell, Eye, Send,
-  Play, Calendar, MapPin, Sparkles, TrendingUp, Video
+  Play, Calendar, MapPin, Sparkles, TrendingUp, Video, Loader2
 } from 'lucide-react';
-import { LIVE_STREAMS, SCHEDULED_STREAMS, ARTISTS } from '../data/mockData';
-import type { LiveStream } from '../data/mockData';
+import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
 import { Avatar } from '../components/ui';
 import SearchTriggerBar from '../components/SearchTriggerBar';
 import LiveFab from '../components/LiveFab';
 
 type CategoryFilter = 'all' | 'dj' | 'dancer' | 'instructor' | 'band';
+
+type Stream = {
+  id: string; title: string; description: string; thumbnail: string;
+  artistId: string; artistName: string; artistAvatar: string;
+  city: string; genre: string; tags: string[]; viewers: number;
+  category: CategoryFilter; scheduledAt?: string;
+};
 
 const CATEGORIES: { id: CategoryFilter; label: string; icon: string }[] = [
   { id: 'all',        label: 'Todos',       icon: '⚡' },
@@ -21,39 +27,70 @@ const CATEGORIES: { id: CategoryFilter; label: string; icon: string }[] = [
   { id: 'band',       label: 'Bandas',      icon: '🎺' },
 ];
 
-const DEMO_CHAT_MESSAGES = [
-  { id: 1, user: 'María_BCN',    avatar: 'https://ui-avatars.com/api/?name=Maria&background=EC4899&color=fff&size=80',  text: '¡Fueguito 🔥🔥 amo este tema!' },
-  { id: 2, user: 'CarlosMad',    avatar: 'https://ui-avatars.com/api/?name=Carlos&background=7C3AED&color=fff&size=80', text: '¿Vas a tocar Aventura después?' },
-  { id: 3, user: 'BachataLover', avatar: 'https://ui-avatars.com/api/?name=Bachata&background=EC4899&color=fff&size=80', text: 'Saludos desde Cali 🇨🇴' },
-  { id: 4, user: 'SalsaQueen',   avatar: 'https://ui-avatars.com/api/?name=Salsa&background=10B981&color=fff&size=80',  text: 'GENIO. Lo mejor del año' },
-  { id: 5, user: 'DJsupport',    avatar: 'https://ui-avatars.com/api/?name=DJ&background=EF4444&color=fff&size=80',     text: '🎵🎵🎵 imparable' },
-  { id: 6, user: 'Sergio_VLC',   avatar: 'https://ui-avatars.com/api/?name=Sergio&background=06B6D4&color=fff&size=80', text: '¿Cuándo en Valencia?' },
-  { id: 7, user: 'Lola_S',       avatar: 'https://ui-avatars.com/api/?name=Lola&background=8B5CF6&color=fff&size=80',   text: '💃💃💃' },
-];
+function toCategory(row: any): CategoryFilter {
+  const r = String(row.host_role || row.category || '').toLowerCase();
+  if (r.includes('dj')) return 'dj';
+  if (r.includes('dancer') || r.includes('bail')) return 'dancer';
+  if (r.includes('instructor') || r.includes('class') || r.includes('clase')) return 'instructor';
+  if (r.includes('band') || r.includes('banda')) return 'band';
+  return 'all';
+}
+
+function normalize(row: any): Stream {
+  const styles = Array.isArray(row.styles) ? row.styles : [];
+  return {
+    id: row.id, title: row.title || 'Directo', description: row.description || '',
+    thumbnail: row.cover_url || row.preview_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(row.title || 'Live')}&background=EC4899&color=fff&size=600`,
+    artistId: row.host_id || '', artistName: row.host_name || 'Artista',
+    artistAvatar: row.host_avatar || '',
+    city: row.city || row.host_city || '', genre: styles[0] || row.category || 'Latin',
+    tags: Array.isArray(row.tags) ? row.tags : styles,
+    viewers: Number(row.viewers_count) || 0,
+    category: toCategory(row), scheduledAt: row.scheduled_at,
+  };
+}
 
 const LiveNowPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
   const [filter, setFilter] = useState<CategoryFilter>('all');
-  const [activeStream, setActiveStream] = useState<LiveStream>(LIVE_STREAMS[0]);
+  const [liveStreams, setLiveStreams] = useState<Stream[]>([]);
+  const [scheduled, setScheduled] = useState<Stream[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeStream, setActiveStream] = useState<Stream | null>(null);
   const [chatInput, setChatInput] = useState('');
   const [liked, setLiked] = useState(false);
   const [following, setFollowing] = useState(false);
-  const [viewers, setViewers] = useState(activeStream.viewers);
+  const [viewers, setViewers] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setViewers(v => Math.max(0, v + Math.floor(Math.random() * 11) - 5));
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [activeStream.id]);
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      const { data } = await supabase
+        .from('live_sessions_enriched')
+        .select('*')
+        .in('status', ['live', 'scheduled'])
+        .order('started_at', { ascending: false })
+        .limit(200);
+      if (cancelled) return;
+      const all = (data || []).map(normalize);
+      const live = all.filter((s: any, i: number) => (data![i] as any).status === 'live');
+      const sched = all.filter((s: any, i: number) => (data![i] as any).status === 'scheduled');
+      setLiveStreams(live);
+      setScheduled(sched);
+      setActiveStream(live[0] || null);
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
-  useEffect(() => { setViewers(activeStream.viewers); }, [activeStream.id, activeStream.viewers]);
+  useEffect(() => { setViewers(activeStream?.viewers || 0); }, [activeStream?.id, activeStream?.viewers]);
 
   const filtered = useMemo(() =>
-    filter === 'all' ? LIVE_STREAMS : LIVE_STREAMS.filter(s => s.category === filter),
-  [filter]);
+    filter === 'all' ? liveStreams : liveStreams.filter(s => s.category === filter),
+  [filter, liveStreams]);
 
   const canGoLive = isAuthenticated && user && ['dj', 'artist', 'dancer'].includes(user.role);
 
@@ -89,7 +126,7 @@ const LiveNowPage: React.FC = () => {
             </div>
             <h1 className="font-display font-black text-white text-2xl sm:text-3xl">Live Now</h1>
             <p className="text-white/80 text-sm mt-0.5">
-              {LIVE_STREAMS.length} performers en directo · {LIVE_STREAMS.reduce((s, x) => s + x.viewers, 0).toLocaleString()} espectadores
+              {liveStreams.length} performers en directo · {liveStreams.reduce((s, x) => s + x.viewers, 0).toLocaleString()} espectadores
             </p>
           </div>
           <button onClick={handleGoLive}
@@ -102,6 +139,18 @@ const LiveNowPage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 py-6">
         <SearchTriggerBar placeholder="🔍 Buscar streams, artistas, eventos en BailaNow…" className="mb-4" />
         {/* ── FEATURED PLAYER + CHAT ── */}
+        {loading ? (
+          <div className="card-white rounded-2xl p-16 mb-8 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-orange" /></div>
+        ) : !activeStream ? (
+          <div className="card-white rounded-2xl p-12 mb-8 text-center border-2 border-dashed border-gray-200">
+            <Radio className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+            <p className="text-gray-700 font-bold text-lg">Ahora mismo no hay nadie en directo</p>
+            <p className="text-gray-400 text-sm mt-1">Vuelve más tarde o revisa los streams programados abajo.</p>
+            {canGoLive && (
+              <button onClick={handleGoLive} className="mt-4 btn-orange px-6 py-2.5 inline-flex items-center gap-2"><Video className="w-4 h-4" /> Sé el primero en emitir</button>
+            )}
+          </div>
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
           {/* Player */}
           <div className="lg:col-span-2 card-white rounded-2xl overflow-hidden">
@@ -161,18 +210,10 @@ const LiveNowPage: React.FC = () => {
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold bg-gray-50 text-gray-600 hover:bg-gray-100 transition-all">
                   <Sparkles className="w-4 h-4" /> Ver perfil
                 </button>
-                <button onClick={() => addToast({ message: 'Enlace copiado', type: 'success' })}
+                <button onClick={() => { navigator.clipboard?.writeText(window.location.href); addToast({ message: 'Enlace copiado', type: 'success' }); }}
                   className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold bg-gray-50 text-gray-600 hover:bg-gray-100 transition-all">
                   <Share2 className="w-4 h-4" /> Compartir
                 </button>
-                <div className="ml-auto flex items-center gap-1.5 flex-wrap">
-                  {(activeStream.reactions || []).map(r => (
-                    <button key={r.type} className="bg-gray-50 hover:bg-gray-100 px-2 py-1 rounded-lg text-xs transition-all">
-                      <span>{r.type}</span>
-                      <span className="ml-1 text-gray-500 font-semibold">{r.count.toLocaleString()}</span>
-                    </button>
-                  ))}
-                </div>
               </div>
             </div>
           </div>
@@ -186,16 +227,11 @@ const LiveNowPage: React.FC = () => {
               </div>
               <span className="text-[10px] font-bold uppercase text-gray-400 bg-gray-50 px-2 py-0.5 rounded">{viewers.toLocaleString()} viendo</span>
             </div>
-            <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50/50">
-              {DEMO_CHAT_MESSAGES.map(msg => (
-                <div key={msg.id} className="flex items-start gap-2">
-                  <Avatar src={msg.avatar} name={msg.user} size="xs" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-bold text-brand-orange uppercase tracking-wide">{msg.user}</p>
-                    <p className="text-xs text-gray-700 break-words">{msg.text}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="flex-1 overflow-y-auto p-3 flex items-center justify-center bg-gray-50/50">
+              <div className="text-center text-gray-400">
+                <MessageCircle className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                <p className="text-xs">Sé el primero en saludar en el directo.</p>
+              </div>
             </div>
             <div className="p-3 border-t border-gray-100 flex items-center gap-2">
               <input value={chatInput} onChange={e => setChatInput(e.target.value)}
@@ -211,6 +247,7 @@ const LiveNowPage: React.FC = () => {
             </div>
           </div>
         </div>
+        )}
 
         {/* ── CATEGORY FILTER ── */}
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
@@ -280,30 +317,37 @@ const LiveNowPage: React.FC = () => {
             </h2>
             <p className="text-gray-400 text-sm">Activa el recordatorio para no perdértelos.</p>
           </div>
+          {scheduled.length === 0 ? (
+            <div className="card-white rounded-2xl p-8 text-center border-2 border-dashed border-gray-200">
+              <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+              <p className="text-gray-500 font-semibold">No hay streams programados todavía</p>
+              <p className="text-gray-400 text-sm mt-1">Cuando un artista agende un directo, aparecerá aquí.</p>
+            </div>
+          ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {SCHEDULED_STREAMS.slice(0, 8).map(s => {
-              const artist = ARTISTS.find(a => a.id === s.artistId);
-              return (
+            {scheduled.slice(0, 8).map(s => (
                 <div key={s.id} className="card-white rounded-2xl overflow-hidden flex flex-col">
                   <div className="relative aspect-video">
                     <img src={s.thumbnail} alt={s.title} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute bottom-2 left-2 bg-white/95 px-2 py-0.5 rounded text-[10px] font-bold text-gray-900">
-                      {new Date(s.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })} · {s.time}
-                    </div>
+                    {s.scheduledAt && (
+                      <div className="absolute bottom-2 left-2 bg-white/95 px-2 py-0.5 rounded text-[10px] font-bold text-gray-900">
+                        {new Date(s.scheduledAt).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })} · {new Date(s.scheduledAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    )}
                   </div>
                   <div className="p-3 flex-1 flex flex-col">
                     <p className="font-bold text-gray-900 text-sm line-clamp-2 mb-1">{s.title}</p>
-                    <p className="text-gray-400 text-xs mb-2">{artist?.name}</p>
+                    <p className="text-gray-400 text-xs mb-2">{s.artistName}</p>
                     <button onClick={() => addToast({ message: '🔔 Recordatorio activado', type: 'success' })}
                       className="mt-auto flex items-center justify-center gap-1.5 bg-pink-50 text-brand-orange font-bold text-xs py-2 rounded-lg hover:bg-pink-100 transition-colors">
-                      <Bell className="w-3.5 h-3.5" /> Recordar ({s.reminders})
+                      <Bell className="w-3.5 h-3.5" /> Recordar
                     </button>
                   </div>
                 </div>
-              );
-            })}
+            ))}
           </div>
+          )}
         </div>
 
         {/* ── GO LIVE CTA ── */}
