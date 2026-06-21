@@ -91,52 +91,8 @@ const EditContext = React.createContext<{
 export const useAdminEdit = () => React.useContext(EditContext);
 
 // Field configs por entidad
-export const FIELDS_ARTIST: EditField[] = [
-  { key: 'name',  label: 'Nombre',    type: 'text',     required: true },
-  { key: 'type',  label: 'Tipo',      type: 'select',   options: [
-      { value: 'dj', label: 'DJ' }, { value: 'dancer', label: 'Bailarín/a' },
-      { value: 'singer', label: 'Cantante' }, { value: 'band', label: 'Banda' },
-      { value: 'instructor', label: 'Instructor/a' }
-    ] },
-  { key: 'city',  label: 'Ciudad',    type: 'text' },
-  { key: 'country', label: 'País',    type: 'text' },
-  { key: 'priceFrom', label: 'Precio desde (€)', type: 'number' },
-  { key: 'rating', label: 'Rating',   type: 'number' },
-  { key: 'bio',   label: 'Biografía', type: 'textarea' },
-  { key: 'tags',  label: 'Tags',      type: 'tags', helper: 'Separadas por comas' },
-  { key: 'genre', label: 'Géneros',   type: 'tags', helper: 'Separados por comas' },
-  { key: 'isPremium',  label: 'Premium',  type: 'checkbox', placeholder: 'Mostrar como PRO' },
-  { key: 'isVerified', label: 'Verificado', type: 'checkbox', placeholder: 'Mostrar tick azul' },
-];
-
-export const FIELDS_EVENT: EditField[] = [
-  { key: 'title', label: 'Título', type: 'text', required: true },
-  { key: 'date',  label: 'Fecha',  type: 'date' },
-  { key: 'time',  label: 'Hora',   type: 'text', placeholder: '20:00' },
-  { key: 'city',  label: 'Ciudad', type: 'text' },
-  { key: 'price', label: 'Precio (€)', type: 'number' },
-  { key: 'capacity', label: 'Aforo', type: 'number' },
-  { key: 'category', label: 'Categoría', type: 'text' },
-  { key: 'description', label: 'Descripción', type: 'textarea' },
-  { key: 'isFeatured', label: 'Destacado', type: 'checkbox' },
-];
-
-export const FIELDS_VENUE: EditField[] = [
-  { key: 'name', label: 'Nombre', type: 'text', required: true },
-  { key: 'type', label: 'Tipo',   type: 'select', options: [
-      { value: 'club', label: 'Club' }, { value: 'bar', label: 'Bar' },
-      { value: 'studio', label: 'Studio' }, { value: 'rooftop', label: 'Rooftop' },
-      { value: 'lounge', label: 'Lounge' }, { value: 'restaurante', label: 'Restaurante' }
-    ] },
-  { key: 'city', label: 'Ciudad', type: 'text' },
-  { key: 'address', label: 'Dirección', type: 'text', cols: 2 },
-  { key: 'capacity', label: 'Aforo', type: 'number' },
-  { key: 'priceRange', label: 'Rango precio (1-4)', type: 'number' },
-  { key: 'openHours', label: 'Horario', type: 'text', cols: 2 },
-  { key: 'description', label: 'Descripción', type: 'textarea' },
-  { key: 'isOpen', label: 'Abierto ahora', type: 'checkbox' },
-  { key: 'isPremium', label: 'Premium', type: 'checkbox' },
-];
+import { FIELDS_ARTIST, FIELDS_EVENT, FIELDS_VENUE, FIELDS_SERVICE } from '../config/editFields';
+export { FIELDS_ARTIST, FIELDS_EVENT, FIELDS_VENUE, FIELDS_SERVICE };
 
 export const FIELDS_USER: EditField[] = [
   { key: 'name', label: 'Nombre', type: 'text', required: true },
@@ -150,14 +106,6 @@ export const FIELDS_USER: EditField[] = [
   { key: 'bio', label: 'Bio', type: 'textarea', cols: 2 },
   { key: 'avatar', label: 'Foto de perfil', type: 'image' },
   { key: 'isVerified', label: 'Verificado', type: 'checkbox' },
-];
-
-export const FIELDS_SERVICE: EditField[] = [
-  { key: 'title', label: 'Título del servicio', type: 'text', required: true },
-  { key: 'category', label: 'Categoría', type: 'text' },
-  { key: 'price', label: 'Precio (€)', type: 'number' },
-  { key: 'deliveryDays', label: 'Plazo (días)', type: 'number' },
-  { key: 'description', label: 'Descripción', type: 'textarea' },
 ];
 
 export const FIELDS_COURSE: EditField[] = [

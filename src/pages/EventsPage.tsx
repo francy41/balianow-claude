@@ -3,8 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   MapPin, Clock, Users, Calendar, ArrowLeft, Star, MessageSquare,
   Bell, Heart, Share2, CheckCircle, Music2, Instagram, Youtube,
-  Facebook, Globe, Headphones, Video, Ticket, Play, ChevronRight,
+  Facebook, Globe, Headphones, Video, Ticket, Play, ChevronRight, Loader2,
 } from 'lucide-react';
+import AdminEditFab from '../components/AdminEditFab';
 import { EVENTS, ARTISTS, VENUES } from '../data/mockData';
 import type { Artist, Event as EventType } from '../data/mockData';
 import { Badge, StarRating, SearchBar, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
@@ -259,18 +260,55 @@ const EVENT_TABS_PHYSICAL = [
   { id: 'reviews' as const,  label: 'Reseñas',         icon: '⭐' },
 ];
 
+// Normaliza una fila real de `events` (BD) al shape que espera el render.
+function normalizeEvent(r: any) {
+  return {
+    id: r.id, title: r.title || '', description: r.description || '',
+    date: r.date || '', time: r.time || '', endTime: r.end_time || '',
+    city: r.city || '', cover: r.cover || r.image_url || '',
+    price: Number(r.price) || 0, capacity: Number(r.capacity) || 0,
+    attending: Number(r.attending) || 0,
+    category: Array.isArray(r.category) ? r.category : (r.category ? [r.category] : (r.type ? [r.type] : [])),
+    artists: Array.isArray(r.artists) ? r.artists : [],
+    isOnline: !!r.is_online, isFeatured: !!r.is_featured, isPremium: !!r.is_premium,
+    venueId: r.venue_id || '', venueName: r.venue_name || '',
+    lat: r.lat, lng: r.lng,
+  };
+}
+
 const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
-  const event = EVENTS.find(e => e.id === eventId) || EVENTS[0];
+  const [event, setEvent] = useState<any>(null);
+  const [loadingEvent, setLoadingEvent] = useState(true);
   const [activeTab, setActiveTab] = useState<'info' | 'sections' | 'artists' | 'gallery' | 'reviews'>('info');
   const [bookingOpen, setBookingOpen] = useState(false);
   const [following, setFollowing] = useState(false);
   const [liked, setLiked] = useState(false);
 
+  useEffect(() => {
+    let cancelled = false;
+    supabase.from('events').select('*').eq('id', eventId).maybeSingle().then(({ data }) => {
+      if (cancelled) return;
+      setEvent(data ? normalizeEvent(data) : null);
+      setLoadingEvent(false);
+    });
+    return () => { cancelled = true; };
+  }, [eventId]);
+
+  if (loadingEvent) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-orange" /></div>;
+  if (!event) return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-3 p-6 text-center">
+      <p className="text-5xl">📅</p>
+      <h2 className="font-display font-black text-xl text-gray-900">Evento no encontrado</h2>
+      <p className="text-gray-400 text-sm">Este evento ya no existe o fue eliminado.</p>
+      <button onClick={() => navigate('/eventos')} className="btn-orange px-6 py-2">Ver eventos</button>
+    </div>
+  );
+
   const dateObj = new Date(event.date);
-  const pct = Math.round((event.attending / event.capacity) * 100);
+  const pct = event.capacity ? Math.round((event.attending / event.capacity) * 100) : 0;
   const linkedArtists = ARTISTS.filter(a => event.artists.includes(a.id));
   const venue = VENUES.find(v => v.id === event.venueId);
   const video = EVENT_VIDEOS[event.id];
@@ -311,7 +349,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
           <div className="max-w-5xl mx-auto">
             {/* Category tags */}
             <div className="flex items-center gap-2 mb-3 flex-wrap">
-              {event.category.slice(0, 3).map(c => (
+              {event.category.slice(0, 3).map((c: string) => (
                 <span key={c} className="bg-brand-orange/90 text-white text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded">{c}</span>
               ))}
               {event.isPremium && (
@@ -512,7 +550,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
               <div className="card-white rounded-2xl p-5">
                 <h3 className="font-display font-bold text-gray-900 mb-3">Categorías & Tags</h3>
                 <div className="flex flex-wrap gap-2">
-                  {event.category.map(c => (
+                  {event.category.map((c: string) => (
                     <span key={c} className="bg-pink-50 text-brand-orange border border-pink-100 text-sm font-semibold px-3 py-1 rounded-full">{c}</span>
                   ))}
                   {event.isOnline && <span className="bg-blue-50 text-blue-600 border border-blue-100 text-sm font-semibold px-3 py-1 rounded-full">Online</span>}
@@ -807,6 +845,8 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
       />
 
       <LiveFab defaultCategory="event" label="Iniciar Evento Live" />
+
+      <AdminEditFab kind="event" id={eventId} />
     </div>
   );
 };

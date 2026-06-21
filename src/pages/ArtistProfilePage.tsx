@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
+import AdminEditFab from '../components/AdminEditFab';
 import {
   MapPin, Users, CheckCircle, Instagram, Youtube, Facebook, Music2,
   Calendar, MessageSquare, Share2, Heart, Play, Eye, Globe, Clock,
@@ -394,6 +395,8 @@ const ArtistProfilePage: React.FC = () => {
       />
 
       <PaymentGateway open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
+
+      <AdminEditFab kind="artist" id={id} />
     </div>
   );
 };

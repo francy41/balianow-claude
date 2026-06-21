@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { MapPin, Users, Clock, CheckCircle, Star, MessageSquare, Bell, Heart, Share2, Calendar, Music2, Instagram, Youtube, Facebook, Globe, Headphones, Video } from 'lucide-react';
+import { MapPin, Users, Clock, CheckCircle, Star, MessageSquare, Bell, Heart, Share2, Calendar, Music2, Instagram, Youtube, Facebook, Globe, Headphones, Video, Loader2 } from 'lucide-react';
+import AdminEditFab from '../components/AdminEditFab';
 import { VENUES } from '../data/mockData';
 import type { Venue } from '../data/mockData';
 import { Badge, StarRating, SearchBar, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
@@ -248,16 +249,37 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
-  const venue = VENUES.find(v => v.id === venueId) || VENUES[0];
+  const [venue, setVenue] = useState<Venue | null>(null);
+  const [loadingVenue, setLoadingVenue] = useState(true);
   const [activeTab, setActiveTab] = useState<'about' | 'events' | 'gallery' | 'reviews'>('about');
   const [bookingOpen, setBookingOpen] = useState(false);
   const [following, setFollowing] = useState(false);
   const [liked, setLiked] = useState(false);
 
+  useEffect(() => {
+    let cancelled = false;
+    supabase.from('venues').select('*').eq('id', venueId).maybeSingle().then(({ data }) => {
+      if (cancelled) return;
+      setVenue(data ? mapDbVenue(data) : null);
+      setLoadingVenue(false);
+    });
+    return () => { cancelled = true; };
+  }, [venueId]);
+
   const handleReserve = () => {
     if (!isAuthenticated) { navigate('/auth'); return; }
     setBookingOpen(true);
   };
+
+  if (loadingVenue) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-orange" /></div>;
+  if (!venue) return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-3 p-6 text-center">
+      <p className="text-5xl">📍</p>
+      <h2 className="font-display font-black text-xl text-gray-900">Local no encontrado</h2>
+      <p className="text-gray-400 text-sm">Este local ya no existe o fue eliminado.</p>
+      <button onClick={() => navigate('/venues')} className="btn-orange px-6 py-2">Ver locales</button>
+    </div>
+  );
 
   const socials = VENUE_SOCIALS[venue.id] || { instagram: venue.name.toLowerCase().replace(/\s+/g, '') };
 
@@ -578,6 +600,8 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
         defaultPrice={venue.priceRange * 100}
         helperText={`${venue.type} en ${venue.city} · Capacidad ${venue.capacity}`}
       />
+
+      <AdminEditFab kind="venue" id={venueId} />
     </div>
   );
 };

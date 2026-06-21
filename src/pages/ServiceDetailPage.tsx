@@ -6,6 +6,7 @@ import { useAuthStore, useUIStore, useCartStore } from '../store/appStore';
 import { supabase } from '../lib/supabase';
 import BookingModal from '../components/BookingModal';
 import PaymentGateway from '../components/payment/PaymentGateway';
+import AdminEditFab from '../components/AdminEditFab';
 
 type SvcDetail = {
   id: string; title: string; cover: string; category: string; description: string;
@@ -202,6 +203,8 @@ const ServiceDetailPage: React.FC = () => {
         open={checkoutOpen}
         onClose={() => setCheckoutOpen(false)}
       />
+
+      <AdminEditFab kind="service" id={id} />
     </div>
   );
 };
