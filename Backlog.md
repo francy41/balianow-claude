@@ -3,16 +3,12 @@ _Actualizado: 2026-06-20 — Solo pendientes activos. Lo completado va a PROJECT
 
 ## Alta prioridad
 
-### #1 — Stripe checkout recurrente (suscripciones)
-La tabla `subscriptions` existe y el admin puede activar/cancelar manualmente.
-Falta: conectar botón "Contratar" en SubscriptionsPage a un Stripe Checkout real con precio recurrente.
-Archivos a tocar: `src/pages/SubscriptionsPage.tsx`, nueva Edge Function Supabase para crear sesión Stripe.
+### ~~#1 — Stripe checkout recurrente (suscripciones)~~ ✅ 2026-06-21
+Edge Function `create-subscription-checkout` (modo subscription, price_data inline). Webhook actualiza la tabla `subscriptions` (checkout.session.completed / invoice.paid / payment_failed / subscription.deleted). SubscriptionsPage redirige a Stripe Checkout y cae a flujo manual si Stripe no responde. STRIPE_SECRET_KEY ya está en los secrets del proyecto. NOTA: deploy de Edge Functions SOLO con Supabase CLI (el script Node rompe el bundling).
 
-### #2 — Cancelación + refund flow básico (escrow)
-MercadoSection tiene Liberar y Reembolsar. Falta:
-- Notificar al usuario (email o in-app) cuando su escrow es liberado/reembolsado
-- Conectar con pasarela de pago real para mover fondos
-Archivos a tocar: `src/pages/AdminPage.tsx` (MercadoSection)
+### ~~#2 — Notificación in-app de escrow liberado/reembolsado~~ ✅ 2026-06-21
+Tabla `notifications` + RLS. MercadoSection notifica al payee (liberado) / payer (reembolsado). Componente `NotificationsBell` real en el Navbar (contador no leídas, dropdown, marcar leídas).
+PENDIENTE (requiere pasarela real): mover fondos de verdad en el reembolso — hoy solo cambia estado + notifica.
 
 ### ~~#3 — ServiceDetailPage carga mock~~ ✅ 2026-06-20
 ### ~~#4 — ArtistProfilePage carga mock~~ ✅ 2026-06-20

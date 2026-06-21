@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Bell, Globe, ChevronDown, Menu, LogOut, LayoutDashboard, User, Shield, Edit3, ShoppingCart } from 'lucide-react';
+import { Search, Globe, ChevronDown, Menu, LogOut, LayoutDashboard, User, Shield, Edit3, ShoppingCart } from 'lucide-react';
+import NotificationsBell from '../NotificationsBell';
 import ProfileEditModal from '../ProfileEditModal';
 import { useAuthStore, useUIStore, useCartStore, useSiteConfigStore } from '../../store/appStore';
 import { Avatar } from '../ui';
@@ -121,14 +122,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
             </button>
 
             {/* Notifications */}
-            <button className="relative p-2 rounded-lg hover:bg-white/10 text-gray-400">
-              <Bell className="w-4 h-4" />
-              {user.notifications > 0 && (
-                <span className="absolute top-1 right-1 w-3.5 h-3.5 bg-red-500 rounded-full text-[8px] flex items-center justify-center font-bold text-white">
-                  {user.notifications > 9 ? '9+' : user.notifications}
-                </span>
-              )}
-            </button>
+            <NotificationsBell />
 
             {/* User name + role (desktop) */}
             <div className="relative group">

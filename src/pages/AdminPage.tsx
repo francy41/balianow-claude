@@ -1371,6 +1371,16 @@ const MercadoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     if (status === 'released') patch.release_date = new Date().toISOString();
     const { error } = await supabase.from('escrows').update(patch).eq('id', e.id);
     if (error) { addToast({ message: error.message, type: 'error' }); return; }
+
+    // Notificar in-app al usuario afectado por la liberación/reembolso.
+    const amount = '€' + (Number(e.amount) || 0).toLocaleString('es-ES', { maximumFractionDigits: 2 });
+    const notif = status === 'released'
+      ? { user_id: e.payee_id, type: 'payment', title: 'Pago liberado', body: `Se ha liberado tu pago de ${amount}. Ya está disponible en tu monedero.`, link: '/wallet' }
+      : status === 'refunded'
+      ? { user_id: e.payer_id, type: 'refund', title: 'Reembolso procesado', body: `Se ha reembolsado ${amount} a tu método de pago.`, link: '/wallet' }
+      : null;
+    if (notif?.user_id) { await supabase.from('notifications').insert(notif); }
+
     addToast({ message: msg, type: 'success' });
     setRows(rs => rs.map(x => x.id === e.id ? { ...x, ...patch } : x));
   };
