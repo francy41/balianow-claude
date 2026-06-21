@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MessageSquare, ShoppingBag, ShoppingCart, CheckCircle, Clock, TrendingUp, Shield, Users, Eye, Send, X, Trash2, CreditCard, ArrowRight } from 'lucide-react';
-import { PROMO_SERVICES, PROMO_SELLERS } from '../data/mockData';
+import { MessageSquare, ShoppingBag, ShoppingCart, CheckCircle, Clock, TrendingUp, Shield, Users, Eye, Send, X, Trash2, CreditCard, ArrowRight, Loader2 } from 'lucide-react';
 import type { PromoService, PromoSeller } from '../data/mockData';
+import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore, useCartStore } from '../store/appStore';
 import { StarRating, Badge, SearchBar } from '../components/ui';
 import SearchTriggerBar from '../components/SearchTriggerBar';
@@ -704,6 +704,36 @@ const SellerModal: React.FC<{ seller: PromoSeller; onClose: () => void }> = ({ s
 /* ════════════════════════════════════════════════════
    MAIN PAGE
    ════════════════════════════════════════════════════ */
+function normalizeSeller(r: any): PromoSeller {
+  return {
+    id: r.id, name: r.name || '', avatar: r.avatar || '',
+    isVerified: !!r.is_verified, isPro: !!r.is_pro,
+    rating: Number(r.rating) || 0, reviews: Number(r.reviews) || 0, orders: Number(r.orders) || 0,
+    responseTime: r.response_time || '', memberSince: r.member_since || '',
+    bio: r.bio || '',
+    socialProof: Array.isArray(r.social_proof) ? r.social_proof : [],
+    metricsScreenshots: Array.isArray(r.metrics_screenshots) ? r.metrics_screenshots : [],
+  };
+}
+
+function normalizeService(r: any): PromoService {
+  return {
+    id: r.id, sellerId: r.seller_id || '', sellerName: r.seller_name || '',
+    sellerAvatar: r.seller_avatar || '',
+    title: r.title || '', description: r.description || '',
+    category: r.category || 'redes-sociales', categoryLabel: r.category_label || '',
+    platforms: Array.isArray(r.platforms) ? r.platforms : [],
+    price: Number(r.price) || 0, currency: r.currency || 'EUR',
+    deliveryDays: Number(r.delivery_days) || 1,
+    rating: Number(r.rating) || 0, reviews: Number(r.reviews) || 0, orders: Number(r.orders) || 0,
+    cover: r.cover || '',
+    tags: Array.isArray(r.tags) ? r.tags : [],
+    includes: Array.isArray(r.includes) ? r.includes : [],
+    extras: Array.isArray(r.extras) ? r.extras : [],
+    platformFee: Number(r.platform_fee) || 0,
+  };
+}
+
 const PromocionatePage: React.FC = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -718,10 +748,27 @@ const PromocionatePage: React.FC = () => {
   const [bookingService, setBookingService] = useState<PromoService | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [services, setServices] = useState<PromoService[]>([]);
+  const [sellers, setSellers] = useState<PromoSeller[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      supabase.from('promo_services').select('*').eq('admin_status', 'approved').order('orders', { ascending: false }),
+      supabase.from('promo_sellers').select('*').order('rating', { ascending: false }),
+    ]).then(([{ data: svc }, { data: sel }]) => {
+      if (cancelled) return;
+      setServices((svc || []).map(normalizeService));
+      setSellers((sel || []).map(normalizeSeller));
+      setLoading(false);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return PROMO_SERVICES.filter(s => {
+    return services.filter(s => {
       const matchCat = activeTab === 'all' || s.category === activeTab;
       const matchPlatform = activePlatform === 'all' ||
         s.platforms.some(p => p.name.toLowerCase() === activePlatform.toLowerCase());
@@ -736,14 +783,14 @@ const PromocionatePage: React.FC = () => {
   // Conteo de servicios por plataforma (sin filtro de plataforma)
   const platformCounts = useMemo(() => {
     const map: Record<string, number> = { all: 0 };
-    const baseSet = PROMO_SERVICES.filter(s =>
+    const baseSet = services.filter(s =>
       (activeTab === 'all' || s.category === activeTab) &&
       (!sellerFilter || s.sellerId === sellerFilter)
     );
     map.all = baseSet.length;
     baseSet.forEach(s => s.platforms.forEach(p => { map[p.name] = (map[p.name] || 0) + 1; }));
     return map;
-  }, [activeTab, sellerFilter]);
+  }, [activeTab, sellerFilter, services]);
 
   const handleBuy = (service: PromoService) => {
     if (!isAuthenticated) { navigate('/auth'); return; }
@@ -888,7 +935,7 @@ const PromocionatePage: React.FC = () => {
         {sellerFilter && (
           <div className="mt-3 flex items-center gap-2 bg-pink-50 dark:bg-pink-900/20 border border-pink-200 dark:border-pink-700 rounded-xl px-3 py-2">
             <span className="text-xs text-pink-700 dark:text-pink-300 font-bold">
-              👤 Mostrando solo servicios de: <strong>{PROMO_SELLERS.find(s => s.id === sellerFilter)?.name}</strong>
+              👤 Mostrando solo servicios de: <strong>{sellers.find(s => s.id === sellerFilter)?.name}</strong>
             </span>
             <button onClick={() => setSellerFilter(null)} className="ml-auto text-pink-500 hover:text-pink-700 text-xs font-bold">
               ✕ Quitar filtro
@@ -942,9 +989,9 @@ const PromocionatePage: React.FC = () => {
           </div>
           <p className="text-xs text-gray-400 mb-2">💡 Toca un vendedor para ver SOLO sus servicios. Cada vendedor puede tener varios.</p>
           <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
-            {PROMO_SELLERS.map(seller => {
+            {sellers.map(seller => {
               const isFiltering = sellerFilter === seller.id;
-              const services = PROMO_SERVICES.filter(s => s.sellerId === seller.id);
+              const sellerServices = services.filter(s => s.sellerId === seller.id);
               return (
                 <div key={seller.id} className={`flex-shrink-0 w-72 ${isFiltering ? 'ring-2 ring-pink-500 rounded-2xl' : ''}`}>
                   <div className="relative">
@@ -954,7 +1001,7 @@ const PromocionatePage: React.FC = () => {
                     />
                     <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-10 pointer-events-none">
                       <span className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow">
-                        {services.length} servicio{services.length !== 1 ? 's' : ''}
+                        {sellerServices.length} servicio{sellerServices.length !== 1 ? 's' : ''}
                       </span>
                       {isFiltering && (
                         <span className="bg-green-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow">
@@ -983,25 +1030,29 @@ const PromocionatePage: React.FC = () => {
         </div>
 
         {/* Service Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(service => (
-            <PromoServiceCard
-              key={service.id}
-              service={service}
-              onBuy={() => handleBuy(service)}
-              onReserve={() => handleReserve(service)}
-              onChat={() => handleChat(service)}
-              isInCart={cartItemIds.includes(service.id)}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="py-20 text-center"><Loader2 className="w-8 h-8 mx-auto animate-spin text-pink-500" /></div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map(service => (
+              <PromoServiceCard
+                key={service.id}
+                service={service}
+                onBuy={() => handleBuy(service)}
+                onReserve={() => handleReserve(service)}
+                onChat={() => handleChat(service)}
+                isInCart={cartItemIds.includes(service.id)}
+              />
+            ))}
+          </div>
+        )}
 
-        {filtered.length === 0 && (
+        {!loading && filtered.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-5xl mb-3">🔍</p>
-            <p className="text-gray-900 font-bold text-lg">No encontramos servicios</p>
-            <p className="text-gray-400 text-sm mt-1">Prueba con otra búsqueda o categoría</p>
-            <button onClick={() => { setSearch(''); setActiveTab('all'); }} className="btn-outline text-sm mt-4">Ver todos</button>
+            <p className="text-5xl mb-3">{services.length === 0 ? '📢' : '🔍'}</p>
+            <p className="text-gray-900 font-bold text-lg">{services.length === 0 ? 'Aún no hay servicios de promoción publicados' : 'No encontramos servicios'}</p>
+            <p className="text-gray-400 text-sm mt-1">{services.length === 0 ? 'Vuelve pronto: estamos incorporando vendedores verificados.' : 'Prueba con otra búsqueda o categoría'}</p>
+            {services.length > 0 && <button onClick={() => { setSearch(''); setActiveTab('all'); setActivePlatform('all'); setSellerFilter(null); }} className="btn-outline text-sm mt-4">Ver todos</button>}
           </div>
         )}
 

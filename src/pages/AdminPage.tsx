@@ -30,7 +30,7 @@ type AdminSection =
   | 'suscripciones' | 'artistas' | 'bailarinas' | 'eventos' | 'mercado'
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms'
-  | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter' | 'danceavatares' | 'afiliados';
+  | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter' | 'danceavatares' | 'afiliados' | 'promocionate';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -54,6 +54,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'finanzas',       label: 'Finanzas',                icon: <DollarSign className="w-4 h-4" /> },
   { id: 'comisiones',     label: 'Comisiones',              icon: <DollarSign className="w-4 h-4" /> },
   { id: 'afiliados',      label: 'Afiliados & RRPP',        icon: <Share2 className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'promocionate',   label: 'Promociónate',            icon: <TrendingUp className="w-4 h-4" />, badge: 'NEW' },
   { id: 'creators',       label: 'Dashboards Creators',     icon: <LayoutDashboard className="w-4 h-4" /> },
   { id: 'retiros',        label: 'Retiros pendientes',      icon: <DollarSign className="w-4 h-4" />, badge: 'esc.' },
   { id: 'diseno',         label: 'Diseño Web',              icon: <Palette className="w-4 h-4" /> },
@@ -77,7 +78,7 @@ const STATS = [
 
 // ── EDIT CONTEXT (modal compartido por todas las secciones) ──────────────
 interface EditRequest {
-  entity: 'artist' | 'event' | 'venue' | 'service' | 'user' | 'category' | 'course' | 'subscription' | 'affiliate';
+  entity: 'artist' | 'event' | 'venue' | 'service' | 'user' | 'category' | 'course' | 'subscription' | 'affiliate' | 'promo';
   title: string;
   item: Record<string, any> & { id: string };
   fields: EditField[];
@@ -289,6 +290,7 @@ const AdminPage: React.FC = () => {
         {active === 'retiros'        && <RetirosSection addToast={addToast} />}
         {active === 'comisiones'     && <ComisionesSection addToast={addToast} />}
         {active === 'afiliados'      && <AfiliadosSection addToast={addToast} />}
+        {active === 'promocionate'   && <PromocionateSection addToast={addToast} />}
         {active === 'cms'            && <AdminCMS />}
         {active === 'diseno'         && <DisenoSection addToast={addToast} />}
         {active === 'configuracion'  && <ConfiguracionSection addToast={addToast} />}
@@ -1708,6 +1710,114 @@ const AfiliadosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
               </div>,
             ];
           })}
+        />
+      )}
+    </div>
+  );
+};
+
+// ── PROMOCIÓNATE (gestión de servicios de promoción) ──────────────────────
+const PROMO_CATEGORIES = [
+  { value: 'redes-sociales',   label: 'Redes Sociales' },
+  { value: 'spotify-playlists',label: 'Spotify & Playlists' },
+  { value: 'video-promo',      label: 'Video Promocional' },
+  { value: 'influencers',      label: 'Influencers' },
+  { value: 'prensa-blogs',     label: 'Prensa & Blogs' },
+];
+
+const FIELDS_PROMO: EditField[] = [
+  { key: 'title',          label: 'Título', type: 'text', required: true },
+  { key: 'seller_name',    label: 'Vendedor', type: 'text', helper: 'Nombre del vendedor/cuenta que ofrece el servicio' },
+  { key: 'seller_avatar',  label: 'Avatar vendedor', type: 'image' },
+  { key: 'category',       label: 'Categoría', type: 'select', options: PROMO_CATEGORIES },
+  { key: 'category_label', label: 'Etiqueta categoría', type: 'text', helper: 'Texto visible, ej: Redes Sociales' },
+  { key: 'description',    label: 'Descripción', type: 'textarea' },
+  { key: 'cover',          label: 'Portada', type: 'image' },
+  { key: 'price',          label: 'Precio (€)', type: 'number', required: true },
+  { key: 'delivery_days',  label: 'Días de entrega', type: 'number' },
+  { key: 'platform_fee',   label: 'Comisión plataforma (%)', type: 'number' },
+  { key: 'admin_status',   label: 'Estado', type: 'select', options: [
+      { value: 'approved', label: 'Aprobado (visible)' }, { value: 'pending', label: 'Pendiente' }, { value: 'hidden', label: 'Oculto' },
+    ] },
+];
+
+const PromocionateSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const { openEdit } = useAdminEdit();
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from('promo_services').select('*').order('created_at', { ascending: false }).limit(300);
+    setItems(data || []);
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const setStatus = async (s: any, status: string) => {
+    const { error } = await supabase.from('promo_services').update({ admin_status: status }).eq('id', s.id);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: status === 'approved' ? '✅ Servicio aprobado' : status === 'hidden' ? 'Servicio ocultado' : 'Estado actualizado', type: 'success' });
+    setItems(xs => xs.map(x => x.id === s.id ? { ...x, admin_status: status } : x));
+  };
+
+  const remove = async (s: any) => {
+    if (!confirm(`¿Eliminar el servicio "${s.title}"?`)) return;
+    const { error } = await supabase.from('promo_services').delete().eq('id', s.id);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: `✅ "${s.title}" eliminado`, type: 'success' }); load();
+  };
+
+  const approved = items.filter(s => s.admin_status === 'approved').length;
+  const pending = items.filter(s => s.admin_status === 'pending').length;
+  const totalOrders = items.reduce((a, s) => a + (Number(s.orders) || 0), 0);
+
+  return (
+    <div>
+      <PageHeader
+        title="Promociónate"
+        subtitle="Gestiona los servicios de promoción que aparecen en la página pública."
+        action={
+          <div className="flex gap-2">
+            <button onClick={load} className="text-sm text-gray-500 hover:text-gray-800 font-semibold flex items-center gap-1"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar</button>
+            <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => openEdit({ entity: 'promo', title: 'Nuevo servicio de promoción', item: { id: 'new', title: '', category: 'redes-sociales', category_label: 'Redes Sociales', price: 0, currency: 'EUR', delivery_days: 3, platform_fee: 15, admin_status: 'approved' }, fields: FIELDS_PROMO, onSaved: load } as any)}>Añadir servicio</Button>
+          </div>
+        }
+      />
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Servicios</p><p className="font-black text-2xl text-gray-900 mt-1">{items.length}</p></div>
+        <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Visibles</p><p className="font-black text-2xl text-green-600 mt-1">{approved}</p></div>
+        <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Pendientes</p><p className="font-black text-2xl text-yellow-600 mt-1">{pending}</p></div>
+        <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Pedidos totales</p><p className="font-black text-2xl text-brand-orange mt-1">{totalOrders.toLocaleString('es-ES')}</p></div>
+      </div>
+
+      {loading ? (
+        <div className="py-12 text-center text-gray-400">Cargando…</div>
+      ) : items.length === 0 ? (
+        <div className="card-white p-10 text-center text-gray-400">
+          <TrendingUp className="w-10 h-10 mx-auto mb-2 opacity-40" />
+          <p>Aún no hay servicios de promoción. Crea uno con "Añadir servicio".</p>
+        </div>
+      ) : (
+        <AdminTable
+          headers={['Servicio', 'Vendedor', 'Categoría', 'Precio', 'Pedidos', 'Estado', 'Acciones']}
+          rows={items.map(s => [
+            <span className="font-semibold text-sm line-clamp-1 max-w-[260px]">{s.title}</span>,
+            <span className="text-sm text-gray-600">{s.seller_name || '—'}</span>,
+            <Badge variant="gray">{s.category_label || s.category}</Badge>,
+            <span className="font-bold">€{Number(s.price) || 0}</span>,
+            <span className="text-sm text-gray-600">{s.orders || 0}</span>,
+            <Badge variant={s.admin_status === 'approved' ? 'green' : s.admin_status === 'pending' ? 'orange' : 'red'}>
+              {s.admin_status === 'approved' ? 'Visible' : s.admin_status === 'pending' ? 'Pendiente' : 'Oculto'}
+            </Badge>,
+            <div className="flex gap-1">
+              {s.admin_status !== 'approved' && <button onClick={() => setStatus(s, 'approved')} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-lg font-semibold hover:bg-green-200" title="Aprobar">Aprobar</button>}
+              {s.admin_status === 'approved' && <button onClick={() => setStatus(s, 'hidden')} className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-lg font-semibold hover:bg-gray-200" title="Ocultar">Ocultar</button>}
+              <button onClick={() => openEdit({ entity: 'promo', title: s.title, item: s, fields: FIELDS_PROMO, onSaved: load })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400" title="Editar"><Edit className="w-4 h-4" /></button>
+              <button onClick={() => remove(s)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400" title="Eliminar"><Trash2 className="w-4 h-4" /></button>
+            </div>,
+          ])}
         />
       )}
     </div>

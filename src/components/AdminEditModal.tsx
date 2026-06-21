@@ -23,7 +23,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   title: string;
-  entity: 'artist' | 'event' | 'venue' | 'service' | 'user' | 'category' | 'course' | 'subscription' | 'affiliate';
+  entity: 'artist' | 'event' | 'venue' | 'service' | 'user' | 'category' | 'course' | 'subscription' | 'affiliate' | 'promo';
   item: Record<string, any> & { id?: string };
   fields: EditField[];
   onSaved?: (newItem: Record<string, any>) => void;
@@ -34,7 +34,7 @@ const TABLE_MAP: Record<string, string> = {
   venue: 'venues', event: 'events', artist: 'artists',
   user: 'profiles', subscription: 'subscriptions',
   service: 'services', course: 'courses', category: 'categories',
-  affiliate: 'affiliates',
+  affiliate: 'affiliates', promo: 'promo_services',
 };
 
 // La columna que identifica al "dueño" del registro, usada para RLS

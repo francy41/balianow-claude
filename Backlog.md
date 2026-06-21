@@ -27,10 +27,8 @@ Comando: `npm run build && npx cap sync android && npx cap open android`
 
 ### ~~#7 — VendedoresPage mock~~ ✅ 2026-06-20
 
-### #8 — PromocionatePage mock (FEATURE, no simple cleanup)
-`src/pages/PromocionatePage.tsx` (945 líneas) usa PROMO_SERVICES/PROMO_SELLERS mock con estructura rica (plataformas, métricas, extras).
-Requiere: crear tabla `promo_services` (+ posiblemente `promo_sellers`) con JSON para platforms/extras, sección admin para gestionarla, y reescribir el data layer de la página.
-Equivalente en esfuerzo a la sección de afiliados.
+### ~~#8 — PromocionatePage mock~~ ✅ 2026-06-21
+Tablas `promo_sellers` + `promo_services` (JSONB platforms/tags/includes/extras/social_proof) con RLS. Catálogo curado migrado a BD (5 sellers, 7 servicios). Página carga real con loading/empty states. Sección admin "Promociónate" con CRUD completo (añadir/editar/aprobar/ocultar/eliminar).
 
 ## Baja prioridad / mejoras
 
