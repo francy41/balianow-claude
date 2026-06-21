@@ -173,6 +173,15 @@ const ProfileImporter: React.FC = () => {
         if (c) { clean.lat = c.lat; clean.lng = c.lng; }
       }
 
+      // La columna events.type tiene un CHECK: solo 'Social' | 'Taller' | 'Congreso'.
+      // La categoría extraída es libre (lowercase), así que la mapeamos a un type válido.
+      const eventType = (() => {
+        const c = String(clean.category || clean.type || '').toLowerCase();
+        if (c.includes('taller') || c.includes('workshop')) return 'Taller';
+        if (c.includes('congreso') || c.includes('congress') || c.includes('festival')) return 'Congreso';
+        return 'Social';
+      })();
+
       let error;
       if (result.type === 'event') {
         const row: Row = {
@@ -183,9 +192,9 @@ const ProfileImporter: React.FC = () => {
           image_url: clean.image_url, cover: clean.image_url, artists: clean.artists,
           lat: clean.lat, lng: clean.lng,
           admin_status: 'approved', created_by: user?.id || null, owner_id: user?.id || null,
-          type: clean.category || 'social',
+          type: eventType,
         };
-        ({ error } = await supabase.from('events').insert(strip(row)));
+        ({ error } = await robustInsert('events', strip(row)));
       } else if (result.type === 'venue') {
         const row: Row = {
           name: clean.name, description: clean.description, city: clean.city, country: clean.country,
@@ -195,14 +204,14 @@ const ProfileImporter: React.FC = () => {
           lat: clean.lat, lng: clean.lng,
           status: 'active', admin_status: 'approved', owner_id: user?.id || null,
         };
-        ({ error } = await supabase.from('venues').insert(strip(row)));
+        ({ error } = await robustInsert('venues', strip(row)));
       } else {
         // Perfiles importados (sin cuenta de usuario) → tabla artists
         const row = profileToArtist(clean);
         ({ error } = await supabase.from('artists').upsert(strip(row), { onConflict: 'id' }));
       }
 
-      if (error) addToast({ type: 'error', message: error.message });
+      if (error) addToast({ type: 'error', message: `No se pudo importar: ${error.message}` });
       else {
         addToast({ type: 'success', message: `✅ ${TYPE_META[result.type].label} importado correctamente` });
         setResult(null); setEditJson(''); setUrl('');
@@ -213,6 +222,22 @@ const ProfileImporter: React.FC = () => {
   };
 
   const strip = (o: Row) => { const r: Row = {}; for (const k of Object.keys(o)) if (o[k] !== undefined && o[k] !== null && o[k] !== '') r[k] = o[k]; return r; };
+
+  // Insert que reintenta descartando columnas inexistentes en la tabla (igual que AdminEditModal).
+  // Evita que un campo extra haga fallar toda la importación.
+  const robustInsert = async (table: string, payload: Row): Promise<{ error: any }> => {
+    const p = { ...payload };
+    let lastErr: any = null;
+    for (let attempt = 0; attempt < 12; attempt++) {
+      const { error } = await supabase.from(table).insert(p);
+      if (!error) return { error: null };
+      lastErr = error;
+      const m = /column "?([a-z_]+)"? of relation .* does not exist/i.exec(error.message || '');
+      if (m && p[m[1]] !== undefined) { delete p[m[1]]; continue; }
+      break;
+    }
+    return { error: lastErr };
+  };
 
   // ── Importación masiva clásica ──
   const handleImport = async () => {
