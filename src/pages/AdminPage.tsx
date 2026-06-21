@@ -947,6 +947,7 @@ const UsuariosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 // ── 5. LOCALIDADES ────────────────────────────────────────────────────────
 const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const { openEdit } = useAdminEdit();
+  const navigate = useNavigate();
   const [venues, setVenues] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddVenue, setShowAddVenue] = React.useState(false);
@@ -991,7 +992,7 @@ const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           <Badge variant={v.is_open ? 'green' : 'gray'}>{v.is_open ? '🟢 Abierto' : 'Cerrado'}</Badge>,
           v.is_premium ? <Badge variant="orange">Premium</Badge> : <Badge variant="gray">Básico</Badge>,
           <div className="flex gap-1">
-            <button onClick={() => openEdit({ entity: 'venue', title: v.name, item: v, fields: FIELDS_VENUE, onSaved: load })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
+            <button onClick={() => navigate(`/venues/${v.id}?edit=1`)} title="Editar en la página del local" className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-pink-500"><Edit className="w-4 h-4" /></button>
             <button onClick={async () => {
               if (!confirm(`¿Eliminar el local "${v.name}"?`)) return;
               const { error } = await supabase.from('venues').delete().eq('id', v.id);
@@ -1276,7 +1277,7 @@ const EventosSection: React.FC<{ addToast: Function; navigate: Function }> = ({ 
           <Badge variant={e.is_featured ? 'orange' : 'green'}>{e.is_featured ? 'Destacado' : 'Activo'}</Badge>,
           <div className="flex gap-1">
             <button onClick={() => navigate(`/eventos/${e.id}`)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
-            <button onClick={() => openEdit({ entity: 'event', title: e.title, item: e, fields: FIELDS_EVENT, onSaved: load })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
+            <button onClick={() => navigate(`/eventos/${e.id}?edit=1`)} title="Editar en la página del evento" className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-pink-500"><Edit className="w-4 h-4" /></button>
             <button onClick={async () => {
               if (!confirm(`¿Eliminar el evento "${e.title}"?`)) return;
               const { error } = await supabase.from('events').delete().eq('id', e.id);

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Pencil, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
@@ -22,15 +23,16 @@ interface Props {
 const AdminEditFab: React.FC<Props> = ({ kind, id, onSaved }) => {
   const { user } = useAuthStore();
   const { addToast } = useUIStore();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [row, setRow] = useState<Record<string, any> | null>(null);
 
   const isAdmin = !!user && ['admin', 'superadmin'].includes(String(user.role));
   const cfg = DETAIL_EDIT[kind];
-  if (!isAdmin || !id || !cfg) return null;
 
   const openEditor = async () => {
+    if (!cfg || !id) return;
     setLoading(true);
     const { data, error } = await supabase.from(cfg.table).select('*').eq('id', id).maybeSingle();
     setLoading(false);
@@ -39,6 +41,19 @@ const AdminEditFab: React.FC<Props> = ({ kind, id, onSaved }) => {
     setRow(data);
     setOpen(true);
   };
+
+  // Auto-abrir el editor cuando se llega con ?edit=1 (desde el panel admin).
+  useEffect(() => {
+    if (isAdmin && id && cfg && searchParams.get('edit') === '1') {
+      openEditor();
+      const sp = new URLSearchParams(searchParams);
+      sp.delete('edit');
+      setSearchParams(sp, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  if (!isAdmin || !id || !cfg) return null;
 
   const label = kind === 'event' ? 'evento' : kind === 'artist' ? 'perfil' : kind === 'venue' ? 'local' : 'servicio';
 
