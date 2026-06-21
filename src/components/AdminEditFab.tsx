@@ -48,9 +48,9 @@ const AdminEditFab: React.FC<Props> = ({ kind, id, onSaved }) => {
         onClick={openEditor}
         disabled={loading}
         title={`Editar ${label} (admin)`}
-        className="fixed z-[60] bottom-24 right-4 sm:bottom-8 sm:right-8 flex items-center gap-2 bg-gray-900 text-white font-bold text-sm px-4 py-3 rounded-2xl shadow-2xl hover:bg-black hover:scale-105 transition-all border border-white/10"
+        className="fixed z-[70] bottom-24 left-4 sm:bottom-8 sm:left-8 flex items-center gap-2 bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black text-sm px-5 py-3.5 rounded-2xl shadow-2xl shadow-fuchsia-500/40 hover:scale-105 transition-all ring-2 ring-white/40"
       >
-        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Pencil className="w-4 h-4" />}
+        {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Pencil className="w-5 h-5" />}
         Editar {label}
       </button>
 
