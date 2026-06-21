@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
+import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
 import {
   MapPin, Users, CheckCircle, Instagram, Youtube, Facebook, Music2,
   Calendar, MessageSquare, Share2, Heart, Play, Eye, Globe, Clock,
@@ -118,7 +118,7 @@ const ArtistProfilePage: React.FC = () => {
         const { data: art } = await supabase.from('artists').select('*').eq('id', id).maybeSingle();
         if (cancelled) return;
         if (art) { setDbArtist(mapDbArtist(art)); setLoadingDb(false); return; }
-        const { data: prof } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
+        const { data: prof } = await supabase.from('profiles').select(PUBLIC_PROFILE_COLUMNS).eq('id', id).maybeSingle();
         if (cancelled) return;
         if (prof) { setDbArtist(mapProfileToArtist(prof)); setLoadingDb(false); return; }
         setNotFound(true); setLoadingDb(false);

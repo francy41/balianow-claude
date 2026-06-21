@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapPin, Navigation, Search, Star, Calendar, Music, Users, X, Map, ChevronRight, AlertCircle } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
 import { resolveCityCoords } from '../lib/geo';
 import LivePreviewModal, { type LiveSessionLite } from '../components/LivePreviewModal';
 import SearchTriggerBar from '../components/SearchTriggerBar';
@@ -203,7 +203,7 @@ const NearMePage: React.FC = () => {
 
       // PROFILES (usuarios reales — DJs, bailarines, artistas, instructores...)
       try {
-        const { data } = await supabase.from('profiles').select('*');
+        const { data } = await supabase.from('profiles').select(PUBLIC_PROFILE_COLUMNS);
         data?.forEach((p: any) => {
           const role = String(p.role || '').toLowerCase();
           // mapping permisivo: si el rol no es admin/superadmin, lo mostramos en alguna categoria

@@ -32,16 +32,13 @@ const AcceptInvitePage: React.FC = () => {
 
   const verifyToken = async () => {
     setStatus('loading');
-    const { data, error } = await supabase
-      .from('admin_invitations')
-      .select('id, email, role, expires_at, used_at')
-      .eq('token', token)
-      .maybeSingle();
-
-    if (error || !data) { setStatus('invalid'); return; }
-    if (data.used_at) { setStatus('used'); return; }
-    if (new Date(data.expires_at) < new Date()) { setStatus('expired'); return; }
-    setInvitation(data);
+    // Validación server-side: la tabla ya no es legible públicamente (no se pueden enumerar tokens).
+    const { data, error } = await supabase.rpc('validate_admin_invitation', { p_token: token });
+    const row = Array.isArray(data) ? data[0] : data;
+    if (error || !row || row.state === 'invalid') { setStatus('invalid'); return; }
+    if (row.state === 'used') { setStatus('used'); return; }
+    if (row.state === 'expired') { setStatus('expired'); return; }
+    setInvitation({ id: '', email: row.email, role: row.role, expires_at: row.expires_at, used_at: null });
     setStatus('valid');
   };
 
@@ -56,22 +53,26 @@ const AcceptInvitePage: React.FC = () => {
 
     setStatus('accepting');
     try {
-      // Update profile role
-      const { error: updateErr } = await supabase
-        .from('profiles')
-        .update({ role: invitation.role, verified: true })
-        .eq('id', user.id);
-
-      if (updateErr) throw updateErr;
-
-      // Mark invitation as used
-      await supabase
-        .from('admin_invitations')
-        .update({ used_at: new Date().toISOString() })
-        .eq('id', invitation.id);
-
-      setStatus('success');
-      setTimeout(() => navigate('/admin'), 3000);
+      // Aceptación server-side: valida el email del solicitante y asigna el rol
+      // de forma controlada (el cliente no puede auto-asignarse rol).
+      const { data, error: rpcErr } = await supabase.rpc('accept_admin_invitation', { p_token: token });
+      if (rpcErr) throw rpcErr;
+      if (data === 'success') {
+        // Refrescar sesión para que el nuevo rol surta efecto
+        await supabase.auth.refreshSession();
+        setStatus('success');
+        setTimeout(() => navigate('/admin'), 3000);
+        return;
+      }
+      const msg: Record<string, string> = {
+        email_mismatch: `Esta invitación es para ${invitation.email}.`,
+        used: 'Esta invitación ya fue usada.',
+        expired: 'La invitación ha caducado.',
+        invalid: 'Invitación inválida.',
+        not_authenticated: 'Debes iniciar sesión.',
+      };
+      setError(msg[String(data)] ?? 'No se pudo aceptar la invitación');
+      setStatus('error');
     } catch (err: any) {
       setError(err.message ?? 'Error al aceptar la invitación');
       setStatus('error');

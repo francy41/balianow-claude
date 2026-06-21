@@ -9,11 +9,8 @@
 //   supabase secrets set ANTHROPIC_API_KEY=sk-ant-... --project-ref lpwwdjujxwxdvyoznehp
 // ════════════════════════════════════════════════════════════════
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { getCorsHeaders } from '../_shared/cors.ts';
+import { checkRateLimit } from '../_shared/rateLimit.ts';
 
 const LANG_NAME: Record<string, string> = {
   es: 'español', en: 'English', pt: 'português', fr: 'français',
@@ -21,10 +18,15 @@ const LANG_NAME: Record<string, string> = {
 };
 
 Deno.serve(async (req: Request) => {
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
+
+  // Rate limit por IP: la funcion llama a un LLM de pago. Evita drenaje de presupuesto.
+  const rl = checkRateLimit(req, { max: 20, windowMs: 60_000, keyPrefix: 'danceflow-chat' });
+  if (!rl.ok) return rl.response;
 
   const API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
   if (!API_KEY) {

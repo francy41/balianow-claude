@@ -135,9 +135,12 @@ const ProfileImporter: React.FC = () => {
     try {
       const endpoint = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/smart-import`;
       const anon = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+      // Token de sesión real: la función exige administrador autenticado.
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { addToast({ type: 'error', message: 'Inicia sesión como administrador para importar' }); setAnalyzing(false); return; }
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', apikey: anon, Authorization: `Bearer ${anon}` },
+        headers: { 'Content-Type': 'application/json', apikey: anon, Authorization: `Bearer ${session.access_token}` },
         body: JSON.stringify({ url: u }),
       });
       const json = await res.json();

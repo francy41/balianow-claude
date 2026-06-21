@@ -12,7 +12,7 @@ import {
   Instagram, Youtube, Facebook, Globe, Music, Twitch, Share2, MapPin,
   Star, Calendar, MessageCircle, CheckCircle, Copy, Check, Heart, ExternalLink, Edit,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
 import { safeSocialUrl } from '../lib/security';
 import { useAuthStore } from '../store/appStore';
 import ProfileEditModal from '../components/ProfileEditModal';
@@ -80,7 +80,7 @@ const PublicProfilePage: React.FC = () => {
       try {
         // Por ID directo o por email
         const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(slug);
-        const query = supabase.from('profiles').select('*');
+        const query = supabase.from('profiles').select(PUBLIC_PROFILE_COLUMNS);
         const { data, error } = isUUID
           ? await query.eq('id', slug).maybeSingle()
           : await query.ilike('email', `${slug.replace(/-/g, '%')}%`).limit(1).maybeSingle();

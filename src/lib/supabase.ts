@@ -1,5 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Columnas públicas de profiles (SIN email/whatsapp/wallet_balance).
+// Usar en TODA consulta de cara al público para no filtrar PII.
+// El acceso anónimo a esas columnas sensibles está revocado a nivel de BD.
+export const PUBLIC_PROFILE_COLUMNS =
+  'id,full_name,role,avatar_url,bio,location,verified,created_at,youtube_url,instagram_url,tiktok_url,website_url,is_live,last_active,status,country,lat,lng,genre,cover_photo,facebook_url,soundcloud_url,twitch_url,spotify_url,styles,tags,city,deleted_at';
+
 // Env vars must be set in .env.local (dev) and Vercel/hosting env (prod)
 // Never hardcode these values here — they would be bundled into the public JS
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;

@@ -12,6 +12,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getCorsHeaders } from '../_shared/cors.ts';
+import { checkRateLimit } from '../_shared/rateLimit.ts';
 
 const SECRET = Deno.env.get('STRIPE_SECRET_KEY') ?? '';
 const APP_URL = Deno.env.get('APP_URL') ?? 'https://bailanow.com';
@@ -22,6 +23,10 @@ serve(async (req) => {
 
   const json = (obj: unknown, status = 200) =>
     new Response(JSON.stringify(obj), { status, headers: { ...corsH, 'Content-Type': 'application/json' } });
+
+  // Rate limit: evita spam de creacion de sesiones de pago.
+  const rl = checkRateLimit(req, { max: 10, windowMs: 60_000, keyPrefix: 'sub-checkout' });
+  if (!rl.ok) return rl.response;
 
   // If Stripe is not configured yet, return notConfigured so the frontend can
   // fall back to the manual pending-request flow without breaking.

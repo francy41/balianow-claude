@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapPin, Users, CheckCircle, Radio, Music } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
 import { Badge, StarRating, Avatar, FilterChips, SearchBar, SectionHeader, EmptyState } from '../components/ui';
 import SearchTriggerBar from '../components/SearchTriggerBar';
 import LiveFab from '../components/LiveFab';
@@ -133,7 +133,7 @@ const ArtistsPage: React.FC = () => {
 
       // 2) tabla profiles (usuarios con rol artista/dj/dancer/etc)
       try {
-        const { data, error } = await supabase.from('profiles').select('*');
+        const { data, error } = await supabase.from('profiles').select(PUBLIC_PROFILE_COLUMNS);
         if (error) errors.push(`profiles: ${error.message}`);
         data?.forEach((p: any) => {
           const t = normalizeRoleToType(p.role);
