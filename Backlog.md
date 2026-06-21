@@ -14,13 +14,8 @@ MercadoSection tiene Liberar y Reembolsar. Falta:
 - Conectar con pasarela de pago real para mover fondos
 Archivos a tocar: `src/pages/AdminPage.tsx` (MercadoSection)
 
-### #3 — ServiceDetailPage carga mock
-`src/pages/ServiceDetailPage.tsx` usa mockData SERVICES para mostrar el detalle de un servicio.
-Fix: cargar por `id` desde tabla `services` de Supabase.
-
-### #4 — ArtistProfilePage carga mock
-`src/pages/ArtistProfilePage.tsx` usa ARTISTS/LIVE_STREAMS mock.
-Fix: cargar por `id` desde tablas `artists` + `live_sessions`.
+### ~~#3 — ServiceDetailPage carga mock~~ ✅ 2026-06-20
+### ~~#4 — ArtistProfilePage carga mock~~ ✅ 2026-06-20
 
 ## Media prioridad
 
@@ -32,9 +27,7 @@ Fix: eliminar fallback, mostrar empty state honesto.
 El APK existe (keystore BailaNow#Key2026). Verificar que el build de Capacitor incluye los últimos cambios.
 Comando: `npm run build && npx cap sync android && npx cap open android`
 
-### #7 — VendedoresPage mock
-`src/pages/VendedoresPage.tsx` muestra ARTISTS y SERVICES mock.
-Fix: cargar de Supabase (artists + services).
+### ~~#7 — VendedoresPage mock~~ ✅ 2026-06-20
 
 ### #8 — PromocionatePage mock
 `src/pages/PromocionatePage.tsx` usa PROMO_SERVICES/PROMO_SELLERS mock.

@@ -1,38 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore, useUIStore } from '../store/appStore';
+import { supabase } from '../lib/supabase';
 import {
   Users, DollarSign, TrendingUp, Copy, Share2, Gift,
   Star, ChevronRight, Link as LinkIcon, QrCode, Wallet,
-  BarChart3, ArrowRight, Check, Zap, Crown, Target
+  BarChart3, ArrowRight, Check, Zap, Crown, Target, Loader2
 } from 'lucide-react';
 
-// ── MOCK DATA ─────────────────────────────────────────
-const AFFILIATE_STATS = {
-  totalEarnings: 1250,
-  pendingPayout: 340,
-  totalReferrals: 47,
-  activeReferrals: 32,
-  conversionRate: 68,
-  clicks: 892,
-  tier: 'Gold',
-  commissionRate: 12,
-};
-
-const REFERRAL_HISTORY = [
-  { id: 1, name: 'Maria García', date: '2026-05-18', type: 'Entrada evento', amount: 45, commission: 5.40, status: 'paid' },
-  { id: 2, name: 'Pedro López', date: '2026-05-17', type: 'Suscripción PRO', amount: 29.99, commission: 3.60, status: 'paid' },
-  { id: 3, name: 'Ana Torres', date: '2026-05-16', type: 'Clase en vivo', amount: 25, commission: 3.00, status: 'pending' },
-  { id: 4, name: 'Diego Ruiz', date: '2026-05-15', type: 'Marketplace servicio', amount: 150, commission: 18.00, status: 'paid' },
-  { id: 5, name: 'Laura Méndez', date: '2026-05-14', type: 'Entrada evento VIP', amount: 80, commission: 9.60, status: 'pending' },
-  { id: 6, name: 'Carlos Vega', date: '2026-05-12', type: 'Suscripción PRO', amount: 29.99, commission: 3.60, status: 'paid' },
-];
-
 const TIERS = [
-  { name: 'Bronze', min: 0, rate: 8, color: 'bg-orange-700', icon: '🥉' },
-  { name: 'Silver', min: 10, rate: 10, color: 'bg-gray-400', icon: '🥈' },
-  { name: 'Gold', min: 25, rate: 12, color: 'bg-yellow-500', icon: '🥇' },
-  { name: 'Diamond', min: 50, rate: 15, color: 'bg-purple-500', icon: '💎' },
+  { name: 'Bronze', id: 'bronze', min: 0, rate: 8, color: 'bg-orange-700', icon: '🥉' },
+  { name: 'Silver', id: 'silver', min: 10, rate: 10, color: 'bg-gray-400', icon: '🥈' },
+  { name: 'Gold', id: 'gold', min: 25, rate: 12, color: 'bg-yellow-500', icon: '🥇' },
+  { name: 'Diamond', id: 'diamond', min: 50, rate: 15, color: 'bg-purple-500', icon: '💎' },
 ];
 
 const PROMO_MATERIALS = [
@@ -48,11 +28,58 @@ const AffiliatePage: React.FC = () => {
   const { addToast } = useUIStore();
   const [tab, setTab] = useState<'dashboard' | 'referrals' | 'materials' | 'payouts'>('dashboard');
   const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [joining, setJoining] = useState(false);
+  const [affiliate, setAffiliate] = useState<any>(null);
+  const [referrals, setReferrals] = useState<any[]>([]);
 
-  const referralCode = user ? `BAILA-${user.name.split(' ')[0].toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}` : 'BAILA-GUEST-0000';
-  const referralLink = `https://bailanow.com/?ref=${referralCode}`;
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { setLoading(false); return; }
+    const { data: aff } = await supabase.from('affiliates').select('*').eq('user_id', session.user.id).maybeSingle();
+    setAffiliate(aff || null);
+    if (aff) {
+      const { data: refs } = await supabase.from('affiliate_referrals').select('*').eq('affiliate_id', aff.id).order('created_at', { ascending: false }).limit(100);
+      setReferrals(refs || []);
+    }
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const joinProgram = async () => {
+    setJoining(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { navigate('/auth'); return; }
+    const first = (user?.name || session.user.email || 'BAILA').split(' ')[0].toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const code = `BAILA-${first}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+    const { data, error } = await supabase.from('affiliates').insert({
+      user_id: session.user.id, code, tier: 'bronze', status: 'pending', commission_rate: 0.08,
+    }).select().single();
+    setJoining(false);
+    if (error) { addToast({ message: `No se pudo registrar: ${error.message}`, type: 'error' }); return; }
+    setAffiliate(data);
+    addToast({ message: '🎉 Solicitud enviada. Te activaremos pronto.', type: 'success' });
+  };
+
+  // Stats derivados del registro real (0 si aún no es afiliado)
+  const tierInfo = TIERS.find(t => t.id === (affiliate?.tier || 'bronze')) || TIERS[0];
+  const stats = {
+    totalEarnings: Number(affiliate?.total_earnings) || 0,
+    pendingPayout: Number(affiliate?.pending_payout) || 0,
+    totalReferrals: Number(affiliate?.total_referrals) || referrals.length,
+    activeReferrals: Number(affiliate?.active_referrals) || 0,
+    conversionRate: affiliate?.total_clicks ? Math.round(((affiliate.total_referrals || 0) / affiliate.total_clicks) * 100) : 0,
+    clicks: Number(affiliate?.total_clicks) || 0,
+    tier: tierInfo.name,
+    commissionRate: Math.round((Number(affiliate?.commission_rate) || 0.08) * 100),
+  };
+
+  const referralCode = affiliate?.code || '—';
+  const referralLink = affiliate ? `https://bailanow.com/?ref=${referralCode}` : 'https://bailanow.com';
 
   const copyLink = () => {
+    if (!affiliate) return;
     navigator.clipboard.writeText(referralLink);
     setCopied(true);
     addToast({ message: 'Link copiado al portapapeles', type: 'success' });
@@ -86,7 +113,27 @@ const AffiliatePage: React.FC = () => {
           <p className="text-white/70 text-sm">Gana comisiones por cada venta que generes</p>
 
           {/* Referral Link Card */}
+          {loading ? (
+            <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 flex justify-center">
+              <Loader2 className="w-6 h-6 text-white animate-spin" />
+            </div>
+          ) : !affiliate ? (
+            <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20 text-center">
+              <p className="text-white font-bold text-sm mb-1">Aún no eres afiliado</p>
+              <p className="text-white/60 text-xs mb-4">Únete al programa y recibe tu link único para empezar a ganar comisiones.</p>
+              <button onClick={joinProgram} disabled={joining}
+                className="bg-white text-purple-600 font-bold text-sm px-6 py-2.5 rounded-xl hover:bg-gray-100 transition-all inline-flex items-center gap-2 disabled:opacity-60">
+                {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
+                {joining ? 'Enviando…' : 'Unirme al programa'}
+              </button>
+            </div>
+          ) : (
           <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
+            {affiliate.status !== 'active' && (
+              <div className="mb-3 bg-yellow-400/20 border border-yellow-300/30 rounded-xl px-3 py-2 text-yellow-100 text-[11px] font-semibold">
+                {affiliate.status === 'pending' ? '⏳ Tu solicitud está pendiente de aprobación. Ya puedes compartir tu link.' : '⚠ Tu cuenta de afiliado está suspendida.'}
+              </div>
+            )}
             <p className="text-white/60 text-[10px] font-bold uppercase tracking-widest mb-2">Tu link de afiliado</p>
             <div className="flex items-center gap-2">
               <div className="flex-1 bg-white/10 rounded-xl px-3 py-2.5 text-white text-xs font-mono truncate border border-white/10">
@@ -99,18 +146,19 @@ const AffiliatePage: React.FC = () => {
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 {copied ? 'Copiado' : 'Copiar'}
               </button>
-              <button className="p-2.5 bg-white/10 rounded-xl text-white hover:bg-white/20 transition-all">
+              <button onClick={copyLink} className="p-2.5 bg-white/10 rounded-xl text-white hover:bg-white/20 transition-all">
                 <Share2 className="w-4 h-4" />
               </button>
             </div>
             <div className="flex items-center gap-4 mt-3">
               <p className="text-white/50 text-[10px]">Codigo: <span className="text-white font-bold">{referralCode}</span></p>
               <span className="text-white/30">|</span>
-              <p className="text-white/50 text-[10px]">Tier: <span className="text-yellow-300 font-bold">{AFFILIATE_STATS.tier} {TIERS.find(t => t.name === AFFILIATE_STATS.tier)?.icon}</span></p>
+              <p className="text-white/50 text-[10px]">Tier: <span className="text-yellow-300 font-bold">{stats.tier} {TIERS.find(t => t.name === stats.tier)?.icon}</span></p>
               <span className="text-white/30">|</span>
-              <p className="text-white/50 text-[10px]">Comision: <span className="text-emerald-300 font-bold">{AFFILIATE_STATS.commissionRate}%</span></p>
+              <p className="text-white/50 text-[10px]">Comision: <span className="text-emerald-300 font-bold">{stats.commissionRate}%</span></p>
             </div>
           </div>
+          )}
         </div>
       </div>
 
@@ -120,22 +168,22 @@ const AffiliatePage: React.FC = () => {
           <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
             <DollarSign className="w-5 h-5 text-emerald-500 mb-1" />
             <p className="text-[10px] text-gray-400 uppercase font-bold">Total ganado</p>
-            <p className="text-2xl font-black text-gray-900">{AFFILIATE_STATS.totalEarnings}</p>
+            <p className="text-2xl font-black text-gray-900">€{stats.totalEarnings}</p>
           </div>
           <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
             <Wallet className="w-5 h-5 text-yellow-500 mb-1" />
             <p className="text-[10px] text-gray-400 uppercase font-bold">Pendiente pago</p>
-            <p className="text-2xl font-black text-gray-900">{AFFILIATE_STATS.pendingPayout}</p>
+            <p className="text-2xl font-black text-gray-900">€{stats.pendingPayout}</p>
           </div>
           <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
             <Users className="w-5 h-5 text-purple-500 mb-1" />
             <p className="text-[10px] text-gray-400 uppercase font-bold">Referidos</p>
-            <p className="text-2xl font-black text-gray-900">{AFFILIATE_STATS.totalReferrals}</p>
+            <p className="text-2xl font-black text-gray-900">{stats.totalReferrals}</p>
           </div>
           <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
             <TrendingUp className="w-5 h-5 text-pink-500 mb-1" />
             <p className="text-[10px] text-gray-400 uppercase font-bold">Conversion</p>
-            <p className="text-2xl font-black text-gray-900">{AFFILIATE_STATS.conversionRate}%</p>
+            <p className="text-2xl font-black text-gray-900">{stats.conversionRate}%</p>
           </div>
         </div>
       </div>
@@ -170,7 +218,7 @@ const AffiliatePage: React.FC = () => {
               </h3>
               <div className="grid grid-cols-4 gap-2">
                 {TIERS.map(tier => {
-                  const isActive = tier.name === AFFILIATE_STATS.tier;
+                  const isActive = tier.name === stats.tier;
                   return (
                     <div key={tier.name}
                       className={`rounded-xl p-3 text-center transition-all ${
@@ -195,7 +243,7 @@ const AffiliatePage: React.FC = () => {
                 {[
                   { step: '1', icon: <LinkIcon className="w-5 h-5" />, title: 'Comparte tu link', desc: 'Envia tu link unico a amigos, redes sociales o WhatsApp' },
                   { step: '2', icon: <Target className="w-5 h-5" />, title: 'Ellos compran', desc: 'Cuando compren entradas, servicios o suscripciones a traves de tu link' },
-                  { step: '3', icon: <DollarSign className="w-5 h-5" />, title: 'Tu ganas', desc: `Recibes ${AFFILIATE_STATS.commissionRate}% de comision automaticamente` },
+                  { step: '3', icon: <DollarSign className="w-5 h-5" />, title: 'Tu ganas', desc: `Recibes ${stats.commissionRate}% de comision automaticamente` },
                 ].map(s => (
                   <div key={s.step} className="text-center p-4 rounded-xl bg-purple-50/50">
                     <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mx-auto mb-2">
@@ -211,18 +259,21 @@ const AffiliatePage: React.FC = () => {
             {/* Recent Activity */}
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
               <h3 className="font-bold text-sm text-gray-900 mb-3">Actividad Reciente</h3>
+              {referrals.length === 0 ? (
+                <p className="text-gray-400 text-sm py-4 text-center">Aún no tienes referidos. Comparte tu link para empezar a ganar.</p>
+              ) : (
               <div className="space-y-2">
-                {REFERRAL_HISTORY.slice(0, 4).map(r => (
+                {referrals.slice(0, 4).map(r => (
                   <div key={r.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition-colors">
                     <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center">
                       <Users className="w-3.5 h-3.5 text-purple-600" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900">{r.name}</p>
-                      <p className="text-[10px] text-gray-400">{r.type} · {r.date}</p>
+                      <p className="text-sm font-semibold text-gray-900">{r.referred_name || 'Referido'}</p>
+                      <p className="text-[10px] text-gray-400">{r.source || '—'} · {r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-bold text-emerald-600">+{r.commission.toFixed(2)}</p>
+                      <p className="text-sm font-bold text-emerald-600">+€{(Number(r.commission) || 0).toFixed(2)}</p>
                       <p className={`text-[9px] font-bold uppercase ${r.status === 'paid' ? 'text-emerald-500' : 'text-yellow-500'}`}>
                         {r.status === 'paid' ? 'Pagado' : 'Pendiente'}
                       </p>
@@ -230,6 +281,7 @@ const AffiliatePage: React.FC = () => {
                   </div>
                 ))}
               </div>
+              )}
             </div>
           </div>
         )}
@@ -237,22 +289,28 @@ const AffiliatePage: React.FC = () => {
         {tab === 'referrals' && (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-4 border-b border-gray-100">
-              <h3 className="font-bold text-sm text-gray-900">Historial de Referidos ({REFERRAL_HISTORY.length})</h3>
+              <h3 className="font-bold text-sm text-gray-900">Historial de Referidos ({referrals.length})</h3>
             </div>
+            {referrals.length === 0 ? (
+              <div className="p-10 text-center text-gray-400">
+                <Users className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                <p className="text-sm">Todavía no hay referidos registrados. Cuando alguien compre con tu link, aparecerá aquí.</p>
+              </div>
+            ) : (
             <div className="divide-y divide-gray-50">
-              {REFERRAL_HISTORY.map(r => (
+              {referrals.map(r => (
                 <div key={r.id} className="flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors">
                   <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
                     <Users className="w-4 h-4 text-purple-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm text-gray-900">{r.name}</p>
-                    <p className="text-xs text-gray-400">{r.type}</p>
-                    <p className="text-[10px] text-gray-300">{r.date}</p>
+                    <p className="font-semibold text-sm text-gray-900">{r.referred_name || 'Referido'}</p>
+                    <p className="text-xs text-gray-400">{r.source || '—'}</p>
+                    <p className="text-[10px] text-gray-300">{r.created_at ? new Date(r.created_at).toLocaleDateString() : ''}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                    <p className="text-gray-500 text-xs">Venta: {r.amount}</p>
-                    <p className="text-emerald-600 font-bold text-sm">+{r.commission.toFixed(2)}</p>
+                    <p className="text-gray-500 text-xs">Venta: €{Number(r.amount) || 0}</p>
+                    <p className="text-emerald-600 font-bold text-sm">+€{(Number(r.commission) || 0).toFixed(2)}</p>
                     <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${
                       r.status === 'paid' ? 'bg-emerald-50 text-emerald-600' : 'bg-yellow-50 text-yellow-600'
                     }`}>
@@ -262,6 +320,7 @@ const AffiliatePage: React.FC = () => {
                 </div>
               ))}
             </div>
+            )}
           </div>
         )}
 
@@ -308,7 +367,7 @@ const AffiliatePage: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-sm text-gray-900">Solicitar Pago</h3>
                 <span className="bg-emerald-50 text-emerald-600 text-xs font-bold px-3 py-1 rounded-full">
-                  Disponible: {AFFILIATE_STATS.pendingPayout}
+                  Disponible: €{stats.pendingPayout}
                 </span>
               </div>
               <p className="text-gray-400 text-xs mb-4">Minimo de retiro: 50. Pago via transferencia bancaria o PayPal.</p>
@@ -324,21 +383,7 @@ const AffiliatePage: React.FC = () => {
 
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
               <h3 className="font-bold text-sm text-gray-900 mb-3">Historial de Pagos</h3>
-              <div className="space-y-2">
-                {[
-                  { date: '2026-05-01', amount: 450, method: 'PayPal', status: 'completed' },
-                  { date: '2026-04-01', amount: 320, method: 'Transferencia', status: 'completed' },
-                  { date: '2026-03-01', amount: 140, method: 'PayPal', status: 'completed' },
-                ].map((p, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-                    <div>
-                      <p className="text-sm font-semibold text-gray-900">{p.amount}</p>
-                      <p className="text-[10px] text-gray-400">{p.date} · {p.method}</p>
-                    </div>
-                    <span className="bg-emerald-50 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded-full">PAGADO</span>
-                  </div>
-                ))}
-              </div>
+              <p className="text-gray-400 text-sm py-4 text-center">Todavía no has recibido pagos. Aparecerán aquí una vez procesados tus retiros.</p>
             </div>
           </div>
         )}

@@ -7,7 +7,8 @@ import {
   Star, Lock, TrendingUp, Eye, CheckCircle, XCircle,
   Edit, Trash2, Plus, Search, Filter, RefreshCw,
   ChevronRight, ArrowUpRight, ArrowDownRight, Clock,
-  Wifi, Globe, Bell, Database, Server, FileText, Save, Loader2
+  Wifi, Globe, Bell, Database, Server, FileText, Save, Loader2,
+  Share2
 } from 'lucide-react';
 import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useAdminOverridesStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_CATEGORIES, type HeroMediaType, type CommissionSource, type HeroSliderImage, type HomeCategory, type Sponsor } from '../store/appStore';
 import { supabase } from '../lib/supabase';
@@ -29,7 +30,7 @@ type AdminSection =
   | 'suscripciones' | 'artistas' | 'bailarinas' | 'eventos' | 'mercado'
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms'
-  | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter' | 'danceavatares';
+  | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter' | 'danceavatares' | 'afiliados';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -52,6 +53,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'cursos',         label: 'Cursos',                  icon: <BookOpen className="w-4 h-4" /> },
   { id: 'finanzas',       label: 'Finanzas',                icon: <DollarSign className="w-4 h-4" /> },
   { id: 'comisiones',     label: 'Comisiones',              icon: <DollarSign className="w-4 h-4" /> },
+  { id: 'afiliados',      label: 'Afiliados & RRPP',        icon: <Share2 className="w-4 h-4" />, badge: 'NEW' },
   { id: 'creators',       label: 'Dashboards Creators',     icon: <LayoutDashboard className="w-4 h-4" /> },
   { id: 'retiros',        label: 'Retiros pendientes',      icon: <DollarSign className="w-4 h-4" />, badge: 'esc.' },
   { id: 'diseno',         label: 'Diseño Web',              icon: <Palette className="w-4 h-4" /> },
@@ -75,7 +77,7 @@ const STATS = [
 
 // ── EDIT CONTEXT (modal compartido por todas las secciones) ──────────────
 interface EditRequest {
-  entity: 'artist' | 'event' | 'venue' | 'service' | 'user' | 'category' | 'course' | 'subscription';
+  entity: 'artist' | 'event' | 'venue' | 'service' | 'user' | 'category' | 'course' | 'subscription' | 'affiliate';
   title: string;
   item: Record<string, any> & { id: string };
   fields: EditField[];
@@ -286,6 +288,7 @@ const AdminPage: React.FC = () => {
         {active === 'creators'       && <CreatorsSection />}
         {active === 'retiros'        && <RetirosSection addToast={addToast} />}
         {active === 'comisiones'     && <ComisionesSection addToast={addToast} />}
+        {active === 'afiliados'      && <AfiliadosSection addToast={addToast} />}
         {active === 'cms'            && <AdminCMS />}
         {active === 'diseno'         && <DisenoSection addToast={addToast} />}
         {active === 'configuracion'  && <ConfiguracionSection addToast={addToast} />}
@@ -1583,6 +1586,130 @@ const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           })}
         </div>
       </div>
+    </div>
+  );
+};
+
+// ── AFILIADOS & RRPP ──────────────────────────────────────────────────────
+const AFFILIATE_TIERS = [
+  { id: 'bronze',  label: 'Bronze',  rate: 0.08, icon: '🥉' },
+  { id: 'silver',  label: 'Silver',  rate: 0.10, icon: '🥈' },
+  { id: 'gold',    label: 'Gold',    rate: 0.12, icon: '🥇' },
+  { id: 'diamond', label: 'Diamond', rate: 0.15, icon: '💎' },
+];
+
+const FIELDS_AFFILIATE: EditField[] = [
+  { key: 'code',           label: 'Código de referido', type: 'text', required: true, helper: 'Ej: BAILA-MARIA-X8K2' },
+  { key: 'user_id',        label: 'ID de usuario (UUID)', type: 'text', helper: 'Opcional: vincula el afiliado a una cuenta existente' },
+  { key: 'tier',           label: 'Nivel', type: 'select', options: AFFILIATE_TIERS.map(t => ({ value: t.id, label: `${t.icon} ${t.label}` })) },
+  { key: 'status',         label: 'Estado', type: 'select', options: [
+      { value: 'pending', label: 'Pendiente' }, { value: 'active', label: 'Activo' }, { value: 'suspended', label: 'Suspendido' },
+    ] },
+  { key: 'commission_rate', label: 'Comisión (decimal)', type: 'number', helper: '0.12 = 12%' },
+  { key: 'notes',          label: 'Notas internas', type: 'textarea' },
+];
+
+const AfiliadosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const { openEdit } = useAdminEdit();
+  const [items, setItems] = useState<any[]>([]);
+  const [names, setNames] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from('affiliates').select('*').order('created_at', { ascending: false }).limit(300);
+    const list = data || [];
+    setItems(list);
+    const ids = Array.from(new Set(list.map((a: any) => a.user_id).filter(Boolean)));
+    if (ids.length) {
+      const { data: profs } = await supabase.from('profiles').select('id, full_name, email').in('id', ids);
+      const map: Record<string, string> = {};
+      (profs || []).forEach((p: any) => { map[p.id] = p.full_name || p.email || String(p.id).slice(0, 8); });
+      setNames(map);
+    }
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const setStatus = async (a: any, status: string) => {
+    if (status === 'suspended' && !confirm(`¿Suspender al afiliado "${a.code}"?`)) return;
+    const patch: any = { status };
+    if (status === 'active' && !a.approved_at) patch.approved_at = new Date().toISOString();
+    const { error } = await supabase.from('affiliates').update(patch).eq('id', a.id);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: status === 'active' ? '✅ Afiliado aprobado' : status === 'suspended' ? 'Afiliado suspendido' : 'Estado actualizado', type: 'success' });
+    setItems(xs => xs.map(x => x.id === a.id ? { ...x, ...patch } : x));
+  };
+
+  const remove = async (a: any) => {
+    if (!confirm(`¿Eliminar al afiliado "${a.code}"? Esto borra también su historial de referidos.`)) return;
+    const { error } = await supabase.from('affiliates').delete().eq('id', a.id);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: `✅ ${a.code} eliminado`, type: 'success' }); load();
+  };
+
+  const totalAffiliates = items.length;
+  const activeCount = items.filter(a => a.status === 'active').length;
+  const pendingCount = items.filter(a => a.status === 'pending').length;
+  const totalEarnings = items.reduce((s, a) => s + (Number(a.total_earnings) || 0), 0);
+  const totalPending = items.reduce((s, a) => s + (Number(a.pending_payout) || 0), 0);
+
+  const tierLabel = (id: string) => AFFILIATE_TIERS.find(t => t.id === id) || { icon: '🥉', label: id || 'Bronze' };
+
+  return (
+    <div>
+      <PageHeader
+        title="Afiliados & RRPP"
+        subtitle="Gestiona el programa de referidos: aprueba afiliados, ajusta niveles y comisiones."
+        action={
+          <div className="flex gap-2">
+            <button onClick={load} className="text-sm text-gray-500 hover:text-gray-800 font-semibold flex items-center gap-1"><RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar</button>
+            <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => openEdit({ entity: 'affiliate', title: 'Nuevo afiliado', item: { id: 'new', code: '', tier: 'bronze', status: 'active', commission_rate: 0.08 }, fields: FIELDS_AFFILIATE, onSaved: load } as any)}>Añadir afiliado</Button>
+          </div>
+        }
+      />
+
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Afiliados</p><p className="font-black text-2xl text-gray-900 mt-1">{totalAffiliates}</p></div>
+        <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Activos</p><p className="font-black text-2xl text-green-600 mt-1">{activeCount}</p></div>
+        <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Pendientes</p><p className="font-black text-2xl text-yellow-600 mt-1">{pendingCount}</p></div>
+        <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Comisión generada</p><p className="font-black text-2xl text-brand-orange mt-1">€{totalEarnings.toLocaleString('es-ES')}</p></div>
+        <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Por pagar</p><p className="font-black text-2xl text-purple-600 mt-1">€{totalPending.toLocaleString('es-ES')}</p></div>
+      </div>
+
+      {loading ? (
+        <div className="py-12 text-center text-gray-400">Cargando…</div>
+      ) : items.length === 0 ? (
+        <div className="card-white p-10 text-center text-gray-400">
+          <Share2 className="w-10 h-10 mx-auto mb-2 opacity-40" />
+          <p>Aún no hay afiliados. Crea uno con "Añadir afiliado" o aparecerán aquí cuando los usuarios soliciten unirse al programa.</p>
+        </div>
+      ) : (
+        <AdminTable
+          headers={['Código', 'Usuario', 'Nivel', 'Comisión', 'Referidos', 'Ganado', 'Por pagar', 'Estado', 'Acciones']}
+          rows={items.map(a => {
+            const t = tierLabel(a.tier);
+            return [
+              <span className="font-mono text-xs font-semibold text-gray-900">{a.code}</span>,
+              <span className="text-sm">{a.user_id ? (names[a.user_id] || String(a.user_id).slice(0, 8)) : <span className="text-gray-300">— sin vincular</span>}</span>,
+              <Badge variant="gray">{t.icon} {t.label}</Badge>,
+              <span className="font-semibold text-sm">{((Number(a.commission_rate) || 0) * 100).toFixed(1)}%</span>,
+              <span className="text-sm text-gray-600">{a.total_referrals || 0}</span>,
+              <span className="font-bold text-sm">€{Number(a.total_earnings) || 0}</span>,
+              <span className="text-sm text-purple-600 font-semibold">€{Number(a.pending_payout) || 0}</span>,
+              <Badge variant={a.status === 'active' ? 'green' : a.status === 'pending' ? 'orange' : 'red'}>
+                {a.status === 'active' ? 'Activo' : a.status === 'pending' ? 'Pendiente' : 'Suspendido'}
+              </Badge>,
+              <div className="flex gap-1">
+                {a.status !== 'active' && <button onClick={() => setStatus(a, 'active')} className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-lg font-semibold hover:bg-green-200" title="Aprobar/Activar">Aprobar</button>}
+                {a.status === 'active' && <button onClick={() => setStatus(a, 'suspended')} className="text-xs px-2 py-1 bg-red-50 text-red-600 rounded-lg font-semibold hover:bg-red-100" title="Suspender">Suspender</button>}
+                <button onClick={() => openEdit({ entity: 'affiliate', title: a.code, item: a, fields: FIELDS_AFFILIATE, onSaved: load })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400" title="Editar"><Edit className="w-4 h-4" /></button>
+                <button onClick={() => remove(a)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400" title="Eliminar"><Trash2 className="w-4 h-4" /></button>
+              </div>,
+            ];
+          })}
+        />
+      )}
     </div>
   );
 };

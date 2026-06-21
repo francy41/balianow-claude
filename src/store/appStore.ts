@@ -546,7 +546,7 @@ export const useChatStore = create<ChatState>((set) => ({
 }));
 
 // ── ADMIN OVERRIDES (parches editables sobre datos mock) ──────────────────
-type EntityKind = 'artist' | 'event' | 'venue' | 'service' | 'user' | 'category' | 'course' | 'subscription';
+type EntityKind = 'artist' | 'event' | 'venue' | 'service' | 'user' | 'category' | 'course' | 'subscription' | 'affiliate';
 
 interface AdminOverridesState {
   patches: Record<string, Record<string, any>>;  // key = `${entity}:${id}`
