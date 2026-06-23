@@ -8,9 +8,9 @@ import {
   Edit, Trash2, Plus, Search, Filter, RefreshCw,
   ChevronRight, ArrowUpRight, ArrowDownRight, Clock,
   Wifi, Globe, Bell, Database, Server, FileText, Save, Loader2,
-  Share2
+  Share2, Flag, ExternalLink
 } from 'lucide-react';
-import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useAdminOverridesStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_CATEGORIES, type HeroMediaType, type CommissionSource, type HeroSliderImage, type HomeCategory, type Sponsor } from '../store/appStore';
+import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, useAdminOverridesStore, useSponsorsStore, DEFAULT_HOME_CATEGORIES, type HeroMediaType, type CommissionSource, type HeroSliderImage, type HomeCategory, type Sponsor } from '../store/appStore';
 import { supabase } from '../lib/supabase';
 import { saveSiteConfigKey, saveCategoriesToDb } from '../hooks/useSiteConfig';
 import AdminCMS from '../components/AdminCMS';
@@ -21,6 +21,7 @@ import ProfileImporter from '../components/ProfileImporter';
 import NewsletterAdminPanel from '../components/NewsletterAdminPanel';
 import DanceChoreoAdmin from '../components/DanceChoreoAdmin';
 import { uploadImage, uploadVideo } from '../lib/uploadHelper';
+import { fetchCommissionPercent, getCachedCommissionPercent, setCommissionPercent } from '../lib/commission';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
 import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS, PROMO_SERVICES } from '../data/mockData';
 
@@ -30,7 +31,8 @@ type AdminSection =
   | 'suscripciones' | 'artistas' | 'bailarinas' | 'eventos' | 'mercado'
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms'
-  | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter' | 'danceavatares' | 'afiliados' | 'promocionate';
+  | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter' | 'danceavatares' | 'afiliados' | 'promocionate'
+  | 'reclamaciones';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -38,7 +40,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'patrocinadores', label: 'Patrocinadores',          icon: <Star className="w-4 h-4" />, badge: 'NEW' },
   { id: 'categorias',     label: 'Categorías',              icon: <Tag className="w-4 h-4" /> },
   { id: 'media',          label: 'Media Manager',           icon: <Palette className="w-4 h-4" />, badge: 'NEW' },
-  { id: 'radio',          label: 'Radio Online',            icon: <Radio className="w-4 h-4" />, badge: '2 live' },
+  { id: 'radio',          label: 'Radio Online',            icon: <Radio className="w-4 h-4" /> },
   { id: 'usuarios',       label: 'Usuarios',                icon: <Users className="w-4 h-4" /> },
   { id: 'importar',       label: 'Importar perfiles',       icon: <FileText className="w-4 h-4" />, badge: 'NEW' },
   { id: 'integraciones',  label: 'Integraciones (GHL)',     icon: <Globe className="w-4 h-4" />, badge: 'GHL' },
@@ -49,7 +51,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'artistas',       label: 'Artistas',                icon: <Music2 className="w-4 h-4" /> },
   { id: 'bailarinas',     label: 'Bailarinas',              icon: <Sparkles className="w-4 h-4" /> },
   { id: 'eventos',        label: 'Eventos',                 icon: <Calendar className="w-4 h-4" /> },
-  { id: 'mercado',        label: 'Mercado y Escrow',        icon: <ShoppingBag className="w-4 h-4" />, badge: '3 pend.' },
+  { id: 'mercado',        label: 'Mercado y Escrow',        icon: <ShoppingBag className="w-4 h-4" /> },
   { id: 'cursos',         label: 'Cursos',                  icon: <BookOpen className="w-4 h-4" /> },
   { id: 'finanzas',       label: 'Finanzas',                icon: <DollarSign className="w-4 h-4" /> },
   { id: 'comisiones',     label: 'Comisiones',              icon: <DollarSign className="w-4 h-4" /> },
@@ -60,9 +62,10 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'diseno',         label: 'Diseño Web',              icon: <Palette className="w-4 h-4" /> },
   { id: 'configuracion',  label: 'Configuración',           icon: <Settings className="w-4 h-4" /> },
   { id: 'roles',          label: 'Roles y Permisos',        icon: <Shield className="w-4 h-4" /> },
-  { id: 'disputas',       label: 'Disputas',                icon: <AlertTriangle className="w-4 h-4" />, badge: '5' },
+  { id: 'disputas',       label: 'Disputas',                icon: <AlertTriangle className="w-4 h-4" /> },
   { id: 'seguridad',      label: 'Seguridad',               icon: <Lock className="w-4 h-4" /> },
-  { id: 'resenas',        label: 'Reseñas',                 icon: <Star className="w-4 h-4" />, badge: '12 new' },
+  { id: 'resenas',        label: 'Reseñas',                 icon: <Star className="w-4 h-4" /> },
+  { id: 'reclamaciones',   label: 'Reclamaciones',           icon: <Flag className="w-4 h-4" />, badge: 'pend.' },
   { id: 'administradores', label: 'Administradores',        icon: <Shield className="w-4 h-4" />, badge: 'SUPER' },
 ];
 
@@ -154,6 +157,24 @@ const AdminPage: React.FC = () => {
   const [active, setActive] = useState<AdminSection>('overview');
   const [editReq, setEditReq] = useState<EditRequest | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [pendingClaimsCount, setPendingClaimsCount] = useState<number | null>(null);
+  const [radioLiveCount, setRadioLiveCount] = useState<number | null>(null);
+  const [disputesPendingCount, setDisputesPendingCount] = useState<number | null>(null);
+  const [escrowPendingCount, setEscrowPendingCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    Promise.all([
+      supabase.from('profile_claims').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabase.from('radio_stations').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+      supabase.from('disputes').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+      supabase.from('escrows').select('id', { count: 'exact', head: true }).in('status', ['pending', 'held', 'escrow']),
+    ]).then(([claims, radio, disputes, escrow]) => {
+      setPendingClaimsCount(claims.count ?? 0);
+      setRadioLiveCount(radio.count ?? 0);
+      setDisputesPendingCount(disputes.count ?? 0);
+      setEscrowPendingCount(escrow.count ?? 0);
+    });
+  }, []);
 
   const isSuperAdmin = user?.role === 'superadmin';
   if (!isAuthenticated || !['admin', 'superadmin'].includes(user?.role ?? '')) {
@@ -209,11 +230,19 @@ const AdminPage: React.FC = () => {
               }`}>
               <span className={active === sec.id ? 'text-white' : 'text-gray-400'}>{sec.icon}</span>
               <span className="flex-1 truncate">{sec.label}</span>
-              {sec.badge && (
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${active === sec.id ? 'bg-white/20 text-white' : 'bg-brand-orange/10 text-brand-orange'}`}>
-                  {sec.badge}
-                </span>
-              )}
+              {(() => {
+                const dynBadge =
+                  sec.id === 'reclamaciones' ? ((pendingClaimsCount ?? 0) > 0 ? `${pendingClaimsCount} pend.` : null) :
+                  sec.id === 'radio'         ? (radioLiveCount != null ? `${radioLiveCount} live` : null) :
+                  sec.id === 'disputas'      ? ((disputesPendingCount ?? 0) > 0 ? String(disputesPendingCount) : null) :
+                  sec.id === 'mercado'       ? ((escrowPendingCount ?? 0) > 0 ? `${escrowPendingCount} pend.` : null) :
+                  (sec.badge ?? null);
+                return dynBadge ? (
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${active === sec.id ? 'bg-white/20 text-white' : 'bg-brand-orange/10 text-brand-orange'}`}>
+                    {dynBadge}
+                  </span>
+                ) : null;
+              })()}
             </button>
           ))}
         </nav>
@@ -252,6 +281,7 @@ const AdminPage: React.FC = () => {
         {active === 'integraciones'   && <IntegracionesSection addToast={addToast} />}
         {active === 'newsletter'      && <NewsletterAdminPanel />}
         {active === 'danceavatares'   && <DanceChoreoAdmin />}
+        {active === 'reclamaciones'   && <ReclamacionesSection addToast={addToast} onCountChange={setPendingClaimsCount} />}
       </main>
 
       {/* Modal de edición global */}
@@ -784,44 +814,159 @@ const MediaSection: React.FC = () => (
 );
 
 // ── 3. RADIO ──────────────────────────────────────────────────────────────
+const RADIO_FIELDS = [
+  { key: 'name',       label: 'Nombre',      type: 'text' as const,   required: true },
+  { key: 'genre',      label: 'Género',      type: 'text' as const },
+  { key: 'stream_url', label: 'Stream URL',  type: 'text' as const,   required: true,
+    placeholder: 'https://stream.zeno.fm/xxxxx o https://icecast.ejemplo.com/live' },
+  { key: 'img_url',    label: 'Logo URL',    type: 'image' as const },
+  { key: 'bitrate',    label: 'Bitrate',     type: 'text' as const,   placeholder: '128kbps' },
+  { key: 'sort_order', label: 'Orden',       type: 'text' as const,   placeholder: '1' },
+  { key: 'status',     label: 'Estado',      type: 'select' as const,
+    options: [{ value: 'active', label: 'Activa' }, { value: 'offline', label: 'Offline' }] },
+];
+
 const RadioSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
-  const { openEdit } = useAdminEdit();
-  const stations = [
-    { id: 'rad-1', name: 'Radio Bachata', status: 'live', listeners: 342, bitrate: '128kbps' },
-    { id: 'rad-2', name: 'Radio Latina Variada', status: 'live', listeners: 218, bitrate: '128kbps' },
-    { id: 'rad-3', name: 'Radio Salsa Clásica', status: 'offline', listeners: 0, bitrate: '96kbps' },
-  ];
+  const [stations, setStations] = useState<any[]>([]);
+  const [loading, setLoading]   = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editTarget, setEditTarget] = useState<any | null>(null);
+  const [form, setForm] = useState<Record<string,string>>({});
+  const [saving, setSaving] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    const { data } = await supabase.from('radio_stations').select('*').order('sort_order');
+    setStations(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const openNew = () => {
+    setEditTarget(null);
+    setForm({ name:'', genre:'Latina', stream_url:'', img_url:'', bitrate:'128kbps', sort_order:'0', status:'active' });
+    setShowForm(true);
+  };
+
+  const openEdit = (s: any) => {
+    setEditTarget(s);
+    setForm({ name: s.name, genre: s.genre, stream_url: s.stream_url, img_url: s.img_url || '', bitrate: s.bitrate || '128kbps', sort_order: String(s.sort_order ?? 0), status: s.status });
+    setShowForm(true);
+  };
+
+  const save = async () => {
+    if (!form.name?.trim() || !form.stream_url?.trim()) {
+      addToast({ message: 'Nombre y Stream URL son obligatorios', type: 'error' }); return;
+    }
+    setSaving(true);
+    const payload = { name: form.name.trim(), genre: form.genre || 'Latina', stream_url: form.stream_url.trim(), img_url: form.img_url || '', bitrate: form.bitrate || '128kbps', sort_order: parseInt(form.sort_order) || 0, status: form.status || 'active', updated_at: new Date().toISOString() };
+    let error;
+    if (editTarget) {
+      ({ error } = await supabase.from('radio_stations').update(payload).eq('id', editTarget.id));
+    } else {
+      ({ error } = await supabase.from('radio_stations').insert(payload));
+    }
+    setSaving(false);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: editTarget ? 'Emisora actualizada' : 'Emisora creada', type: 'success' });
+    setShowForm(false);
+    load();
+  };
+
+  const toggleStatus = async (s: any) => {
+    const next = s.status === 'active' ? 'offline' : 'active';
+    await supabase.from('radio_stations').update({ status: next }).eq('id', s.id);
+    addToast({ message: `${s.name} → ${next === 'active' ? 'Activa' : 'Offline'}`, type: next === 'active' ? 'success' : 'error' });
+    load();
+  };
+
+  const deleteStation = async (s: any) => {
+    if (!window.confirm(`¿Eliminar "${s.name}"?`)) return;
+    await supabase.from('radio_stations').delete().eq('id', s.id);
+    addToast({ message: `${s.name} eliminada`, type: 'success' });
+    load();
+  };
+
+  const liveCount = stations.filter(s => s.status === 'active').length;
+
   return (
     <div>
-      <PageHeader title="Radio Online" subtitle="Gestiona las emisoras de radio en directo" action={
-        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => addToast({ message: 'Nueva emisora creada', type: 'success' })}>Añadir emisora</Button>
+      <PageHeader title="Radio Online" subtitle={loading ? 'Cargando…' : `${stations.length} emisoras · ${liveCount} activas`} action={
+        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={openNew}>Añadir emisora</Button>
       } />
+
+      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="card-white p-4 text-center"><p className="text-3xl font-black text-brand-orange">2</p><p className="text-gray-400 text-sm">En directo</p></div>
-        <div className="card-white p-4 text-center"><p className="text-3xl font-black text-gray-900">560</p><p className="text-gray-400 text-sm">Oyentes activos</p></div>
+        <div className="card-white p-4 text-center"><p className="text-3xl font-black text-brand-orange">{liveCount}</p><p className="text-gray-400 text-sm">Activas</p></div>
+        <div className="card-white p-4 text-center"><p className="text-3xl font-black text-gray-900">{stations.length}</p><p className="text-gray-400 text-sm">Total emisoras</p></div>
         <div className="card-white p-4 text-center"><p className="text-3xl font-black text-gray-900">24/7</p><p className="text-gray-400 text-sm">Uptime</p></div>
       </div>
-      <AdminTable
-        headers={['Emisora', 'Estado', 'Oyentes', 'Bitrate', 'Stream URL', 'Acciones']}
-        rows={stations.map(s => [
-          <span className="font-semibold">{s.name}</span>,
-          s.status === 'live' ? <Badge variant="live">🔴 En directo</Badge> : <Badge variant="gray">Offline</Badge>,
-          <span>{s.listeners}</span>,
-          <span>{s.bitrate}</span>,
-          <span className="text-gray-400 text-xs font-mono">rtmp://stream.ritmolatino.com/live</span>,
-          <div className="flex gap-2">
-            <button onClick={() => openEdit({ entity: 'category', title: s.name, item: s, fields: [
-              { key: 'name', label: 'Nombre', type: 'text', required: true },
-              { key: 'bitrate', label: 'Bitrate', type: 'text' },
-              { key: 'status', label: 'Estado', type: 'select', options: [{ value: 'live', label: 'En directo' }, { value: 'offline', label: 'Offline' }] },
-            ] })} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Edit className="w-4 h-4" /></button>
-            <button onClick={() => addToast({ message: `${s.name} ${s.status === 'live' ? 'detenida' : 'iniciada'}`, type: s.status === 'live' ? 'error' : 'success' })}
-              className={`p-1.5 rounded-lg ${s.status === 'live' ? 'hover:bg-red-50 text-red-400' : 'hover:bg-green-50 text-green-500'}`}>
-              {s.status === 'live' ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
-            </button>
+
+      {/* Inline form */}
+      {showForm && (
+        <div className="card-white p-5 mb-6 border-2 border-brand-orange/20">
+          <h3 className="font-black text-gray-900 mb-4">{editTarget ? 'Editar emisora' : 'Nueva emisora'}</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {RADIO_FIELDS.map(f => (
+              <div key={f.key} className={f.key === 'stream_url' ? 'sm:col-span-2' : ''}>
+                <label className="block text-xs font-bold text-gray-500 mb-1">{f.label}{f.required && <span className="text-red-400 ml-1">*</span>}</label>
+                {f.type === 'select' ? (
+                  <select value={form[f.key] || ''} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/30">
+                    {f.options!.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                ) : (
+                  <input type="text" value={form[f.key] || ''} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
+                    placeholder={(f as any).placeholder || ''}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/30" />
+                )}
+              </div>
+            ))}
           </div>
-        ])}
-      />
+          {form.stream_url && (
+            <p className="mt-2 text-[11px] text-gray-400">
+              Formatos soportados: HLS (.m3u8), Icecast/Shoutcast (MP3/AAC), Zeno.fm, Radio.co, etc.
+            </p>
+          )}
+          <div className="flex gap-3 mt-4">
+            <Button variant="orange" onClick={save} disabled={saving}>{saving ? 'Guardando…' : editTarget ? 'Actualizar' : 'Crear'}</Button>
+            <Button variant="dark" onClick={() => setShowForm(false)}>Cancelar</Button>
+          </div>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="text-center py-12 text-gray-400">Cargando emisoras…</div>
+      ) : stations.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">No hay emisoras. Añade la primera.</div>
+      ) : (
+        <AdminTable
+          headers={['Emisora', 'Género', 'Bitrate', 'Stream URL', 'Estado', 'Acciones']}
+          rows={stations.map(s => [
+            <div className="flex items-center gap-2">
+              {s.img_url ? <img src={s.img_url} alt="" className="w-8 h-8 rounded-lg object-cover bg-gray-100" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} /> : <div className="w-8 h-8 rounded-lg bg-pink-100 flex items-center justify-center text-pink-500 text-xs font-bold">{s.name[0]}</div>}
+              <span className="font-semibold text-sm">{s.name}</span>
+            </div>,
+            <span className="text-xs text-gray-500">{s.genre}</span>,
+            <span className="text-xs font-mono text-gray-500">{s.bitrate}</span>,
+            <div className="max-w-[220px]">
+              <p className="text-xs font-mono text-gray-400 truncate" title={s.stream_url}>{s.stream_url}</p>
+              <a href={s.stream_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-pink-500 hover:underline">Probar enlace ↗</a>
+            </div>,
+            s.status === 'active'
+              ? <Badge variant="live">🔴 Activa</Badge>
+              : <Badge variant="gray">Offline</Badge>,
+            <div className="flex gap-1">
+              <button onClick={() => openEdit(s)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400" title="Editar"><Edit className="w-4 h-4" /></button>
+              <button onClick={() => toggleStatus(s)} className={`p-1.5 rounded-lg ${s.status === 'active' ? 'hover:bg-red-50 text-red-400' : 'hover:bg-green-50 text-green-500'}`} title={s.status === 'active' ? 'Poner offline' : 'Activar'}>
+                {s.status === 'active' ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+              </button>
+              <button onClick={() => deleteStation(s)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-300 hover:text-red-500" title="Eliminar"><Trash2 className="w-4 h-4" /></button>
+            </div>,
+          ])}
+        />
+      )}
     </div>
   );
 };
@@ -1456,6 +1601,48 @@ const CursosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 
 // ── 12. FINANZAS ──────────────────────────────────────────────────────────
 // ── ADMIN: COMISIONES DINÁMICAS ───────────────────────────────────────────
+// Comisión GLOBAL persistida en BD (site_config) — la que gana el superadmin en
+// las reservas de clases/paquetes. Editable aquí y leída por los flujos de reserva.
+const GlobalCommissionCard: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const [pct, setPct] = useState<number>(getCachedCommissionPercent());
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { fetchCommissionPercent().then(setPct); }, []);
+  const save = async () => {
+    setSaving(true);
+    const { error } = await setCommissionPercent(pct);
+    setSaving(false);
+    addToast({ message: error ? `Error: ${error}` : `✅ Comisión global guardada: ${pct}%`, type: error ? 'error' : 'success' });
+  };
+  return (
+    <div className="card-white p-5 mb-6 border-2 border-brand-orange/30">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <p className="text-xs text-gray-400 font-semibold uppercase">Comisión global de plataforma (BD)</p>
+          <h3 className="font-black text-gray-900 text-lg">Lo que gana el superadmin</h3>
+          <p className="text-xs text-gray-500 mt-1">Se aplica a TODAS las reservas de clases y paquetes nuevos. El instructor recibe el resto.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1">
+            <input type="number" step="0.5" min="0" max="100" value={pct}
+              onChange={e => setPct(Math.max(0, Math.min(100, parseFloat(e.target.value) || 0)))}
+              className="input-field text-3xl font-black text-brand-orange w-28 text-center" />
+            <span className="text-3xl font-black text-brand-orange">%</span>
+          </div>
+          <button onClick={save} disabled={saving}
+            className="bg-brand-orange text-white font-black px-5 py-3 rounded-xl hover:bg-brand-orange-dark transition-colors disabled:opacity-50">
+            {saving ? 'Guardando…' : 'Guardar'}
+          </button>
+        </div>
+      </div>
+      <div className="mt-4 grid grid-cols-3 gap-3 text-center">
+        <div className="bg-gray-50 rounded-xl p-3"><p className="text-[10px] text-gray-400 uppercase font-bold">Ejemplo €100</p><p className="font-black text-gray-900">Plataforma €{pct.toFixed(0)}</p></div>
+        <div className="bg-gray-50 rounded-xl p-3"><p className="text-[10px] text-gray-400 uppercase font-bold">Instructor recibe</p><p className="font-black text-green-600">€{(100 - pct).toFixed(0)}</p></div>
+        <div className="bg-gray-50 rounded-xl p-3"><p className="text-[10px] text-gray-400 uppercase font-bold">Por defecto</p><p className="font-black text-gray-900">15%</p></div>
+      </div>
+    </div>
+  );
+};
+
 const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const { commissions, setCommission, setDefaultCommission, setPremiumDiscount, resetCommissions } = useSiteConfigStore();
 
@@ -1477,6 +1664,8 @@ const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
             className="text-sm text-gray-500 hover:text-gray-800 font-semibold">↺ Restaurar valores por defecto</button>
         }
       />
+
+      <GlobalCommissionCard addToast={addToast} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <div className="card-white p-5">
@@ -1785,292 +1974,382 @@ const PromocionateSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
 
 // ── ADMIN: DASHBOARDS DE CREATORS (vista global) ──────────────────────────
 const CreatorsSection: React.FC = () => {
-  const { transactions, balanceFor, totalsFor } = usePerformerStore();
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [escrows, setEscrows] = useState<any[]>([]);
   const [filter, setFilter] = useState('');
-  // Agrupa por performerId
-  const performers = Array.from(
-    transactions.reduce((map, t) => {
-      if (!map.has(t.performerId)) {
-        map.set(t.performerId, { id: t.performerId, name: t.performerName || t.performerId, txCount: 0 });
-      }
-      map.get(t.performerId)!.txCount++;
-      return map;
-    }, new Map<string, { id: string; name: string; txCount: number }>())
-    .values()
-  );
+  const [loading, setLoading] = useState(true);
 
-  const filtered = performers.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
+  useEffect(() => {
+    (async () => {
+      const [{ data: profs }, { data: esc }] = await Promise.all([
+        supabase.from('profiles')
+          .select('id, full_name, email, avatar_url, role, city')
+          .in('role', ['artist', 'dj', 'dancer', 'venue', 'instructor'])
+          .order('full_name'),
+        supabase.from('escrows').select('payee_id, amount, commission, status').limit(1000),
+      ]);
+      setProfiles(profs ?? []);
+      setEscrows(esc ?? []);
+      setLoading(false);
+    })();
+  }, []);
+
+  const statsFor = (profileId: string) => {
+    const mine = escrows.filter((e: any) => e.payee_id === profileId);
+    const inEscrow = mine.filter((e: any) => ['pending','held','escrow'].includes(e.status)).reduce((s, e: any) => s + Number(e.amount || 0), 0);
+    const available = mine.filter((e: any) => ['released','completed'].includes(e.status)).reduce((s, e: any) => s + Number(e.amount || 0), 0);
+    const commission = mine.reduce((s, e: any) => s + Number(e.commission || 0), 0);
+    return { inEscrow, available, commission, txCount: mine.length };
+  };
+
+  const filtered = profiles.filter(p =>
+    !filter || (p.full_name || p.email || '').toLowerCase().includes(filter.toLowerCase())
+  );
 
   return (
     <div>
-      <PageHeader title="Dashboards de creators" subtitle="Vista superadmin de todos los proveedores (artistas, DJs, bailarines, venues, etc.)" />
+      <PageHeader title="Dashboards de creators" subtitle="Vista superadmin de todos los proveedores — datos reales" />
       <div className="card-white p-4 mb-6">
         <input
           value={filter}
           onChange={e => setFilter(e.target.value)}
-          placeholder="🔍 Buscar creator por nombre..."
+          placeholder="Buscar creator por nombre o email..."
           className="input-field"
         />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {filtered.map(p => {
-          const b = balanceFor(p.id);
-          const t = totalsFor(p.id);
-          return (
-            <div key={p.id} className="card-white p-5">
-              <div className="flex items-center gap-3 mb-3">
-                <Avatar src={`https://ui-avatars.com/api/?name=${encodeURIComponent(p.name)}&background=EC4899&color=fff`} name={p.name} size="md" />
-                <div className="flex-1">
-                  <h4 className="font-bold text-gray-900">{p.name}</h4>
-                  <p className="text-xs text-gray-400 font-mono">{p.id} · {p.txCount} transacciones</p>
+      {loading ? (
+        <div className="py-12 text-center text-gray-400"><RefreshCw className="w-6 h-6 animate-spin mx-auto" /></div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">
+          <Users className="w-10 h-10 mx-auto mb-2 opacity-40" />
+          <p>{filter ? 'Sin resultados para esa búsqueda.' : 'No hay creators registrados todavía.'}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {filtered.map(p => {
+            const s = statsFor(p.id);
+            return (
+              <div key={p.id} className="card-white p-5">
+                <div className="flex items-center gap-3 mb-3">
+                  <Avatar src={p.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.full_name || 'C')}&background=EC4899&color=fff`} name={p.full_name || 'C'} size="md" />
+                  <div className="flex-1">
+                    <h4 className="font-bold text-gray-900">{p.full_name || p.email || 'Sin nombre'}</h4>
+                    <p className="text-xs text-gray-400">{p.role}{p.city ? ` · ${p.city}` : ''}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="bg-yellow-50 rounded-lg p-2">
+                    <p className="text-yellow-700 font-semibold">En escrow</p>
+                    <p className="text-lg font-black text-gray-900">€{s.inEscrow.toFixed(0)}</p>
+                  </div>
+                  <div className="bg-green-50 rounded-lg p-2">
+                    <p className="text-green-700 font-semibold">Liberado</p>
+                    <p className="text-lg font-black text-gray-900">€{s.available.toFixed(0)}</p>
+                  </div>
+                  <div className="bg-pink-50 rounded-lg p-2">
+                    <p className="text-brand-orange font-semibold">Comisión plataforma</p>
+                    <p className="text-lg font-black text-gray-900">€{s.commission.toFixed(0)}</p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-2">
+                    <p className="text-gray-600 font-semibold">Transacciones</p>
+                    <p className="text-lg font-black text-gray-900">{s.txCount}</p>
+                  </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div className="bg-yellow-50 rounded-lg p-2">
-                  <p className="text-yellow-700 font-semibold">En escrow</p>
-                  <p className="text-lg font-black text-gray-900">€{b.inEscrow}</p>
-                </div>
-                <div className="bg-green-50 rounded-lg p-2">
-                  <p className="text-green-700 font-semibold">Disponible</p>
-                  <p className="text-lg font-black text-gray-900">€{b.available}</p>
-                </div>
-                <div className="bg-gray-50 rounded-lg p-2">
-                  <p className="text-gray-600 font-semibold">Retirado</p>
-                  <p className="text-lg font-black text-gray-900">€{b.withdrawn}</p>
-                </div>
-                <div className="bg-pink-50 rounded-lg p-2">
-                  <p className="text-brand-orange font-semibold">Comisión a plataforma</p>
-                  <p className="text-lg font-black text-gray-900">€{Math.round((t.grossAllTime - t.netAllTime) * 100) / 100}</p>
-                </div>
-              </div>
-              <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500 flex justify-between">
-                <span>Bruto: <span className="font-bold text-gray-900">€{t.grossAllTime}</span></span>
-                <span>Neto: <span className="font-bold text-green-600">€{t.netAllTime}</span></span>
-              </div>
-            </div>
-          );
-        })}
-        {filtered.length === 0 && (
-          <p className="text-gray-400 text-center py-8 col-span-full">Sin creators que coincidan.</p>
-        )}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
 
 // ── ADMIN: RETIROS PENDIENTES ─────────────────────────────────────────────
 const RetirosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
-  const { withdrawals, approveWithdrawal, rejectWithdrawal } = usePerformerStore();
-  const all = [...withdrawals].sort((a, b) => +new Date(b.requestedAt) - +new Date(a.requestedAt));
-  const pending = all.filter(w => w.status === 'pending');
+  const [withdrawals, setWithdrawals] = useState<any[]>([]);
+  const [names, setNames] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState<string | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from('withdrawals')
+      .select('*')
+      .order('requested_at', { ascending: false });
+    const list = data ?? [];
+    setWithdrawals(list);
+    const ids = list.map((w: any) => w.performer_id).filter(Boolean);
+    if (ids.length) {
+      const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', ids);
+      const map: Record<string, string> = {};
+      (profs ?? []).forEach((p: any) => { map[p.id] = p.full_name || p.id.slice(0, 8); });
+      setNames(map);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const handle = async (id: string, status: 'paid' | 'rejected') => {
+    setProcessing(id);
+    const { data: { session } } = await supabase.auth.getSession();
+    const { error } = await supabase.from('withdrawals').update({
+      status,
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: session?.user?.id,
+    }).eq('id', id);
+    if (error) addToast({ type: 'error', message: error.message });
+    else addToast({ type: 'success', message: status === 'paid' ? '✅ Retiro aprobado y pagado' : 'Retiro rechazado' });
+    setProcessing(null);
+    load();
+  };
+
+  const pending = withdrawals.filter(w => w.status === 'pending');
 
   return (
     <div>
-      <PageHeader title="Retiros pendientes" subtitle={`${pending.length} solicitud(es) por aprobar · pago al creador tras validación`} />
-      <div className="card-white overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-            <tr>
-              <th className="text-left px-4 py-3">Creator</th>
-              <th className="text-left px-4 py-3">Método</th>
-              <th className="text-right px-4 py-3">Importe</th>
-              <th className="text-left px-4 py-3">Fecha solicitud</th>
-              <th className="text-left px-4 py-3">Estado</th>
-              <th className="text-right px-4 py-3">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {all.map(w => (
-              <tr key={w.id} className="border-b border-gray-50 hover:bg-gray-50">
-                <td className="px-4 py-3 font-medium text-gray-900">{w.performerName}</td>
-                <td className="px-4 py-3 text-gray-500">{w.method}</td>
-                <td className="px-4 py-3 text-right font-bold text-gray-900">€{w.amount}</td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{new Date(w.requestedAt).toLocaleString('es-ES')}</td>
-                <td className="px-4 py-3">
-                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
-                    w.status === 'paid' ? 'bg-green-100 text-green-700' :
-                    w.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-pink-100 text-brand-orange'
-                  }`}>{w.status === 'paid' ? 'Pagado' : w.status === 'rejected' ? 'Rechazado' : 'Pendiente'}</span>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  {w.status === 'pending' ? (
-                    <div className="flex gap-2 justify-end">
-                      <button onClick={() => { approveWithdrawal(w.id); addToast({ message: `Retiro de €${w.amount} aprobado y pagado a ${w.performerName}`, type: 'success' }); }}
-                        className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-lg hover:bg-green-200">
-                        ✓ Aprobar
-                      </button>
-                      <button onClick={() => { rejectWithdrawal(w.id); addToast({ message: 'Retiro rechazado', type: 'info' }); }}
-                        className="bg-red-100 text-red-600 text-xs font-bold px-3 py-1 rounded-lg hover:bg-red-200">
-                        ✕ Rechazar
-                      </button>
-                    </div>
-                  ) : (
-                    <span className="text-gray-400 text-xs">—</span>
-                  )}
-                </td>
+      <PageHeader title="Retiros pendientes" subtitle={`${pending.length} solicitud(es) por aprobar`} />
+      {loading ? (
+        <div className="py-12 text-center text-gray-400"><RefreshCw className="w-6 h-6 animate-spin mx-auto" /></div>
+      ) : withdrawals.length === 0 ? (
+        <div className="card-white p-12 text-center text-gray-400">
+          <DollarSign className="w-10 h-10 mx-auto mb-2 opacity-40" />
+          <p className="font-semibold">Sin solicitudes de retiro todavía</p>
+          <p className="text-sm mt-1">Aparecerán aquí cuando los creators soliciten retirar fondos.</p>
+        </div>
+      ) : (
+        <div className="card-white overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
+              <tr>
+                <th className="text-left px-4 py-3">Creator</th>
+                <th className="text-left px-4 py-3">Método</th>
+                <th className="text-right px-4 py-3">Importe</th>
+                <th className="text-left px-4 py-3">Fecha solicitud</th>
+                <th className="text-left px-4 py-3">Estado</th>
+                <th className="text-right px-4 py-3">Acciones</th>
               </tr>
-            ))}
-            {all.length === 0 && (
-              <tr><td colSpan={6} className="text-center py-8 text-gray-400">Sin solicitudes de retiro.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {withdrawals.map(w => (
+                <tr key={w.id} className="border-b border-gray-50 hover:bg-gray-50">
+                  <td className="px-4 py-3 font-medium text-gray-900">{names[w.performer_id] || w.performer_id?.slice(0, 8) || '—'}</td>
+                  <td className="px-4 py-3 text-gray-500">{w.method}</td>
+                  <td className="px-4 py-3 text-right font-bold text-gray-900">€{Number(w.amount).toFixed(2)}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{new Date(w.requested_at).toLocaleString('es-ES')}</td>
+                  <td className="px-4 py-3">
+                    <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
+                      w.status === 'paid' ? 'bg-green-100 text-green-700' :
+                      w.status === 'rejected' ? 'bg-red-100 text-red-600' :
+                      'bg-pink-100 text-brand-orange'
+                    }`}>{w.status === 'paid' ? 'Pagado' : w.status === 'rejected' ? 'Rechazado' : 'Pendiente'}</span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    {w.status === 'pending' ? (
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => handle(w.id, 'paid')}
+                          disabled={processing === w.id}
+                          className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-lg hover:bg-green-200 disabled:opacity-50"
+                        >
+                          {processing === w.id ? '...' : '✓ Aprobar'}
+                        </button>
+                        <button
+                          onClick={() => handle(w.id, 'rejected')}
+                          disabled={processing === w.id}
+                          className="bg-red-100 text-red-600 text-xs font-bold px-3 py-1 rounded-lg hover:bg-red-200 disabled:opacity-50"
+                        >
+                          ✕ Rechazar
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 text-xs">—</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
 
 const FinanzasSection: React.FC = () => {
-  const { platformTotals, transactions, refundTransaction } = usePerformerStore();
   const { commissions } = useSiteConfigStore();
-  const { addToast } = useUIStore();
-  const totals = platformTotals();
-  const pendingTx = transactions.filter(t => t.status === 'pending');
-  const refundedCount = transactions.filter(t => t.status === 'refunded').length;
+  const [escrows, setEscrows] = useState<any[]>([]);
+  const [names, setNames] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
 
-  // GMV mensual (gross released + withdrawn)
-  const billable = transactions.filter(t => t.status === 'released' || t.status === 'withdrawn');
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from('escrows')
+        .select('id, amount, commission, status, created_at, payer_id, payee_id, concept')
+        .order('created_at', { ascending: false })
+        .limit(500);
+      const list = data ?? [];
+      setEscrows(list);
+      const ids = Array.from(new Set(list.flatMap((e: any) => [e.payer_id, e.payee_id]).filter(Boolean)));
+      if (ids.length) {
+        const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', ids);
+        const map: Record<string, string> = {};
+        (profs ?? []).forEach((p: any) => { map[p.id] = p.full_name || p.id.slice(0, 8); });
+        setNames(map);
+      }
+      setLoading(false);
+    })();
+  }, []);
+
+  const inEscrow = (e: any) => ['pending', 'held', 'escrow'].includes(e.status);
+  const done = (e: any) => ['released', 'completed'].includes(e.status);
+  const sum = (pred: (e: any) => boolean, field = 'amount') =>
+    escrows.filter(pred).reduce((a, e) => a + (Number(e[field]) || 0), 0);
+  const eur = (n: number) => '€' + n.toLocaleString('es-ES', { maximumFractionDigits: 2 });
+
   const now = new Date();
   const monthly = Array.from({ length: 6 }, (_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
-    const monthTx = billable.filter(t => {
-      const dt = new Date(t.date);
-      return dt.getMonth() === d.getMonth() && dt.getFullYear() === d.getFullYear();
-    });
+    const next = new Date(now.getFullYear(), now.getMonth() - (5 - i) + 1, 1);
+    const monthTx = escrows.filter(e => { const dt = new Date(e.created_at); return dt >= d && dt < next; });
     return {
       label: d.toLocaleDateString('es-ES', { month: 'short' }),
-      gross: monthTx.reduce((s, t) => s + t.gross, 0),
-      commission: monthTx.reduce((s, t) => s + t.commission, 0),
+      gross: monthTx.reduce((s, e) => s + (Number(e.amount) || 0), 0),
+      commission: monthTx.reduce((s, e) => s + (Number(e.commission) || 0), 0),
     };
   });
   const maxGross = Math.max(...monthly.map(m => m.gross), 1);
 
-  // Top creators
   const byCreator = new Map<string, { name: string; gross: number; commission: number; tx: number }>();
-  billable.forEach(t => {
-    const key = t.performerId;
-    const cur = byCreator.get(key) || { name: t.performerName || key, gross: 0, commission: 0, tx: 0 };
-    cur.gross += t.gross; cur.commission += t.commission; cur.tx++;
+  escrows.filter(done).forEach((e: any) => {
+    const key = e.payee_id || 'unknown';
+    const cur = byCreator.get(key) || { name: names[key] || key?.slice(0, 8) || '?', gross: 0, commission: 0, tx: 0 };
+    cur.gross += Number(e.amount) || 0;
+    cur.commission += Number(e.commission) || 0;
+    cur.tx++;
     byCreator.set(key, cur);
   });
   const topCreators = Array.from(byCreator.values()).sort((a, b) => b.gross - a.gross).slice(0, 5);
 
-  const handleRefund = (txId: string, concept: string) => {
-    refundTransaction(txId);
-    addToast({ message: `Reembolso emitido · "${concept}"`, type: 'success' });
-  };
-
   const stats = [
-    { label: 'GMV total',     value: `€${totals.totalGross.toLocaleString()}`, sub: `${totals.totalTransactions} transacciones`, color: 'text-green-600' },
-    { label: 'Comisiones',    value: `€${totals.totalCommission.toLocaleString()}`, sub: `Default ${(commissions.default * 100).toFixed(1)}%`, color: 'text-brand-orange' },
-    { label: 'En escrow',     value: `€${pendingTx.reduce((s, t) => s + t.gross, 0).toFixed(0)}`, sub: `${pendingTx.length} sin confirmar`, color: 'text-yellow-600' },
-    { label: 'Reembolsos',    value: String(refundedCount), sub: 'Histórico', color: 'text-red-600' },
+    { label: 'GMV total',  value: eur(sum(() => true)),       sub: `${escrows.length} transacciones`,              color: 'text-green-600' },
+    { label: 'Comisiones', value: eur(sum(() => true, 'commission')), sub: `${(commissions.default * 100).toFixed(1)}% base`, color: 'text-brand-orange' },
+    { label: 'En escrow',  value: eur(sum(inEscrow)),          sub: `${escrows.filter(inEscrow).length} pendientes`, color: 'text-yellow-600' },
+    { label: 'Reembolsos', value: String(escrows.filter(e => e.status === 'refunded').length), sub: 'Histórico', color: 'text-red-600' },
   ];
+
+  if (loading) return <div className="py-12 text-center text-gray-400"><RefreshCw className="w-6 h-6 animate-spin mx-auto" /></div>;
+
   return (
-  <div>
-    <PageHeader title="Finanzas" subtitle="GMV, comisiones, escrow y reembolsos — todo en tiempo real" />
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-      {stats.map(s => (
-        <div key={s.label} className="card-white p-5">
-          <p className="text-gray-400 text-xs font-medium">{s.label}</p>
-          <p className={`font-black text-2xl ${s.color} mt-1`}>{s.value}</p>
-          <p className="text-gray-400 text-xs mt-1">{s.sub}</p>
-        </div>
-      ))}
-    </div>
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="card-white p-5">
-        <h3 className="font-bold text-gray-900 mb-4">GMV mensual (últimos 6 meses)</h3>
-        <div className="flex items-end gap-2 h-40 mb-2">
-          {monthly.map(m => (
-            <div key={m.label} className="flex-1 flex flex-col items-center gap-1 group">
-              <div className="w-full bg-gray-100 rounded-t-lg flex-1 flex items-end overflow-hidden">
-                <div className="w-full bg-gradient-to-t from-brand-orange to-pink-300 rounded-t-lg transition-all"
-                  style={{ height: `${(m.gross / maxGross) * 100}%`, minHeight: m.gross > 0 ? 4 : 0 }} />
+    <div>
+      <PageHeader title="Finanzas" subtitle="GMV, comisiones y escrow — datos reales" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {stats.map(s => (
+          <div key={s.label} className="card-white p-5">
+            <p className="text-gray-400 text-xs font-medium">{s.label}</p>
+            <p className={`font-black text-2xl ${s.color} mt-1`}>{s.value}</p>
+            <p className="text-gray-400 text-xs mt-1">{s.sub}</p>
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="card-white p-5">
+          <h3 className="font-bold text-gray-900 mb-4">GMV mensual (últimos 6 meses)</h3>
+          {escrows.length === 0 ? (
+            <p className="text-gray-400 text-sm text-center py-8">Sin transacciones registradas todavía.</p>
+          ) : (
+            <>
+              <div className="flex items-end gap-2 h-40 mb-2">
+                {monthly.map(m => (
+                  <div key={m.label} className="flex-1 flex flex-col items-center gap-1 group">
+                    <div className="w-full bg-gray-100 rounded-t-lg flex-1 flex items-end overflow-hidden">
+                      <div className="w-full bg-gradient-to-t from-brand-orange to-pink-300 rounded-t-lg transition-all"
+                        style={{ height: `${(m.gross / maxGross) * 100}%`, minHeight: m.gross > 0 ? 4 : 0 }} />
+                    </div>
+                    <span className="text-[10px] text-gray-500 font-bold uppercase">{m.label}</span>
+                    <span className="text-[10px] text-gray-400">€{Math.round(m.gross)}</span>
+                  </div>
+                ))}
               </div>
-              <span className="text-[10px] text-gray-500 font-bold uppercase">{m.label}</span>
-              <span className="text-[10px] text-gray-400">€{Math.round(m.gross)}</span>
-            </div>
-          ))}
+              <div className="pt-3 border-t border-gray-100 flex justify-between text-xs">
+                <span className="text-gray-500">Total 6m: <span className="font-bold text-gray-900">€{monthly.reduce((s, m) => s + m.gross, 0).toFixed(0)}</span></span>
+                <span className="text-brand-orange font-bold">Comisión: €{monthly.reduce((s, m) => s + m.commission, 0).toFixed(0)}</span>
+              </div>
+            </>
+          )}
         </div>
-        <div className="pt-3 border-t border-gray-100 flex justify-between text-xs">
-          <span className="text-gray-500">Total 6m: <span className="font-bold text-gray-900">€{monthly.reduce((s, m) => s + m.gross, 0).toFixed(0)}</span></span>
-          <span className="text-brand-orange font-bold">Comisión: €{monthly.reduce((s, m) => s + m.commission, 0).toFixed(0)}</span>
+        <div className="card-white p-5">
+          <h3 className="font-bold text-gray-900 mb-4">Top creators por facturación</h3>
+          {topCreators.length === 0 ? (
+            <p className="text-sm text-gray-400">Sin pagos liberados aún.</p>
+          ) : topCreators.map((c, i) => {
+            const pct = (c.gross / topCreators[0].gross) * 100;
+            return (
+              <div key={c.name} className="mb-3">
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-gray-700"><span className="font-black text-brand-orange mr-2">#{i + 1}</span>{c.name}</span>
+                  <span className="font-bold">€{c.gross.toFixed(0)} <span className="text-gray-400 text-xs font-normal">({c.tx} tx)</span></span>
+                </div>
+                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-brand-orange to-pink-500 rounded-full" style={{ width: `${pct}%` }} />
+                </div>
+                <p className="text-[10px] text-brand-orange mt-0.5">€{c.commission.toFixed(0)} comisión generada</p>
+              </div>
+            );
+          })}
         </div>
       </div>
-
-      <div className="card-white p-5">
-        <h3 className="font-bold text-gray-900 mb-4">Top creators por facturación</h3>
-        {topCreators.length === 0 && <p className="text-sm text-gray-400">Sin datos aún.</p>}
-        {topCreators.map((c, i) => {
-          const pct = (c.gross / topCreators[0].gross) * 100;
-          return (
-            <div key={c.name} className="mb-3">
-              <div className="flex justify-between text-sm mb-1">
-                <span className="text-gray-700"><span className="font-black text-brand-orange mr-2">#{i + 1}</span>{c.name}</span>
-                <span className="font-bold">€{c.gross.toFixed(0)} <span className="text-gray-400 text-xs font-normal">({c.tx} tx)</span></span>
-              </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-brand-orange to-pink-500 rounded-full" style={{ width: `${pct}%` }} />
-              </div>
-              <p className="text-[10px] text-brand-orange mt-0.5">€{c.commission.toFixed(0)} comisión generada</p>
-            </div>
-          );
-        })}
+      <div className="card-white mt-6 overflow-hidden">
+        <div className="p-5 border-b border-gray-100">
+          <h3 className="font-bold text-gray-900">Últimas transacciones</h3>
+          <p className="text-xs text-gray-400">Escrows registrados en la plataforma</p>
+        </div>
+        {escrows.length === 0 ? (
+          <div className="p-10 text-center text-gray-400">
+            <DollarSign className="w-10 h-10 mx-auto mb-2 opacity-40" />
+            <p>Sin transacciones todavía. Aparecerán cuando se realicen pagos.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
+                <tr>
+                  <th className="text-left px-4 py-3">Fecha</th>
+                  <th className="text-left px-4 py-3">Concepto</th>
+                  <th className="text-left px-4 py-3">Pagador</th>
+                  <th className="text-left px-4 py-3">Cobrador</th>
+                  <th className="text-left px-4 py-3">Estado</th>
+                  <th className="text-right px-4 py-3">Importe</th>
+                  <th className="text-right px-4 py-3">Comisión</th>
+                </tr>
+              </thead>
+              <tbody>
+                {escrows.slice(0, 20).map(e => (
+                  <tr key={e.id} className="border-b border-gray-50 hover:bg-gray-50">
+                    <td className="px-4 py-3 text-gray-500 text-xs">{new Date(e.created_at).toLocaleDateString('es-ES')}</td>
+                    <td className="px-4 py-3 text-gray-900 font-medium truncate max-w-[160px]">{e.concept || '—'}</td>
+                    <td className="px-4 py-3 text-gray-700 text-xs">{names[e.payer_id] || (e.payer_id?.slice(0, 8) ?? '—')}</td>
+                    <td className="px-4 py-3 text-gray-700 text-xs">{names[e.payee_id] || (e.payee_id?.slice(0, 8) ?? '—')}</td>
+                    <td className="px-4 py-3">
+                      <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
+                        inEscrow(e) ? 'bg-yellow-50 text-yellow-700' :
+                        done(e)     ? 'bg-green-50 text-green-700' :
+                        e.status === 'refunded' ? 'bg-red-50 text-red-600' :
+                        'bg-gray-100 text-gray-600'
+                      }`}>{e.status}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right">€{Number(e.amount).toFixed(2)}</td>
+                    <td className="px-4 py-3 text-right text-brand-orange font-bold">€{Number(e.commission || 0).toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
-
-    <div className="card-white mt-6 overflow-hidden">
-      <div className="p-5 border-b border-gray-100">
-        <h3 className="font-bold text-gray-900">Transacciones — vista superadmin</h3>
-        <p className="text-xs text-gray-400">Puedes reembolsar transacciones en escrow o ya liberadas</p>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
-            <tr>
-              <th className="text-left px-4 py-3">Fecha</th>
-              <th className="text-left px-4 py-3">Concepto</th>
-              <th className="text-left px-4 py-3">Creator</th>
-              <th className="text-left px-4 py-3">Cliente</th>
-              <th className="text-left px-4 py-3">Estado</th>
-              <th className="text-right px-4 py-3">Bruto</th>
-              <th className="text-right px-4 py-3">Comisión</th>
-              <th className="text-right px-4 py-3">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.slice(0, 20).map(t => (
-              <tr key={t.id} className="border-b border-gray-50 hover:bg-gray-50">
-                <td className="px-4 py-3 text-gray-500 text-xs">{new Date(t.date).toLocaleDateString('es-ES')}</td>
-                <td className="px-4 py-3 text-gray-900 font-medium truncate max-w-[200px]">{t.concept}</td>
-                <td className="px-4 py-3 text-gray-700">{t.performerName || t.performerId}</td>
-                <td className="px-4 py-3 text-gray-500">{t.clientName}</td>
-                <td className="px-4 py-3">
-                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase ${
-                    t.status === 'pending'   ? 'bg-yellow-50 text-yellow-700' :
-                    t.status === 'released'  ? 'bg-green-50 text-green-700' :
-                    t.status === 'withdrawn' ? 'bg-gray-100 text-gray-600' :
-                                               'bg-red-50 text-red-600'
-                  }`}>{t.status}</span>
-                </td>
-                <td className="px-4 py-3 text-right">€{t.gross}</td>
-                <td className="px-4 py-3 text-right text-brand-orange font-bold">€{t.commission}</td>
-                <td className="px-4 py-3 text-right">
-                  {(t.status === 'pending' || t.status === 'released') ? (
-                    <button onClick={() => handleRefund(t.id, t.concept)}
-                      className="bg-red-50 hover:bg-red-100 text-red-600 text-[10px] font-bold px-2 py-1 rounded">
-                      Reembolsar
-                    </button>
-                  ) : <span className="text-gray-300 text-xs">—</span>}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
   );
 };
 
@@ -2440,6 +2719,56 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
   );
 };
 
+const SEO_KEYS = [
+  { key: 'seo_site_name',    label: 'Nombre del sitio',    placeholder: 'BailaNow' },
+  { key: 'seo_tagline',      label: 'Claim / Tagline',     placeholder: 'Encuentra tu Pasión Latina' },
+  { key: 'seo_description',  label: 'Meta descripción',    placeholder: 'La plataforma #1 de entretenimiento latino...' },
+];
+
+const SeoTextsCard: React.FC = () => {
+  const [vals, setVals] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    supabase.from('site_config').select('key,value').in('key', SEO_KEYS.map(k => k.key)).then(({ data }) => {
+      const m: Record<string, string> = {};
+      (data ?? []).forEach((r: any) => { m[r.key] = typeof r.value === 'string' ? r.value : (r.value?.v ?? ''); });
+      setVals(m);
+    });
+  }, []);
+
+  const save = async () => {
+    setSaving(true);
+    const rows = SEO_KEYS.filter(k => vals[k.key] !== undefined).map(k => ({ key: k.key, value: { v: vals[k.key] } }));
+    await supabase.from('site_config').upsert(rows, { onConflict: 'key' });
+    setSaving(false);
+  };
+
+  return (
+    <>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-bold text-gray-900">Textos y SEO</h3>
+        <button onClick={save} disabled={saving} className="btn-orange text-xs px-3 py-1.5 flex items-center gap-1.5 disabled:opacity-50">
+          {saving ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />} Guardar
+        </button>
+      </div>
+      <div className="space-y-3">
+        {SEO_KEYS.map(k => (
+          <div key={k.key}>
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1">{k.label}</label>
+            <input
+              value={vals[k.key] ?? ''}
+              onChange={e => setVals(v => ({ ...v, [k.key]: e.target.value }))}
+              placeholder={k.placeholder}
+              className="input-field text-sm"
+            />
+          </div>
+        ))}
+      </div>
+    </>
+  );
+};
+
 const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const [colors, setColors] = useState({ primary: '#EC4899', secondary: '#111111', accent: '#DB2777' });
   const { siteLogo, setSiteLogo } = useSiteConfigStore();
@@ -2542,12 +2871,7 @@ const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           <p className="text-[10px] text-gray-400 mt-2">💡 Los archivos locales se convierten a base64 y se guardan permanentemente</p>
         </div>
         <div className="card-white p-6">
-          <h3 className="font-bold text-gray-900 mb-4">Textos y SEO</h3>
-          <div className="space-y-4">
-            <Input label="Nombre del sitio" defaultValue="BailaNow" />
-            <Input label="Claim / Tagline" defaultValue="Encuentra tu Pasion Latina" />
-            <Input label="Meta descripcion" defaultValue="La plataforma #1 de entretenimiento latino..." />
-          </div>
+          <SeoTextsCard />
         </div>
         <div className="card-white p-6 lg:col-span-2">
           <HeroBannerEditor addToast={addToast} />
@@ -2987,63 +3311,115 @@ const DisputasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 };
 
 // ── 17. SEGURIDAD ─────────────────────────────────────────────────────────
-const SeguridadSection: React.FC = () => (
-  <div>
-    <PageHeader title="Seguridad" subtitle="Monitoreo de seguridad y accesos de la plataforma" />
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      {[
-        { label: 'Intentos login fallidos (24h)', val: '23', icon: <Lock className="w-5 h-5 text-red-500" />, color: 'bg-red-50' },
-        { label: 'IPs bloqueadas', val: '4', icon: <Shield className="w-5 h-5 text-pink-500" />, color: 'bg-pink-50' },
-        { label: 'Sesiones activas', val: '847', icon: <Wifi className="w-5 h-5 text-green-500" />, color: 'bg-green-50' },
-        { label: 'Uptime del servidor', val: '99.9%', icon: <Server className="w-5 h-5 text-blue-500" />, color: 'bg-blue-50' },
-      ].map(s => (
-        <div key={s.label} className="card-white p-4 flex items-center gap-3">
-          <div className={`w-10 h-10 ${s.color} rounded-xl flex items-center justify-center flex-shrink-0`}>{s.icon}</div>
-          <div><p className="font-black text-xl text-gray-900">{s.val}</p><p className="text-gray-400 text-xs">{s.label}</p></div>
-        </div>
-      ))}
-    </div>
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="card-white p-5">
-        <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-red-500" /> Alertas recientes</h3>
-        <div className="space-y-3">
-          {[
-            { msg: 'Intento de acceso masivo desde IP 192.168.1.x', time: 'Hace 2h', level: 'high' },
-            { msg: 'Usuario spam_user baneado automáticamente', time: 'Hace 5h', level: 'medium' },
-            { msg: 'Certificado SSL renovado correctamente', time: 'Hace 1 día', level: 'info' },
-            { msg: 'Backup automático completado', time: 'Hace 6h', level: 'info' },
-          ].map((a, i) => (
-            <div key={i} className={`flex gap-3 p-3 rounded-xl ${a.level === 'high' ? 'bg-red-50' : a.level === 'medium' ? 'bg-yellow-50' : 'bg-gray-50'}`}>
-              <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${a.level === 'high' ? 'bg-red-500' : a.level === 'medium' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
-              <div><p className="text-gray-800 text-sm">{a.msg}</p><p className="text-gray-400 text-xs">{a.time}</p></div>
+const SeguridadSection: React.FC = () => {
+  const [stats, setStats] = useState({ users: 0, newThisWeek: 0, admins: 0, pendingActions: 0 });
+  const [activity, setActivity] = useState<{ msg: string; time: string; level: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const [
+        { count: totalUsers },
+        { count: newUsers },
+        { count: admins },
+        { count: pendingClaims },
+        { count: pendingDisputes },
+        { data: recentClaims },
+        { data: recentDisputes },
+      ] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', weekAgo),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).in('role', ['admin','superadmin']),
+        supabase.from('profile_claims').select('*', { count: 'exact', head: true }).eq('status','pending'),
+        supabase.from('disputes').select('*', { count: 'exact', head: true }).eq('status','open'),
+        supabase.from('profile_claims').select('id,created_at,target_table').eq('status','pending').order('created_at', { ascending: false }).limit(3),
+        supabase.from('disputes').select('id,created_at,description').eq('status','open').order('created_at', { ascending: false }).limit(3),
+      ]);
+      setStats({
+        users: totalUsers ?? 0,
+        newThisWeek: newUsers ?? 0,
+        admins: admins ?? 0,
+        pendingActions: (pendingClaims ?? 0) + (pendingDisputes ?? 0),
+      });
+      const items = [
+        ...(recentClaims ?? []).map((c: any) => ({
+          msg: `Reclamación de perfil pendiente (${c.target_table || 'perfil'})`,
+          time: new Date(c.created_at).toLocaleString('es-ES'),
+          level: 'medium',
+        })),
+        ...(recentDisputes ?? []).map((d: any) => ({
+          msg: d.description?.slice(0, 70) || 'Disputa abierta',
+          time: new Date(d.created_at).toLocaleString('es-ES'),
+          level: 'high',
+        })),
+      ].sort((a, b) => b.time.localeCompare(a.time)).slice(0, 4);
+      setActivity(items);
+      setLoading(false);
+    })();
+  }, []);
+
+  return (
+    <div>
+      <PageHeader title="Seguridad" subtitle="Monitoreo de seguridad y accesos de la plataforma" />
+      {loading ? (
+        <div className="py-12 text-center text-gray-400"><RefreshCw className="w-6 h-6 animate-spin mx-auto" /></div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {[
+              { label: 'Usuarios registrados',   val: stats.users.toLocaleString(),       icon: <Users className="w-5 h-5 text-blue-500" />,    color: 'bg-blue-50' },
+              { label: 'Nuevos esta semana',      val: `+${stats.newThisWeek}`,            icon: <TrendingUp className="w-5 h-5 text-green-500" />, color: 'bg-green-50' },
+              { label: 'Administradores activos', val: String(stats.admins),               icon: <Shield className="w-5 h-5 text-purple-500" />, color: 'bg-purple-50' },
+              { label: 'Acciones pendientes',     val: String(stats.pendingActions),       icon: <AlertTriangle className="w-5 h-5 text-red-500" />, color: 'bg-red-50' },
+            ].map(s => (
+              <div key={s.label} className="card-white p-4 flex items-center gap-3">
+                <div className={`w-10 h-10 ${s.color} rounded-xl flex items-center justify-center flex-shrink-0`}>{s.icon}</div>
+                <div><p className="font-black text-xl text-gray-900">{s.val}</p><p className="text-gray-400 text-xs">{s.label}</p></div>
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="card-white p-5">
+              <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-red-500" /> Actividad reciente</h3>
+              <div className="space-y-3">
+                {activity.length === 0 ? (
+                  <p className="text-gray-400 text-sm text-center py-4">Sin alertas pendientes. Todo en orden.</p>
+                ) : activity.map((a, i) => (
+                  <div key={i} className={`flex gap-3 p-3 rounded-xl ${a.level === 'high' ? 'bg-red-50' : a.level === 'medium' ? 'bg-yellow-50' : 'bg-gray-50'}`}>
+                    <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${a.level === 'high' ? 'bg-red-500' : a.level === 'medium' ? 'bg-yellow-500' : 'bg-gray-400'}`} />
+                    <div><p className="text-gray-800 text-sm">{a.msg}</p><p className="text-gray-400 text-xs">{a.time}</p></div>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-      </div>
-      <div className="card-white p-5">
-        <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><Database className="w-4 h-4 text-blue-500" /> Sistema y backups</h3>
-        <div className="space-y-3">
-          {[
-            { label: 'Último backup', val: 'Hace 6 horas', ok: true },
-            { label: 'Base de datos', val: 'PostgreSQL — Saludable', ok: true },
-            { label: 'CDN', val: 'Cloudflare — Activo', ok: true },
-            { label: 'SSL/HTTPS', val: 'Válido hasta Nov 2026', ok: true },
-            { label: 'Variables de entorno', val: 'Configuradas y seguras', ok: true },
-            { label: 'Agora.io API', val: 'Pendiente configurar', ok: false },
-          ].map(r => (
-            <div key={r.label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
-              <span className="text-gray-500 text-sm">{r.label}</span>
-              <span className={`text-sm font-semibold flex items-center gap-1 ${r.ok ? 'text-green-600' : 'text-yellow-600'}`}>
-                {r.ok ? <CheckCircle className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
-                {r.val}
-              </span>
+            <div className="card-white p-5">
+              <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><Database className="w-4 h-4 text-blue-500" /> Sistema e infraestructura</h3>
+              <div className="space-y-3">
+                {[
+                  { label: 'Base de datos',   val: 'Supabase PostgreSQL — Activa', ok: true },
+                  { label: 'CDN / Hosting',   val: 'Vercel Edge Network',          ok: true },
+                  { label: 'SSL/HTTPS',       val: 'Activo (bailanow.com)',         ok: true },
+                  { label: 'Auth',            val: 'Supabase Auth — Activo',       ok: true },
+                  { label: 'Backups',         val: 'Gestionados por Supabase',     ok: true },
+                  { label: 'Pagos Stripe',    val: 'Pendiente integración',        ok: false },
+                ].map(r => (
+                  <div key={r.label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                    <span className="text-gray-500 text-sm">{r.label}</span>
+                    <span className={`text-sm font-semibold flex items-center gap-1 ${r.ok ? 'text-green-600' : 'text-yellow-600'}`}>
+                      {r.ok ? <CheckCircle className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
+                      {r.val}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
+        </>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 // ── 18. RESEÑAS ───────────────────────────────────────────────────────────
 const ResenasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
@@ -3918,6 +4294,176 @@ const ConfigInput: React.FC<{
           {saving ? '...' : value.trim() ? 'Guardar' : 'Vaciar'}
         </button>
       </div>
+    </div>
+  );
+};
+
+// ── RECLAMACIONES SECTION ─────────────────────────────────────────────────
+const TABLE_ROUTES: Record<string, string> = {
+  artists: '/artistas',
+  events: '/eventos',
+  venues: '/venues',
+  services: '/servicios',
+};
+
+const ReclamacionesSection: React.FC<{ addToast: Function; onCountChange?: (n: number) => void }> = ({ addToast, onCountChange }) => {
+  const [claims, setClaims] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState<string | null>(null);
+
+  const load = async () => {
+    setLoading(true);
+    const { data } = await supabase
+      .from('profile_claims')
+      .select('*, claimant:profiles!claimant_id(full_name,email,avatar_url)')
+      .order('created_at', { ascending: false });
+    // Fallback: si el join falló con la hint de columna, reintenta sin join y deja claimant vacío
+    const rows = data ?? await supabase
+      .from('profile_claims')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(r => r.data ?? []);
+    const list = Array.isArray(rows) ? rows : [];
+    setClaims(list);
+    onCountChange?.(list.filter(c => c.status === 'pending').length);
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const resolve = async (claim: any, approved: boolean) => {
+    setProcessing(claim.id);
+    const { data: { session } } = await supabase.auth.getSession();
+
+    // Actualizar estado de la solicitud
+    const { error: updateErr } = await supabase
+      .from('profile_claims')
+      .update({
+        status: approved ? 'approved' : 'rejected',
+        reviewed_by: session?.user?.id,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq('id', claim.id);
+
+    if (updateErr) {
+      addToast({ type: 'error', message: `Error: ${updateErr.message}` });
+      setProcessing(null);
+      return;
+    }
+
+    // Si aprobado: vincular user_id en la tabla correspondiente
+    if (approved) {
+      const { error: linkErr } = await supabase
+        .from(claim.target_table)
+        .update({ user_id: claim.claimant_id })
+        .eq('id', claim.target_id);
+
+      if (linkErr) {
+        addToast({ type: 'error', message: `Aprobado pero no se pudo vincular: ${linkErr.message}` });
+      } else {
+        addToast({ type: 'success', message: `✅ Perfil vinculado a ${claim.claimant?.full_name || 'usuario'}` });
+      }
+    } else {
+      addToast({ type: 'success', message: 'Solicitud rechazada.' });
+    }
+
+    setProcessing(null);
+    load();
+  };
+
+  const pending = claims.filter(c => c.status === 'pending');
+  const resolved = claims.filter(c => c.status !== 'pending');
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-black text-2xl text-gray-900 flex items-center gap-2">
+            <Flag className="w-6 h-6 text-purple-500" /> Reclamaciones de perfil
+          </h2>
+          <p className="text-gray-400 text-sm mt-1">Usuarios que solicitan ser reconocidos como dueños de un perfil</p>
+        </div>
+        <button onClick={load} disabled={loading} className="flex items-center gap-2 text-sm text-gray-500 border border-gray-200 px-3 py-2 rounded-xl hover:bg-gray-50">
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar
+        </button>
+      </div>
+
+      {/* Pendientes */}
+      <div>
+        <h3 className="font-black text-sm uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-2">
+          <Clock className="w-4 h-4 text-amber-500" /> Pendientes ({pending.length})
+        </h3>
+        {loading ? (
+          <div className="flex items-center justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-purple-400" /></div>
+        ) : pending.length === 0 ? (
+          <div className="bg-gray-50 rounded-2xl p-8 text-center">
+            <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
+            <p className="text-gray-500 font-semibold">Sin solicitudes pendientes</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {pending.map(c => (
+              <div key={c.id} className="bg-white border border-amber-200 rounded-2xl p-4 shadow-sm">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-fuchsia-500 flex items-center justify-center text-white font-black text-sm flex-shrink-0">
+                    {(c.claimant?.full_name || '?')[0].toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-black text-gray-900">{c.claimant?.full_name || 'Usuario desconocido'}</p>
+                      <span className="text-xs text-gray-400">{c.claimant?.email}</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-0.5">
+                      Solicita el {c.target_table === 'artists' ? 'artista' : c.target_table === 'events' ? 'evento' : c.target_table === 'venues' ? 'local' : 'servicio'}:
+                      {' '}<a href={`${TABLE_ROUTES[c.target_table]}/${c.target_id}`} target="_blank" rel="noreferrer" className="text-purple-600 font-bold hover:underline inline-flex items-center gap-1">
+                        {c.target_id.slice(0, 10)}… <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </p>
+                    {c.message && <p className="text-sm text-gray-500 mt-1 italic">"{c.message}"</p>}
+                    <p className="text-xs text-gray-400 mt-1">{new Date(c.created_at).toLocaleString('es-ES')}</p>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => resolve(c, true)}
+                      disabled={processing === c.id}
+                      className="flex items-center gap-1.5 bg-green-500 text-white text-xs font-black px-3 py-2 rounded-xl hover:bg-green-600 disabled:opacity-40"
+                    >
+                      {processing === c.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />} Aprobar
+                    </button>
+                    <button
+                      onClick={() => resolve(c, false)}
+                      disabled={processing === c.id}
+                      className="flex items-center gap-1.5 bg-red-100 text-red-600 text-xs font-black px-3 py-2 rounded-xl hover:bg-red-200 disabled:opacity-40"
+                    >
+                      <XCircle className="w-3.5 h-3.5" /> Rechazar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Resueltas */}
+      {resolved.length > 0 && (
+        <div>
+          <h3 className="font-black text-sm uppercase tracking-widest text-gray-400 mb-3">Historial ({resolved.length})</h3>
+          <div className="space-y-2">
+            {resolved.slice(0, 20).map(c => (
+              <div key={c.id} className={`flex items-center gap-3 rounded-xl p-3 border text-sm ${c.status === 'approved' ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
+                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${c.status === 'approved' ? 'bg-green-500' : 'bg-red-400'}`} />
+                <span className="font-semibold text-gray-700">{c.claimant?.full_name || c.claimant_id.slice(0,8)}</span>
+                <span className="text-gray-400">→ {c.target_table}/{c.target_id.slice(0,8)}</span>
+                <span className={`ml-auto text-xs font-black px-2 py-0.5 rounded-full ${c.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                  {c.status === 'approved' ? 'Aprobada' : 'Rechazada'}
+                </span>
+                <span className="text-xs text-gray-400 flex-shrink-0">{new Date(c.reviewed_at || c.created_at).toLocaleDateString('es-ES')}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
