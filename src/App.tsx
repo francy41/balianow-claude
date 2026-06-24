@@ -20,6 +20,7 @@ const DevRoleSwitcher = import.meta.env.DEV
 
 // Lazy load pages
 const HomePage          = lazy(() => import('./pages/HomePage'));
+const FeaturedPage      = lazy(() => import('./pages/FeaturedPage'));
 const NearMePage        = lazy(() => import('./pages/NearMePage'));
 const ClassesPage       = lazy(() => import('./pages/ClassesPage'));
 const ClassRoomPage     = lazy(() => import('./pages/ClassRoomPage'));
@@ -52,6 +53,7 @@ const NotFoundPage        = lazy(() => import('./pages/NotFoundPage'));
 const AuthCallbackPage    = lazy(() => import('./pages/AuthCallbackPage'));
 const ResetPasswordPage   = lazy(() => import('./pages/ResetPasswordPage'));
 const AcceptInvitePage    = lazy(() => import('./pages/AcceptInvitePage'));
+const SocialPage          = lazy(() => import('./pages/SocialPage'));
 
 // Error boundary
 class ErrorBoundary extends React.Component<
@@ -139,6 +141,7 @@ const App: React.FC = () => {
                   <Route path="/u/:slug"             element={<PublicProfilePage />} />
                   <Route path="/explorar"            element={<Navigate to="/cerca" replace />} />
                   <Route path="/comunidad"           element={<Navigate to="/chat" replace />} />
+                  <Route path="/destacados"          element={<FeaturedPage />} />
                   <Route path="/artistas"            element={<ArtistsPage />} />
                   <Route path="/artistas/:id"        element={<ArtistProfilePage />} />
                   <Route path="/eventos"             element={<EventsPage />} />
@@ -164,6 +167,7 @@ const App: React.FC = () => {
                   {/* OAuth & email-link callbacks — no auth guard, Supabase handles the session */}
                   <Route path="/auth/callback"      element={<AuthCallbackPage />} />
                   <Route path="/auth/reset"         element={<ResetPasswordPage />} />
+                  <Route path="/social"               element={<ProtectedRoute requiredRole="admin"><SocialPage /></ProtectedRoute>} />
                   <Route path="/afiliados"           element={<ProtectedRoute><AffiliatePage /></ProtectedRoute>} />
                   <Route path="/vendedores"          element={<VendedoresPage />} />
                   <Route path="/promocionate"        element={<PromocionatePage />} />

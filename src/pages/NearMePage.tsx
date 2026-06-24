@@ -94,7 +94,8 @@ const NearMePage: React.FC = () => {
   const [showCityPicker, setShowCityPicker] = useState(false);
   const [gpsError, setGpsError] = useState<string>('');
   const [radius, setRadius]     = useState<50 | 100 | 500 | 5000>(500);
-  const [activeTab, setActiveTab] = useState<'all' | 'live' | 'open' | 'venues' | 'events' | 'artists' | 'dancers' | 'djs'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'live' | 'venues' | 'events' | 'artists' | 'dancers' | 'djs'>('all');
+  const [onlyOpenNow, setOnlyOpenNow] = useState(false);
   const [livePreview, setLivePreview] = useState<LiveSessionLite | null>(null);
 
   // Initialize position from URL param > localStorage > GPS > picker
@@ -304,28 +305,28 @@ const NearMePage: React.FC = () => {
       .filter(it => it.distance! <= radius)
       .filter(it => {
         if (activeTab === 'live'    && it.type !== 'live')   return false;
-        if (activeTab === 'open'    && !it.isOpenNow)        return false;
         if (activeTab === 'venues'  && it.type !== 'venue')  return false;
         if (activeTab === 'events'  && it.type !== 'event')  return false;
         if (activeTab === 'artists' && it.type !== 'artist') return false;
         if (activeTab === 'dancers' && it.type !== 'dancer') return false;
         if (activeTab === 'djs'     && it.type !== 'dj')     return false;
+        // "Solo abiertos ahora" solo aplica a venues
+        if (onlyOpenNow && it.type === 'venue' && !it.isOpenNow) return false;
         if (search) return it.name.toLowerCase().includes(search.toLowerCase()) ||
                           it.city.toLowerCase().includes(search.toLowerCase());
         return true;
       })
       .sort((a, b) => (a.distance ?? 0) - (b.distance ?? 0));
-  }, [items, position, radius, activeTab, search]);
+  }, [items, position, radius, activeTab, search, onlyOpenNow]);
 
   const counts = useMemo(() => {
-    if (!position) return { all: 0, venues: 0, events: 0, artists: 0, dancers: 0, djs: 0 };
+    if (!position) return { all: 0, live: 0, venues: 0, events: 0, artists: 0, dancers: 0, djs: 0 };
     const inRadius = items
       .map(it => ({ ...it, distance: distanceKm(position[0], position[1], it.lat, it.lng) }))
       .filter(it => it.distance! <= radius);
     return {
       all:     inRadius.length,
       live:    inRadius.filter(i => i.type === 'live').length,
-      open:    inRadius.filter(i => i.isOpenNow).length,
       venues:  inRadius.filter(i => i.type === 'venue').length,
       events:  inRadius.filter(i => i.type === 'event').length,
       artists: inRadius.filter(i => i.type === 'artist').length,
@@ -574,26 +575,37 @@ const NearMePage: React.FC = () => {
       </div>
 
       {/* ── TABS ── */}
-      <div className="px-4 mb-3 flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-        {[
-          { key: 'all',     label: `Todo (${counts.all})`,     icon: '🌍' },
-          { key: 'live',    label: `En vivo (${counts.live})`,  icon: '🔴' },
-          { key: 'open',    label: `Abierto ahora (${counts.open})`, icon: '🟢' },
-          { key: 'venues',  label: `Locales (${counts.venues})`, icon: '🏛️' },
-          { key: 'events',  label: `Eventos (${counts.events})`, icon: '🎉' },
-          { key: 'artists', label: `Artistas (${counts.artists})`,icon: '🎤' },
-          { key: 'dancers', label: `Bailarines (${counts.dancers})`, icon: '💃' },
-          { key: 'djs',     label: `DJs (${counts.djs})`,        icon: '🎧' },
-        ].map(t => (
-          <button key={t.key} onClick={() => setActiveTab(t.key as any)}
-            className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-              activeTab === t.key
-                ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white shadow-lg shadow-pink-500/30'
-                : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
-            }`}>
-            <span className="mr-1">{t.icon}</span>{t.label}
-          </button>
-        ))}
+      <div className="px-4 mb-3">
+        <div className="flex gap-2 overflow-x-auto mb-3" style={{ scrollbarWidth: 'none' }}>
+          {[
+            { key: 'all',     label: `Todo (${counts.all})`,     icon: '🌍' },
+            { key: 'live',    label: `En vivo (${counts.live})`,  icon: '🔴' },
+            { key: 'venues',  label: `Locales (${counts.venues})`, icon: '🏛️' },
+            { key: 'events',  label: `Eventos (${counts.events})`, icon: '🎉' },
+            { key: 'artists', label: `Artistas (${counts.artists})`,icon: '🎤' },
+            { key: 'dancers', label: `Bailarines (${counts.dancers})`, icon: '💃' },
+            { key: 'djs',     label: `DJs (${counts.djs})`,        icon: '🎧' },
+          ].map(t => (
+            <button key={t.key} onClick={() => setActiveTab(t.key as any)}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                activeTab === t.key
+                  ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white shadow-lg shadow-pink-500/30'
+                  : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+              }`}>
+              <span className="mr-1">{t.icon}</span>{t.label}
+            </button>
+          ))}
+        </div>
+        {/* ── CHECKBOX: Solo abiertos ahora ── */}
+        <label className="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-300 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={onlyOpenNow}
+            onChange={e => setOnlyOpenNow(e.target.checked)}
+            className="w-4 h-4 rounded text-pink-500 cursor-pointer"
+          />
+          <span>🟢 Solo abiertos ahora</span>
+        </label>
       </div>
 
       {/* ── RESULTS — formato post/publicación con logo ── */}

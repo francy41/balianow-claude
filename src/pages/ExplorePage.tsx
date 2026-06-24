@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ARTISTS, EVENTS, VENUES, SERVICES } from '../data/mockData';
-import { SearchBar, Tabs, SectionHeader, Avatar, StarRating, Badge, EmptyState } from '../components/ui';
+import { Tabs, SectionHeader, Avatar, StarRating, Badge, EmptyState } from '../components/ui';
 import { MapPin } from 'lucide-react';
 
 const ExplorePage: React.FC = () => {
@@ -27,13 +27,7 @@ const ExplorePage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 overflow-hidden">
         <h1 className="font-display font-black text-3xl text-gray-900 mb-6">🔍 Explorar</h1>
 
-        <SearchBar
-          placeholder="Busca artistas, DJs, eventos, venues..."
-          value={search}
-          onChange={setSearch}
-        />
-
-        <div className="mt-4">
+        <div className="mt-6">
           <Tabs
             tabs={[
               { id: 'all', label: 'Todo', count: totalResults },

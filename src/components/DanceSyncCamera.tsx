@@ -3,8 +3,9 @@
  * mobile / tablet / desktop / smart TV
  */
 import React, { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
-import { Camera, CameraOff, Loader2, AlertCircle, SwitchCamera, FlipHorizontal2, Tv2, Smartphone, Wifi } from 'lucide-react';
+import { Camera, CameraOff, Loader2, AlertCircle, SwitchCamera, FlipHorizontal2, Tv2, Smartphone, Wifi, User2 } from 'lucide-react';
 import DanceSyncOverlay from './DanceSyncOverlay';
+import DanceAvatarMirror from './DanceAvatarMirror';
 import type { GamePhase } from '../hooks/useDanceGameLoop';
 import type { SyncScore, Landmark } from '../lib/poseSync';
 import type { DeviceType } from '../lib/deviceDetect';
@@ -19,12 +20,14 @@ interface Props {
   attemptProgress: number;
   syncScore: SyncScore | null;
   landmarks: Landmark[] | null;
+  worldLandmarks?: Landmark[] | null;
   label?: string;
   onCamReady?: (video: HTMLVideoElement) => void;
   onCamOff?: () => void;
   camOn: boolean;
   setCamOn: (v: boolean) => void;
   device?: DeviceType;
+  vrmUrl?: string;
   // ── Modo cámara remota (móvil como webcam) ──
   remote?: boolean;
   remoteConnected?: boolean;
@@ -33,8 +36,8 @@ interface Props {
 }
 
 const DanceSyncCamera = forwardRef<DanceSyncCameraHandle, Props>((
-  { phase, countdown, attemptProgress, syncScore, landmarks, label, onCamReady, onCamOff, camOn, setCamOn,
-    device = 'mobile', remote = false, remoteConnected = false, remoteFrame = null, objectFit = 'cover' },
+  { phase, countdown, attemptProgress, syncScore, landmarks, worldLandmarks, label, onCamReady, onCamOff, camOn, setCamOn,
+    device = 'mobile', remote = false, remoteConnected = false, remoteFrame = null, objectFit = 'cover', vrmUrl },
   ref,
 ) => {
   const videoRef    = useRef<HTMLVideoElement>(null);
@@ -46,6 +49,7 @@ const DanceSyncCamera = forwardRef<DanceSyncCameraHandle, Props>((
   const [facingMode, setFacingMode] = useState<'user'|'environment'>('user');
   const [hasMultiple, setHasMultiple] = useState(false);
   const [dims, setDims] = useState({ w: 320, h: 180 });
+  const [avatarMode, setAvatarMode] = useState(false);
 
   useImperativeHandle(ref, () => ({ videoEl: videoRef.current }));
 
@@ -189,17 +193,35 @@ const DanceSyncCamera = forwardRef<DanceSyncCameraHandle, Props>((
 
       {camOn ? (
         <>
+          {/* Webcam (siempre activa en background para MediaPipe aunque avatar esté visible) */}
           <video
             ref={videoRef}
             autoPlay playsInline muted
-            className={`absolute inset-0 w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'}`}
+            className={`absolute inset-0 w-full h-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'} ${avatarMode ? 'opacity-0 pointer-events-none' : ''}`}
             style={{ transform: mirror ? 'scaleX(-1)' : 'none' }}
           />
-          <DanceSyncOverlay
-            landmarks={landmarks} syncScore={syncScore}
-            phase={phase} countdown={countdown} attemptProgress={attemptProgress}
-            width={dims.w} height={dims.h} device={device}
-          />
+
+          {/* Modo avatar 3D: VRM que espeja tus movimientos */}
+          {avatarMode && (
+            <DanceAvatarMirror
+              landmarks={landmarks}
+              worldLandmarks={worldLandmarks}
+              vrmUrl={vrmUrl}
+              width={dims.w}
+              height={dims.h}
+              side="user"
+              className="absolute inset-0"
+            />
+          )}
+
+          {/* Esqueleto 2D (solo visible cuando NO está en modo avatar) */}
+          {!avatarMode && (
+            <DanceSyncOverlay
+              landmarks={landmarks} syncScore={syncScore}
+              phase={phase} countdown={countdown} attemptProgress={attemptProgress}
+              width={dims.w} height={dims.h} device={device}
+            />
+          )}
 
           {/* Badge SYNC / LIVE */}
           <div className="absolute top-2 right-2 z-20">
@@ -217,8 +239,11 @@ const DanceSyncCamera = forwardRef<DanceSyncCameraHandle, Props>((
           {/* Controles */}
           <div className={`absolute z-20 flex gap-2 ${isTV ? 'bottom-4 left-4 gap-4' : 'bottom-2 left-2 gap-1.5'}`}>
             <CtrlBtn onClick={toggleCamera} title="Apagar cámara" isTV={isTV}><CameraOff className={isTV ? 'w-7 h-7' : 'w-3.5 h-3.5'} /></CtrlBtn>
-            <CtrlBtn onClick={() => setMirror(m => !m)} title="Espejo" active={mirror} isTV={isTV}><FlipHorizontal2 className={isTV ? 'w-7 h-7' : 'w-3.5 h-3.5'} /></CtrlBtn>
-            {hasMultiple && <CtrlBtn onClick={switchCamera} title="Cambiar cámara" isTV={isTV}><SwitchCamera className={isTV ? 'w-7 h-7' : 'w-3.5 h-3.5'} /></CtrlBtn>}
+            {!avatarMode && <CtrlBtn onClick={() => setMirror(m => !m)} title="Espejo" active={mirror} isTV={isTV}><FlipHorizontal2 className={isTV ? 'w-7 h-7' : 'w-3.5 h-3.5'} /></CtrlBtn>}
+            {hasMultiple && !avatarMode && <CtrlBtn onClick={switchCamera} title="Cambiar cámara" isTV={isTV}><SwitchCamera className={isTV ? 'w-7 h-7' : 'w-3.5 h-3.5'} /></CtrlBtn>}
+            <CtrlBtn onClick={() => setAvatarMode(m => !m)} title={avatarMode ? 'Ver cámara' : 'Ver avatar 3D'} active={avatarMode} isTV={isTV}>
+              <User2 className={isTV ? 'w-7 h-7' : 'w-3.5 h-3.5'} />
+            </CtrlBtn>
           </div>
         </>
       ) : (

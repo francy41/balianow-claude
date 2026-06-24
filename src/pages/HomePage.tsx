@@ -105,11 +105,18 @@ const SPONSORS = [
   },
 ];
 
-// ── SPONSORS SLIDER (auto-scroll infinito hacia la izquierda) ──────────
-const SponsorsSlider: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = ({ navigate }) => {
+// Etiqueta de tipo (subtítulo cuando no hay ciudad)
+const FEATURED_TYPE_LABEL: Record<string, string> = {
+  venue: 'Local', artist: 'Artista', event: 'Evento', brand: 'Marca',
+  profile: 'Perfil', company: 'Empresa', seller: 'Vendedor', package: 'Paquete',
+};
+
+// ── LO MÁS DESTACADO (slider de tarjetas grandes: imagen + nombre + ciudad/tipo) ──
+const FeaturedSlider: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = ({ navigate }) => {
   const allSponsors = useSponsorsStore(s => s.sponsors);
-  const active = allSponsors.filter(s => s.active);
-  // Duplicar lista para hacer scroll infinito sin gap
+  // "Lo más destacado" = items activos cuyo placement sea featured o both (default both)
+  const active = allSponsors.filter(s => s.active && (s.placement ?? 'both') !== 'footer');
+  if (active.length === 0) return null;
   const duplicated = [...active, ...active, ...active];
 
   return (
@@ -117,33 +124,76 @@ const SponsorsSlider: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = (
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
           <div className="w-1 h-3 rounded-full bg-gradient-to-b from-pink-500 to-fuchsia-600" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Patrocinadores</span>
+          <span className="text-[11px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">🔥 Lo más destacado</span>
         </div>
-        <button onClick={() => navigate('/venues')} className="flex items-center gap-0.5 text-[10px] font-bold text-pink-500 hover:text-fuchsia-500 transition-colors">
+        <button onClick={() => navigate('/destacados')} className="flex items-center gap-0.5 text-[10px] font-bold text-pink-500 hover:text-fuchsia-500 transition-colors">
           Ver todos <ChevronRight className="w-2.5 h-2.5" />
         </button>
       </div>
 
-      {/* Marquee container con máscara de degradado a los lados */}
+      {/* Marquee con máscara de degradado a los lados */}
+      <div className="relative overflow-hidden" style={{
+        maskImage: 'linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%)',
+        WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 4%, black 96%, transparent 100%)',
+      }}>
+        <div className="flex gap-3 animate-marquee-left" style={{ width: 'max-content' }}>
+          {duplicated.map((sp, i) => (
+            <button
+              key={`${sp.id}-${i}`}
+              onClick={() => navigate(sp.link)}
+              className="flex-shrink-0 group text-center"
+              style={{ width: 104 }}
+            >
+              <div
+                className="w-24 h-24 mx-auto rounded-2xl overflow-hidden shadow-md group-hover:scale-105 group-hover:shadow-lg transition-all duration-200 border-2 border-white dark:border-gray-800"
+                style={{ boxShadow: `0 3px 14px ${sp.color}40` }}
+              >
+                <img src={sp.logo} alt={sp.name} className="w-full h-full object-cover" loading="lazy" />
+              </div>
+              <p className="mt-1.5 text-xs font-bold text-gray-900 dark:text-white leading-tight line-clamp-1 group-hover:text-pink-500 transition-colors">
+                {sp.name}
+              </p>
+              <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-tight line-clamp-1">
+                {sp.city || FEATURED_TYPE_LABEL[sp.type] || ''}
+              </p>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// ── PATROCINADORES (strip pequeño para el pie de página) ──────────────
+const SponsorsFooterStrip: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = ({ navigate }) => {
+  const allSponsors = useSponsorsStore(s => s.sponsors);
+  // Pie = sponsors/empresas/marcas con placement footer o both
+  const sponsors = allSponsors.filter(s =>
+    s.active && (s.placement ?? 'both') !== 'featured' &&
+    ['brand', 'company'].includes(s.type)
+  );
+  if (sponsors.length === 0) return null;
+  const duplicated = [...sponsors, ...sponsors, ...sponsors];
+
+  return (
+    <section className="mt-8 mx-4">
+      <div className="flex items-center gap-1.5 mb-3">
+        <div className="w-1 h-3 rounded-full bg-gradient-to-b from-gray-400 to-gray-500" />
+        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Nuestros Patrocinadores</span>
+      </div>
       <div className="relative overflow-hidden" style={{
         maskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
         WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
       }}>
         <div className="flex gap-4 animate-marquee-left" style={{ width: 'max-content' }}>
           {duplicated.map((sp, i) => (
-            <button
-              key={`${sp.id}-${i}`}
-              onClick={() => navigate(sp.link)}
-              className="flex-shrink-0 flex flex-col items-center gap-1 group"
-              style={{ minWidth: 64 }}
-            >
-              <div
-                className="w-12 h-12 rounded-xl overflow-hidden shadow-md group-hover:scale-110 transition-transform duration-200 border border-white/20"
-                style={{ boxShadow: `0 2px 10px ${sp.color}35` }}
-              >
+            <button key={`${sp.id}-${i}`} onClick={() => navigate(sp.link)}
+              className="flex-shrink-0 flex flex-col items-center gap-1 group" style={{ minWidth: 64 }}>
+              <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md group-hover:scale-110 transition-transform duration-200 border border-white/20"
+                style={{ boxShadow: `0 2px 10px ${sp.color}35` }}>
                 <img src={sp.logo} alt={sp.name} className="w-full h-full object-cover" loading="lazy" />
               </div>
-              <span className="text-[9px] font-semibold text-gray-500 dark:text-gray-500 text-center leading-tight max-w-[60px] line-clamp-1 group-hover:text-pink-500 transition-colors">
+              <span className="text-[9px] font-semibold text-gray-500 text-center leading-tight max-w-[60px] line-clamp-1 group-hover:text-pink-500 transition-colors">
                 {sp.name}
               </span>
             </button>
@@ -964,7 +1014,7 @@ const HomePage: React.FC = () => {
   const [radiosOpen, setRadiosOpen] = useState(false);
   const [playlistsOpen, setPlaylistsOpen] = useState(false);
 
-  // ── Radio real (emisoras latinas en vivo desde radio-browser) ──
+  // ── Radio: carga desde Supabase; fallback a radio-browser API ──
   const [radioStations, setRadioStations] = useState(RADIO_STATIONS);
   const [radioStatus, setRadioStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -972,7 +1022,27 @@ const HomePage: React.FC = () => {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      // El API filtra por UN tag a la vez (/bytag/{tag}); pedimos varios géneros y mezclamos
+      // 1. Intentar cargar emisoras propias desde Supabase
+      try {
+        const { data, error } = await supabase
+          .from('radio_stations')
+          .select('id, name, genre, stream_url, img_url, bitrate, status')
+          .eq('status', 'active')
+          .order('sort_order');
+        if (!error && data && data.length > 0 && !cancelled) {
+          setRadioStations(data.map((s: any) => ({
+            id:        s.id,
+            name:      s.name,
+            sub:       s.bitrate || 'En directo',
+            genre:     s.genre,
+            img:       s.img_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=EC4899&color=fff&size=120&bold=true`,
+            streamUrl: s.stream_url,
+          })));
+          return;
+        }
+      } catch { /* fallback a API pública */ }
+
+      // 2. Fallback: radio-browser.info
       const tags = ['bachata', 'salsa', 'reggaeton', 'kizomba', 'merengue'];
       const clean = (n: string) => n.trim().replace(/\s+/g, ' ').slice(0, 38);
       try {
@@ -1251,7 +1321,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* ── SPONSORS SLIDER ── */}
-      <SponsorsSlider navigate={navigate} />
+      <FeaturedSlider navigate={navigate} />
 
       {/* ── DANCEFLOW — Academia IA (debajo de Patrocinadores) ── */}
       <DanceFlowPromo />
@@ -1505,6 +1575,9 @@ const HomePage: React.FC = () => {
         }}
       </HomeSectionWithSearch>
       )}
+
+      {/* ── PATROCINADORES (pie de página) ── */}
+      <SponsorsFooterStrip navigate={navigate} />
 
       {/* ── FOOTER LEGAL ── */}
       <footer className="mt-10 mx-4 mb-4 pb-2 border-t border-gray-200 dark:border-gray-800 pt-6">

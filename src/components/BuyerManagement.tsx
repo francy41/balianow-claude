@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Filter, Download, RefreshCw, ChevronLeft, ChevronRight, Eye, QrCode, CheckCircle, XCircle, Clock, AlertTriangle, Shield, Camera } from 'lucide-react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { Search, Filter, Download, RefreshCw, ChevronLeft, ChevronRight, Eye, QrCode, CheckCircle, XCircle, Clock, AlertTriangle, Shield, Camera, CameraOff, Loader2 } from 'lucide-react';
 import { useTicketStore, type Ticket, type QRStatus, type TicketScanResult } from '../store/ticketStore';
 import { QRStatusBadge, ScanResultCard } from './QRTicket';
 import { Badge, Button } from './ui';
+import { supabase } from '../lib/supabase';
 
 /* ══════════════════════════════════════════════════════════════════════════
    BUYER TABLE — SaaS-style for sellers/organizers
@@ -177,23 +178,134 @@ export const BuyerTable: React.FC<{ eventId: string }> = ({ eventId }) => {
 };
 
 /* ══════════════════════════════════════════════════════════════════════════
-   QR SCANNER — Mobile camera scanner for organizers/staff
+   QR SCANNER — Real camera scanner + Supabase validation
    ══════════════════════════════════════════════════════════════════════════ */
+
+interface ScanResult {
+  status: QRStatus;
+  buyerName: string;
+  eventTitle: string;
+  sectionName: string;
+  ticketType: string;
+  companions: number;
+  quantity: number;
+}
+
+// Validate ticket token against Supabase (primary) + local store (fallback)
+async function validateTicketToken(token: string, localScan: (t: string) => TicketScanResult): Promise<ScanResult> {
+  const clean = token.trim();
+  // Try Supabase first
+  const { data, error } = await supabase
+    .from('tickets')
+    .select('id, status, buyer_name, event_title, section_name, ticket_type, companions, quantity, qr_token')
+    .eq('qr_token', clean)
+    .maybeSingle();
+
+  if (!error && data) {
+    if (data.status !== 'valid') {
+      return {
+        status: data.status as QRStatus,
+        buyerName: data.buyer_name || 'Desconocido',
+        eventTitle: data.event_title || '',
+        sectionName: data.section_name || 'General',
+        ticketType: data.ticket_type || 'general',
+        companions: data.companions || 0,
+        quantity: data.quantity || 1,
+      };
+    }
+    // Mark as used in DB
+    await supabase.from('tickets').update({ status: 'used', scanned_at: new Date().toISOString() }).eq('id', data.id);
+    return {
+      status: 'valid',
+      buyerName: data.buyer_name || 'Desconocido',
+      eventTitle: data.event_title || '',
+      sectionName: data.section_name || 'General',
+      ticketType: data.ticket_type || 'general',
+      companions: data.companions || 0,
+      quantity: data.quantity || 1,
+    };
+  }
+
+  // Fallback: local Zustand store (demo tickets)
+  const local = localScan(clean);
+  return { ...local, quantity: 1 };
+}
+
 export const QRScanner: React.FC<{ eventId?: string }> = ({ eventId }) => {
   const { scanTicket, scanHistory } = useTicketStore();
   const [manualToken, setManualToken] = useState('');
-  const [lastResult, setLastResult] = useState<TicketScanResult | null>(null);
+  const [lastResult, setLastResult] = useState<ScanResult | null>(null);
+  const [scanning, setScanning] = useState(false);
   const [mode, setMode] = useState<'scan' | 'history'>('scan');
+  const [cameraActive, setCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState('');
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const rafRef = useRef<number>(0);
 
-  const handleScan = (token: string) => {
-    if (!token.trim()) return;
-    const result = scanTicket(token.trim());
+  const handleScan = useCallback(async (token: string) => {
+    if (!token.trim() || scanning) return;
+    setScanning(true);
+    const result = await validateTicketToken(token.trim(), scanTicket);
     setLastResult(result);
     setManualToken('');
+    setScanning(false);
+  }, [scanning, scanTicket]);
+
+  // Camera scanning loop using jsqr
+  const startCamera = async () => {
+    setCameraError('');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+      setCameraActive(true);
+    } catch {
+      setCameraError('No se pudo acceder a la cámara. Usa la entrada manual.');
+    }
   };
 
+  const stopCamera = () => {
+    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
+    cancelAnimationFrame(rafRef.current);
+    setCameraActive(false);
+  };
+
+  useEffect(() => {
+    if (!cameraActive) return;
+    let lastToken = '';
+    const scan = async () => {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      if (!video || !canvas || video.readyState < 2) { rafRef.current = requestAnimationFrame(scan); return; }
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d')!.drawImage(video, 0, 0);
+      const imageData = canvas.getContext('2d')!.getImageData(0, 0, canvas.width, canvas.height);
+      try {
+        const jsQR = (await import('jsqr')).default;
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        if (code && code.data && code.data !== lastToken) {
+          lastToken = code.data;
+          stopCamera();
+          await handleScan(code.data);
+          return;
+        }
+      } catch { /* jsqr not available */ }
+      rafRef.current = requestAnimationFrame(scan);
+    };
+    rafRef.current = requestAnimationFrame(scan);
+    return () => { cancelAnimationFrame(rafRef.current); };
+  }, [cameraActive, handleScan]);
+
+  useEffect(() => () => stopCamera(), []);
+
   const filteredHistory = eventId
-    ? scanHistory.filter(s => s.eventTitle) // in real app, filter by eventId
+    ? scanHistory.filter(s => s.eventTitle)
     : scanHistory;
 
   return (
@@ -212,13 +324,39 @@ export const QRScanner: React.FC<{ eventId?: string }> = ({ eventId }) => {
 
       {mode === 'scan' && (
         <>
-          {/* Camera area (simulated — in production, use html5-qrcode or zxing) */}
+          {/* Camera area */}
           <div className="bg-gray-900 rounded-2xl aspect-square max-w-sm mx-auto flex flex-col items-center justify-center relative overflow-hidden">
-            <div className="absolute inset-8 border-2 border-white/30 rounded-2xl" />
-            <div className="absolute inset-8 border-t-2 border-brand-orange animate-pulse rounded-t-2xl" style={{ height: '2px', top: '50%' }} />
-            <Camera className="w-16 h-16 text-white/20 mb-4" />
-            <p className="text-white/40 text-sm">Apunta la cámara al QR</p>
-            <p className="text-white/20 text-xs mt-1">O introduce el código manualmente</p>
+            {cameraActive ? (
+              <>
+                <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
+                <canvas ref={canvasRef} className="hidden" />
+                {/* Scan overlay */}
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                  <div className="w-2/3 h-2/3 border-2 border-brand-orange rounded-2xl relative">
+                    <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-brand-orange rounded-tl-xl" />
+                    <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-brand-orange rounded-tr-xl" />
+                    <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-brand-orange rounded-bl-xl" />
+                    <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-brand-orange rounded-br-xl" />
+                    <div className="absolute inset-x-0 top-0 h-0.5 bg-brand-orange animate-bounce opacity-70" style={{ animationDuration: '1.5s' }} />
+                  </div>
+                </div>
+                <button onClick={stopCamera} className="absolute top-3 right-3 w-8 h-8 bg-black/50 rounded-full flex items-center justify-center">
+                  <CameraOff className="w-4 h-4 text-white" />
+                </button>
+              </>
+            ) : (
+              <div className="flex flex-col items-center gap-3">
+                <Camera className="w-16 h-16 text-white/20" />
+                <p className="text-white/40 text-sm">Escanea el QR de la entrada</p>
+                {cameraError ? (
+                  <p className="text-red-400 text-xs px-4 text-center">{cameraError}</p>
+                ) : (
+                  <button onClick={startCamera} className="bg-brand-orange text-white text-sm font-bold px-4 py-2 rounded-xl flex items-center gap-2">
+                    <Camera className="w-4 h-4" /> Activar cámara
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Manual input */}
@@ -231,22 +369,9 @@ export const QRScanner: React.FC<{ eventId?: string }> = ({ eventId }) => {
               className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-sm focus:outline-none focus:border-brand-orange focus:ring-1 focus:ring-brand-orange font-mono"
               onKeyDown={e => e.key === 'Enter' && handleScan(manualToken)}
             />
-            <Button variant="orange" onClick={() => handleScan(manualToken)}>
-              Validar
+            <Button variant="orange" onClick={() => handleScan(manualToken)} disabled={scanning}>
+              {scanning ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Validar'}
             </Button>
-          </div>
-
-          {/* Quick scan buttons for demo */}
-          <div className="card-white rounded-xl p-3">
-            <p className="text-xs text-gray-400 mb-2 font-medium">Demo — Escanear ticket:</p>
-            <div className="flex flex-wrap gap-2">
-              {['TKT-AbCd1234-EfGh-5678-IjKlMnOpQrSt-m1abc', 'TKT-QwEr5678-TyUi-9012-OpAsDfGhJkLz-m3ghi', 'TKT-FAKE-TOKEN'].map(token => (
-                <button key={token} onClick={() => handleScan(token)}
-                  className="text-[10px] px-2 py-1 rounded-lg bg-gray-100 text-gray-600 hover:bg-pink-50 hover:text-brand-orange transition-colors font-mono truncate max-w-[200px]">
-                  {token.slice(0, 25)}...
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* Last scan result */}
@@ -258,6 +383,7 @@ export const QRScanner: React.FC<{ eventId?: string }> = ({ eventId }) => {
               sectionName={lastResult.sectionName}
               ticketType={lastResult.ticketType}
               companions={lastResult.companions}
+              quantity={lastResult.quantity}
             />
           )}
         </>

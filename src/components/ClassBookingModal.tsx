@@ -9,6 +9,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Calendar as CalendarIcon, Clock, Users, Star, Video, ArrowRight, Check, Loader2, CreditCard, Shield } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
+import { useCommissionPercent } from '../lib/commission';
 
 interface Offering {
   id: string;
@@ -43,6 +44,7 @@ interface Props {
 const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => {
   const { user, isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
+  const commissionPct = useCommissionPercent();
   const [step, setStep] = useState<'select' | 'confirm' | 'paying' | 'done'>('select');
   const [slots, setSlots] = useState<Slot[]>([]);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
@@ -184,7 +186,7 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
       }
 
       const jitsiRoom = `bailanow-${offering.id.slice(0, 8)}-${Date.now()}`;
-      const platformFee = +(offering.price * 0.15).toFixed(2);
+      const platformFee = +(offering.price * (commissionPct / 100)).toFixed(2);
 
       const { data, error } = await supabase.from('class_bookings').insert({
         slot_id: selectedSlot.id,
@@ -392,7 +394,7 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
             <div>
               <p className="text-[10px] uppercase font-bold text-gray-400">Total</p>
               <p className="font-black text-2xl text-gray-900 dark:text-white">€{offering.price.toFixed(2)}</p>
-              <p className="text-[10px] text-gray-400">Incluye 15% plataforma</p>
+              <p className="text-[10px] text-gray-400">Incluye {commissionPct}% plataforma</p>
             </div>
             <button onClick={handleConfirm} disabled={!selectedSlot || submitting}
               className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg shadow-pink-500/30 flex items-center gap-2 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed">

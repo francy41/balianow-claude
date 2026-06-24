@@ -1,17 +1,21 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  MapPin, Clock, Users, Calendar, ArrowLeft, Star, MessageSquare,
-  Bell, Heart, Share2, CheckCircle, Music2, Instagram, Youtube,
-  Facebook, Globe, Headphones, Video, Ticket, Play, ChevronRight, Loader2,
+  MapPin, Clock, Users, Calendar, Star, MessageSquare,
+  Bell, Heart, Share2, CheckCircle, Music2,
+  Globe, Headphones, Video, Ticket, Play, ChevronRight, Loader2,
+  Award, Radio,
 } from 'lucide-react';
-import AdminEditFab from '../components/AdminEditFab';
+import EventAdminPanel from '../components/EventAdminPanel';
+import ClaimProfileButton from '../components/ClaimProfileButton';
+import { isClaimed, UNCLAIMED_TOAST } from '../lib/ownership';
 import { EVENTS, ARTISTS, VENUES } from '../data/mockData';
 import type { Artist, Event as EventType } from '../data/mockData';
-import { Badge, StarRating, SearchBar, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
+import { Badge, StarRating, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
 import SearchTriggerBar from '../components/SearchTriggerBar';
-import { useAuthStore, useUIStore, getYouTubeId } from '../store/appStore';
+import { useAuthStore, useUIStore, getYouTubeId, useSiteConfigStore } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
+import EventTicketModal from '../components/EventTicketModal';
 import { VenueSectionsSelector } from '../components/VenueSections';
 import { useTicketStore } from '../store/ticketStore';
 import LiveFab from '../components/LiveFab';
@@ -47,7 +51,7 @@ function mapDbEvent(e: any): EventType {
 }
 
 const CATEGORIES = ['Todos', 'Salsa', 'Salsa Cubana', 'Salsa Colombiana (Caleña)', 'Bachata', 'Bachata Dominicana', 'Bachata Moderna', 'Bachata Sensual', 'Bachata Urbana', 'Cha-cha-chá', 'Cumbia', 'Reparto Cubano', 'Festival', 'Masterclass', 'Online', 'Reggaeton', 'Timba'];
-const CITIES = ['Todas', 'Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'Online'];
+const BASE_CITIES = ['Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris'];
 
 // ── Event featured videos (mock) ──
 const EVENT_VIDEOS: Record<string, { url: string; title: string }> = {
@@ -108,18 +112,31 @@ const EventsList: React.FC = () => {
     return () => { cancelled = true; clearTimeout(safety); };
   }, []);
 
+  // Solo usar mock si no hay datos reales en BD
   const allEvents = useMemo(() => {
-    if (dbEvents.length === 0) return EVENTS;
-    const ids = new Set(dbEvents.map(e => e.id));
-    return [...dbEvents, ...EVENTS.filter(e => !ids.has(e.id))];
+    return dbEvents.length > 0 ? dbEvents : EVENTS;
   }, [dbEvents]);
+
+  // Ciudades dinámicas: base + las que realmente tienen eventos (ordenadas por nº de eventos)
+  const CITIES = useMemo(() => {
+    const counts = new Map<string, number>();
+    allEvents.forEach(e => {
+      const c = (e.city || '').trim();
+      if (c) counts.set(c, (counts.get(c) || 0) + 1);
+    });
+    const fromData = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).map(([c]) => c);
+    const merged = [...BASE_CITIES.filter(c => counts.has(c)), ...fromData.filter(c => !BASE_CITIES.includes(c))];
+    return ['Todas', ...Array.from(new Set(merged)), 'Online'];
+  }, [allEvents]);
 
   const filtered = useMemo(() => {
     return allEvents.filter(e => {
       const matchSearch = !search || e.title.toLowerCase().includes(search.toLowerCase()) ||
         e.city.toLowerCase().includes(search.toLowerCase());
       const matchCat = selectedCat.includes('Todos') || e.category.some(c => selectedCat.includes(c));
-      const matchCity = selectedCity.includes('Todas') || selectedCity.includes(e.city);
+      const matchCity = selectedCity.includes('Todas')
+        || selectedCity.includes(e.city)
+        || (selectedCity.includes('Online') && e.isOnline);
       const matchOnline = !onlyOnline || e.isOnline;
       return matchSearch && matchCat && matchCity && matchOnline;
     });
@@ -253,11 +270,12 @@ const EventCard: React.FC<{
    DETAIL VIEW — Premium artist-profile style
    ══════════════════════════════════════════════════════════════════════════ */
 const EVENT_TABS_PHYSICAL = [
-  { id: 'info' as const,     label: 'Sobre el evento', icon: '📍' },
-  { id: 'sections' as const, label: 'Localidades',     icon: '🎫' },
-  { id: 'artists' as const,  label: 'Artistas',        icon: '🎶' },
-  { id: 'gallery' as const,  label: 'Galería',         icon: '📸' },
-  { id: 'reviews' as const,  label: 'Reseñas',         icon: '⭐' },
+  { id: 'info'      as const, label: 'Info',          icon: '📍' },
+  { id: 'sections'  as const, label: 'Localidades',   icon: '🎫' },
+  { id: 'artists'   as const, label: 'Artistas',      icon: '🎶' },
+  { id: 'sponsors'  as const, label: 'Sponsors',      icon: '🏆' },
+  { id: 'gallery'   as const, label: 'Galería',       icon: '📸', module: 'gallery' },
+  { id: 'reviews'   as const, label: 'Reseñas',       icon: '⭐', module: 'reviews' },
 ];
 
 // Normaliza una fila real de `events` (BD) al shape que espera el render.
@@ -270,9 +288,15 @@ function normalizeEvent(r: any) {
     attending: Number(r.attending) || 0,
     category: Array.isArray(r.category) ? r.category : (r.category ? [r.category] : (r.type ? [r.type] : [])),
     artists: Array.isArray(r.artists) ? r.artists : [],
+    lineup: Array.isArray(r.lineup) ? r.lineup : [],
+    sponsors: Array.isArray(r.sponsors) ? r.sponsors : [],
+    live_url: r.live_url || '',
+    live_title: r.live_title || '',
+    is_live: !!r.is_live,
     isOnline: !!r.is_online, isFeatured: !!r.is_featured, isPremium: !!r.is_premium,
     venueId: r.venue_id || '', venueName: r.venue_name || '',
     lat: r.lat, lng: r.lng,
+    userId: r.user_id || r.owner_id || '',
   };
 }
 
@@ -280,22 +304,36 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
+  const { getSectionsByEvent } = useTicketStore();
   const [event, setEvent] = useState<any>(null);
   const [loadingEvent, setLoadingEvent] = useState(true);
-  const [activeTab, setActiveTab] = useState<'info' | 'sections' | 'artists' | 'gallery' | 'reviews'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'sections' | 'artists' | 'sponsors' | 'gallery' | 'reviews'>('info');
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [ticketModalOpen, setTicketModalOpen] = useState(false);
   const [following, setFollowing] = useState(false);
   const [liked, setLiked] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
+  const loadEvent = () => {
     supabase.from('events').select('*').eq('id', eventId).maybeSingle().then(({ data }) => {
-      if (cancelled) return;
       setEvent(data ? normalizeEvent(data) : null);
       setLoadingEvent(false);
     });
-    return () => { cancelled = true; };
+  };
+
+  useEffect(() => {
+    loadEvent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
+
+  // Módulos globales (Admin → Categorías): gatean pestañas gallery/reviews
+  const profileModules = useSiteConfigStore(s => s.profileModules);
+  const isModuleOn = (modId?: string) => !modId || profileModules.find(m => m.id === modId)?.enabled !== false;
+  useEffect(() => {
+    if ((activeTab === 'gallery' && !isModuleOn('gallery')) || (activeTab === 'reviews' && !isModuleOn('reviews'))) {
+      setActiveTab('info');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileModules, activeTab]);
 
   if (loadingEvent) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-orange" /></div>;
   if (!event) return (
@@ -313,14 +351,27 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
   const venue = VENUES.find(v => v.id === event.venueId);
   const video = EVENT_VIDEOS[event.id];
 
+  const claimed = isClaimed(event.userId);
+
   const handleBuy = () => {
+    if (!claimed) { addToast({ message: UNCLAIMED_TOAST, type: 'warning' }); return; }
     if (!isAuthenticated) { navigate('/auth'); return; }
-    setBookingOpen(true);
+    // Use EventTicketModal for physical events, BookingModal for online/services
+    if (!event?.isOnline) {
+      setTicketModalOpen(true);
+    } else {
+      setBookingOpen(true);
+    }
   };
 
-  const tabs = event.isOnline
-    ? [{ id: 'info' as const, label: 'Información', icon: '📍' }, { id: 'artists' as const, label: 'Artistas', icon: '🎶' }]
-    : EVENT_TABS_PHYSICAL;
+  const tabs = (event.isOnline
+    ? [
+        { id: 'info' as const,     label: 'Información', icon: '📍' },
+        { id: 'artists' as const,  label: 'Artistas',    icon: '🎶' },
+        { id: 'sponsors' as const, label: 'Sponsors',    icon: '🏆' },
+      ]
+    : EVENT_TABS_PHYSICAL
+  ).filter((t: any) => isModuleOn(t.module));
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
@@ -404,9 +455,10 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
       {/* ── STICKY ACTION BAR ── */}
       <div className="sticky top-14 z-30 bg-white border-b border-gray-100 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-          <button onClick={handleBuy}
-            className="btn-orange text-sm py-2 px-5 flex items-center gap-1.5 whitespace-nowrap">
-            <Ticket className="w-4 h-4" /> Comprar Ticket — €{event.price}
+          <button onClick={handleBuy} disabled={!claimed}
+            title={!claimed ? 'Perfil no reclamado — venta no disponible' : undefined}
+            className="btn-orange text-sm py-2 px-5 flex items-center gap-1.5 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
+            <Ticket className="w-4 h-4" /> {claimed ? `Comprar Ticket — €${event.price}` : 'No reclamado'}
           </button>
           <button onClick={() => navigate('/chat')}
             className="btn-outline text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
@@ -611,9 +663,15 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                   </div>
                   <p className="text-xs text-gray-400 text-right">{event.attending}/{event.capacity} asistentes</p>
                 </div>
-                <Button variant="orange" className="w-full" onClick={handleBuy}>
-                  🎫 Comprar Ticket
-                </Button>
+                {claimed ? (
+                  <Button variant="orange" className="w-full" onClick={handleBuy}>
+                    🎫 Comprar Ticket
+                  </Button>
+                ) : (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-center text-xs text-amber-700 font-semibold">
+                    🔒 Perfil no reclamado — la venta de entradas estará disponible cuando el organizador verifique el evento.
+                  </div>
+                )}
               </div>
 
               {/* Map (physical events only) */}
@@ -703,53 +761,145 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
 
         {/* ═══ ARTISTS TAB ═══ */}
         {activeTab === 'artists' && (
-          <div className="space-y-4">
-            <p className="text-gray-400 text-sm">{linkedArtists.length} artistas confirmados para este evento</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {linkedArtists.map(artist => (
-                <div key={artist.id}
-                  onClick={() => navigate(`/artistas/${artist.id}`)}
-                  className="card-white rounded-2xl overflow-hidden cursor-pointer hover:shadow-card-hover hover:scale-[1.02] transition-all duration-300">
-                  <div className="relative h-36 overflow-hidden">
-                    <img src={artist.cover} alt={artist.name} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                    {artist.isLive && (
-                      <Badge variant="red" className="absolute top-2 left-2 animate-pulse">🔴 EN VIVO</Badge>
-                    )}
-                    <div className="absolute bottom-3 left-3 flex items-center gap-3">
-                      <img src={artist.avatar} alt={artist.name} className="w-14 h-14 rounded-xl border-2 border-white/40 object-cover" />
-                      <div>
-                        <div className="flex items-center gap-1">
-                          <span className="text-white font-bold">{artist.name}</span>
-                          {artist.isVerified && <CheckCircle className="w-4 h-4 text-blue-400 fill-blue-400" />}
+          <div className="space-y-6">
+            {/* Lineup from DB (new system) */}
+            {event.lineup && event.lineup.length > 0 && (
+              <div>
+                <h3 className="font-display font-bold text-gray-900 mb-3">🎤 Lineup confirmado</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {event.lineup.map((entry: any, i: number) => (
+                    <div
+                      key={i}
+                      onClick={() => entry.artist_id ? navigate(`/artistas/${entry.artist_id}`) : undefined}
+                      className={`flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-4 shadow-sm ${entry.artist_id ? 'cursor-pointer hover:shadow-md hover:border-brand-orange/30 transition-all' : ''}`}
+                    >
+                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-purple-100 flex-shrink-0">
+                        {entry.avatar
+                          ? <img src={entry.avatar} alt={entry.name} className="w-full h-full object-cover" />
+                          : <div className="w-full h-full flex items-center justify-center text-purple-600 font-black text-lg">{entry.name[0]}</div>}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900">{entry.name}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">{entry.role}</span>
+                          {entry.time_slot && <span className="text-xs text-gray-400">⏰ {entry.time_slot}</span>}
                         </div>
-                        <span className="text-white/70 text-xs capitalize">{artist.type === 'dj' ? 'DJ' : artist.type === 'dancer' ? 'Bailarín/a' : artist.type === 'band' ? 'Banda' : artist.type}</span>
+                        {entry.genre && <p className="text-xs text-gray-400 mt-0.5">{entry.genre}</p>}
+                      </div>
+                      {entry.artist_id && <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" />}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Linked mock artists (legacy) */}
+            {linkedArtists.length > 0 && (
+              <div>
+                {event.lineup?.length > 0 && <h3 className="font-display font-bold text-gray-900 mb-3">Artistas vinculados</h3>}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {linkedArtists.map(artist => (
+                    <div key={artist.id}
+                      onClick={() => navigate(`/artistas/${artist.id}`)}
+                      className="card-white rounded-2xl overflow-hidden cursor-pointer hover:shadow-card-hover hover:scale-[1.02] transition-all duration-300">
+                      <div className="relative h-36 overflow-hidden">
+                        <img src={artist.cover} alt={artist.name} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                        {artist.isLive && (
+                          <Badge variant="red" className="absolute top-2 left-2 animate-pulse">🔴 EN VIVO</Badge>
+                        )}
+                        <div className="absolute bottom-3 left-3 flex items-center gap-3">
+                          <img src={artist.avatar} alt={artist.name} className="w-14 h-14 rounded-xl border-2 border-white/40 object-cover" />
+                          <div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-white font-bold">{artist.name}</span>
+                              {artist.isVerified && <CheckCircle className="w-4 h-4 text-blue-400 fill-blue-400" />}
+                            </div>
+                            <span className="text-white/70 text-xs capitalize">{artist.type === 'dj' ? 'DJ' : artist.type === 'dancer' ? 'Bailarín/a' : artist.type === 'band' ? 'Banda' : artist.type}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                          <span className="flex items-center gap-0.5"><Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> {artist.rating} ({artist.reviews})</span>
+                          <span>·</span>
+                          <span>{artist.city}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {artist.genre.slice(0, 3).map(g => (
+                            <span key={g} className="text-[10px] bg-pink-50 text-brand-orange px-2 py-0.5 rounded-full font-medium">{g}</span>
+                          ))}
+                        </div>
+                        <button className="w-full mt-3 btn-outline text-xs py-2 flex items-center justify-center gap-1.5">
+                          Ver perfil <ChevronRight className="w-3 h-3" />
+                        </button>
                       </div>
                     </div>
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
-                      <span className="flex items-center gap-0.5"><Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> {artist.rating} ({artist.reviews})</span>
-                      <span>·</span>
-                      <span>{artist.city}</span>
-                      <span>·</span>
-                      <span>{artist.followers.toLocaleString()} seguidores</span>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {artist.genre.slice(0, 3).map(g => (
-                        <span key={g} className="text-[10px] bg-pink-50 text-brand-orange px-2 py-0.5 rounded-full font-medium">{g}</span>
-                      ))}
-                    </div>
-                    <button className="w-full mt-3 btn-outline text-xs py-2 flex items-center justify-center gap-1.5">
-                      Ver perfil <ChevronRight className="w-3 h-3" />
-                    </button>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
 
-            {linkedArtists.length === 0 && (
+            {(!event.lineup || event.lineup.length === 0) && linkedArtists.length === 0 && (
               <EmptyState icon="🎤" title="Sin artistas confirmados" description="Los artistas se publicarán pronto" />
+            )}
+          </div>
+        )}
+
+        {/* ═══ SPONSORS TAB ═══ */}
+        {activeTab === 'sponsors' && (
+          <div className="space-y-4">
+            {event.sponsors && event.sponsors.length > 0 ? (
+              <>
+                <p className="text-gray-400 text-sm">{event.sponsors.length} patrocinadores de este evento</p>
+                {/* Platinum / Gold first big */}
+                {(['platinum', 'gold'] as const).map(tier => {
+                  const list = event.sponsors.filter((s: any) => s.tier === tier);
+                  if (list.length === 0) return null;
+                  const tierLabel = tier === 'platinum' ? 'Platino' : 'Oro';
+                  const tierColor = tier === 'platinum' ? 'from-purple-100 to-fuchsia-100 border-purple-200' : 'from-yellow-50 to-amber-50 border-yellow-200';
+                  return (
+                    <div key={tier}>
+                      <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">{tierLabel}</p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {list.map((s: any, i: number) => (
+                          <a key={i} href={s.url || '#'} target="_blank" rel="noreferrer"
+                            className={`flex flex-col items-center gap-3 p-5 rounded-2xl border bg-gradient-to-br ${tierColor} hover:shadow-md transition-all`}>
+                            {s.logo
+                              ? <img src={s.logo} alt={s.name} className="h-12 object-contain" />
+                              : <Award className="w-10 h-10 text-gray-300" />}
+                            <span className="font-bold text-gray-900 text-sm text-center">{s.name}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+                {/* Silver / Bronze smaller */}
+                {(['silver', 'bronze'] as const).map(tier => {
+                  const list = event.sponsors.filter((s: any) => s.tier === tier);
+                  if (list.length === 0) return null;
+                  const tierLabel = tier === 'silver' ? 'Plata' : 'Bronce';
+                  return (
+                    <div key={tier}>
+                      <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">{tierLabel}</p>
+                      <div className="flex flex-wrap gap-3">
+                        {list.map((s: any, i: number) => (
+                          <a key={i} href={s.url || '#'} target="_blank" rel="noreferrer"
+                            className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-3 hover:shadow-sm transition-all">
+                            {s.logo
+                              ? <img src={s.logo} alt={s.name} className="h-8 object-contain" />
+                              : <Award className="w-6 h-6 text-gray-300" />}
+                            <span className="font-semibold text-gray-700 text-sm">{s.name}</span>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            ) : (
+              <EmptyState icon="🏆" title="Sin patrocinadores publicados" description="Contacta con el organizador para información sobre patrocinios" />
             )}
           </div>
         )}
@@ -844,9 +994,67 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
         helperText={`${event.isOnline ? 'Online' : event.city} · ${event.time} – ${event.endTime}`}
       />
 
+      <EventTicketModal
+        open={ticketModalOpen}
+        onClose={() => setTicketModalOpen(false)}
+        eventId={event.id}
+        eventTitle={event.title}
+        eventDate={event.date}
+        organizerId={event.userId}
+        sections={getSectionsByEvent(event.id).map(s => ({
+          id: s.id, name: s.name, type: s.type,
+          price: s.price, available: s.available, benefits: s.benefits, color: s.color,
+        }))}
+      />
+
+      {/* ── LIVE STREAM BANNER ── */}
+      {event.is_live && event.live_url && (() => {
+        const ytId = getYouTubeId(event.live_url);
+        const twitch = event.live_url.match(/twitch\.tv\/([a-zA-Z0-9_]+)/)?.[1];
+        if (!ytId && !twitch) return null;
+        return (
+          <div className="max-w-5xl mx-auto px-4 pb-6">
+            <div className="bg-gray-900 rounded-2xl overflow-hidden">
+              <div className="flex items-center gap-3 px-5 py-4">
+                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                <span className="text-white font-black text-lg">{event.live_title || 'EN DIRECTO'}</span>
+                <span className="bg-red-600 text-white text-xs font-black px-2 py-0.5 rounded">LIVE</span>
+              </div>
+              <div className="aspect-video">
+                {ytId && (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${ytId}?autoplay=0&modestbranding=1&rel=0`}
+                    className="w-full h-full border-0"
+                    allow="encrypted-media; picture-in-picture"
+                    allowFullScreen
+                    title="Live stream"
+                  />
+                )}
+                {twitch && !ytId && (
+                  <iframe
+                    src={`https://player.twitch.tv/?channel=${twitch}&parent=${window.location.hostname}`}
+                    className="w-full h-full border-0"
+                    allowFullScreen
+                    title="Live Twitch"
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       <LiveFab defaultCategory="event" label="Iniciar Evento Live" />
 
-      <AdminEditFab kind="event" id={eventId} />
+      <EventAdminPanel eventId={eventId} onSaved={loadEvent} ownerUserId={event?.userId} />
+      <div className="fixed z-[60] bottom-24 right-4 sm:bottom-8 sm:right-8">
+        <ClaimProfileButton
+          targetTable="events"
+          targetId={eventId}
+          targetName={event?.title || 'Evento'}
+          hasOwner={!!event?.userId}
+        />
+      </div>
     </div>
   );
 };

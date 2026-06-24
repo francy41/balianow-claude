@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useSearchParams } from 'react-router-dom';
 import {
   Compass, MapPin, Calendar, Users, Music2,
   Briefcase, BookOpen, Radio, Megaphone, MessageCircle,
   LayoutDashboard, User, ChevronDown, ChevronRight,
-  Ticket, Video, Gift, Sparkles
+  Ticket, Video, Gift, Sparkles, Home
 } from 'lucide-react';
-import { useCMSStore } from '../../store/cmsStore';
 import { useSiteConfigStore } from '../../store/appStore';
 
 interface NavItem {
@@ -73,9 +72,30 @@ interface SidebarProps { open: boolean; onClose?: () => void; }
 
 const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const location = useLocation();
-  const cmsMenu = useCMSStore(s => s.menu);
+  const [searchParams] = useSearchParams();
   const siteLogo = useSiteConfigStore(s => s.siteLogo);
-  const dynamicMenuItems = [...cmsMenu].filter(m => m.isVisible).sort((a, b) => a.order - b.order);
+  const homeCategories = useSiteConfigStore(s => s.homeCategories);
+
+  // Grupos del sidebar construidos desde homeCategories (Admin → Categorías = fuente única).
+  // Solo categorías raíz activas, agrupadas por sección y ordenadas por display_order.
+  const SECTION_LABEL: Record<string, string> = { main: 'PRINCIPAL', mercado: 'MERCADO', comunidad: 'COMUNIDAD' };
+  const categoryGroups = (['main', 'mercado', 'comunidad'] as const).map(section => ({
+    section: SECTION_LABEL[section],
+    items: homeCategories
+      .filter(c => c.section === section && c.active && !c.parent_id)
+      .sort((a, b) => a.display_order - b.display_order)
+      .map(c => ({ label: c.name, icon: c.icon, to: c.route || '/' })),
+  })).filter(g => g.items.length > 0);
+
+  // isActive que compara pathname + query params para evitar dobles activos
+  const isNavItemActive = (to: string) => {
+    if (to === '/') return location.pathname === '/';
+    const [toPath, toQuery] = to.split('?');
+    if (location.pathname !== toPath) return false;
+    if (!toQuery) return !location.search; // si el link no tiene query, solo activo si URL tampoco
+    const toParams = new URLSearchParams(toQuery);
+    return Array.from(toParams.entries()).every(([k, v]) => searchParams.get(k) === v);
+  };
 
   return (
     <>
@@ -83,8 +103,9 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       {open && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={onClose} />}
 
       <aside className={`fixed top-0 left-0 h-full w-60 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 border-r border-pink-500/10 z-40 flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-        {/* Logo */}
-        <div className="flex items-center gap-2 px-5 h-14 border-b border-pink-500/10 flex-shrink-0">
+        {/* Logo — enlaza a Inicio */}
+        <NavLink to="/" onClick={onClose}
+          className="flex items-center gap-2 px-5 h-14 border-b border-pink-500/10 flex-shrink-0 hover:opacity-90 transition-opacity">
           {siteLogo ? (
             <img src={siteLogo} alt="BailaNow" className="h-10 max-w-[180px] object-contain" />
           ) : (
@@ -96,32 +117,37 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
               </span>
             </>
           )}
-        </div>
+        </NavLink>
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-3 px-3" style={{ scrollbarWidth: 'none' }}>
-          {/* CMS-managed menu (top section) */}
-          {dynamicMenuItems.length > 0 && (
-            <div>
-              <p className="nav-section">MENÚ</p>
-              {dynamicMenuItems.map(item => (
+          {/* Inicio — acceso fijo (no es categoría) */}
+          <NavLink to="/" onClick={onClose}
+            className={`nav-link mb-0.5 ${isNavItemActive('/') ? 'active' : ''}`}>
+            <Home className="w-4 h-4" />
+            <span className="truncate">Inicio</span>
+          </NavLink>
+
+          {/* Navegación principal — fuente única: Admin → Categorías (homeCategories) */}
+          {categoryGroups.map(group => (
+            <div key={group.section}>
+              <p className="nav-section">{group.section}</p>
+              {group.items.map(item => (
                 <NavLink
-                  key={item.id}
+                  key={item.label + item.to}
                   to={item.to}
                   onClick={onClose}
-                  className={({ isActive }) =>
-                    `nav-link mb-0.5 ${isActive && item.to !== '/' ? 'active' : ''}`
-                  }
+                  className={`nav-link mb-0.5 ${isNavItemActive(item.to) ? 'active' : ''}`}
                 >
                   <span className="w-4 h-4 flex items-center justify-center text-sm">{item.icon}</span>
                   <span className="truncate">{item.label}</span>
                 </NavLink>
               ))}
             </div>
-          )}
+          ))}
 
-          {/* CERCA DE MÍ se oculta porque sus enlaces ya están en el MENÚ dinámico (CMS) */}
-          {NAV.filter(g => g.section !== 'EXPLORADOR' && g.section !== 'CERCA DE MÍ').map(group => (
+          {/* MI CUENTA — estático (no son categorías) */}
+          {NAV.filter(g => g.section === 'MI CUENTA').map(group => (
             <div key={group.section}>
               <p className="nav-section">{group.section}</p>
               {group.items.map(item => (
@@ -129,9 +155,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                   key={item.label}
                   to={item.to || '/'}
                   onClick={onClose}
-                  className={({ isActive }) =>
-                    `nav-link mb-0.5 ${isActive && item.to !== '/' ? 'active' : ''}`
-                  }
+                  className={`nav-link mb-0.5 ${isNavItemActive(item.to || '/') ? 'active' : ''}`}
                 >
                   {item.icon}
                   <span className="truncate">{item.label}</span>

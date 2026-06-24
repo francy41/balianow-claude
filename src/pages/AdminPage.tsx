@@ -8,7 +8,7 @@ import {
   Edit, Trash2, Plus, Search, Filter, RefreshCw,
   ChevronRight, ArrowUpRight, ArrowDownRight, Clock,
   Wifi, Globe, Bell, Database, Server, FileText, Save, Loader2,
-  Share2, Flag, ExternalLink
+  Share2, Flag, ExternalLink, MessageSquare
 } from 'lucide-react';
 import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, useAdminOverridesStore, useSponsorsStore, DEFAULT_HOME_CATEGORIES, type HeroMediaType, type CommissionSource, type HeroSliderImage, type HomeCategory, type Sponsor } from '../store/appStore';
 import { supabase } from '../lib/supabase';
@@ -20,6 +20,8 @@ import AdminLocationModal from '../components/AdminLocationModal';
 import ProfileImporter from '../components/ProfileImporter';
 import NewsletterAdminPanel from '../components/NewsletterAdminPanel';
 import DanceChoreoAdmin from '../components/DanceChoreoAdmin';
+import ClaimsAdminSection from '../components/ClaimsAdminSection';
+import SupportAdminSection from '../components/SupportAdminSection';
 import { uploadImage, uploadVideo } from '../lib/uploadHelper';
 import { fetchCommissionPercent, getCachedCommissionPercent, setCommissionPercent } from '../lib/commission';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
@@ -32,18 +34,19 @@ type AdminSection =
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms'
   | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter' | 'danceavatares' | 'afiliados' | 'promocionate'
-  | 'reclamaciones';
+  | 'reclamaciones' | 'planificador' | 'soporte';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
   { id: 'cms',            label: 'CMS · Constructor',       icon: <Palette className="w-4 h-4" />, badge: 'NEW' },
-  { id: 'patrocinadores', label: 'Patrocinadores',          icon: <Star className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'patrocinadores', label: 'Lo más destacado',        icon: <Star className="w-4 h-4" />, badge: 'NEW' },
   { id: 'categorias',     label: 'Categorías',              icon: <Tag className="w-4 h-4" /> },
   { id: 'media',          label: 'Media Manager',           icon: <Palette className="w-4 h-4" />, badge: 'NEW' },
   { id: 'radio',          label: 'Radio Online',            icon: <Radio className="w-4 h-4" /> },
   { id: 'usuarios',       label: 'Usuarios',                icon: <Users className="w-4 h-4" /> },
   { id: 'importar',       label: 'Importar perfiles',       icon: <FileText className="w-4 h-4" />, badge: 'NEW' },
   { id: 'integraciones',  label: 'Integraciones (GHL)',     icon: <Globe className="w-4 h-4" />, badge: 'GHL' },
+  { id: 'planificador',   label: 'Planificador de Redes',   icon: <Radio className="w-4 h-4" />, badge: 'LIVE' },
   { id: 'newsletter',     label: 'Newsletter',              icon: <Bell className="w-4 h-4" /> },
   { id: 'danceavatares',  label: 'Avatares de Baile',       icon: <Sparkles className="w-4 h-4" />, badge: 'IA' },
   { id: 'localidades',    label: 'Localidades',             icon: <MapPin className="w-4 h-4" /> },
@@ -66,6 +69,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'seguridad',      label: 'Seguridad',               icon: <Lock className="w-4 h-4" /> },
   { id: 'resenas',        label: 'Reseñas',                 icon: <Star className="w-4 h-4" /> },
   { id: 'reclamaciones',   label: 'Reclamaciones',           icon: <Flag className="w-4 h-4" />, badge: 'pend.' },
+  { id: 'soporte',         label: 'Soporte',                 icon: <MessageSquare className="w-4 h-4" />, badge: 'chat' },
   { id: 'administradores', label: 'Administradores',        icon: <Shield className="w-4 h-4" />, badge: 'SUPER' },
 ];
 
@@ -161,6 +165,7 @@ const AdminPage: React.FC = () => {
   const [radioLiveCount, setRadioLiveCount] = useState<number | null>(null);
   const [disputesPendingCount, setDisputesPendingCount] = useState<number | null>(null);
   const [escrowPendingCount, setEscrowPendingCount] = useState<number | null>(null);
+  const [supportUnreadCount, setSupportUnreadCount] = useState<number | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -168,11 +173,13 @@ const AdminPage: React.FC = () => {
       supabase.from('radio_stations').select('id', { count: 'exact', head: true }).eq('status', 'active'),
       supabase.from('disputes').select('id', { count: 'exact', head: true }).eq('status', 'open'),
       supabase.from('escrows').select('id', { count: 'exact', head: true }).in('status', ['pending', 'held', 'escrow']),
-    ]).then(([claims, radio, disputes, escrow]) => {
+      supabase.from('support_messages').select('id', { count: 'exact', head: true }).eq('is_admin', false).eq('read', false),
+    ]).then(([claims, radio, disputes, escrow, support]) => {
       setPendingClaimsCount(claims.count ?? 0);
       setRadioLiveCount(radio.count ?? 0);
       setDisputesPendingCount(disputes.count ?? 0);
       setEscrowPendingCount(escrow.count ?? 0);
+      setSupportUnreadCount(support.count ?? 0);
     });
   }, []);
 
@@ -236,6 +243,7 @@ const AdminPage: React.FC = () => {
                   sec.id === 'radio'         ? (radioLiveCount != null ? `${radioLiveCount} live` : null) :
                   sec.id === 'disputas'      ? ((disputesPendingCount ?? 0) > 0 ? String(disputesPendingCount) : null) :
                   sec.id === 'mercado'       ? ((escrowPendingCount ?? 0) > 0 ? `${escrowPendingCount} pend.` : null) :
+                  sec.id === 'soporte'       ? ((supportUnreadCount ?? 0) > 0 ? String(supportUnreadCount) : null) :
                   (sec.badge ?? null);
                 return dynBadge ? (
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${active === sec.id ? 'bg-white/20 text-white' : 'bg-brand-orange/10 text-brand-orange'}`}>
@@ -276,9 +284,11 @@ const AdminPage: React.FC = () => {
         {active === 'seguridad'      && <SeguridadSection />}
         {active === 'resenas'        && <ResenasSection addToast={addToast} />}
         {active === 'patrocinadores'  && <PatrocinadoresSection addToast={addToast} />}
+        {active === 'soporte'         && <SupportAdminSection addToast={addToast} />}
         {active === 'administradores' && <AdministradoresSection addToast={addToast} isSuperAdmin={isSuperAdmin} />}
         {active === 'importar'        && <ProfileImporter />}
         {active === 'integraciones'   && <IntegracionesSection addToast={addToast} />}
+        {active === 'planificador'    && <PlanificadorSection addToast={addToast} />}
         {active === 'newsletter'      && <NewsletterAdminPanel />}
         {active === 'danceavatares'   && <DanceChoreoAdmin />}
         {active === 'reclamaciones'   && <ReclamacionesSection addToast={addToast} onCountChange={setPendingClaimsCount} />}
@@ -438,7 +448,7 @@ const OverviewSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 // ── 2. CATEGORÍAS ──────────────────────────────────────────────────────────
 
 const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
-  const { homeCategories, setHomeCategories } = useSiteConfigStore();
+  const { homeCategories, setHomeCategories, profileModules, setProfileModules } = useSiteConfigStore();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<HomeCategory>>({});
   const [showNewForm, setShowNewForm] = useState(false);
@@ -452,6 +462,15 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     if (error) addToast({ message: `⚠ Guardado local, BD falló: ${error}`, type: 'warning' });
   };
 
+  // ── Módulos de perfil (activar/ocultar pestañas globalmente) ──
+  const toggleModule = async (id: string) => {
+    const updated = profileModules.map(m => m.id === id ? { ...m, enabled: !m.enabled } : m);
+    setProfileModules(updated);
+    const { error } = await saveSiteConfigKey('profile_modules', updated);
+    if (error) addToast({ message: `⚠ Guardado local, BD falló: ${error}`, type: 'warning' });
+    else addToast({ message: 'Módulos actualizados en todos los perfiles', type: 'success' });
+  };
+
   const toggleActive = (id: string) => {
     save(homeCategories.map(c => c.id === id ? { ...c, active: !c.active } : c));
   };
@@ -463,18 +482,23 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   };
 
   const moveCategory = (id: string, dir: -1 | 1) => {
-    const section = homeCategories.find(c => c.id === id)?.section;
-    const sectionCats = [...homeCategories.filter(c => c.section === section)].sort((a, b) => a.display_order - b.display_order);
-    const idx = sectionCats.findIndex(c => c.id === id);
+    const cat = homeCategories.find(c => c.id === id);
+    if (!cat) return;
+    // Hermanos = misma sección y mismo nivel (mismo parent_id)
+    const siblings = homeCategories
+      .filter(c => c.section === cat.section && (c.parent_id ?? null) === (cat.parent_id ?? null))
+      .sort((a, b) => a.display_order - b.display_order);
+    const idx = siblings.findIndex(c => c.id === id);
     const newIdx = idx + dir;
-    if (newIdx < 0 || newIdx >= sectionCats.length) return;
-    const updated = [...homeCategories];
-    const aOrder = sectionCats[idx].display_order;
-    const bOrder = sectionCats[newIdx].display_order;
-    const ai = updated.findIndex(c => c.id === sectionCats[idx].id);
-    const bi = updated.findIndex(c => c.id === sectionCats[newIdx].id);
-    updated[ai] = { ...updated[ai], display_order: bOrder };
-    updated[bi] = { ...updated[bi], display_order: aOrder };
+    if (newIdx < 0 || newIdx >= siblings.length) return;
+    // Intercambiar posiciones en el array y renumerar secuencialmente (1..N).
+    // Renumerar elimina los display_order duplicados que rompían el swap anterior.
+    const reordered = [...siblings];
+    [reordered[idx], reordered[newIdx]] = [reordered[newIdx], reordered[idx]];
+    const orderMap = new Map(reordered.map((c, i) => [c.id, i + 1]));
+    const updated = homeCategories.map(c =>
+      orderMap.has(c.id) ? { ...c, display_order: orderMap.get(c.id)! } : c
+    );
     save(updated);
   };
 
@@ -668,6 +692,42 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
               <div className="w-10 h-10 rounded-full bg-pink-50 border border-pink-200 flex items-center justify-center text-lg">{cat.icon}</div>
               <span className="text-[9px] text-gray-600 font-semibold text-center leading-tight line-clamp-2">{cat.name}</span>
             </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Módulos de perfil — activar/ocultar pestañas globalmente */}
+      <div className="card-white p-4 mb-5 border-l-4 border-fuchsia-500">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+            🧩 Módulos de los perfiles
+          </h3>
+          <span className="text-[10px] font-bold text-fuchsia-600 bg-fuchsia-50 px-2 py-1 rounded-full">
+            {profileModules.filter(m => m.enabled).length}/{profileModules.length} activos
+          </span>
+        </div>
+        <p className="text-[11px] text-gray-400 mb-3">
+          Activa u oculta estas secciones en TODOS los perfiles de la plataforma. El cambio es global e inmediato.
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {profileModules.map(m => (
+            <button key={m.id} onClick={() => toggleModule(m.id)}
+              className={`flex items-center gap-2 p-2.5 rounded-xl border text-left transition-all ${
+                m.enabled
+                  ? 'border-fuchsia-200 bg-fuchsia-50/50 hover:bg-fuchsia-50'
+                  : 'border-gray-100 bg-gray-50 opacity-60 hover:opacity-100'
+              }`}>
+              <span className="text-lg flex-shrink-0">{m.icon}</span>
+              <span className="flex-1 min-w-0">
+                <span className="block text-xs font-bold text-gray-800 truncate">{m.label}</span>
+                <span className={`block text-[10px] font-bold ${m.enabled ? 'text-green-600' : 'text-gray-400'}`}>
+                  {m.enabled ? '✓ Visible' : '○ Oculto'}
+                </span>
+              </span>
+              <span className={`w-9 h-5 rounded-full flex-shrink-0 transition-colors relative ${m.enabled ? 'bg-fuchsia-500' : 'bg-gray-300'}`}>
+                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${m.enabled ? 'left-4' : 'left-0.5'}`} />
+              </span>
+            </button>
           ))}
         </div>
       </div>
@@ -3517,7 +3577,7 @@ const PatrocinadoresSection: React.FC<{ addToast: Function }> = ({ addToast }) =
     await saveSiteConfigKey('sponsors', next);
   };
 
-  const openNew = () => { setEditId(null); setForm({ name:'', tagline:'', logo:'', color:'#E11D48', link:'', badge:'🏆 Patrocinador', type:'venue', active:true, isPremium:false, city:'', website:'', phone:'', email:'', description:'' }); setShowForm(true); };
+  const openNew = () => { setEditId(null); setForm({ name:'', tagline:'', logo:'', color:'#E11D48', link:'', badge:'🏆 Patrocinador', type:'venue', placement:'both', active:true, isPremium:false, city:'', website:'', phone:'', email:'', description:'' }); setShowForm(true); };
   const openEdit = (sp: Sponsor) => { setEditId(sp.id); setForm(sp); setShowForm(true); };
 
   const handleSave = async () => {
@@ -3565,11 +3625,11 @@ const PatrocinadoresSection: React.FC<{ addToast: Function }> = ({ addToast }) =
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-xl font-black text-gray-900">🏆 Patrocinadores</h2>
-          <p className="text-gray-500 text-sm">{sponsors.filter(s => s.active).length} activos · {sponsors.length} total</p>
+          <h2 className="text-xl font-black text-gray-900">🔥 Lo más destacado</h2>
+          <p className="text-gray-500 text-sm">Eventos, perfiles, vendedores, paquetes y patrocinadores del home · {sponsors.filter(s => s.active).length} activos · {sponsors.length} total</p>
         </div>
         <button onClick={openNew} className="btn-orange flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Nuevo Patrocinador
+          <Plus className="w-4 h-4" /> Nuevo destacado
         </button>
       </div>
 
@@ -3643,12 +3703,25 @@ const PatrocinadoresSection: React.FC<{ addToast: Function }> = ({ addToast }) =
                 </div>
                 {/* Tipo */}
                 <div>
-                  <label className="text-xs font-bold text-gray-700 mb-1 block">Tipo de patrocinador</label>
+                  <label className="text-xs font-bold text-gray-700 mb-1 block">Tipo</label>
                   <select value={form.type || 'venue'} onChange={e => setF('type', e.target.value)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
                     <option value="venue">🏠 Local / Venue</option>
                     <option value="artist">🎧 Artista / DJ</option>
                     <option value="event">🎉 Evento</option>
-                    <option value="brand">🏢 Marca / Empresa</option>
+                    <option value="profile">👤 Perfil</option>
+                    <option value="seller">🛍️ Vendedor</option>
+                    <option value="package">📦 Paquete</option>
+                    <option value="brand">🏢 Marca</option>
+                    <option value="company">🏢 Empresa</option>
+                  </select>
+                </div>
+                {/* Ubicación en el home */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 mb-1 block">¿Dónde aparece?</label>
+                  <select value={form.placement || 'both'} onChange={e => setF('placement', e.target.value as any)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
+                    <option value="featured">🔥 Solo "Lo más destacado" (arriba)</option>
+                    <option value="footer">🏢 Solo Patrocinadores (pie)</option>
+                    <option value="both">Ambos</option>
                   </select>
                 </div>
                 {/* Ciudad */}
@@ -4315,15 +4388,9 @@ const ReclamacionesSection: React.FC<{ addToast: Function; onCountChange?: (n: n
     setLoading(true);
     const { data } = await supabase
       .from('profile_claims')
-      .select('*, claimant:profiles!claimant_id(full_name,email,avatar_url)')
-      .order('created_at', { ascending: false });
-    // Fallback: si el join falló con la hint de columna, reintenta sin join y deja claimant vacío
-    const rows = data ?? await supabase
-      .from('profile_claims')
       .select('*')
-      .order('created_at', { ascending: false })
-      .then(r => r.data ?? []);
-    const list = Array.isArray(rows) ? rows : [];
+      .order('created_at', { ascending: false });
+    const list = Array.isArray(data) ? data : [];
     setClaims(list);
     onCountChange?.(list.filter(c => c.status === 'pending').length);
     setLoading(false);
@@ -4335,36 +4402,56 @@ const ReclamacionesSection: React.FC<{ addToast: Function; onCountChange?: (n: n
     setProcessing(claim.id);
     const { data: { session } } = await supabase.auth.getSession();
 
-    // Actualizar estado de la solicitud
-    const { error: updateErr } = await supabase
-      .from('profile_claims')
-      .update({
-        status: approved ? 'approved' : 'rejected',
-        reviewed_by: session?.user?.id,
-        reviewed_at: new Date().toISOString(),
-      })
-      .eq('id', claim.id);
-
-    if (updateErr) {
-      addToast({ type: 'error', message: `Error: ${updateErr.message}` });
-      setProcessing(null);
-      return;
-    }
-
-    // Si aprobado: vincular user_id en la tabla correspondiente
     if (approved) {
-      const { error: linkErr } = await supabase
-        .from(claim.target_table)
-        .update({ user_id: claim.claimant_id })
-        .eq('id', claim.target_id);
+      // Si no tiene claimant_id, solo marcar como aprobado con token de verificación
+      const verificationToken = `claim_${claim.id}_${Math.random().toString(36).slice(2)}`;
+      const { error: updateErr } = await supabase
+        .from('profile_claims')
+        .update({
+          status: 'approved',
+          verification_token: verificationToken,
+          reviewed_by: session?.user?.id,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq('id', claim.id);
 
-      if (linkErr) {
-        addToast({ type: 'error', message: `Aprobado pero no se pudo vincular: ${linkErr.message}` });
-      } else {
-        addToast({ type: 'success', message: `✅ Perfil vinculado a ${claim.claimant?.full_name || 'usuario'}` });
+      if (updateErr) {
+        addToast({ type: 'error', message: `Error: ${updateErr.message}` });
+        setProcessing(null);
+        return;
       }
+
+      // Si tiene claimant_id (viejo sistema), vincular directo
+      if (claim.claimant_id) {
+        const { error: linkErr } = await supabase
+          .from(claim.target_table)
+          .update({ user_id: claim.claimant_id })
+          .eq('id', claim.target_id);
+        if (linkErr) {
+          addToast({ type: 'error', message: `Aprobado pero no se pudo vincular: ${linkErr.message}` });
+        }
+      }
+
+      addToast({
+        type: 'success',
+        message: `✅ Aprobado. Email de verificación enviado a ${claim.claimant_email || 'usuario'}`
+      });
     } else {
-      addToast({ type: 'success', message: 'Solicitud rechazada.' });
+      // Rechazar
+      const { error: updateErr } = await supabase
+        .from('profile_claims')
+        .update({
+          status: 'rejected',
+          reviewed_by: session?.user?.id,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq('id', claim.id);
+
+      if (updateErr) {
+        addToast({ type: 'error', message: `Error: ${updateErr.message}` });
+      } else {
+        addToast({ type: 'success', message: 'Solicitud rechazada.' });
+      }
     }
 
     setProcessing(null);
@@ -4402,21 +4489,24 @@ const ReclamacionesSection: React.FC<{ addToast: Function; onCountChange?: (n: n
           </div>
         ) : (
           <div className="space-y-3">
-            {pending.map(c => (
+            {pending.map(c => {
+              const email = c.claimant_email || c.claimant?.email || 'desconocido@email.com';
+              const name = c.claimant?.full_name || email.split('@')[0];
+              return (
               <div key={c.id} className="bg-white border border-amber-200 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-fuchsia-500 flex items-center justify-center text-white font-black text-sm flex-shrink-0">
-                    {(c.claimant?.full_name || '?')[0].toUpperCase()}
+                    {name[0].toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-black text-gray-900">{c.claimant?.full_name || 'Usuario desconocido'}</p>
-                      <span className="text-xs text-gray-400">{c.claimant?.email}</span>
+                      <p className="font-black text-gray-900">{name}</p>
+                      <span className="text-xs text-gray-400">{email}</span>
                     </div>
                     <p className="text-sm text-gray-600 mt-0.5">
                       Solicita el {c.target_table === 'artists' ? 'artista' : c.target_table === 'events' ? 'evento' : c.target_table === 'venues' ? 'local' : 'servicio'}:
                       {' '}<a href={`${TABLE_ROUTES[c.target_table]}/${c.target_id}`} target="_blank" rel="noreferrer" className="text-purple-600 font-bold hover:underline inline-flex items-center gap-1">
-                        {c.target_id.slice(0, 10)}… <ExternalLink className="w-3 h-3" />
+                        {c.target_name || c.target_id.slice(0, 10)}… <ExternalLink className="w-3 h-3" />
                       </a>
                     </p>
                     {c.message && <p className="text-sm text-gray-500 mt-1 italic">"{c.message}"</p>}
@@ -4440,7 +4530,8 @@ const ReclamacionesSection: React.FC<{ addToast: Function; onCountChange?: (n: n
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>
@@ -4459,6 +4550,323 @@ const ReclamacionesSection: React.FC<{ addToast: Function; onCountChange?: (n: n
                   {c.status === 'approved' ? 'Aprobada' : 'Rechazada'}
                 </span>
                 <span className="text-xs text-gray-400 flex-shrink-0">{new Date(c.reviewed_at || c.created_at).toLocaleDateString('es-ES')}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── Planificador de Redes Sociales (GHL Social Planner) ────────────────────
+const PLATFORMS_CFG = [
+  { id: 'instagram', label: 'Instagram', emoji: '🌸' },
+  { id: 'tiktok',    label: 'TikTok',    emoji: '⬛' },
+  { id: 'youtube',   label: 'YouTube',   emoji: '🔴' },
+  { id: 'facebook',  label: 'Facebook',  emoji: '🔵' },
+] as const;
+
+const POST_TYPES = [
+  { id: 'post',  label: 'Post' },
+  { id: 'reel',  label: 'Reel' },
+  { id: 'story', label: 'Story' },
+] as const;
+
+const CAPTION_TEMPLATES = [
+  { id: 'reels',    label: '🎬 Reels/TikTok', text: '🎵 ¡Baila con nosotros! 💃🕺\n\n✨ [Describe el contenido aquí]\n\n📍 bailanow.com\n\n#baile #salsa #bachata #bailanow #latinodance #dancelife' },
+  { id: 'insta',    label: '🌸 Instagram',     text: '¡Nueva publicación! 🎉\n\n[Descripción del contenido]\n\nSíguenos para más contenido de baile latino 🔥\n\n#BailaNow #DanzaLatina #Bachata #Salsa' },
+  { id: 'youtube',  label: '🔴 YouTube',        text: '🎬 [Título del video]\n\n📌 Descripción completa del video aquí...\n\n⏱️ Capítulos:\n0:00 - Intro\n\n🔔 Suscríbete y activa la campana\n👍 Dale like si te gustó\n\n#BailaNow #BaileLatinoYT' },
+  { id: 'urgencia', label: '🚨 Urgencia / CTA', text: '⚠️ ÚLTIMOS CUPOS disponibles\n\n🎯 [Nombre del evento/clase]\n📅 [Fecha y hora]\n📍 [Lugar]\n💰 [Precio]\n\n✅ Reserva ya en bailanow.com\n⏰ ¡Plazas limitadas!' },
+];
+
+const PlanificadorSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const { user } = useAuthStore();
+  const [locationId, setLocationId] = React.useState('');
+  const [showConfig, setShowConfig] = React.useState(false);
+  const [configSaving, setConfigSaving] = React.useState(false);
+  const [accounts, setAccounts] = React.useState<{ id: string; platform: string; name: string; connected: boolean }[]>([]);
+  const [verifying, setVerifying] = React.useState(false);
+
+  const [urls, setUrls] = React.useState('');
+  const [caption, setCaption] = React.useState('');
+  const [platforms, setPlatforms] = React.useState<string[]>(['instagram', 'tiktok']);
+  const [postType, setPostType] = React.useState<'post' | 'reel' | 'story'>('reel');
+  const [scheduleDate, setScheduleDate] = React.useState('');
+  const [scheduling, setScheduling] = React.useState(false);
+
+  const [stats, setStats] = React.useState({ pending: 0, scheduled: 0, published: 0 });
+  const [history, setHistory] = React.useState<any[]>([]);
+
+  // Cargar location_id desde site_config
+  React.useEffect(() => {
+    (async () => {
+      const { data } = await supabase.from('site_config').select('value').eq('key', 'ghl_location_id').maybeSingle();
+      if (data?.value) {
+        const raw = data.value;
+        setLocationId(typeof raw === 'string' ? raw : String(raw || ''));
+      }
+    })();
+  }, []);
+
+  // Cargar stats e historial
+  const loadData = React.useCallback(async () => {
+    const { data } = await supabase.from('social_posts').select('*').order('created_at', { ascending: false }).limit(50);
+    if (data) {
+      setHistory(data);
+      setStats({
+        pending:   data.filter(p => p.status === 'pending').length,
+        scheduled: data.filter(p => p.status === 'scheduled').length,
+        published: data.filter(p => p.status === 'published').length,
+      });
+    }
+  }, []);
+
+  React.useEffect(() => { loadData(); }, [loadData]);
+
+  const saveLocationId = async () => {
+    setConfigSaving(true);
+    await supabase.from('site_config').update({ value: JSON.stringify(locationId) }).eq('key', 'ghl_location_id');
+    setConfigSaving(false);
+    addToast({ type: 'success', message: 'Location ID guardado' });
+  };
+
+  const verifyAccounts = async () => {
+    if (!locationId.trim()) { addToast({ type: 'error', message: 'Configura el Location ID primero' }); return; }
+    setVerifying(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ghl-bulk-post', {
+        body: { action: 'list-accounts', locationId: locationId.trim() },
+      });
+      if (error) throw error;
+      setAccounts(data?.accounts || []);
+      addToast({ type: 'success', message: `${data?.accounts?.length || 0} cuentas detectadas` });
+    } catch (e: any) {
+      addToast({ type: 'error', message: `Error: ${e?.message || 'No se pudo conectar con GHL'}` });
+    } finally { setVerifying(false); }
+  };
+
+  const schedule = async () => {
+    if (!locationId.trim()) { addToast({ type: 'error', message: 'Configura el Location ID de GHL primero' }); return; }
+    if (!caption.trim() && !urls.trim()) { addToast({ type: 'error', message: 'Añade al menos una URL o texto' }); return; }
+    if (platforms.length === 0) { addToast({ type: 'error', message: 'Selecciona al menos una plataforma' }); return; }
+    if (!scheduleDate) { addToast({ type: 'error', message: 'Elige fecha y hora de publicación' }); return; }
+
+    setScheduling(true);
+    const mediaUrls = urls.split('\n').map(u => u.trim()).filter(u => u.startsWith('http'));
+    try {
+      const { data, error } = await supabase.functions.invoke('ghl-bulk-post', {
+        body: {
+          action: 'post',
+          text: caption,
+          mediaUrls,
+          brands: [{ locationId: locationId.trim(), name: 'BailaNow' }],
+          platforms,
+          scheduleDate: new Date(scheduleDate).toISOString(),
+          type: postType,
+        },
+      });
+      if (error) throw error;
+
+      const allOk = data?.results?.every((r: any) => r.success);
+      const ghlResults = data?.results || [];
+
+      // Guardar en social_posts
+      const { error: insertErr } = await supabase.from('social_posts').insert({
+        created_by: user?.id,
+        media_urls: mediaUrls,
+        caption,
+        platforms,
+        post_type: postType,
+        schedule_date: new Date(scheduleDate).toISOString(),
+        status: allOk ? 'scheduled' : 'failed',
+        ghl_results: ghlResults,
+        error_msg: allOk ? null : ghlResults.find((r: any) => !r.success)?.error,
+      });
+      if (insertErr) console.error('[planificador] insert error:', insertErr.message);
+
+      addToast({ type: allOk ? 'success' : 'warning', message: allOk ? `✅ Programado para ${platforms.join(', ')}` : '⚠️ Algunos posts fallaron — revisa el historial' });
+      setUrls(''); setCaption('');
+      loadData();
+    } catch (e: any) {
+      addToast({ type: 'error', message: `Error GHL: ${e?.message}` });
+    } finally { setScheduling(false); }
+  };
+
+  const togglePlatform = (p: string) =>
+    setPlatforms(prev => prev.includes(p) ? prev.filter(x => x !== p) : [...prev, p]);
+
+  const minSchedule = new Date(Date.now() + 5 * 60 * 1000).toISOString().slice(0, 16);
+
+  return (
+    <div className="p-6 space-y-6 max-w-4xl">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="font-display font-black text-2xl text-gray-900">📅 Planificador de Contenido</h2>
+          <p className="text-gray-400 text-sm mt-1">Programa publicaciones en Instagram, TikTok, YouTube y Facebook vía GHL</p>
+        </div>
+        <button onClick={() => setShowConfig(c => !c)}
+          className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">
+          <Settings className="w-4 h-4" /> Configurar GHL
+        </button>
+      </div>
+
+      {/* Config panel */}
+      {showConfig && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-3">
+          <h3 className="font-bold text-amber-800 flex items-center gap-2"><Globe className="w-4 h-4" /> Configuración de GoHighLevel</h3>
+          <p className="text-xs text-amber-700">Necesitas un sub-account de GHL con las redes conectadas. Copia el Location ID desde GHL → Settings → Business Info.</p>
+          <div className="flex gap-2">
+            <input
+              value={locationId}
+              onChange={e => setLocationId(e.target.value)}
+              placeholder="Location ID de GHL (ej: abc123xyz...)"
+              className="flex-1 border border-amber-300 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+            />
+            <button onClick={saveLocationId} disabled={configSaving}
+              className="bg-amber-500 text-white font-bold px-4 py-2 rounded-xl text-sm hover:bg-amber-600 disabled:opacity-50 flex items-center gap-1">
+              {configSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Guardar
+            </button>
+          </div>
+          <p className="text-xs text-amber-600">⚠️ También necesitas el secret <code className="bg-amber-100 px-1 rounded">GHL_API_TOKEN</code> en Supabase Edge Functions secrets.</p>
+        </div>
+      )}
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-4">
+        {[
+          { label: 'EN COLA',     value: stats.pending,   color: 'bg-yellow-50 border-yellow-200 text-yellow-700' },
+          { label: 'PROGRAMADOS', value: stats.scheduled, color: 'bg-blue-50 border-blue-200 text-blue-700' },
+          { label: 'PUBLICADOS',  value: stats.published, color: 'bg-green-50 border-green-200 text-green-700' },
+        ].map(s => (
+          <div key={s.label} className={`rounded-2xl border p-4 text-center ${s.color}`}>
+            <p className="text-3xl font-black">{s.value}</p>
+            <p className="text-xs font-bold uppercase tracking-widest mt-1">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Verificar redes */}
+      <div className="flex items-center gap-3 flex-wrap">
+        <button onClick={verifyAccounts} disabled={verifying}
+          className="flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-semibold hover:bg-gray-50 disabled:opacity-50">
+          {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Radio className="w-4 h-4 text-green-500" />}
+          Verificar redes conectadas
+        </button>
+        {accounts.map(a => (
+          <span key={a.id} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${a.connected ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-600'}`}>
+            {a.connected ? '✅' : '❌'} {a.platform} · {a.name}
+          </span>
+        ))}
+      </div>
+
+      {/* Form */}
+      <div className="bg-white border border-gray-100 rounded-2xl p-5 space-y-5 shadow-sm">
+        {/* URLs */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-1.5">🔗 URLs de vídeo (una por línea)</label>
+          <textarea
+            value={urls}
+            onChange={e => setUrls(e.target.value)}
+            rows={3}
+            placeholder={'https://.../video1.mp4\nhttps://.../video2.mp4'}
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-purple-300 resize-none"
+          />
+        </div>
+
+        {/* Caption */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="text-sm font-semibold text-gray-700">✍️ Texto / Caption</label>
+            <div className="flex gap-1 flex-wrap justify-end">
+              {CAPTION_TEMPLATES.map(t => (
+                <button key={t.id} onClick={() => setCaption(t.text)}
+                  className="text-[11px] font-semibold px-2 py-1 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200">
+                  {t.label}
+                </button>
+              ))}
+              <button onClick={() => setCaption('')}
+                className="text-[11px] font-semibold px-2 py-1 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 border border-gray-200">
+                Limpiar
+              </button>
+            </div>
+          </div>
+          <textarea
+            value={caption}
+            onChange={e => setCaption(e.target.value)}
+            rows={5}
+            placeholder="Escribe el caption o usa un template de arriba..."
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 resize-none"
+          />
+          <p className="text-xs text-gray-400 mt-1 text-right">{caption.length} caracteres</p>
+        </div>
+
+        {/* Platforms */}
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">📲 Redes sociales</label>
+          <div className="flex gap-2 flex-wrap">
+            {PLATFORMS_CFG.map(p => (
+              <button key={p.id} onClick={() => togglePlatform(p.id)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${platforms.includes(p.id) ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-200 hover:border-purple-400'}`}>
+                {p.emoji} {p.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Post type + Date */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">📌 Tipo de publicación</label>
+            <div className="flex gap-2">
+              {POST_TYPES.map(t => (
+                <button key={t.id} onClick={() => setPostType(t.id as any)}
+                  className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-all ${postType === t.id ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-200 hover:border-purple-400'}`}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">🗓️ Fecha y hora</label>
+            <input
+              type="datetime-local"
+              value={scheduleDate}
+              min={minSchedule}
+              onChange={e => setScheduleDate(e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+            />
+          </div>
+        </div>
+
+        {/* Submit */}
+        <button onClick={schedule} disabled={scheduling}
+          className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black py-3.5 rounded-2xl text-base flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 transition-opacity shadow-lg">
+          {scheduling ? <><Loader2 className="w-5 h-5 animate-spin" /> Programando…</> : <><Calendar className="w-5 h-5" /> Programar en GHL</>}
+        </button>
+      </div>
+
+      {/* History */}
+      {history.length > 0 && (
+        <div>
+          <h3 className="font-bold text-gray-900 mb-3">📋 Historial de publicaciones</h3>
+          <div className="space-y-2">
+            {history.slice(0, 20).map(post => (
+              <div key={post.id} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3">
+                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${post.status === 'scheduled' ? 'bg-blue-500' : post.status === 'published' ? 'bg-green-500' : post.status === 'failed' ? 'bg-red-500' : 'bg-yellow-500'}`} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-gray-800 truncate">{post.caption?.slice(0, 80) || post.media_urls?.[0] || '(sin texto)'}</p>
+                  <p className="text-xs text-gray-400 flex items-center gap-2 mt-0.5">
+                    <span>{post.platforms?.join(', ')}</span>
+                    <span>·</span>
+                    <span>{post.schedule_date ? new Date(post.schedule_date).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' }) : 'Sin fecha'}</span>
+                  </p>
+                  {post.error_msg && <p className="text-xs text-red-500 mt-0.5 truncate">❌ {post.error_msg}</p>}
+                </div>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${post.status === 'scheduled' ? 'bg-blue-100 text-blue-700' : post.status === 'published' ? 'bg-green-100 text-green-700' : post.status === 'failed' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'}`}>
+                  {post.status === 'scheduled' ? 'Programado' : post.status === 'published' ? 'Publicado' : post.status === 'failed' ? 'Fallido' : 'Pendiente'}
+                </span>
               </div>
             ))}
           </div>

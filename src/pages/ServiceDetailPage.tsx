@@ -6,13 +6,17 @@ import { useAuthStore, useUIStore, useCartStore } from '../store/appStore';
 import { supabase } from '../lib/supabase';
 import BookingModal from '../components/BookingModal';
 import PaymentGateway from '../components/payment/PaymentGateway';
-import AdminEditFab from '../components/AdminEditFab';
+import EntityAdminPanel from '../components/EntityAdminPanel';
+import ClaimProfileButton from '../components/ClaimProfileButton';
+import UnclaimedNotice from '../components/UnclaimedNotice';
+import { isClaimed, UNCLAIMED_TOAST } from '../lib/ownership';
 
 type SvcDetail = {
   id: string; title: string; cover: string; category: string; description: string;
   artistId: string; artistName: string; artistAvatar: string;
   price: number; rating: number; reviews: number; orders: number;
   tags: string[]; includes: string[]; deliveryDays: number;
+  userId: string;
 };
 
 function normalize(r: any): SvcDetail {
@@ -31,6 +35,7 @@ function normalize(r: any): SvcDetail {
     tags: Array.isArray(r.tags) ? r.tags : [],
     includes: Array.isArray(r.includes) ? r.includes : [],
     deliveryDays: Number(r.delivery_days) || 1,
+    userId: r.user_id || r.owner_id || '',
   };
 }
 
@@ -47,8 +52,16 @@ const ServiceDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (!id) return;
-    supabase.from('services').select('*').eq('id', id).maybeSingle()
-      .then(({ data }) => { setService(data ? normalize(data) : null); setLoading(false); });
+    (async () => {
+      try {
+        const { data } = await supabase.from('services').select('*').eq('id', id).maybeSingle();
+        setService(data ? normalize(data) : null);
+      } catch {
+        // network error — leave service null
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [id]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-orange" /></div>;
@@ -63,7 +76,10 @@ const ServiceDetailPage: React.FC = () => {
 
   const platform = Math.round(service.price * 0.15);
 
+  const claimed = isClaimed(service.userId);
+
   const handleOrder = () => {
+    if (!claimed) { addToast({ message: UNCLAIMED_TOAST, type: 'warning' }); return; }
     if (!isAuthenticated) { navigate('/auth'); return; }
     // Add this service to cart (clear first for single-item checkout)
     clearCart();
@@ -149,28 +165,34 @@ const ServiceDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="bg-gray-50 rounded-xl p-3 mb-4 space-y-2 border border-gray-100">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Precio servicio</span>
-                  <span className="text-gray-900">€{service.price}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Comisión plataforma</span>
-                  <span className="text-gray-400">€{platform} (15%)</span>
-                </div>
-                <div className="border-t border-gray-200 pt-2 flex justify-between font-bold">
-                  <span className="text-gray-900">Total</span>
-                  <span className="text-brand-orange">€{service.price}</span>
-                </div>
-              </div>
+              {claimed ? (
+                <>
+                  <div className="bg-gray-50 rounded-xl p-3 mb-4 space-y-2 border border-gray-100">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Precio servicio</span>
+                      <span className="text-gray-900">€{service.price}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Comisión plataforma</span>
+                      <span className="text-gray-400">€{platform} (15%)</span>
+                    </div>
+                    <div className="border-t border-gray-200 pt-2 flex justify-between font-bold">
+                      <span className="text-gray-900">Total</span>
+                      <span className="text-brand-orange">€{service.price}</span>
+                    </div>
+                  </div>
 
-              <Button variant="orange" className="w-full" onClick={handleOrder}>
-                🛒 Contratar Ahora
-              </Button>
+                  <Button variant="orange" className="w-full" onClick={handleOrder}>
+                    🛒 Contratar Ahora
+                  </Button>
 
-              <Button variant="outline" className="w-full mt-2" onClick={() => { if (!isAuthenticated) { navigate('/auth'); return; } navigate('/chat'); }}>
-                <MessageSquare className="w-4 h-4" /> Contactar antes
-              </Button>
+                  <Button variant="outline" className="w-full mt-2" onClick={() => { if (!isAuthenticated) { navigate('/auth'); return; } navigate('/chat'); }}>
+                    <MessageSquare className="w-4 h-4" /> Contactar antes
+                  </Button>
+                </>
+              ) : (
+                <UnclaimedNotice targetTable="services" targetId={service.id} targetName={service.title} kind="service" />
+              )}
 
               <div className="mt-4 space-y-2">
                 {[
@@ -204,7 +226,15 @@ const ServiceDetailPage: React.FC = () => {
         onClose={() => setCheckoutOpen(false)}
       />
 
-      <AdminEditFab kind="service" id={id} />
+      <EntityAdminPanel kind="service" id={id} ownerUserId={service?.userId} />
+      <div className="fixed z-[60] bottom-24 right-4 sm:bottom-8 sm:right-8">
+        <ClaimProfileButton
+          targetTable="services"
+          targetId={id!}
+          targetName={service?.title || 'Servicio'}
+          hasOwner={!!service?.userId}
+        />
+      </div>
     </div>
   );
 };

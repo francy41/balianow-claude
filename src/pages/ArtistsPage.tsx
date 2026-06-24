@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapPin, Users, CheckCircle, Radio, Music } from 'lucide-react';
 import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
-import { Badge, StarRating, Avatar, FilterChips, SearchBar, SectionHeader, EmptyState } from '../components/ui';
+import { Badge, StarRating, Avatar, FilterChips, SectionHeader, EmptyState } from '../components/ui';
 import SearchTriggerBar from '../components/SearchTriggerBar';
 import LiveFab from '../components/LiveFab';
 import { usePageMeta } from '../hooks/usePageMeta';
@@ -79,7 +79,6 @@ const ArtistsPage: React.FC = () => {
     } catch (e: any) { log.push(`/profiles EXCEPTION: ${e.message}`); }
     setDebugInfo(log.join('\n'));
   };
-  const [search, setSearch] = useState('');
   const [selectedType, setSelectedType] = useState([
     initialType === 'dj' ? 'DJ' :
     initialType === 'dancer' ? 'Bailarín/a' :
@@ -184,9 +183,6 @@ const ArtistsPage: React.FC = () => {
 
   const filtered = useMemo(() => {
     return items.filter(a => {
-      const matchSearch = !search || a.name.toLowerCase().includes(search.toLowerCase()) ||
-        a.genre.some(g => g.toLowerCase().includes(search.toLowerCase())) ||
-        a.city.toLowerCase().includes(search.toLowerCase());
       const matchType = selectedType.includes('Todos') || selectedType.some(t =>
         (t === 'DJ' && a.type === 'dj') ||
         (t === 'Bailarín/a' && a.type === 'dancer') ||
@@ -198,13 +194,13 @@ const ArtistsPage: React.FC = () => {
       const matchCity = selectedCity.includes('Todas') || selectedCity.includes(a.city);
       const matchLive = !onlyLive || a.isLive;
       const matchVerified = !onlyVerified || a.isVerified;
-      return matchSearch && matchType && matchGenre && matchCity && matchLive && matchVerified;
+      return matchType && matchGenre && matchCity && matchLive && matchVerified;
     }).sort((a, b) => {
       if (sortBy === 'rating') return b.rating - a.rating;
       if (sortBy === 'price') return (a.priceFrom || 9999) - (b.priceFrom || 9999);
       return b.followers - a.followers;
     });
-  }, [items, search, selectedType, selectedGenre, selectedCity, onlyLive, onlyVerified, sortBy]);
+  }, [items, selectedType, selectedGenre, selectedCity, onlyLive, onlyVerified, sortBy]);
 
   const goToProfile = (a: DbArtist) => {
     // Perfiles de usuarios → página pública /p/:id ; artistas tradicionales → /artistas/:id
@@ -220,10 +216,9 @@ const ArtistsPage: React.FC = () => {
           <p className="text-gray-400">Los mejores DJs, bailarines y músicos latinos</p>
         </div>
 
-        <SearchTriggerBar placeholder="🔍 Buscar artistas, eventos, locales en todo BailaNow…" className="mb-3" />
-        <SearchBar placeholder="Filtrar en esta página..." value={search} onChange={setSearch} />
+        <SearchTriggerBar placeholder="🔍 Buscar artistas, eventos, locales en todo BailaNow…" className="mb-6" />
 
-        <div className="mt-4 space-y-3">
+        <div className="space-y-3">
           <div>
             <p className="text-gray-400 text-xs mb-2 font-semibold uppercase tracking-wide">Tipo</p>
             <FilterChips options={TYPES} selected={selectedType} onChange={setSelectedType} />
@@ -309,7 +304,7 @@ const ArtistsPage: React.FC = () => {
               icon="🎧"
               title="No se encontraron artistas"
               description="Intenta cambiar los filtros o busca con otros términos"
-              action={<button onClick={() => { setSearch(''); setSelectedType(['Todos']); setSelectedGenre(['Todos']); setSelectedCity(['Todas']); }} className="btn-outline text-sm">Limpiar filtros</button>}
+              action={<button onClick={() => { setSelectedType(['Todos']); setSelectedGenre(['Todos']); setSelectedCity(['Todas']); }} className="btn-outline text-sm">Limpiar filtros</button>}
             />
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">

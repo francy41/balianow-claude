@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { safeSocialUrl } from '../lib/security';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import {
   LayoutDashboard, Wallet, BookOpen, Calendar as CalIcon, Video, Briefcase,
@@ -19,30 +19,35 @@ import { BuyerTable, QRScanner } from '../components/BuyerManagement';
 import { QrCode, Scan } from 'lucide-react';
 import TeacherClassesPanel from '../components/TeacherClassesPanel';
 import ClassReviewModal from '../components/ClassReviewModal';
+import { QRCodeCanvas, downloadTicketQR } from '../components/QRTicket';
 
-type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers' | 'buyers' | 'scanner';
+type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers' | 'buyers' | 'scanner' | 'events';
 
-const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
+// Tabs "core" (financieros/operativos) — siempre visibles, no se controlan por módulos.
+// Tabs con `module` se muestran solo si el módulo global está activo (Admin → Categorías).
+const TABS: { id: TabId; label: string; icon: React.ReactNode; module?: string }[] = [
   { id: 'overview', label: 'Resumen',       icon: <LayoutDashboard className="w-4 h-4" /> },
-  { id: 'earnings', label: 'Ganancias',     icon: <Wallet className="w-4 h-4" /> },
-  { id: 'payouts',  label: 'Cobrar',        icon: <DollarSign className="w-4 h-4" /> },
-  { id: 'payments', label: 'Pagar',         icon: <CreditCard className="w-4 h-4" /> },
-  { id: 'buyers',   label: 'Compradores',   icon: <Users className="w-4 h-4" /> },
-  { id: 'scanner',  label: 'Escanear QR',   icon: <QrCode className="w-4 h-4" /> },
-  { id: 'courses',  label: 'Cursos',        icon: <BookOpen className="w-4 h-4" /> },
-  { id: 'calendar', label: 'Calendario',    icon: <CalIcon className="w-4 h-4" /> },
-  { id: 'classes',  label: 'Clases Online', icon: <Video className="w-4 h-4" /> },
-  { id: 'offers',   label: 'Ofertas',       icon: <Briefcase className="w-4 h-4" /> },
+  { id: 'earnings', label: 'Ganancias',     icon: <Wallet className="w-4 h-4" />,     module: 'earnings' },
+  { id: 'payouts',  label: 'Cobrar',        icon: <DollarSign className="w-4 h-4" />, module: 'payouts' },
+  { id: 'payments', label: 'Pagar',         icon: <CreditCard className="w-4 h-4" />, module: 'payments' },
+  { id: 'buyers',   label: 'Compradores',   icon: <Users className="w-4 h-4" />,      module: 'buyers' },
+  { id: 'scanner',  label: 'Escanear QR',   icon: <QrCode className="w-4 h-4" />,     module: 'scanner' },
+  { id: 'courses',  label: 'Cursos',        icon: <BookOpen className="w-4 h-4" />,  module: 'courses' },
+  { id: 'calendar', label: 'Calendario',    icon: <CalIcon className="w-4 h-4" />,   module: 'calendar' },
+  { id: 'classes',  label: 'Clases Online', icon: <Video className="w-4 h-4" />,     module: 'classes' },
+  { id: 'events',   label: 'Eventos',       icon: <CalIcon className="w-4 h-4" />,    module: 'events' },
+  { id: 'offers',   label: 'Ofertas',       icon: <Briefcase className="w-4 h-4" />, module: 'offers' },
 ];
 
 const PERFORMER_ROLES = ['artist', 'dj', 'dancer', 'venue', 'instructor', 'admin', 'superadmin', 'business', 'promoter'];
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, isAuthenticated } = useAuthStore();
-  const [tab, setTab] = useState<TabId>('overview');
+  const initialTab = (searchParams.get('tab') as TabId) || 'overview';
+  const [tab, setTab] = useState<TabId>(initialTab);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
-
   if (!isAuthenticated || !user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -58,6 +63,16 @@ const DashboardPage: React.FC = () => {
 
   const isPerformer = PERFORMER_ROLES.includes(user.role);
   const performerId = user.id;
+
+  // Filtra tabs por módulos globales (Admin → Categorías). Core tabs siempre visibles.
+  const { profileModules } = useSiteConfigStore();
+  const isModuleOn = (modId?: string) => !modId || profileModules.find(m => m.id === modId)?.enabled !== false;
+  const visibleTabs = TABS.filter(t => isModuleOn(t.module));
+
+  // Si el tab activo queda oculto al desactivar un módulo, vuelve a Resumen
+  useEffect(() => {
+    if (!visibleTabs.some(t => t.id === tab)) setTab('overview');
+  }, [profileModules]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="min-h-screen bg-gray-50 py-6">
@@ -119,7 +134,7 @@ const DashboardPage: React.FC = () => {
           <>
             {/* Tabs */}
             <div className="card-white rounded-2xl p-1.5 mb-6 flex gap-1 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-              {TABS.map(t => (
+              {visibleTabs.map(t => (
                 <button
                   key={t.id}
                   onClick={() => setTab(t.id)}
@@ -169,11 +184,83 @@ const DashboardPage: React.FC = () => {
                 <QRScanner eventId="e1" />
               </div>
             )}
+            {tab === 'events'   && <EventsManagerTab performerId={performerId} />}
           </>
         ) : (
           <FanDashboard userId={user.id} userName={user.name} />
         )}
       </div>
+    </div>
+  );
+};
+
+// ── EVENTOS ───────────────────────────────────────────────────────────────
+const EventsManagerTab: React.FC<{ performerId: string }> = ({ performerId }) => {
+  const navigate = useNavigate();
+  const [events, setEvents] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.from('events').select('id,title,city,date,price,attending,capacity,image_url,cover')
+      .or(`user_id.eq.${performerId},owner_id.eq.${performerId}`)
+      .order('date', { ascending: false })
+      .then(({ data }) => {
+        if (cancelled) return;
+        setEvents(data || []);
+        setLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [performerId]);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="font-display font-black text-xl text-gray-900 mb-1">🎉 Mis Eventos</h2>
+          <p className="text-gray-400 text-sm">Crea y gestiona los eventos que organizas</p>
+        </div>
+        <Button variant="orange" size="sm" icon={<Plus className="w-4 h-4" />} onClick={() => navigate('/eventos')}>
+          Ver eventos
+        </Button>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-12"><div className="w-8 h-8 border-3 border-brand-orange border-t-transparent rounded-full animate-spin" /></div>
+      ) : events.length === 0 ? (
+        <div className="card-white rounded-2xl p-10 text-center">
+          <div className="text-5xl mb-3">🎫</div>
+          <p className="font-bold text-gray-700">Aún no tienes eventos</p>
+          <p className="text-gray-400 text-sm mt-1">Cuando organices un evento aparecerá aquí para que gestiones entradas y asistentes.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {events.map(ev => {
+            const pct = ev.capacity ? Math.round(((ev.attending || 0) / ev.capacity) * 100) : 0;
+            return (
+              <button key={ev.id} onClick={() => navigate(`/eventos/${ev.id}`)}
+                className="card-white rounded-2xl overflow-hidden text-left hover:shadow-card-hover transition-all">
+                <div className="h-28 bg-gray-100 overflow-hidden">
+                  {(ev.image_url || ev.cover) && <img src={ev.image_url || ev.cover} alt={ev.title} className="w-full h-full object-cover" />}
+                </div>
+                <div className="p-3">
+                  <p className="font-bold text-gray-900 text-sm truncate">{ev.title}</p>
+                  <p className="text-[11px] text-gray-400">{ev.city} · {ev.date ? new Date(ev.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : ''}</p>
+                  <div className="mt-2 flex items-center justify-between text-[11px]">
+                    <span className="text-gray-500">{ev.attending || 0}/{ev.capacity || '∞'} asistentes</span>
+                    <span className="font-bold text-brand-orange">€{ev.price || 0}</span>
+                  </div>
+                  {ev.capacity ? (
+                    <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden mt-1.5">
+                      <div className={`h-full rounded-full ${pct > 80 ? 'bg-red-500' : 'bg-brand-orange'}`} style={{ width: `${pct}%` }} />
+                    </div>
+                  ) : null}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };
@@ -931,12 +1018,66 @@ const OffersTab: React.FC<{ performerId: string }> = ({ performerId }) => {
 };
 
 // ── FAN / BUYER DASHBOARD ─────────────────────────────────────────────────
+// ── Ticket mini card with real QR ────────────────────────────────────────────
+const TicketMiniCard: React.FC<{ ticket: any }> = ({ ticket }) => {
+  const [expanded, setExpanded] = React.useState(false);
+  const statusColor = ticket.status === 'valid' ? 'border-emerald-300 bg-emerald-50' : ticket.status === 'used' ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50';
+  const statusLabel = ticket.status === 'valid' ? '✅ Válida' : ticket.status === 'used' ? '✔ Usada' : ticket.status === 'refunded' ? '↩ Reembolsada' : '❌ Expirada';
+
+  return (
+    <div className={`border-2 rounded-2xl overflow-hidden ${statusColor}`}>
+      <button onClick={() => setExpanded(e => !e)} className="w-full p-4 text-left">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="font-black text-gray-900 text-sm truncate">{ticket.event_title || 'Evento'}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{ticket.section_name || 'General'} · {ticket.quantity || 1} entrada{(ticket.quantity || 1) > 1 ? 's' : ''}</p>
+            <p className="text-xs font-bold text-brand-orange mt-1">€{Number(ticket.price || 0).toFixed(2)}</p>
+          </div>
+          <div className="flex-shrink-0 text-right">
+            <span className="text-[10px] font-bold">{statusLabel}</span>
+            <p className="text-[10px] text-gray-400 mt-0.5">{expanded ? '▲ Ocultar QR' : '▼ Ver QR'}</p>
+          </div>
+        </div>
+      </button>
+      {expanded && (
+        <div className="border-t border-dashed border-gray-200 p-4 flex flex-col items-center gap-2 bg-white">
+          <QRCodeCanvas token={ticket.qr_token} size={160} />
+          <p className="text-[10px] text-gray-400 font-mono break-all text-center">{ticket.qr_token}</p>
+          {ticket.status === 'valid' && (
+            <button onClick={() => downloadTicketQR(ticket.qr_token, `entrada-${ticket.id}.png`)}
+              className="text-xs text-brand-orange font-bold hover:underline flex items-center gap-1">
+              ⬇️ Descargar imagen
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, userName }) => {
   const { transactions, confirmServiceOK } = usePerformerStore();
   const { orders } = useOrdersStore();
   const { addToast } = useUIStore();
   const navigate = useNavigate();
-  const [fanTab, setFanTab] = useState<'classes' | 'orders' | 'promo' | 'payments'>('classes');
+  const [fanTab, setFanTab] = useState<'classes' | 'tickets' | 'orders' | 'promo' | 'payments'>('classes');
+  const [myTickets, setMyTickets] = useState<any[]>([]);
+  const [loadingTickets, setLoadingTickets] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session || cancelled) { setLoadingTickets(false); return; }
+      const { data } = await supabase
+        .from('tickets')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false });
+      if (!cancelled) { setMyTickets(data || []); setLoadingTickets(false); }
+    })();
+    return () => { cancelled = true; };
+  }, [userId]);
   const [classBookings, setClassBookings] = useState<any[]>([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
   const [reviewBooking, setReviewBooking] = useState<any | null>(null);
@@ -1000,6 +1141,21 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
     addToast({ message: `Servicio "${concept}" confirmado. Fondos liberados al creador.`, type: 'success' });
   };
 
+  const cancelBooking = async (bookingId: string) => {
+    if (!window.confirm('¿Cancelar esta reserva? Si la clase es en más de 24h recibirás un reembolso completo.')) return;
+    const { error } = await supabase
+      .from('class_bookings')
+      .update({ status: 'cancelled' })
+      .eq('id', bookingId)
+      .eq('student_id', userId);
+    if (error) {
+      addToast({ type: 'error', message: `Error al cancelar: ${error.message}` });
+    } else {
+      addToast({ type: 'success', message: '✅ Reserva cancelada. El reembolso se procesará en 3–5 días hábiles.' });
+      setClassBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'cancelled' } : b));
+    }
+  };
+
   const statusBadge = (status: string) => {
     if (status === 'confirmed') return <span className="text-[10px] bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-bold uppercase">✅ Confirmado</span>;
     if (status === 'completed') return <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full font-bold uppercase">✔ Completado</span>;
@@ -1016,6 +1172,13 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
           }`}>
           <Video className="w-4 h-4" /> Mis clases
           {classBookings.length > 0 && <span className="bg-white text-pink-600 text-[10px] font-black px-1.5 py-0.5 rounded-full">{classBookings.length}</span>}
+        </button>
+        <button onClick={() => setFanTab('tickets')}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            fanTab === 'tickets' ? 'bg-gradient-to-r from-brand-orange to-pink-500 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'
+          }`}>
+          🎫 Entradas
+          {myTickets.length > 0 && <span className="bg-white text-brand-orange text-[10px] font-black px-1.5 py-0.5 rounded-full">{myTickets.length}</span>}
         </button>
         <button onClick={() => setFanTab('orders')}
           className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
@@ -1144,6 +1307,12 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
                           </button>
                         </>
                       )}
+                      {!isPast && ['confirmed','pending'].includes(b.status) && (
+                        <button onClick={() => cancelBooking(b.id)}
+                          className="text-xs text-red-400 hover:text-red-600 font-semibold px-2 py-1.5 rounded-lg hover:bg-red-50 transition-colors">
+                          Cancelar
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1166,6 +1335,39 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
           onClose={() => setReviewBooking(null)}
           onSubmitted={() => setReviewBooking(null)}
         />
+      )}
+
+      {/* ── Mis Entradas de eventos (QR real) ── */}
+      {fanTab === 'tickets' && (
+        <div className="space-y-3">
+          <div className="card-white p-5 bg-gradient-to-br from-orange-50 to-pink-50 border border-orange-100">
+            <h2 className="font-display font-black text-xl text-gray-900 mb-1 flex items-center gap-2">
+              🎫 Mis entradas
+            </h2>
+            <p className="text-gray-500 text-sm">Presenta el código QR en la entrada del evento.</p>
+          </div>
+          {loadingTickets ? (
+            <div className="card-white p-12 text-center">
+              <div className="w-10 h-10 border-4 border-brand-orange border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+              <p className="text-sm text-gray-400">Cargando entradas…</p>
+            </div>
+          ) : myTickets.length === 0 ? (
+            <div className="card-white p-12 text-center text-gray-400">
+              <p className="text-4xl mb-3">🎫</p>
+              <p className="font-bold text-gray-700 text-sm mb-1">No tienes entradas todavía</p>
+              <p className="text-xs mb-4">Explora los eventos y compra tu entrada</p>
+              <button onClick={() => navigate('/eventos')} className="bg-brand-orange text-white font-bold px-5 py-2.5 rounded-xl text-sm">
+                Ver eventos
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {myTickets.map((t: any) => (
+                <TicketMiniCard key={t.id} ticket={t} />
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* ── Pedidos de escrow (Reservas directas) ── */}

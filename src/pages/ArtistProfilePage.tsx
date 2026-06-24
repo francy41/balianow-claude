@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
-import AdminEditFab from '../components/AdminEditFab';
+import ArtistAdminPanel from '../components/ArtistAdminPanel';
+import ClassPackageBookingModal from '../components/ClassPackageBookingModal';
+import ClaimProfileButton from '../components/ClaimProfileButton';
+import { isClaimed, UNCLAIMED_TOAST } from '../lib/ownership';
 import {
   MapPin, Users, CheckCircle, Instagram, Youtube, Facebook, Music2,
   Calendar, MessageSquare, Share2, Heart, Play, Eye, Globe, Clock,
@@ -10,7 +13,7 @@ import {
 } from 'lucide-react';
 import { SOCIAL_NETWORK_URLS } from '../data/mockData';
 import type { Artist, MediaItem, OfferPackage } from '../data/mockData';
-import { useAuthStore, useUIStore, useCartStore, getYouTubeId } from '../store/appStore';
+import { useAuthStore, useUIStore, useCartStore, getYouTubeId, useSiteConfigStore } from '../store/appStore';
 import { Avatar, Modal, Button } from '../components/ui';
 import BookingModal from '../components/BookingModal';
 import PaymentGateway from '../components/payment/PaymentGateway';
@@ -25,6 +28,16 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'reviews',      label: 'Reseñas',       icon: <Star className="w-4 h-4" /> },
   { id: 'availability', label: 'Disponibilidad', icon: <Calendar className="w-4 h-4" /> },
 ];
+
+// Mapea cada pestaña del perfil a su módulo global (controlado desde Admin → Categorías).
+const TAB_MODULE: Record<TabId, string> = {
+  about:        'about',
+  live:         'live',
+  gallery:      'gallery',
+  offers:       'offers',
+  reviews:      'reviews',
+  availability: 'calendar',
+};
 
 const WEEK_DAYS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
@@ -58,8 +71,13 @@ function mapDbArtist(a: any): Artist {
     social:     a.social || {},
     languages:  Array.isArray(a.languages) ? a.languages : ['Español'],
     gallery:    Array.isArray(a.gallery) ? a.gallery : [],
+    packages:   Array.isArray(a.packages) ? a.packages : [],
+    classPackages: Array.isArray(a.class_packages) ? a.class_packages : [],
+    userId:     a.user_id || '',
     offers:     Array.isArray(a.offers) ? a.offers : [],
-    availability: a.availability || {},
+    availability: Array.isArray(a.availability) ? a.availability : [],
+    featuredVideo: a.featured_video || '',
+    featuredVideoTitle: a.featured_video_title || '',
     currency:     a.currency || 'EUR',
     completedBookings: Number(a.completed_bookings) || 0,
   } as unknown as Artist;
@@ -93,7 +111,9 @@ function mapProfileToArtist(p: any): Artist {
     languages:  ['Español'],
     gallery:    [],
     offers:     [],
-    availability: {},
+    classPackages: Array.isArray(p.class_packages) ? p.class_packages : [],
+    userId:     p.id || '',
+    availability: [],
     currency:   'EUR',
     completedBookings: 0,
   } as unknown as Artist;
@@ -133,6 +153,16 @@ const ArtistProfilePage: React.FC = () => {
 
   // ⚠ TODOS los hooks DEBEN ir antes de cualquier return condicional (rules of hooks)
   const [activeTab, setActiveTab] = useState<TabId>('about');
+  const { profileModules } = useSiteConfigStore();
+  const isModuleOn = (modId: string) => profileModules.find(m => m.id === modId)?.enabled !== false;
+  const visibleTabs = TABS.filter(t => isModuleOn(TAB_MODULE[t.id]));
+
+  // Si la pestaña activa queda oculta por un módulo desactivado, salta a la primera visible
+  useEffect(() => {
+    if (visibleTabs.length > 0 && !visibleTabs.some(t => t.id === activeTab)) {
+      setActiveTab(visibleTabs[0].id);
+    }
+  }, [profileModules]); // eslint-disable-line react-hooks/exhaustive-deps
   const [liked, setLiked] = useState(false);
   const [following, setFollowing] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
@@ -140,6 +170,7 @@ const ArtistProfilePage: React.FC = () => {
   const [customOfferTitle, setCustomOfferTitle] = useState('');
   const { addItem, clearCart } = useCartStore();
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [classBookingOpen, setClassBookingOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [bookingPreset, setBookingPreset] = useState<{ concept: string; price: number }>({ concept: '', price: 0 });
   const [customOfferPrice, setCustomOfferPrice] = useState('');
@@ -170,7 +201,15 @@ const ArtistProfilePage: React.FC = () => {
   const artist = dbArtist!;
   const currentStream = null; // live streams se cargan de live_sessions, no de mock
 
+  const claimed = isClaimed((artist as any).userId);
+
+  const guardSale = (): boolean => {
+    if (!claimed) { addToast({ message: UNCLAIMED_TOAST, type: 'warning' }); return false; }
+    return true;
+  };
+
   const openBooking = (concept: string, price: number) => {
+    if (!guardSale()) return;
     setBookingPreset({ concept, price });
     setBookingOpen(true);
   };
@@ -182,6 +221,7 @@ const ArtistProfilePage: React.FC = () => {
   };
 
   const handleBookPackage = (pkg: OfferPackage) => {
+    if (!guardSale()) return;
     if (!isAuthenticated) { navigate('/auth'); return; }
     clearCart();
     addItem({
@@ -306,9 +346,19 @@ const ArtistProfilePage: React.FC = () => {
           </div>
         </div>
 
+        {/* Aviso perfil no reclamado */}
+        {!claimed && (
+          <div className="max-w-5xl mx-auto px-4 pb-2">
+            <div className="flex items-center gap-2 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
+              <Lock className="w-3.5 h-3.5 flex-shrink-0" />
+              Perfil aún no reclamado — las reservas estarán disponibles cuando el dueño lo verifique.
+            </div>
+          </div>
+        )}
+
         {/* Tabs */}
         <div className="max-w-5xl mx-auto px-4 flex items-center gap-1 overflow-x-auto border-t border-gray-50" style={{ scrollbarWidth: 'none' }}>
-          {TABS.map(t => (
+          {visibleTabs.map(t => (
             <button key={t.id} onClick={() => setActiveTab(t.id)}
               className={`flex items-center gap-1.5 px-4 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === t.id ? 'border-brand-orange text-brand-orange' : 'border-transparent text-gray-500 hover:text-gray-800'
@@ -325,7 +375,27 @@ const ArtistProfilePage: React.FC = () => {
         {activeTab === 'live' && <LiveTab artist={artist} currentStream={currentStream} onChat={handleChat} />}
         {activeTab === 'gallery' && <GalleryTab artist={artist} onSelect={setSelectedMedia} />}
         {activeTab === 'offers' && (
-          <OffersTab artist={artist} onBook={handleBookPackage} onCustom={() => setShowCustomOffer(true)} />
+          <div className="space-y-6">
+            {isModuleOn('classes') && (artist as any).classPackages?.length > 0 && (
+              <div className="card-white rounded-2xl p-5 border-2 border-pink-100">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-display font-bold text-gray-900 flex items-center gap-2"><Video className="w-5 h-5 text-pink-500" /> Clases online en directo</h3>
+                  <button onClick={() => { if (!guardSale()) return; setClassBookingOpen(true); }} className="btn-orange text-sm py-2 px-4">Reservar clase</button>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {(artist as any).classPackages.map((p: any) => (
+                    <button key={p.id} onClick={() => { if (!guardSale()) return; setClassBookingOpen(true); }} className="text-left p-4 rounded-xl border border-gray-100 hover:border-pink-300 hover:shadow-sm transition-all">
+                      <p className="text-[10px] font-black uppercase text-gray-400">{p.capacity === 1 ? 'Privada' : p.capacity === 2 ? 'Dúo' : `Grupo ${p.capacity}`}</p>
+                      <p className="font-bold text-gray-900 text-sm mt-0.5">{p.name}</p>
+                      <p className="text-pink-600 font-black text-lg mt-1">€{p.price}</p>
+                      <p className="text-[11px] text-gray-400">{p.duration_minutes}min · hasta {p.capacity} pers.</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <OffersTab artist={artist} onBook={handleBookPackage} onCustom={() => setShowCustomOffer(true)} />
+          </div>
         )}
         {activeTab === 'reviews' && <ReviewsTab artist={artist} />}
         {activeTab === 'availability' && <AvailabilityTab artist={artist} onChat={handleChat} />}
@@ -396,7 +466,24 @@ const ArtistProfilePage: React.FC = () => {
 
       <PaymentGateway open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
 
-      <AdminEditFab kind="artist" id={id} />
+      {classBookingOpen && (
+        <ClassPackageBookingModal
+          artist={{ id: artist.id, name: artist.name, userId: (artist as any).userId, avatar: artist.avatar, classPackages: (artist as any).classPackages }}
+          onClose={() => setClassBookingOpen(false)}
+        />
+      )}
+
+      <ArtistAdminPanel id={id} ownerUserId={(artist as any).userId} onSaved={() => window.location.reload()} />
+
+      {/* Reclamar perfil — solo visible si no tiene dueño */}
+      <div className="fixed z-[60] bottom-24 right-4 sm:bottom-8 sm:right-8">
+        <ClaimProfileButton
+          targetTable="artists"
+          targetId={id!}
+          targetName={artist.name}
+          hasOwner={!!(artist as any).userId}
+        />
+      </div>
     </div>
   );
 };
@@ -849,28 +936,52 @@ const ReviewsTab: React.FC<{ artist: Artist }> = ({ artist }) => {
 };
 
 // ── AVAILABILITY TAB ────────────────────────────────────────────────────────
+const WEEK_SHORT: Record<string, string> = {
+  Lunes: 'Lun', Martes: 'Mar', Miércoles: 'Mié', Jueves: 'Jue',
+  Viernes: 'Vie', Sábado: 'Sáb', Domingo: 'Dom',
+};
+const WEEK_ORDER = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+function normalizeSlots(raw: any[]): { day: string; from: string; to: string }[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map(item =>
+    typeof item === 'string'
+      ? { day: item, from: '', to: '' }
+      : { day: item.day || '', from: item.from || '', to: item.to || '' }
+  ).filter(s => s.day);
+}
+
 const AvailabilityTab: React.FC<{ artist: Artist; onChat: () => void }> = ({ artist, onChat }) => {
-  const availableDays = artist.availability;
+  const slots = normalizeSlots(artist.availability as any[]);
+  const slotMap = Object.fromEntries(slots.map(s => [s.day, s]));
+
   return (
     <div className="space-y-4">
       <div className="card-white rounded-2xl p-5">
-        <h3 className="font-display font-bold text-gray-900 mb-1">📅 Días habituales disponibles</h3>
-        <p className="text-gray-500 text-sm mb-4">Selecciona un día para iniciar la conversación de reserva</p>
-        <div className="grid grid-cols-7 gap-2">
-          {WEEK_DAYS.map(d => {
-            const fullDay = { Lun: 'Lunes', Mar: 'Martes', Mié: 'Miércoles', Jue: 'Jueves', Vie: 'Viernes', Sáb: 'Sábado', Dom: 'Domingo' }[d];
-            const available = availableDays.includes(fullDay || '');
+        <h3 className="font-display font-bold text-gray-900 mb-1">📅 Disponibilidad semanal</h3>
+        <p className="text-gray-500 text-sm mb-4">Días y horas habituales — confirma por chat para fechas concretas</p>
+
+        <div className="space-y-2">
+          {WEEK_ORDER.map(day => {
+            const slot = slotMap[day];
+            const available = !!slot;
             return (
-              <button key={d} onClick={() => available && onChat()}
-                disabled={!available}
-                className={`aspect-square rounded-xl flex flex-col items-center justify-center text-xs font-bold transition-all ${
-                  available
-                    ? 'bg-brand-orange text-white hover:bg-pink-600 cursor-pointer'
-                    : 'bg-gray-50 text-gray-300 cursor-not-allowed'
-                }`}>
-                <span className="text-[10px] uppercase opacity-80">{d}</span>
-                <span className="text-base mt-0.5">{available ? '✓' : '×'}</span>
-              </button>
+              <div key={day}
+                className={`flex items-center justify-between px-4 py-3 rounded-xl border transition-all ${available ? 'border-orange-200 bg-orange-50 cursor-pointer hover:bg-orange-100' : 'border-gray-100 bg-gray-50 opacity-40'}`}
+                onClick={() => available && onChat()}
+              >
+                <span className={`text-sm font-bold ${available ? 'text-gray-900' : 'text-gray-400'}`}>
+                  <span className="inline-block w-6 text-gray-400 text-xs">{WEEK_SHORT[day]}</span>
+                  {day}
+                </span>
+                {available ? (
+                  slot.from && slot.to
+                    ? <span className="text-xs font-bold text-orange-600 bg-orange-100 px-2.5 py-1 rounded-full">{slot.from} – {slot.to}</span>
+                    : <span className="text-xs font-bold text-orange-500">✓ Disponible</span>
+                ) : (
+                  <span className="text-xs text-gray-300">No disponible</span>
+                )}
+              </div>
             );
           })}
         </div>

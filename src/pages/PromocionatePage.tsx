@@ -734,6 +734,128 @@ function normalizeService(r: any): PromoService {
   };
 }
 
+// ── PLANES DE PUBLICIDAD EN LA PLATAFORMA BAILANOW ───────────────────────
+// Promocionar TU perfil/evento/marca DENTRO de BailaNow (distinto de los
+// servicios de redes sociales de abajo). El pago/contratación se gestiona por chat.
+const AD_PLANS = [
+  {
+    id: 'destacado',
+    name: 'Destacado',
+    icon: '⭐',
+    price: 19,
+    period: '/semana',
+    gradient: 'from-pink-500 to-rose-600',
+    tagline: 'Visibilidad instantánea',
+    features: [
+      'Tu perfil/evento en "Lo más destacado" del home',
+      'Logo en el mapa interactivo',
+      'Badge ⭐ Destacado en tu ficha',
+    ],
+  },
+  {
+    id: 'patrocinador',
+    name: 'Patrocinador',
+    icon: '🏆',
+    price: 49,
+    period: '/semana',
+    gradient: 'from-fuchsia-500 to-purple-600',
+    tagline: 'El más elegido',
+    popular: true,
+    features: [
+      'Todo lo de Destacado',
+      'Logo en el pie de página de TODA la web',
+      'Prioridad en "Cerca de mí" y listados',
+      'Badge 🏆 Patrocinador oficial',
+    ],
+  },
+  {
+    id: 'top-premium',
+    name: 'Top Premium',
+    icon: '🚀',
+    price: 99,
+    period: '/semana',
+    gradient: 'from-amber-500 to-orange-600',
+    tagline: 'Dominación total',
+    features: [
+      'Todo lo de Patrocinador',
+      '1er lugar en los resultados de búsqueda',
+      'Banner destacado en la home',
+      'Notificación push a seguidores de tu ciudad',
+    ],
+  },
+];
+
+const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = ({ navigate }) => (
+  <section className="mb-8">
+    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-gray-900 to-black p-5 sm:p-7">
+      <div className="absolute -top-16 -right-16 w-64 h-64 bg-fuchsia-600/20 rounded-full blur-3xl" />
+      <div className="absolute -bottom-16 -left-16 w-64 h-64 bg-pink-600/20 rounded-full blur-3xl" />
+      <div className="relative">
+        <div className="text-center mb-6">
+          <span className="inline-block bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-3">
+            Publicítate en BailaNow
+          </span>
+          <h2 className="font-display font-black text-2xl sm:text-3xl text-white">
+            Haz que te vean <span className="bg-gradient-to-r from-pink-400 to-fuchsia-400 bg-clip-text text-transparent">miles de bailarines</span>
+          </h2>
+          <p className="text-white/60 text-sm mt-2 max-w-2xl mx-auto">
+            Destaca tu perfil, evento o local en el home, el mapa y las búsquedas. Activación inmediata, cancela cuando quieras.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {AD_PLANS.map(plan => (
+            <div key={plan.id}
+              className={`relative rounded-2xl p-5 flex flex-col ${
+                plan.popular
+                  ? 'bg-white shadow-2xl shadow-fuchsia-500/20 ring-2 ring-fuchsia-400 sm:scale-105'
+                  : 'bg-white/5 border border-white/10 backdrop-blur-sm'
+              }`}>
+              {plan.popular && (
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full whitespace-nowrap">
+                  ⚡ Más popular
+                </span>
+              )}
+              <div className="text-center mb-3">
+                <div className={`w-12 h-12 mx-auto rounded-2xl bg-gradient-to-br ${plan.gradient} flex items-center justify-center text-2xl mb-2`}>
+                  {plan.icon}
+                </div>
+                <h3 className={`font-display font-black text-lg ${plan.popular ? 'text-gray-900' : 'text-white'}`}>{plan.name}</h3>
+                <p className={`text-[11px] font-bold ${plan.popular ? 'text-fuchsia-600' : 'text-pink-300'}`}>{plan.tagline}</p>
+                <div className="mt-2 flex items-end justify-center gap-0.5">
+                  <span className={`font-display font-black text-3xl ${plan.popular ? 'text-gray-900' : 'text-white'}`}>€{plan.price}</span>
+                  <span className={`text-xs mb-1 ${plan.popular ? 'text-gray-400' : 'text-white/50'}`}>{plan.period}</span>
+                </div>
+              </div>
+              <ul className="space-y-1.5 flex-1 mb-4">
+                {plan.features.map((f, i) => (
+                  <li key={i} className={`flex items-start gap-1.5 text-xs ${plan.popular ? 'text-gray-600' : 'text-white/70'}`}>
+                    <CheckCircle className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${plan.popular ? 'text-fuchsia-500' : 'text-pink-400'}`} />
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => navigate(`/chat?asunto=${encodeURIComponent(`Quiero el plan de publicidad ${plan.name} (€${plan.price}${plan.period})`)}`)}
+                className={`w-full font-bold text-sm rounded-xl py-2.5 transition-all flex items-center justify-center gap-1.5 ${
+                  plan.popular
+                    ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white hover:opacity-90'
+                    : 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
+                }`}>
+                Contratar <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+
+        <p className="text-center text-white/40 text-[11px] mt-4">
+          💬 Activamos tu campaña en menos de 24h tras confirmar el pago por chat. Facturación semanal, sin permanencia.
+        </p>
+      </div>
+    </div>
+  </section>
+);
+
 const PromocionatePage: React.FC = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -860,6 +982,9 @@ const PromocionatePage: React.FC = () => {
         <div className="-mt-3 relative z-10 mb-4">
           <SearchTriggerBar placeholder="🔍 Buscar promociones, artistas, locales, eventos…" />
         </div>
+
+        {/* ── PLAN DE PUBLICIDAD EN BAILANOW (banner principal) ── */}
+        <AdPlansBanner navigate={navigate} />
         {/* How it works */}
         <div className="grid grid-cols-4 gap-2 sm:gap-4 relative z-10 mb-6">
           {[

@@ -6,11 +6,11 @@
  */
 import { useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { useSiteConfigStore, type HomeCategory } from '../store/appStore';
+import { useSiteConfigStore, type HomeCategory, type ProfileModule } from '../store/appStore';
 
 // ── Load config from Supabase on mount ────────────────────────────────────
 export function useSiteConfigLoader() {
-  const { setHeroSliderImages, setHeroMedia, setSiteLogo, setHomeCategories } = useSiteConfigStore();
+  const { setHeroSliderImages, setHeroMedia, setSiteLogo, setHomeCategories, setProfileModules } = useSiteConfigStore();
 
   useEffect(() => {
     const load = async () => {
@@ -27,37 +27,55 @@ export function useSiteConfigLoader() {
           if (row.key === 'site_logo' && row.value?.url) {
             setSiteLogo(row.value.url);
           }
+          if (row.key === 'profile_modules' && Array.isArray(row.value) && row.value.length > 0) {
+            setProfileModules(row.value as ProfileModule[]);
+          }
         }
       } catch (e) { console.warn('[siteConfig] load', e); }
 
       // categories (tabla independiente) — fuente de la verdad para el home
-      try {
-        const { data, error } = await supabase
-          .from('categories')
-          .select('id, name, icon, route, section, display_order, active, image_url, parent_id, description')
-          .order('section', { ascending: true })
-          .order('display_order', { ascending: true });
-        if (error) throw error;
-        if (data && data.length > 0) {
-          const cats: HomeCategory[] = data.map((r: any) => ({
-            id: String(r.id),
-            name: r.name,
-            icon: r.icon || '🎉',
-            route: r.route || '/',
-            section: (r.section || 'main') as HomeCategory['section'],
-            display_order: Number(r.display_order) || 99,
-            active: r.active !== false,
-            image_url: r.image_url || undefined,
-            parent_id: r.parent_id || null,
-            description: r.description || undefined,
-          }));
-          setHomeCategories(cats);
-        }
-      } catch (e) { console.warn('[siteConfig] categories load', e); }
+      await loadCategories(setHomeCategories);
     };
 
     load();
+
+    // Realtime: cualquier cambio en categorías refresca el menú/sidebar sin recargar
+    const channel = supabase
+      .channel('categories-sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, () => {
+        loadCategories(setHomeCategories);
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
+}
+
+// Carga las categorías de la BD y las vuelca al store. Reutilizable (load inicial + realtime).
+async function loadCategories(setHomeCategories: (cats: HomeCategory[]) => void) {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('id, name, icon, route, section, display_order, active, image_url, parent_id, description')
+      .order('section', { ascending: true })
+      .order('display_order', { ascending: true });
+    if (error) throw error;
+    if (data && data.length > 0) {
+      const cats: HomeCategory[] = data.map((r: any) => ({
+        id: String(r.id),
+        name: r.name,
+        icon: r.icon || '🎉',
+        route: r.route || '/',
+        section: (r.section || 'main') as HomeCategory['section'],
+        display_order: Number(r.display_order) || 99,
+        active: r.active !== false,
+        image_url: r.image_url || undefined,
+        parent_id: r.parent_id || null,
+        description: r.description || undefined,
+      }));
+      setHomeCategories(cats);
+    }
+  } catch (e) { console.warn('[siteConfig] categories load', e); }
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────

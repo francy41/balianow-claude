@@ -3,14 +3,17 @@
  * Cada clase muestra: vendedor, descripción, precio, próximas fechas disponibles
  * Click → abre modal de reserva con calendario
  */
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Users, Video, Star, Filter, ChevronRight, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/appStore';
 import SearchTriggerBar from '../components/SearchTriggerBar';
 import ClassBookingModal from '../components/ClassBookingModal';
+import ClassPackageBookingModal from '../components/ClassPackageBookingModal';
 import LiveFab from '../components/LiveFab';
+
+const DanceStudio = lazy(() => import('../components/DanceStudio'));
 
 interface ClassOffering {
   id: string;
@@ -37,13 +40,15 @@ const LEVELS = ['Todos', 'Principiante', 'Intermedio', 'Avanzado', 'Profesional'
 
 const ClassesPage: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const [classes, setClasses] = useState<ClassOffering[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStyle, setFilterStyle] = useState('Todos');
   const [filterLevel, setFilterLevel] = useState('Todos');
   const [filterOnline, setFilterOnline] = useState<'all' | 'online' | 'presencial'>('all');
   const [selectedClass, setSelectedClass] = useState<ClassOffering | null>(null);
+  const [practiceClass, setPracticeClass] = useState<ClassOffering | null>(null);
+  const [packageClass, setPackageClass] = useState<ClassOffering | null>(null);
 
   // Load classes from Supabase — todo en paralelo con timeout
   useEffect(() => {
@@ -212,7 +217,7 @@ const ClassesPage: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map(c => (
-              <ClassCard key={c.id} cls={c} onClick={() => setSelectedClass(c)} />
+              <ClassCard key={c.id} cls={c} onClick={() => setSelectedClass(c)} onPractice={() => setPracticeClass(c)} onPackage={() => setPackageClass(c)} />
             ))}
           </div>
         )}
@@ -227,13 +232,42 @@ const ClassesPage: React.FC = () => {
         />
       )}
 
+      {/* Modal de paquetes de clase */}
+      {packageClass && (
+        <ClassPackageBookingModal
+          artist={{
+            id: packageClass.vendor_id,
+            name: packageClass.vendor_name || 'Instructor',
+            avatar: packageClass.vendor_avatar,
+            classPackages: (packageClass as any).classPackages || [],
+          }}
+          onClose={() => setPackageClass(null)}
+        />
+      )}
+
+      {/* Práctica interactiva IA — módulo a pantalla completa */}
+      {practiceClass && (
+        <Suspense fallback={null}>
+          <DanceStudio
+            genre={practiceClass.style?.[0] || practiceClass.category || 'Bachata'}
+            level={practiceClass.level || 'principiante'}
+            teacherName={practiceClass.vendor_name || 'Tu profe'}
+            teacherAvatarUrl={practiceClass.vendor_avatar || null}
+            choreographerId={practiceClass.vendor_id}
+            userId={user?.id}
+            userName={user?.name || 'crack'}
+            onClose={() => setPracticeClass(null)}
+          />
+        </Suspense>
+      )}
+
       <LiveFab defaultCategory="class" label="Iniciar Clase Live" />
     </div>
   );
 };
 
 // ── Tarjeta de clase ────────────────────────────────────────────────────
-const ClassCard: React.FC<{ cls: ClassOffering; onClick: () => void }> = ({ cls, onClick }) => {
+const ClassCard: React.FC<{ cls: ClassOffering; onClick: () => void; onPractice?: () => void; onPackage?: () => void }> = ({ cls, onClick, onPractice, onPackage }) => {
   const fmtDate = (iso: string) => {
     const d = new Date(iso);
     return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
@@ -290,6 +324,23 @@ const ClassCard: React.FC<{ cls: ClassOffering; onClick: () => void }> = ({ cls,
           <div className="bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2 text-center">
             <p className="text-xs text-gray-500">Disponibilidad bajo demanda</p>
           </div>
+        )}
+
+        {/* Botón reserva de paquetes */}
+        {onPackage && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onPackage(); }}
+            className="w-full mt-2 bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity">
+            📦 Ver paquetes de clase
+          </button>
+        )}
+        {/* Práctica interactiva IA (clases online) */}
+        {cls.is_online && onPractice && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onPractice(); }}
+            className="w-full mt-2 bg-gradient-to-r from-[#ff3e6c] to-[#ff8c42] text-white font-black text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity">
+            🎮 Practicar ahora con IA
+          </button>
         )}
       </div>
     </article>

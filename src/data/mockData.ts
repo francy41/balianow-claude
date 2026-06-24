@@ -139,6 +139,7 @@ export interface Venue {
   lat: number;
   lng: number;
   priceRange: 1 | 2 | 3 | 4;
+  userId?: string;
 }
 
 export interface Service {

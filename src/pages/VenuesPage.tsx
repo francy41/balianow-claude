@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { MapPin, Users, Clock, CheckCircle, Star, MessageSquare, Bell, Heart, Share2, Calendar, Music2, Instagram, Youtube, Facebook, Globe, Headphones, Video, Loader2 } from 'lucide-react';
-import AdminEditFab from '../components/AdminEditFab';
+import EntityAdminPanel from '../components/EntityAdminPanel';
+import ClaimProfileButton from '../components/ClaimProfileButton';
+import { isClaimed, UNCLAIMED_TOAST } from '../lib/ownership';
 import { VENUES } from '../data/mockData';
 import type { Venue } from '../data/mockData';
-import { Badge, StarRating, SearchBar, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
+import { Badge, StarRating, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
 import SearchTriggerBar from '../components/SearchTriggerBar';
-import { useAuthStore, useUIStore, getYouTubeId } from '../store/appStore';
+import { useAuthStore, useUIStore, getYouTubeId, useSiteConfigStore } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
 import { supabase } from '../lib/supabase';
 import { usePageMeta } from '../hooks/usePageMeta';
@@ -44,11 +46,12 @@ function mapDbVenue(v: any): Venue {
     lat:         Number(v.lat) || 0,
     lng:         Number(v.lng) || 0,
     priceRange:  Number(v.price_range) || 2,
+    userId:      v.user_id || v.owner_id || '',
   } as Venue;
 }
 
 const TYPES = ['Todos', 'Discoteca', 'Club', 'Bar', 'Studio', 'Rooftop', 'Lounge', 'Restaurante'];
-const CITIES = ['Todas', 'Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'London', 'Santo Domingo', 'Buenos Aires', 'Cali', 'Miami', 'La Habana', 'Bogotá', 'Medellín', 'New York', 'Berlin', 'Ciudad de México', 'Caracas'];
+const BASE_CITIES = ['Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'London', 'Santo Domingo', 'Buenos Aires', 'Cali', 'Miami', 'La Habana', 'Bogotá', 'Medellín', 'New York', 'Berlin', 'Ciudad de México', 'Caracas'];
 
 const VenuesPage: React.FC = () => {
   usePageMeta({
@@ -72,7 +75,6 @@ const VenuesList: React.FC = () => {
     const match = TYPES.find(x => x.toLowerCase() === t.toLowerCase());
     return match ? [match] : ['Todos'];
   })();
-  const [search, setSearch] = useState('');
   const [selectedType, setSelectedType] = useState(initialType);
   const [selectedCity, setSelectedCity] = useState(['Todas']);
   const [onlyOpen, setOnlyOpen] = useState(false);
@@ -94,22 +96,31 @@ const VenuesList: React.FC = () => {
     return () => { cancelled = true; clearTimeout(safety); };
   }, []);
 
-  // Combina BD + mock evitando duplicados por id
+  // Solo usar mock si no hay datos reales en BD
   const allVenues = useMemo(() => {
-    if (dbVenues.length === 0) return VENUES;
-    const ids = new Set(dbVenues.map(v => v.id));
-    return [...dbVenues, ...VENUES.filter(v => !ids.has(v.id))];
+    return dbVenues.length > 0 ? dbVenues : VENUES;
   }, [dbVenues]);
+
+  // Ciudades dinámicas: base + las que realmente tienen locales (por nº de locales)
+  const CITIES = useMemo(() => {
+    const counts = new Map<string, number>();
+    allVenues.forEach(v => {
+      const c = (v.city || '').trim();
+      if (c) counts.set(c, (counts.get(c) || 0) + 1);
+    });
+    const fromData = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).map(([c]) => c);
+    const merged = [...BASE_CITIES.filter(c => counts.has(c)), ...fromData.filter(c => !BASE_CITIES.includes(c))];
+    return ['Todas', ...Array.from(new Set(merged))];
+  }, [allVenues]);
 
   const filtered = useMemo(() => {
     return allVenues.filter(v => {
-      const matchSearch = !search || v.name.toLowerCase().includes(search.toLowerCase()) || v.city.toLowerCase().includes(search.toLowerCase());
       const matchType = selectedType.includes('Todos') || selectedType.some(t => v.type === t.toLowerCase());
       const matchCity = selectedCity.includes('Todas') || selectedCity.includes(v.city);
       const matchOpen = !onlyOpen || v.isOpen;
-      return matchSearch && matchType && matchCity && matchOpen;
+      return matchType && matchCity && matchOpen;
     });
-  }, [allVenues, search, selectedType, selectedCity, onlyOpen]);
+  }, [allVenues, selectedType, selectedCity, onlyOpen]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-6">
@@ -119,10 +130,9 @@ const VenuesList: React.FC = () => {
           <p className="text-gray-400">Clubs, estudios y espacios de entretenimiento latino</p>
         </div>
 
-        <SearchTriggerBar placeholder="🔍 Buscar locales, artistas, eventos en todo BailaNow…" className="mb-3" />
-        <SearchBar placeholder="Filtrar en esta página..." value={search} onChange={setSearch} />
+        <SearchTriggerBar placeholder="🔍 Buscar locales, artistas, eventos en todo BailaNow…" className="mb-6" />
 
-        <div className="mt-4 space-y-3">
+        <div className="space-y-3">
           <FilterChips options={TYPES} selected={selectedType} onChange={setSelectedType} />
           <FilterChips options={CITIES} selected={selectedCity} onChange={setSelectedCity} />
           <button
@@ -239,10 +249,10 @@ const SocialIcon: React.FC<{ kind: string }> = ({ kind }) => {
 };
 
 const VENUE_TABS = [
-  { id: 'about' as const,   label: 'Sobre el local', icon: '📍' },
-  { id: 'events' as const,  label: 'Eventos',        icon: '📅' },
-  { id: 'gallery' as const, label: 'Galería',        icon: '📸' },
-  { id: 'reviews' as const, label: 'Reseñas',        icon: '⭐' },
+  { id: 'about' as const,   label: 'Sobre el local', icon: '📍', module: 'about' },
+  { id: 'events' as const,  label: 'Eventos',        icon: '📅', module: 'events' },
+  { id: 'gallery' as const, label: 'Galería',        icon: '📸', module: 'gallery' },
+  { id: 'reviews' as const, label: 'Reseñas',        icon: '⭐', module: 'reviews' },
 ];
 
 const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
@@ -252,6 +262,12 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
   const [venue, setVenue] = useState<Venue | null>(null);
   const [loadingVenue, setLoadingVenue] = useState(true);
   const [activeTab, setActiveTab] = useState<'about' | 'events' | 'gallery' | 'reviews'>('about');
+  const profileModules = useSiteConfigStore(s => s.profileModules);
+  const isModuleOn = (modId: string) => profileModules.find(m => m.id === modId)?.enabled !== false;
+  const visibleVenueTabs = VENUE_TABS.filter(t => isModuleOn(t.module));
+  useEffect(() => {
+    if (!visibleVenueTabs.some(t => t.id === activeTab)) setActiveTab('about');
+  }, [profileModules]); // eslint-disable-line react-hooks/exhaustive-deps
   const [bookingOpen, setBookingOpen] = useState(false);
   const [following, setFollowing] = useState(false);
   const [liked, setLiked] = useState(false);
@@ -267,6 +283,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
   }, [venueId]);
 
   const handleReserve = () => {
+    if (!isClaimed(venue?.userId as string)) { addToast({ message: UNCLAIMED_TOAST, type: 'warning' }); return; }
     if (!isAuthenticated) { navigate('/auth'); return; }
     setBookingOpen(true);
   };
@@ -332,8 +349,9 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
             className="btn-orange text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
             <MessageSquare className="w-4 h-4" /> Chat interno
           </button>
-          <button onClick={handleReserve}
-            className="btn-outline text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
+          <button onClick={handleReserve} disabled={!isClaimed(venue.userId as string)}
+            title={!isClaimed(venue.userId as string) ? 'Perfil no reclamado — reserva no disponible' : undefined}
+            className="btn-outline text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
             <Calendar className="w-4 h-4" /> Reservar
           </button>
           <button onClick={() => {
@@ -359,7 +377,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
 
         {/* Tabs */}
         <div className="max-w-5xl mx-auto px-4 flex items-center gap-1 overflow-x-auto border-t border-gray-50" style={{ scrollbarWidth: 'none' }}>
-          {VENUE_TABS.map(t => (
+          {visibleVenueTabs.map(t => (
             <button key={t.id} onClick={() => setActiveTab(t.id)}
               className={`flex items-center gap-1.5 px-4 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${
                 activeTab === t.id ? 'border-brand-orange text-brand-orange' : 'border-transparent text-gray-500 hover:text-gray-800'
@@ -601,7 +619,15 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
         helperText={`${venue.type} en ${venue.city} · Capacidad ${venue.capacity}`}
       />
 
-      <AdminEditFab kind="venue" id={venueId} />
+      <EntityAdminPanel kind="venue" id={venueId} ownerUserId={venue?.userId as string} />
+      <div className="fixed z-[60] bottom-24 right-4 sm:bottom-8 sm:right-8">
+        <ClaimProfileButton
+          targetTable="venues"
+          targetId={venueId!}
+          targetName={venue?.name || 'Local'}
+          hasOwner={!!venue?.userId}
+        />
+      </div>
     </div>
   );
 };

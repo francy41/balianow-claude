@@ -75,6 +75,19 @@ export function detectPose(video: HTMLVideoElement): PoseResult {
   } catch { return null; }
 }
 
+export interface PoseFull { landmarks: Landmark[]; worldLandmarks: Landmark[]; }
+export function detectPoseFull(video: HTMLVideoElement): PoseFull | null {
+  if (!_landmarker || video.readyState < 2) return null;
+  const ts = performance.now();
+  try {
+    const result = _landmarker.detectForVideo(video, ts);
+    const lm = result?.landmarks?.[0];
+    const wlm = result?.worldLandmarks?.[0];
+    if (!lm) return null;
+    return { landmarks: lm, worldLandmarks: wlm ?? lm };
+  } catch { return null; }
+}
+
 // ── Ángulo entre 3 landmarks (para matching exacto) ───────────────
 export function angle(a: Landmark, b: Landmark, c: Landmark): number {
   const ab = { x: a.x - b.x, y: a.y - b.y };

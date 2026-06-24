@@ -1,55 +1,40 @@
-import React from 'react';
-import { CheckCircle, XCircle, AlertTriangle, Clock, Shield } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import QRCode from 'qrcode';
+import { CheckCircle, XCircle, AlertTriangle, Clock, Shield, Download } from 'lucide-react';
 import type { Ticket, QRStatus } from '../store/ticketStore';
 
-/* ── QR Code visual (SVG-based, no external lib) ─────────────────────────── */
-const QRPattern: React.FC<{ token: string; size?: number }> = ({ token, size = 180 }) => {
-  // Generate deterministic pattern from token
-  const cells = 21;
-  const cellSize = size / cells;
-  const hash = token.split('').reduce((h, c) => ((h << 5) - h + c.charCodeAt(0)) | 0, 0);
+/* ── Real QR Code (scannable) ────────────────────────────────────────────── */
+export const QRCodeCanvas: React.FC<{ token: string; size?: number }> = ({ token, size = 180 }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [error, setError] = useState(false);
 
-  const grid: boolean[][] = Array.from({ length: cells }, (_, r) =>
-    Array.from({ length: cells }, (_, c) => {
-      // Finder patterns (top-left, top-right, bottom-left)
-      const inFinder = (cr: number, cc: number) =>
-        cr < 7 && cc < 7 || cr < 7 && cc >= cells - 7 || cr >= cells - 7 && cc < 7;
-      const finderBorder = (cr: number, cc: number) => {
-        const corners = [[0, 0], [0, cells - 7], [cells - 7, 0]];
-        return corners.some(([fr, fc]) => {
-          const lr = cr - fr, lc = cc - fc;
-          return (lr === 0 || lr === 6) && lc >= 0 && lc <= 6 ||
-                 (lc === 0 || lc === 6) && lr >= 0 && lr <= 6 ||
-                 lr >= 2 && lr <= 4 && lc >= 2 && lc <= 4;
-        });
-      };
-      if (inFinder(r, c)) return finderBorder(r, c);
-      // Data pattern from hash
-      const seed = (hash * (r * cells + c + 1) * 7919) & 0x7FFFFFFF;
-      return seed % 3 !== 0;
-    })
+  useEffect(() => {
+    if (!canvasRef.current || !token) return;
+    QRCode.toCanvas(canvasRef.current, token, {
+      width: size,
+      margin: 2,
+      errorCorrectionLevel: 'H',
+      color: { dark: '#1a1a2e', light: '#ffffff' },
+    }).catch(() => setError(true));
+  }, [token, size]);
+
+  if (error) return (
+    <div style={{ width: size, height: size }} className="mx-auto bg-gray-100 rounded-xl flex items-center justify-center text-gray-400 text-xs">
+      QR no disponible
+    </div>
   );
 
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="mx-auto">
-      <rect width={size} height={size} fill="white" rx={8} />
-      {grid.map((row, r) =>
-        row.map((cell, c) =>
-          cell ? (
-            <rect
-              key={`${r}-${c}`}
-              x={c * cellSize}
-              y={r * cellSize}
-              width={cellSize}
-              height={cellSize}
-              fill="#1a1a2e"
-              rx={cellSize * 0.15}
-            />
-          ) : null
-        )
-      )}
-    </svg>
-  );
+  return <canvas ref={canvasRef} className="mx-auto rounded-lg shadow-sm" />;
+};
+
+/* ── Download QR as PNG ──────────────────────────────────────────────────── */
+export const downloadTicketQR = async (token: string, filename = 'entrada-bailanow.png') => {
+  const canvas = document.createElement('canvas');
+  await QRCode.toCanvas(canvas, token, { width: 300, margin: 2, errorCorrectionLevel: 'H' });
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
 };
 
 /* ── QR Status Badge ─────────────────────────────────────────────────────── */
@@ -99,10 +84,16 @@ export const TicketCard: React.FC<{ ticket: Ticket }> = ({ ticket }) => {
         <div className="border-t-2 border-dashed border-gray-200 mx-6" />
       </div>
 
-      {/* QR Code */}
+      {/* QR Code real */}
       <div className="p-6 flex flex-col items-center">
-        <QRPattern token={ticket.qrToken} size={160} />
+        <QRCodeCanvas token={ticket.qrToken} size={160} />
         <p className="text-[10px] text-gray-400 mt-2 font-mono tracking-wider">{ticket.qrToken}</p>
+        <button
+          onClick={() => downloadTicketQR(ticket.qrToken, `entrada-${ticket.id}.png`)}
+          className="mt-2 flex items-center gap-1.5 text-xs text-gray-400 hover:text-brand-orange transition-colors"
+        >
+          <Download className="w-3.5 h-3.5" /> Descargar QR
+        </button>
       </div>
 
       {/* Details */}
@@ -141,7 +132,8 @@ export const ScanResultCard: React.FC<{
   sectionName: string;
   ticketType: string;
   companions: number;
-}> = ({ status, buyerName, eventTitle, sectionName, ticketType, companions }) => {
+  quantity?: number;
+}> = ({ status, buyerName, eventTitle, sectionName, ticketType, companions, quantity = 1 }) => {
   const isOk = status === 'valid';
   return (
     <div className={`rounded-3xl p-8 text-center ${isOk ? 'bg-emerald-50 border-2 border-emerald-300' : 'bg-red-50 border-2 border-red-300'}`}>
@@ -158,6 +150,10 @@ export const ScanResultCard: React.FC<{
             <span className="font-bold text-emerald-900">{buyerName}</span>
           </div>
           <div className="flex justify-between text-sm">
+            <span className="text-emerald-600">Evento</span>
+            <span className="font-bold text-emerald-900 text-right max-w-[60%]">{eventTitle}</span>
+          </div>
+          <div className="flex justify-between text-sm">
             <span className="text-emerald-600">Sección</span>
             <span className="font-bold text-emerald-900">{sectionName}</span>
           </div>
@@ -165,6 +161,12 @@ export const ScanResultCard: React.FC<{
             <span className="text-emerald-600">Tipo</span>
             <span className="font-bold text-emerald-900 uppercase text-xs">{ticketType}</span>
           </div>
+          {quantity > 1 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-emerald-600">Entradas</span>
+              <span className="font-bold text-emerald-900">{quantity}</span>
+            </div>
+          )}
           {companions > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-emerald-600">Acompañantes</span>
@@ -177,4 +179,4 @@ export const ScanResultCard: React.FC<{
   );
 };
 
-export default QRPattern;
+export default QRCodeCanvas;

@@ -233,6 +233,35 @@ export const DEFAULT_HOME_CATEGORIES: HomeCategory[] = [
   { id: '16', name: 'Chat',            icon: '💬', route: '/chat',                      section: 'comunidad', display_order: 4,  active: true },
 ];
 
+// ── PROFILE MODULES (pestañas/secciones de los perfiles) ──────────────────
+// Activar/ocultar globalmente qué módulos muestran TODOS los perfiles.
+// Controlado por el superadmin desde la sección Categorías.
+export interface ProfileModule {
+  id: string;
+  label: string;
+  icon: string;
+  enabled: boolean;
+}
+
+export const DEFAULT_PROFILE_MODULES: ProfileModule[] = [
+  { id: 'about',    label: 'Sobre mí',                   icon: '✨', enabled: true },
+  { id: 'gallery',  label: 'Galería / Imágenes',         icon: '🖼️', enabled: true },
+  { id: 'videos',   label: 'Videos',                     icon: '🎬', enabled: true },
+  { id: 'offers',   label: 'Servicios',                  icon: '🏆', enabled: true },
+  { id: 'classes',  label: 'Clases',                     icon: '🎓', enabled: true },
+  { id: 'courses',  label: 'Cursos',                     icon: '📚', enabled: true },
+  { id: 'calendar', label: 'Calendario / Disponibilidad', icon: '📅', enabled: true },
+  { id: 'events',   label: 'Eventos',                    icon: '🎉', enabled: true },
+  { id: 'live',     label: 'Live / En directo',          icon: '🔴', enabled: true },
+  { id: 'reviews',  label: 'Reseñas',                    icon: '⭐', enabled: true },
+  // Módulos del dashboard (panel del dueño)
+  { id: 'earnings', label: 'Ganancias (dashboard)',      icon: '💰', enabled: true },
+  { id: 'payouts',  label: 'Cobrar (dashboard)',         icon: '🏦', enabled: true },
+  { id: 'payments', label: 'Pagar (dashboard)',          icon: '💳', enabled: true },
+  { id: 'buyers',   label: 'Compradores (dashboard)',    icon: '👥', enabled: true },
+  { id: 'scanner',  label: 'Escanear QR (dashboard)',    icon: '📷', enabled: true },
+];
+
 // ── SITE CONFIG STORE (hero banner, etc.) ─────────────────────────────────
 export type HeroMediaType = 'image' | 'youtube' | 'video';
 
@@ -256,6 +285,7 @@ interface SiteConfigState {
   commissions: CommissionConfig;
   siteLogo: string;
   homeCategories: HomeCategory[];
+  profileModules: ProfileModule[];
   setHeroMedia: (media: Partial<HeroMedia>) => void;
   setHeroSliderImages: (images: HeroSliderImage[]) => void;
   setCommission: (source: CommissionSource, rate: number) => void;
@@ -264,6 +294,7 @@ interface SiteConfigState {
   resetCommissions: () => void;
   setSiteLogo: (logo: string) => void;
   setHomeCategories: (cats: HomeCategory[]) => void;
+  setProfileModules: (mods: ProfileModule[]) => void;
 }
 
 export const useSiteConfigStore = create<SiteConfigState>()(
@@ -283,11 +314,13 @@ export const useSiteConfigStore = create<SiteConfigState>()(
       commissions: DEFAULT_COMMISSIONS,
       siteLogo: '',
       homeCategories: DEFAULT_HOME_CATEGORIES,
+      profileModules: DEFAULT_PROFILE_MODULES,
       setHeroMedia: (media) =>
         set((state) => ({ heroMedia: { ...state.heroMedia, ...media } })),
       setHeroSliderImages: (images) => set({ heroSliderImages: images }),
       setSiteLogo: (logo) => set({ siteLogo: logo }),
       setHomeCategories: (cats) => set({ homeCategories: cats }),
+      setProfileModules: (mods) => set({ profileModules: mods }),
       setCommission: (source, rate) =>
         set((state) => ({
           commissions: {
@@ -312,7 +345,12 @@ export const useSiteConfigStore = create<SiteConfigState>()(
           return {
             ...(persistedState || {}),
             homeCategories: DEFAULT_HOME_CATEGORIES,
+            profileModules: persistedState?.profileModules || DEFAULT_PROFILE_MODULES,
           };
+        }
+        // Asegura módulos por defecto en estados persistidos antiguos
+        if (!persistedState.profileModules || persistedState.profileModules.length === 0) {
+          return { ...persistedState, profileModules: DEFAULT_PROFILE_MODULES };
         }
         return persistedState;
       },
@@ -428,8 +466,27 @@ interface ChatState {
   respondOffer: (convId: string, messageId: string, accept: boolean) => void;
 }
 
+export const SUPPORT_CONV_ID = 'soporte';
+
 export const useChatStore = create<ChatState>((set) => ({
   conversations: [
+    {
+      id: SUPPORT_CONV_ID,
+      participantId: 'bailanow-support',
+      participantName: 'Soporte BailaNow',
+      participantAvatar: 'https://ui-avatars.com/api/?name=Soporte&background=EC4899&color=fff&size=200&bold=true',
+      lastMessage: '¡Hola! ¿En qué podemos ayudarte hoy?',
+      lastMessageTime: new Date(),
+      unread: 0,
+      messages: [
+        {
+          id: 'sup-1', senderId: 'bailanow-support', senderName: 'Soporte BailaNow',
+          senderAvatar: 'https://ui-avatars.com/api/?name=Soporte&background=EC4899&color=fff&size=200&bold=true',
+          text: '¡Hola! 👋 Somos el equipo de soporte de BailaNow. Escríbenos tu duda sobre pagos, reservas, perfiles o publicidad y te responderemos lo antes posible.',
+          timestamp: new Date(), isRead: true
+        }
+      ]
+    },
     {
       id: 'conv1',
       participantId: 'a1',
@@ -1239,7 +1296,9 @@ export interface Sponsor {
   color: string;
   link: string;
   badge: string;
-  type: 'venue' | 'artist' | 'event' | 'brand';
+  type: 'venue' | 'artist' | 'event' | 'brand' | 'profile' | 'company' | 'seller' | 'package';
+  // Dónde aparece en el home: slider "Lo más destacado" (top), pie de página (footer) o ambos.
+  placement?: 'featured' | 'footer' | 'both';
   refId?: string;       // id del venue/artista vinculado
   active: boolean;
   createdAt: string;

@@ -773,7 +773,7 @@ const DanceSessionModal: React.FC<{
                     <DanceSyncCamera
                       phase={game.phase} countdown={game.countdown}
                       attemptProgress={game.attemptProgress} syncScore={game.syncScore}
-                      landmarks={game.landmarks} label="🟢 TÚ"
+                      landmarks={game.landmarks} worldLandmarks={game.worldLandmarks} label="🟢 TÚ"
                       camOn={userCamOn} setCamOn={setUserCamOn}
                       onCamReady={(video) => { (userVideoRef as any).current = video; }}
                       device={device}

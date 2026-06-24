@@ -18,10 +18,10 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  loadPoseLandmarker, detectPose, pushHistory, clearHistory,
+  loadPoseLandmarker, detectPose, detectPoseFull, pushHistory, clearHistory,
   extractAngles, scoreMovementLevel, scoreExactMatch, combinedScore,
   getBodyFocus, isPoseLandmarkerReady, angleVector, scoreDTW,
-  type PoseResult, type SyncScore, type PoseAngles,
+  type PoseResult, type SyncScore, type PoseAngles, type Landmark,
 } from '../lib/poseSync';
 import { speak, stopSpeaking } from '../lib/speech';
 import {
@@ -52,6 +52,7 @@ export interface GameState {
   stepStars: number;          // estrellas del último paso
   totalStars: number;         // estrellas acumuladas
   landmarks: PoseResult;
+  worldLandmarks: Landmark[] | null;
   syncScore: SyncScore | null;
   liveMatch: number;       // % de sincronía DTW en vivo (-1 si no hay referencia)
   lastBreakdown: { sync: number; rhythm: number } | null; // desglose del último paso superado
@@ -223,6 +224,7 @@ export function useDanceGameLoop(opts: Options): GameState & {
   const [stepStars, setStepStars] = useState(0);
   const [totalStars, setTotalStars] = useState(0);
   const [landmarks, setLandmarks] = useState<PoseResult>(null);
+  const [worldLandmarks, setWorldLandmarks] = useState<Landmark[] | null>(null);
   const [syncScore, setSyncScore] = useState<SyncScore | null>(null);
   const [liveMatch, setLiveMatch] = useState(-1);
   const [lastBreakdown, setLastBreakdown] = useState<{ sync: number; rhythm: number } | null>(null);
@@ -292,7 +294,13 @@ export function useDanceGameLoop(opts: Options): GameState & {
       lm = opts.remoteLandmarksRef?.current ?? null;
     } else {
       const video = opts.videoRef.current;
-      if (video && opts.camOn && isPoseLandmarkerReady()) lm = detectPose(video);
+      if (video && opts.camOn && isPoseLandmarkerReady()) {
+        const full = detectPoseFull(video);
+        if (full) {
+          lm = full.landmarks;
+          setWorldLandmarks(full.worldLandmarks);
+        }
+      }
     }
 
     if (lm) {
@@ -555,7 +563,7 @@ export function useDanceGameLoop(opts: Options): GameState & {
   return {
     phase, stepIdx, attemptCount, countdown, attemptProgress,
     sessionScore, lives, combo, comboMultiplier, stepStars, totalStars,
-    landmarks, syncScore, liveMatch, lastBreakdown, stepResults, completed, gameOver, poseLandmarkerReady,
+    landmarks, worldLandmarks, syncScore, liveMatch, lastBreakdown, stepResults, completed, gameOver, poseLandmarkerReady,
     startStep, startGame, stopGame, resetGame,
   };
 }

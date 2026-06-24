@@ -4,7 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useNavigate } from 'react-router-dom';
 import { Navigation, Star, Music, X, Search } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
 import MapErrorBoundary from '../components/MapErrorBoundary';
 
 // ── Leaflet icon fix (bundled icons) ────────────────────────────────────
@@ -17,25 +17,36 @@ L.Icon.Default.mergeOptions({
 });
 
 // ── Pin icons ───────────────────────────────────────────────────────────
-const makePin = (color: string, emoji: string, isSelected: boolean) => L.divIcon({
-  className: 'bn-pin',
-  html: `
-    <div style="
-      width: ${isSelected ? 44 : 36}px;
-      height: ${isSelected ? 44 : 36}px;
-      background: ${color};
-      border-radius: 50% 50% 50% 0;
-      transform: rotate(-45deg);
-      border: 3px solid white;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      display: flex; align-items: center; justify-content: center;
-    ">
-      <div style="transform: rotate(45deg); font-size: ${isSelected ? 16 : 13}px;">${emoji}</div>
-    </div>`,
-  iconSize:   [isSelected ? 44 : 36, isSelected ? 44 : 36],
-  iconAnchor: [isSelected ? 22 : 18, isSelected ? 44 : 36],
-  popupAnchor:[0, -36],
-});
+const makePin = (color: string, emoji: string, isSelected: boolean, img?: string) => {
+  const size = isSelected ? 44 : 36;
+  const inner = size - 8;
+  // Contenido: foto/logo del perfil si existe, si no el emoji.
+  const content = img
+    ? `<img src="${img}" referrerpolicy="no-referrer"
+         style="width:${inner}px;height:${inner}px;border-radius:50%;object-fit:cover;transform:rotate(45deg);display:block;"
+         onerror="this.replaceWith(Object.assign(document.createElement('div'),{innerText:'${emoji}',style:'transform:rotate(45deg);font-size:${isSelected ? 16 : 13}px;'}))" />`
+    : `<div style="transform: rotate(45deg); font-size: ${isSelected ? 16 : 13}px;">${emoji}</div>`;
+  return L.divIcon({
+    className: 'bn-pin',
+    html: `
+      <div style="
+        width: ${size}px;
+        height: ${size}px;
+        background: ${color};
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        border: 3px solid white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden;
+      ">
+        ${content}
+      </div>`,
+    iconSize:   [size, size],
+    iconAnchor: [size / 2, size],
+    popupAnchor:[0, -size],
+  });
+};
 
 // ── Types ───────────────────────────────────────────────────────────────
 type MapItem = {
@@ -176,6 +187,36 @@ const MapPage: React.FC = () => {
         }
       } catch {}
 
+      // 4. Perfiles reales creados por usuarios (tabla profiles) — con su avatar
+      try {
+        const { data: profiles } = await supabase.from('profiles').select(PUBLIC_PROFILE_COLUMNS);
+        if (profiles && profiles.length) {
+          profiles.forEach((p: any) => {
+            const role = String(p.role || '').toLowerCase();
+            const mapType: MapItem['type'] | null =
+              role === 'dj'                    ? 'dj'     :
+              role === 'dancer'                ? 'dancer' :
+              (role === 'venue' || role === 'business') ? 'venue' :
+              ['artist', 'instructor', 'singer', 'musician', 'promoter', 'band', 'vendor', 'user'].includes(role) ? 'artist' :
+              null;
+            if (!mapType) return;
+            const baseCoord = p.lat && p.lng
+              ? [Number(p.lat), Number(p.lng)] as [number, number]
+              : jitter(cityCoord(p.city || p.location || 'Madrid'), p.id);
+            const color = mapType === 'dancer' ? '#10B981' : mapType === 'dj' ? '#06B6D4' : mapType === 'venue' ? '#EC4899' : '#8B5CF6';
+            const emoji = mapType === 'dancer' ? '💃' : mapType === 'dj' ? '🎧' : mapType === 'venue' ? '🏛️' : '🎤';
+            combined.push({
+              id: p.id, type: mapType, name: p.full_name || p.name || 'Perfil',
+              city: p.city || p.location || '', country: p.country || '',
+              lat: baseCoord[0], lng: baseCoord[1],
+              genre: Array.isArray(p.styles) ? p.styles.join(', ') : undefined,
+              img: p.avatar_url || p.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.full_name || 'BN')}&background=8B5CF6&color=fff`,
+              color, emoji,
+            });
+          });
+        }
+      } catch {}
+
       setItems(combined);
       setLoading(false);
     };
@@ -306,7 +347,7 @@ const MapPage: React.FC = () => {
             <Marker
               key={`${it.type}-${it.id}`}
               position={[it.lat, it.lng]}
-              icon={makePin(it.color, it.emoji, selected === it.id)}
+              icon={makePin(it.color, it.emoji, selected === it.id, it.img)}
               eventHandlers={{ click: () => { setSelected(it.id); setFlyTo([it.lat, it.lng]); }}}
             >
               <Popup closeButton={false}>
@@ -320,8 +361,9 @@ const MapPage: React.FC = () => {
                   <button
                     onClick={() => {
                       if (it.type === 'venue')  navigate(`/venues/${it.id}`);
-                      if (it.type === 'event')  navigate(`/eventos/${it.id}`);
-                      if (it.type === 'artist' || it.type === 'dancer' || it.type === 'dj') navigate(`/artistas/${it.id}`);
+                      else if (it.type === 'event')  navigate(`/eventos/${it.id}`);
+                      else if (/^[0-9a-f-]{8,}/i.test(it.id)) navigate(`/p/${it.id}`);
+                      else navigate(`/artistas/${it.id}`);
                     }}
                     style={{ width: '100%', background: 'linear-gradient(135deg, #EC4899, #A855F7)', color: 'white', border: 'none', borderRadius: 8, padding: '6px 0', fontSize: 12, fontWeight: 700, cursor: 'pointer', marginTop: 6 }}>
                     Ver detalles →
@@ -380,8 +422,9 @@ const MapPage: React.FC = () => {
             </div>
             <button onClick={() => {
                 if (selectedItem.type === 'venue')  navigate(`/venues/${selectedItem.id}`);
-                if (selectedItem.type === 'event')  navigate(`/eventos/${selectedItem.id}`);
-                if (selectedItem.type === 'artist' || selectedItem.type === 'dancer' || selectedItem.type === 'dj') navigate(`/artistas/${selectedItem.id}`);
+                else if (selectedItem.type === 'event')  navigate(`/eventos/${selectedItem.id}`);
+                else if (/^[0-9a-f-]{8,}/i.test(selectedItem.id)) navigate(`/p/${selectedItem.id}`);
+                else navigate(`/artistas/${selectedItem.id}`);
               }}
               className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-xs font-bold px-4 py-2 rounded-xl active:scale-95 shadow-lg shadow-pink-500/30">
               Ver →

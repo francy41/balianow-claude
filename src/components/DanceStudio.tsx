@@ -355,7 +355,7 @@ const DanceStudio: React.FC<Props> = ({
       </div>
 
       {/* Paneles */}
-      <div className={`flex-1 grid gap-2 p-2 min-h-0 ${isTV ? 'grid-cols-[60%_40%]' : 'grid-cols-2'}`}>
+      <div className={`flex-1 grid gap-2 p-2 min-h-0 ${isTV ? 'grid-cols-[60%_40%]' : isMobile ? 'grid-rows-2 grid-cols-1' : 'grid-cols-2'}`}>
         {/* PROFE */}
         <div className="flex flex-col gap-1 min-h-0">
           <p className={`font-bold text-white/70 px-1 flex items-center gap-2 flex-shrink-0 ${ts.small}`}>
@@ -408,7 +408,7 @@ const DanceStudio: React.FC<Props> = ({
             <DanceSyncCamera
               phase={game.phase} countdown={game.countdown}
               attemptProgress={game.attemptProgress} syncScore={game.syncScore}
-              landmarks={game.landmarks} label="🟢 TÚ"
+              landmarks={game.landmarks} worldLandmarks={game.worldLandmarks} label="🟢 TÚ"
               camOn={userCamOn} setCamOn={setUserCamOn}
               onCamReady={(video) => { (userVideoRef as any).current = video; }}
               device={device}

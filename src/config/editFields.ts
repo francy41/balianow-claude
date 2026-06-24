@@ -41,10 +41,18 @@ export const FIELDS_EVENT: EditField[] = [
 
 export const FIELDS_ARTIST: EditField[] = [
   { key: 'name', label: 'Nombre', type: 'text', required: true, cols: 2 },
-  { key: 'type', label: 'Tipo', type: 'select', options: [
-      { value: 'dj', label: 'DJ' }, { value: 'dancer', label: 'Bailarín/a' },
-      { value: 'singer', label: 'Cantante' }, { value: 'band', label: 'Banda' },
-      { value: 'instructor', label: 'Instructor/a' },
+  { key: 'type', label: 'Categoría principal', type: 'select', options: [
+      { value: 'dj', label: 'DJ / Productor' },
+      { value: 'dancer', label: 'Bailarín/a / Pareja de baile' },
+      { value: 'singer', label: 'Cantante / Vocalista' },
+      { value: 'band', label: 'Banda / Grupo musical' },
+      { value: 'instructor', label: 'Instructor/a de danza' },
+      { value: 'choreographer', label: 'Coreógrafo/a' },
+      { value: 'event-organizer', label: 'Organizador/a de eventos' },
+      { value: 'promoter', label: 'Promotor/a' },
+      { value: 'videographer', label: 'Videógrafo/a' },
+      { value: 'photographer', label: 'Fotógrafo/a' },
+      { value: 'artist', label: 'Artista (otro)' },
     ] },
   { key: 'bio', label: 'Biografía', type: 'textarea', cols: 2 },
   { key: 'city', label: 'Ciudad', type: 'text' },
@@ -65,6 +73,35 @@ export const FIELDS_ARTIST: EditField[] = [
   { key: 'featured_video_title', label: 'Título del vídeo', type: 'text' },
   { key: 'is_verified', label: 'Verificado', type: 'checkbox' },
   { key: 'is_premium', label: 'Premium (PRO)', type: 'checkbox' },
+  { key: 'is_live', label: 'En directo', type: 'checkbox' },
+];
+
+// Campos para artistas/bailarines/DJs que son PERFILES de usuario (tabla profiles).
+// Las claves son columnas reales de `profiles` (snake_case).
+export const FIELDS_PROFILE_ARTIST: EditField[] = [
+  { key: 'full_name', label: 'Nombre', type: 'text', required: true, cols: 2 },
+  { key: 'role', label: 'Disciplina', type: 'select', options: [
+      { value: 'dancer', label: 'Bailarín/a' }, { value: 'dj', label: 'DJ' },
+      { value: 'singer', label: 'Cantante' }, { value: 'band', label: 'Banda' },
+      { value: 'instructor', label: 'Instructor/a' }, { value: 'artist', label: 'Artista' },
+    ] },
+  { key: 'bio', label: 'Biografía', type: 'textarea', cols: 2 },
+  { key: 'city', label: 'Ciudad', type: 'text' },
+  { key: 'country', label: 'País', type: 'text' },
+  { key: 'location', label: 'Ubicación / dirección', type: 'text', cols: 2 },
+  { key: 'avatar_url', label: 'Foto de perfil', type: 'image' },
+  { key: 'cover_photo', label: 'Portada', type: 'image' },
+  { key: 'styles', label: 'Estilos / géneros', type: 'tags', helper: 'Separados por comas' },
+  { key: 'tags', label: 'Tags', type: 'tags', helper: 'Separados por comas' },
+  { key: 'instagram_url', label: 'Instagram (URL)', type: 'text' },
+  { key: 'tiktok_url', label: 'TikTok (URL)', type: 'text' },
+  { key: 'youtube_url', label: 'YouTube (URL)', type: 'text' },
+  { key: 'facebook_url', label: 'Facebook (URL)', type: 'text' },
+  { key: 'spotify_url', label: 'Spotify (URL)', type: 'text' },
+  { key: 'soundcloud_url', label: 'SoundCloud (URL)', type: 'text' },
+  { key: 'twitch_url', label: 'Twitch (URL)', type: 'text' },
+  { key: 'website_url', label: 'Web (URL)', type: 'text' },
+  { key: 'verified', label: 'Verificado', type: 'checkbox' },
   { key: 'is_live', label: 'En directo', type: 'checkbox' },
 ];
 
@@ -131,3 +168,7 @@ export const DETAIL_EDIT: Record<string, { table: string; entity: 'artist' | 'ev
   venue:   { table: 'venues',   entity: 'venue',   fields: FIELDS_VENUE },
   service: { table: 'services', entity: 'service', fields: FIELDS_SERVICE },
 };
+
+// Config alternativa para artistas que son PERFILES de usuario (tabla profiles).
+// EntityAdminPanel cae a esta cuando el id no existe en la tabla `artists`.
+export const PROFILE_ARTIST_EDIT = { table: 'profiles', entity: 'artist' as const, fields: FIELDS_PROFILE_ARTIST };

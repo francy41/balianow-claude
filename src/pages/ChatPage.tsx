@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Send, Lock, Briefcase, Check, X, Shield } from 'lucide-react';
-import { useChatStore, useAuthStore, useUIStore } from '../store/appStore';
+import { useChatStore, useAuthStore, useUIStore, SUPPORT_CONV_ID } from '../store/appStore';
+import { supabase } from '../lib/supabase';
 import { Avatar } from '../components/ui';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -37,13 +38,36 @@ const ChatPage: React.FC = () => {
           </p>
         </div>
         <div className="flex-1 overflow-y-auto">
-          {conversations.length === 0 ? (
+          {/* Chat Soporte — siempre fijo arriba */}
+          {(() => {
+            const support = conversations.find(c => c.id === SUPPORT_CONV_ID);
+            if (!support) return null;
+            return (
+              <button
+                onClick={() => setActiveConv(support.id)}
+                className={`w-full flex items-center gap-3 p-4 transition-colors text-left border-b border-gray-100 ${activeConvId === support.id ? 'bg-pink-50 border-r-2 border-brand-orange' : 'hover:bg-gray-50'}`}
+              >
+                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center flex-shrink-0">
+                  <Shield className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-gray-900 font-bold text-sm truncate">Soporte BailaNow</span>
+                    <span className="text-[9px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-bold">OFICIAL</span>
+                  </div>
+                  <p className="text-gray-400 text-xs truncate mt-0.5">{support.lastMessage}</p>
+                </div>
+              </button>
+            );
+          })()}
+
+          {conversations.filter(c => c.id !== SUPPORT_CONV_ID).length === 0 ? (
             <div className="p-6 text-center">
               <p className="text-4xl mb-3">💬</p>
-              <p className="text-gray-400 text-sm">No tienes mensajes aún</p>
+              <p className="text-gray-400 text-sm">No tienes otros mensajes aún</p>
             </div>
           ) : (
-            conversations.map(conv => (
+            conversations.filter(c => c.id !== SUPPORT_CONV_ID).map(conv => (
               <button
                 key={conv.id}
                 onClick={() => setActiveConv(conv.id)}
@@ -72,7 +96,9 @@ const ChatPage: React.FC = () => {
 
       {/* Chat window */}
       <div className={`${activeConvId ? 'flex' : 'hidden sm:flex'} flex-1 flex-col`}>
-        {activeConv ? (
+        {activeConvId === SUPPORT_CONV_ID ? (
+          <SupportThread user={user} onBack={() => setActiveConv('')} />
+        ) : activeConv ? (
           <ChatWindow conv={activeConv} user={user} onBack={() => setActiveConv('')} />
         ) : (
           <div className="flex-1 flex items-center justify-center text-center px-6">
@@ -316,6 +342,117 @@ const ChatWindow: React.FC<{
           </div>
         </div>
       )}
+    </>
+  );
+};
+
+// ── SUPPORT THREAD (lado usuario) — persiste en support_messages, lo lee el superadmin ──
+const SupportThread: React.FC<{
+  user: NonNullable<ReturnType<typeof useAuthStore.getState>['user']>;
+  onBack: () => void;
+}> = ({ user, onBack }) => {
+  const [messages, setMessages] = useState<any[]>([]);
+  const [input, setInput] = useState('');
+  const [sending, setSending] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  const load = async () => {
+    const { data } = await supabase
+      .from('support_messages')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true });
+    setMessages(data || []);
+  };
+
+  useEffect(() => { load(); }, [user.id]);
+
+  // Realtime: nuevos mensajes (respuestas del soporte) aparecen al instante
+  useEffect(() => {
+    const channel = supabase
+      .channel(`support-${user.id}`)
+      .on('postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'support_messages', filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          setMessages(prev => prev.some(m => m.id === (payload.new as any).id) ? prev : [...prev, payload.new]);
+        })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user.id]);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  const handleSend = async () => {
+    const text = input.trim();
+    if (!text || sending) return;
+    setSending(true);
+    setInput('');
+    const { error } = await supabase.from('support_messages').insert({
+      user_id: user.id,
+      user_email: user.email,
+      user_name: user.name,
+      text,
+      is_admin: false,
+    });
+    setSending(false);
+    if (error) { setInput(text); return; }
+    load();
+  };
+
+  return (
+    <>
+      <div className="bg-white border-b border-gray-100 p-4 flex items-center gap-3 shadow-sm">
+        <button onClick={onBack} className="sm:hidden text-gray-400 hover:text-gray-600 p-1">←</button>
+        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center">
+          <Shield className="w-5 h-5 text-white" />
+        </div>
+        <div>
+          <p className="text-gray-900 font-semibold">Soporte BailaNow</p>
+          <p className="text-gray-400 text-xs">Equipo oficial · Te responderemos pronto</p>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+        {/* Mensaje de bienvenida fijo */}
+        <div className="flex items-end gap-2">
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center flex-shrink-0">
+            <Shield className="w-3.5 h-3.5 text-white" />
+          </div>
+          <div className="max-w-xs lg:max-w-sm bg-white rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm">
+            <p className="text-sm text-gray-700">¡Hola {user.name}! 👋 Escríbenos tu duda sobre pagos, reservas, perfiles o publicidad y el equipo te responderá lo antes posible.</p>
+          </div>
+        </div>
+        {messages.map(msg => {
+          const isMe = !msg.is_admin;
+          return (
+            <div key={msg.id} className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : ''}`}>
+              {!isMe && (
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center flex-shrink-0">
+                  <Shield className="w-3.5 h-3.5 text-white" />
+                </div>
+              )}
+              <div className={`max-w-xs lg:max-w-sm px-4 py-2.5 shadow-sm ${isMe ? 'bg-brand-orange text-white rounded-2xl rounded-br-sm' : 'bg-white text-gray-700 rounded-2xl rounded-bl-sm'}`}>
+                <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+              </div>
+            </div>
+          );
+        })}
+        <div ref={bottomRef} />
+      </div>
+
+      <div className="bg-white border-t border-gray-100 p-3 flex items-center gap-2">
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+          placeholder="Escribe tu mensaje al soporte…"
+          className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
+        />
+        <button onClick={handleSend} disabled={sending || !input.trim()}
+          className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white rounded-xl p-2.5 disabled:opacity-40">
+          <Send className="w-5 h-5" />
+        </button>
+      </div>
     </>
   );
 };
