@@ -47,8 +47,12 @@ jobs:
       - name: Sincronizar Capacitor
         run: npx cap sync android
 
-      - name: Decodificar keystore
-        run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/bailanow-release.keystore
+      - name: Descifrar keystore
+        run: |
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 \
+            -in android/keystore.enc \
+            -out android/bailanow-release.keystore \
+            -pass pass:"${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
 
       - name: Dar permisos a gradlew
         run: chmod +x android/gradlew
