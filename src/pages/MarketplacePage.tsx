@@ -131,7 +131,7 @@ const MarketplacePage: React.FC = () => {
 const ServiceCard: React.FC<{ service: Service; onClick: () => void; onQuickBuy: (e: React.MouseEvent) => void }> = ({ service, onClick, onQuickBuy }) => (
   <div onClick={onClick} className="card-white overflow-hidden cursor-pointer hover:shadow-card-hover hover:scale-[1.02] transition-all duration-300">
     <div className="relative h-44 overflow-hidden">
-      <img src={service.cover} alt={service.title} className="w-full h-full object-cover" />
+      <img src={service.cover} alt={service.title} loading="lazy" className="w-full h-full object-cover" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
       <span className="absolute top-2 left-2 bg-white/90 text-gray-700 text-xs px-2 py-0.5 rounded-full font-medium">{service.category}</span>
     </div>
