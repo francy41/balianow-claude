@@ -16,7 +16,7 @@ import { saveSiteConfigKey, saveCategoriesToDb } from '../hooks/useSiteConfig';
 import AdminCMS from '../components/AdminCMS';
 import AdminMediaManager from '../components/AdminMediaManager';
 import AdminEditModal, { type EditField } from '../components/AdminEditModal';
-import AdminLocationModal from '../components/AdminLocationModal';
+const AdminLocationModal = React.lazy(() => import('../components/AdminLocationModal'));
 import ProfileImporter from '../components/ProfileImporter';
 import NewsletterAdminPanel from '../components/NewsletterAdminPanel';
 import DanceChoreoAdmin from '../components/DanceChoreoAdmin';
@@ -1178,8 +1178,10 @@ const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
         <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => setShowAddVenue(true)}>Nueva localidad</Button>
       </div>
     } />
-    <AdminLocationModal open={showAddVenue} mode="venue" onClose={() => setShowAddVenue(false)} onSaved={() => { addToast({ message: '✅ Local guardado', type: 'success' }); load(); }} />
-    <AdminLocationModal open={showAddEvent} mode="event" onClose={() => setShowAddEvent(false)} onSaved={() => addToast({ message: '✅ Evento guardado', type: 'success' })} />
+    <React.Suspense fallback={null}>
+      <AdminLocationModal open={showAddVenue} mode="venue" onClose={() => setShowAddVenue(false)} onSaved={() => { addToast({ message: '✅ Local guardado', type: 'success' }); load(); }} />
+      <AdminLocationModal open={showAddEvent} mode="event" onClose={() => setShowAddEvent(false)} onSaved={() => addToast({ message: '✅ Evento guardado', type: 'success' })} />
+    </React.Suspense>
     <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
       {[{ label: 'Localidades activas', val: active }, { label: 'Ciudades', val: cities }, { label: 'Pendientes aprobación', val: pending }].map(s => (
         <div key={s.label} className="card-white p-4 text-center"><p className="text-3xl font-black text-brand-orange">{s.val}</p><p className="text-gray-400 text-sm mt-1">{s.label}</p></div>
@@ -2513,12 +2515,12 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
         if (!data) return;
         for (const row of data) {
           if (row.key === 'hero_slider_images' && Array.isArray(row.value) && row.value.length > 0) {
-            console.log('[Admin] Sync slider from Supabase:', row.value.length, 'slides');
+            if (import.meta.env.DEV) console.log('[Admin] Sync slider from Supabase:', row.value.length, 'slides');
             setSlides(row.value);
             setHeroSliderImages(row.value);
           }
           if (row.key === 'hero_media' && row.value?.url) {
-            console.log('[Admin] Sync hero media from Supabase');
+            if (import.meta.env.DEV) console.log('[Admin] Sync hero media from Supabase');
             setHeroMedia(row.value);
             setDraftUrl(row.value.url);
           }
@@ -2576,7 +2578,7 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const handleVideoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    console.log('[video] file:', { name: file.name, size: (file.size/1024/1024).toFixed(1) + 'MB', type: file.type });
+    if (import.meta.env.DEV) console.log('[video] file:', { name: file.name, size: (file.size/1024/1024).toFixed(1) + 'MB', type: file.type });
 
     if (file.size > 100 * 1024 * 1024) {
       addToast({ message: `❌ Video demasiado grande (${(file.size/1024/1024).toFixed(0)}MB). Max 100MB. Comprime o usa YouTube.`, type: 'error' });
@@ -2585,7 +2587,7 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
 
     addToast({ message: `📤 Subiendo video ${(file.size/1024/1024).toFixed(1)}MB...`, type: 'info' });
     const r = await uploadVideo(file, 'hero');
-    console.log('[video] upload result:', r);
+    if (import.meta.env.DEV) console.log('[video] upload result:', r);
 
     if (r.url) {
       setDraftUrl(r.url);
@@ -2840,7 +2842,7 @@ const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     (async () => {
       try {
         const { data } = await supabase.from('site_config').select('value').eq('key', 'site_logo').maybeSingle();
-        if (data?.value?.url) { setSiteLogo(data.value.url); console.log('[Admin] Logo cargado de BD'); }
+        if (data?.value?.url) { setSiteLogo(data.value.url); if (import.meta.env.DEV) console.log('[Admin] Logo cargado de BD'); }
       } catch (e) { console.error('[Admin] Error cargando logo:', e); }
     })();
   }, []);

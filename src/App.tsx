@@ -142,6 +142,7 @@ const App: React.FC = () => {
                   <Route path="/explorar"            element={<Navigate to="/cerca" replace />} />
                   <Route path="/comunidad"           element={<Navigate to="/chat" replace />} />
                   <Route path="/destacados"          element={<FeaturedPage />} />
+                  <Route path="/academia"            element={<Navigate to="/clases" replace />} />
                   <Route path="/artistas"            element={<ArtistsPage />} />
                   <Route path="/artistas/:id"        element={<ArtistProfilePage />} />
                   <Route path="/eventos"             element={<EventsPage />} />

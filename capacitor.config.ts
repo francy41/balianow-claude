@@ -4,12 +4,9 @@ const config: CapacitorConfig = {
   appId: 'com.bailanow.app',
   appName: 'BailaNow',
   webDir: 'dist',
-  server: {
-    // ✅ La APK siempre carga la web en vivo (dominio de producción) — cualquier
-    // cambio que despleguemos se refleja en la app sin recompilar el APK.
-    url: 'https://bailanow.com',
-    cleartext: false,
-  },
+  // La web se empaqueta DENTRO de la APK (modo standalone) — la app no
+  // depende de ningún host web. Solo Supabase queda como backend externo.
+  // Para volver a cargar la web en vivo, restaura el bloque `server.url`.
   plugins: {
     SplashScreen: {
       launchShowDuration: 2500,

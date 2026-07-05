@@ -204,9 +204,9 @@ const EventCard: React.FC<{
   const linkedArtists = ARTISTS.filter(a => event.artists.includes(a.id));
 
   return (
-    <div onClick={onClick} className="card-white overflow-hidden cursor-pointer hover:shadow-card-hover hover:scale-[1.02] transition-all duration-300">
+    <div onClick={onClick} className="group card-white overflow-hidden cursor-pointer hover:shadow-card-hover hover:scale-[1.02] transition-all duration-300">
       <div className="relative h-44 overflow-hidden">
-        <img src={event.cover} alt={event.title} className="w-full h-full object-cover" />
+        <img src={event.cover} alt={event.title} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute top-2 right-2 bg-brand-orange rounded-xl px-2.5 py-1.5 flex flex-col items-center">
           <span className="text-white font-black text-lg leading-none">{day}</span>

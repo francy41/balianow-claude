@@ -276,8 +276,7 @@ const ArtistsPage: React.FC = () => {
               <div className="mt-1 text-[10px] text-red-500">Comprueba conexión o RLS de Supabase</div>
             </div>
           )}
-          {/* DEBUG button */}
-          {!loading && items.length === 0 && (
+          {import.meta.env.DEV && !loading && items.length === 0 && (
             <div className="mb-4 p-3 bg-yellow-50 border border-yellow-300 rounded-lg">
               <button onClick={runDebug} className="bg-yellow-500 text-white font-bold text-xs px-3 py-1.5 rounded">
                 🔍 Debug: ¿por qué 0 artistas?
