@@ -4,7 +4,7 @@ import { MessageSquare, ShoppingBag, ShoppingCart, CheckCircle, Clock, TrendingU
 import type { PromoService, PromoSeller } from '../data/mockData';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore, useCartStore } from '../store/appStore';
-import { StarRating, Badge, SearchBar } from '../components/ui';
+import { StarRating, Badge } from '../components/ui';
 import SearchTriggerBar from '../components/SearchTriggerBar';
 import BookingModal from '../components/BookingModal';
 import PaymentGateway from '../components/payment/PaymentGateway';
@@ -1000,13 +1000,6 @@ const PromocionatePage: React.FC = () => {
             </div>
           ))}
         </div>
-
-        {/* Search */}
-        <SearchBar
-          placeholder="Busca servicios de promoción, vendedores, plataformas..."
-          value={search}
-          onChange={setSearch}
-        />
 
         {/* Category tabs */}
         <div className="flex gap-2 overflow-x-auto pb-2 mt-4" style={{ scrollbarWidth: 'none' }}>
