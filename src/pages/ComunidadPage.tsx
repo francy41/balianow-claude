@@ -14,18 +14,40 @@ type Post = {
   createdAt: string;
 };
 
+// Categorías temáticas del foro (id → etiqueta con emoji para el filtro y el composer)
+const CATEGORIES: { id: string; label: string; short: string }[] = [
+  { id: 'salir',       label: '💃 Salir a bailar',   short: 'Salir a bailar' },
+  { id: 'bailarines',  label: '🕺 Bailarines',       short: 'Bailarines' },
+  { id: 'cantantes',   label: '🎤 Cantantes',        short: 'Cantantes' },
+  { id: 'musicos',     label: '🎹 Músicos',          short: 'Músicos' },
+  { id: 'djs',         label: '🎧 DJs',              short: 'DJs' },
+  { id: 'eventos',     label: '🎟️ Eventos',          short: 'Eventos' },
+  { id: 'sugerencias', label: '💡 Sugerencias',      short: 'Sugerencias' },
+];
+
 const CATEGORY_LABELS: Record<string, string> = {
-  localidades: 'Locales',
+  salir: 'Salir a bailar',
   bailarines: 'Bailarines',
+  cantantes: 'Cantantes',
+  musicos: 'Músicos',
+  djs: 'DJs',
   eventos: 'Eventos',
+  sugerencias: 'Sugerencias',
+  // compatibilidad con datos antiguos
+  localidades: 'Locales',
   artistas: 'Artistas',
   comunidad: 'General',
 };
 
 const CATEGORY_COLORS: Record<string, 'orange' | 'blue' | 'green' | 'gray'> = {
-  localidades: 'blue',
+  salir: 'orange',
   bailarines: 'orange',
+  cantantes: 'blue',
+  musicos: 'blue',
+  djs: 'green',
   eventos: 'green',
+  sugerencias: 'gray',
+  localidades: 'blue',
   artistas: 'orange',
   comunidad: 'gray',
 };
@@ -56,6 +78,7 @@ const ComunidadPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'todas' | 'ofertas' | 'demandas'>('todas');
+  const [cat, setCat] = useState<string>('todas');
   const [composerOpen, setComposerOpen] = useState(false);
   const highlightRef = useRef<HTMLDivElement>(null);
 
@@ -101,9 +124,10 @@ const ComunidadPage: React.FC = () => {
         p.location.toLowerCase().includes(q);
       const oferta = isOferta(p.fullText);
       const matchTab = tab === 'todas' || (tab === 'ofertas' && oferta) || (tab === 'demandas' && !oferta);
-      return matchSearch && matchTab;
+      const matchCat = cat === 'todas' || p.category === cat;
+      return matchSearch && matchTab && matchCat;
     });
-  }, [posts, search, tab]);
+  }, [posts, search, tab, cat]);
 
   const TABS: { id: typeof tab; label: string }[] = [
     { id: 'todas', label: '🔥 Todas' },
@@ -138,7 +162,7 @@ const ComunidadPage: React.FC = () => {
         </div>
 
         {/* Tabs ofertas/demandas */}
-        <div className="flex gap-2 mb-5">
+        <div className="flex gap-2 mb-3">
           {TABS.map(t => (
             <button
               key={t.id}
@@ -150,6 +174,23 @@ const ComunidadPage: React.FC = () => {
               }`}
             >
               {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Chips de categorías */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-4" style={{ scrollbarWidth: 'none' }}>
+          {[{ id: 'todas', label: '🔥 Todas' }, ...CATEGORIES].map(c => (
+            <button
+              key={c.id}
+              onClick={() => setCat(c.id)}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
+                cat === c.id
+                  ? 'bg-pink-500 text-white border-pink-500'
+                  : 'bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-pink-400 hover:text-pink-500'
+              }`}
+            >
+              {c.label}
             </button>
           ))}
         </div>
@@ -233,7 +274,7 @@ const ComposerModal: React.FC<{ userName: string; onClose: () => void; onPosted:
   const { addToast } = useUIStore();
   const [text, setText] = useState('');
   const [location, setLocation] = useState('');
-  const [category, setCategory] = useState('comunidad');
+  const [category, setCategory] = useState('salir');
   const [sending, setSending] = useState(false);
 
   const submit = async () => {
@@ -289,11 +330,9 @@ const ComposerModal: React.FC<{ userName: string; onClose: () => void; onPosted:
             onChange={e => setCategory(e.target.value)}
             className="p-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/40"
           >
-            <option value="comunidad">General</option>
-            <option value="bailarines">Bailarines</option>
-            <option value="eventos">Eventos</option>
-            <option value="localidades">Locales</option>
-            <option value="artistas">Artistas</option>
+            {CATEGORIES.map(c => (
+              <option key={c.id} value={c.id}>{c.short}</option>
+            ))}
           </select>
         </div>
         <button
