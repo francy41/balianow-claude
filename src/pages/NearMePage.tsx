@@ -561,19 +561,6 @@ const NearMePage: React.FC = () => {
         <SearchTriggerBar placeholder="🔍 Súper buscador: locales, artistas, eventos, ciudades…" />
       </div>
 
-      {/* ── FILTRO LOCAL ── */}
-      <div className="px-4 py-3 sticky top-14 z-20 bg-gray-50 dark:bg-gray-950">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Filtrar resultados en esta página…"
-            className="w-full bg-white dark:bg-gray-900 rounded-2xl pl-9 pr-3 py-2.5 text-sm border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500"
-          />
-        </div>
-      </div>
-
       {/* ── TABS ── */}
       <div className="px-4 mb-3">
         <div className="flex gap-2 overflow-x-auto mb-3" style={{ scrollbarWidth: 'none' }}>
