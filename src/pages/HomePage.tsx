@@ -1029,6 +1029,35 @@ const HomePage: React.FC = () => {
   const [radioStatus, setRadioStatus] = useState<'idle' | 'loading' | 'error'>('idle');
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  // ── Ruta de Hoy: posts de comunidad desde Supabase (fallback a ejemplos) ──
+  const [communityPosts, setCommunityPosts] = useState(COMMUNITY_POSTS);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('community_posts')
+          .select('id, user_name, full_text, location, category, status, created_at')
+          .eq('status', 'APROBADO')
+          .order('created_at', { ascending: false })
+          .limit(30);
+        if (!error && data && data.length > 0 && !cancelled) {
+          setCommunityPosts(data.map((p: any) => ({
+            id: p.id,
+            user: p.user_name,
+            fullText: p.full_text,
+            location: p.location || '',
+            category: p.category || 'comunidad',
+            status: p.status,
+            time: '',
+          })));
+        }
+      } catch { /* mantiene ejemplos de reserva */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -1250,7 +1279,7 @@ const HomePage: React.FC = () => {
           </div>
           {/* Posts en auto-scroll infinito hacia la izquierda */}
           {(() => {
-            const posts = COMMUNITY_POSTS.filter(p => p.status === 'APROBADO').slice(0, 20);
+            const posts = communityPosts.filter(p => p.status === 'APROBADO').slice(0, 20);
             const tripled = [...posts, ...posts, ...posts];
             return (
               <div className="relative overflow-hidden" style={{
