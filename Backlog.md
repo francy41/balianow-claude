@@ -63,7 +63,8 @@ _Ideas de negocio para cuentas de negocio (venues, escuelas, artistas). Prioriza
 - Radio premium sin anuncios + Spots de audio
 - Contenido exclusivo de artistas (tipo Patreon)
 - Marketplace de coreografías · Clases 1-a-1 · DanceCamera Pro (IA)
-- App white-label para escuelas · Bonos a plazos · Cashback Wallet · Venta de leads
+- App white-label para escuelas · Bonos a plazos · Venta de leads
+- ~~Cashback Wallet~~ ✅ `BookingModal` acredita 5% del pago al wallet (persiste local; falta persistir en BD + cobro real)
 
 ---
 _Al completar un ítem: moverlo a PROJECT_STATE.md con fecha y decisiones tomadas. Mantener este archivo corto._

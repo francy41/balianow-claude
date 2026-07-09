@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { X, Shield, Calendar as CalIcon, Lock, Briefcase } from 'lucide-react';
+import { X, Shield, Calendar as CalIcon, Lock, Briefcase, Gift } from 'lucide-react';
 import { useAuthStore, useUIStore, usePerformerStore, useSiteConfigStore, splitAmount, computeCommissionRate, type Transaction } from '../store/appStore';
 import { useNavigate } from 'react-router-dom';
+
+// Fidelización: un % del pago vuelve al wallet del cliente como cashback.
+const CASHBACK_RATE = 0.05;
 
 export interface BookingModalProps {
   open: boolean;
@@ -17,7 +20,7 @@ export interface BookingModalProps {
 export const BookingModal: React.FC<BookingModalProps> = ({
   open, onClose, providerId, providerName, source, defaultConcept, defaultPrice, helperText
 }) => {
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, updateUser } = useAuthStore();
   const { addToast } = useUIStore();
   const { recordTransaction, paymentMethods } = usePerformerStore();
   const { commissions } = useSiteConfigStore();
@@ -38,6 +41,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const remaining = Math.max(0, gross - amountNow);
   const rate = computeCommissionRate(commissions, source as any, false);
   const { commission, net } = splitAmount(amountNow, rate);
+  const cashback = Math.round(amountNow * CASHBACK_RATE * 100) / 100;
 
   const handleSubmit = () => {
     if (!isAuthenticated || !user) {
@@ -68,10 +72,12 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       status: 'pending',  // queda en escrow hasta que el comprador confirme OK
       source,
     });
+    if (cashback > 0) updateUser({ wallet: (user.wallet || 0) + cashback });
+    const cashbackNote = cashback > 0 ? ` · +€${cashback.toFixed(2)} cashback` : '';
     addToast({
-      message: payMode === 'deposit'
+      message: (payMode === 'deposit'
         ? `Reserva confirmada con seña · €${amountNow.toFixed(2)} pagados · resto €${remaining.toFixed(2)} en el local`
-        : `Reserva confirmada · €${gross.toFixed(2)} en escrow · ${providerName} recibirá €${net.toFixed(2)} al completar`,
+        : `Reserva confirmada · €${gross.toFixed(2)} en escrow · ${providerName} recibirá €${net.toFixed(2)} al completar`) + cashbackNote,
       type: 'success'
     });
     onClose();
@@ -206,6 +212,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <span className="font-black text-green-600">€{net.toFixed(2)}</span>
             </div>
           </div>
+
+          {cashback > 0 && (
+            <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-xs">
+              <Gift className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <span className="text-emerald-800 font-semibold">Ganas €{cashback.toFixed(2)} de cashback en tu wallet</span>
+              <span className="text-emerald-600 ml-auto font-bold">{(CASHBACK_RATE * 100).toFixed(0)}%</span>
+            </div>
+          )}
 
           <div className="bg-pink-50 border border-pink-200 rounded-2xl p-3 text-xs text-gray-700 space-y-1.5">
             <p className="flex items-start gap-2 font-semibold text-gray-900">
