@@ -9,20 +9,22 @@ import {
   MapPin, Users, CheckCircle, Instagram, Youtube, Facebook, Music2,
   Calendar, MessageSquare, Share2, Heart, Play, Eye, Globe, Clock,
   Star, Sparkles, Send, Video, Bell, Headphones, Award, Image as ImageIcon,
-  ChevronRight, Lock
+  ChevronRight, Lock, Crown
 } from 'lucide-react';
 import { SOCIAL_NETWORK_URLS } from '../data/mockData';
 import type { Artist, MediaItem, OfferPackage } from '../data/mockData';
 import { useAuthStore, useUIStore, useCartStore, getYouTubeId, useSiteConfigStore } from '../store/appStore';
 import { Avatar, Modal, Button } from '../components/ui';
 import BookingModal from '../components/BookingModal';
+import ExclusiveContentTab from '../components/ExclusiveContentTab';
 import PaymentGateway from '../components/payment/PaymentGateway';
 
-type TabId = 'about' | 'live' | 'gallery' | 'offers' | 'reviews' | 'availability';
+type TabId = 'about' | 'live' | 'exclusive' | 'gallery' | 'offers' | 'reviews' | 'availability';
 
 const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'about',        label: 'Sobre mí',      icon: <Sparkles className="w-4 h-4" /> },
   { id: 'live',         label: 'Live',          icon: <Video className="w-4 h-4" /> },
+  { id: 'exclusive',    label: 'Exclusivo',     icon: <Crown className="w-4 h-4" /> },
   { id: 'gallery',      label: 'Galería',       icon: <ImageIcon className="w-4 h-4" /> },
   { id: 'offers',       label: 'Servicios',     icon: <Award className="w-4 h-4" /> },
   { id: 'reviews',      label: 'Reseñas',       icon: <Star className="w-4 h-4" /> },
@@ -33,6 +35,7 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
 const TAB_MODULE: Record<TabId, string> = {
   about:        'about',
   live:         'live',
+  exclusive:    'exclusive',
   gallery:      'gallery',
   offers:       'offers',
   reviews:      'reviews',
@@ -373,6 +376,7 @@ const ArtistProfilePage: React.FC = () => {
         {/* ── TAB CONTENT ── */}
         {activeTab === 'about' && <AboutTab artist={artist} />}
         {activeTab === 'live' && <LiveTab artist={artist} currentStream={currentStream} onChat={handleChat} />}
+        {activeTab === 'exclusive' && <ExclusiveContentTab artist={artist} />}
         {activeTab === 'gallery' && <GalleryTab artist={artist} onSelect={setSelectedMedia} />}
         {activeTab === 'offers' && (
           <div className="space-y-6">
