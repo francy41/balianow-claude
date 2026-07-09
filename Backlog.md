@@ -63,7 +63,8 @@ _Ideas de negocio para cuentas de negocio (venues, escuelas, artistas). Prioriza
 - Radio premium sin anuncios + Spots de audio
 - ~~Contenido exclusivo de artistas (tipo Patreon)~~ ✅ Tab "Exclusivo" 👑 en perfil de artista (`ExclusiveContentTab`): membresía fan €4.99/mes con escrow + tabla `content_access` (migración `supabase/content-access.sql` PENDIENTE de aplicar; falta cobro real Stripe)
 - Marketplace de coreografías · Clases 1-a-1 · DanceCamera Pro (IA)
-- App white-label para escuelas · Bonos a plazos · Venta de leads
+- App white-label para escuelas · Venta de leads
+- ~~Bonos a plazos~~ ✅ `BookingModal` 3ª forma de pago "En cuotas" (2/3/4 plazos, cobra el 1er plazo; resto informativo — falta cobro recurrente real)
 - ~~Cashback Wallet~~ ✅ `BookingModal` acredita 5% del pago al wallet (persiste local; falta persistir en BD + cobro real)
 
 ---
