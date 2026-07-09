@@ -38,4 +38,34 @@ Tablas `promo_sellers` + `promo_services` (JSONB platforms/tags/includes/extras/
 Actualmente deploy es manual. Considerar GitHub Action que haga build+deploy en push a master.
 
 ---
+
+## Roadmap de monetización — Cuentas de negocio
+_Ideas de negocio para cuentas de negocio (venues, escuelas, artistas). Priorizadas por facilidad × ingreso. Construir de a una, empezando por Fase 1._
+
+### Fase 1 — Quick wins
+- ~~Código QR del negocio (generar/descargar QR a perfil/reservas)~~ ✅ `BusinessQRModal`
+- ~~Check-in con QR en la puerta~~ ✅ Ya existía: `QRScanner` (cámara + Supabase) en DashboardPage tab "scanner"
+- ~~Reservas con seña/depósito~~ ✅ `BookingModal` (pago completo o seña 20/30/50%, resto en el local)
+- ~~Mesas VIP / bottle service~~ ✅ Ya existía: `VenueSections` (mesa/vip/palco con botella) en EventsPage
+- ~~Pagar entre amigos (split de entrada/mesa)~~ ✅ `SplitPaymentModal` (reparto + compartir WhatsApp)
+- ~~Hub de herramientas de negocio~~ ✅ `BusinessToolsHub` en Promociónate (accesos directos: QR, check-in, mesas, reservas, stats, split)
+- Playlists patrocinadas en la radio
+- "Dónde bailar esta noche" patrocinado (locales pagan por destacar)
+
+### Fase 2 — Ticketing & experiencias
+- ~~Masterclass con profe invitado~~ ✅ Categoría de evento con ticketing premium; filtro deep-link `/eventos?cat=Masterclass` + tile en hub
+- ~~Streaming PPV de eventos en vivo~~ ✅ Muro de pago en `LiveSessionPage` (pricing_mode 'paid'): cobro REAL Stripe (reutiliza Edge Function `create-payment-intent`, fallback demo) + tabla `live_access` APLICADA para persistir/verificar acceso tras recarga
+- Retiros y cruceros de baile (comisión por plaza)
+- Reserva de mesa en bares de salsa (partnership)
+
+### Fase 3 — Recurrente / SaaS
+- CRM de alumnos + Marketing SMS/email a seguidores
+- Radio premium sin anuncios + Spots de audio
+- ~~Contenido exclusivo de artistas (tipo Patreon)~~ ✅ Tab "Exclusivo" 👑 en perfil de artista (`ExclusiveContentTab`): acceso de fan €4.99 pago único con cobro REAL Stripe (reutiliza `create-payment-intent`, fallback demo) + tabla `content_access` APLICADA (persiste). NOTA: es pago único, no suscripción recurrente (eso requeriría precios Stripe por creador)
+- Marketplace de coreografías · Clases 1-a-1 · DanceCamera Pro (IA)
+- App white-label para escuelas · Venta de leads
+- ~~Bonos a plazos~~ ✅ `BookingModal` 3ª forma de pago "En cuotas" (2/3/4 plazos, cobra el 1er plazo; resto informativo — falta cobro recurrente real)
+- ~~Cashback Wallet~~ ✅ `BookingModal` acredita 5% del pago al wallet (persiste local; falta persistir en BD + cobro real)
+
+---
 _Al completar un ítem: moverlo a PROJECT_STATE.md con fecha y decisiones tomadas. Mantener este archivo corto._

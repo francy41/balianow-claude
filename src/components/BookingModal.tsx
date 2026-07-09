@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { X, Shield, Calendar as CalIcon, Lock, Briefcase } from 'lucide-react';
+import { X, Shield, Calendar as CalIcon, Lock, Briefcase, Gift } from 'lucide-react';
 import { useAuthStore, useUIStore, usePerformerStore, useSiteConfigStore, splitAmount, computeCommissionRate, type Transaction } from '../store/appStore';
 import { useNavigate } from 'react-router-dom';
+
+// Fidelización: un % del pago vuelve al wallet del cliente como cashback.
+const CASHBACK_RATE = 0.05;
 
 export interface BookingModalProps {
   open: boolean;
@@ -17,7 +20,7 @@ export interface BookingModalProps {
 export const BookingModal: React.FC<BookingModalProps> = ({
   open, onClose, providerId, providerName, source, defaultConcept, defaultPrice, helperText
 }) => {
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, updateUser } = useAuthStore();
   const { addToast } = useUIStore();
   const { recordTransaction, paymentMethods } = usePerformerStore();
   const { commissions } = useSiteConfigStore();
@@ -28,12 +31,22 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [price, setPrice] = useState(String(defaultPrice));
   const [date, setDate] = useState('');
   const [notes, setNotes] = useState('');
+  const [payMode, setPayMode] = useState<'full' | 'deposit' | 'installments'>('full');
+  const [depositPct, setDepositPct] = useState(30);
+  const [installments, setInstallments] = useState(3);
 
   if (!open) return null;
 
   const gross = parseFloat(price) || 0;
+  const amountNow = payMode === 'deposit'
+    ? Math.round(gross * depositPct) / 100
+    : payMode === 'installments'
+      ? Math.round((gross / installments) * 100) / 100
+      : gross;
+  const remaining = Math.max(0, gross - amountNow);
   const rate = computeCommissionRate(commissions, source as any, false);
-  const { commission, net } = splitAmount(gross, rate);
+  const { commission, net } = splitAmount(amountNow, rate);
+  const cashback = Math.round(amountNow * CASHBACK_RATE * 100) / 100;
 
   const handleSubmit = () => {
     if (!isAuthenticated || !user) {
@@ -50,20 +63,30 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       addToast({ message: 'Elige una fecha para el servicio', type: 'error' });
       return;
     }
+    const baseConcept = notes.trim() ? `${concept.trim()} — ${notes.trim()}` : concept.trim();
+    const finalConcept = payMode === 'deposit'
+      ? `${baseConcept} · Seña €${amountNow.toFixed(2)} de €${gross.toFixed(2)} (resto €${remaining.toFixed(2)} en el local)`
+      : payMode === 'installments'
+        ? `${baseConcept} · Plan ${installments} plazos de €${amountNow.toFixed(2)} (total €${gross.toFixed(2)})`
+        : baseConcept;
     recordTransaction({
       performerId: providerId,
       performerName: providerName,
       clientId: user.id,
       clientName: user.name,
-      concept: notes.trim() ? `${concept.trim()} — ${notes.trim()}` : concept.trim(),
-      gross,
+      concept: finalConcept,
+      gross: amountNow,
       status: 'pending',  // queda en escrow hasta que el comprador confirme OK
       source,
     });
-    addToast({
-      message: `Reserva confirmada · €${gross} en escrow · ${providerName} recibirá €${net} al completar`,
-      type: 'success'
-    });
+    if (cashback > 0) updateUser({ wallet: (user.wallet || 0) + cashback });
+    const cashbackNote = cashback > 0 ? ` · +€${cashback.toFixed(2)} cashback` : '';
+    const baseMsg = payMode === 'deposit'
+      ? `Reserva confirmada con seña · €${amountNow.toFixed(2)} pagados · resto €${remaining.toFixed(2)} en el local`
+      : payMode === 'installments'
+        ? `Reserva confirmada · 1er plazo €${amountNow.toFixed(2)} pagado · ${installments - 1} plazos restantes`
+        : `Reserva confirmada · €${gross.toFixed(2)} en escrow · ${providerName} recibirá €${net.toFixed(2)} al completar`;
+    addToast({ message: baseMsg + cashbackNote, type: 'success' });
     onClose();
     navigate('/dashboard');
   };
@@ -108,6 +131,67 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
           {helperText && <p className="text-xs text-gray-400">{helperText}</p>}
 
+          {/* Forma de reserva: pago completo, seña o cuotas */}
+          <div>
+            <label className="text-xs font-bold text-gray-600 block mb-1.5">Forma de reserva</label>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setPayMode('full')}
+                className={`rounded-xl border-2 p-2.5 text-center transition-all ${payMode === 'full' ? 'border-brand-orange bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}
+              >
+                <span className="block text-xs font-bold text-gray-900">Completo</span>
+                <span className="block text-[10px] text-gray-500">€{gross.toFixed(2)}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPayMode('deposit')}
+                className={`rounded-xl border-2 p-2.5 text-center transition-all ${payMode === 'deposit' ? 'border-brand-orange bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}
+              >
+                <span className="block text-xs font-bold text-gray-900">Seña</span>
+                <span className="block text-[10px] text-gray-500">resto en local</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPayMode('installments')}
+                className={`rounded-xl border-2 p-2.5 text-center transition-all ${payMode === 'installments' ? 'border-brand-orange bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}
+              >
+                <span className="block text-xs font-bold text-gray-900">En cuotas</span>
+                <span className="block text-[10px] text-gray-500">a plazos</span>
+              </button>
+            </div>
+            {payMode === 'installments' && (
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-[11px] text-gray-500">Plazos:</span>
+                {[2, 3, 4].map(n => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setInstallments(n)}
+                    className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${installments === n ? 'bg-brand-orange text-white border-brand-orange' : 'bg-white text-gray-600 border-gray-200 hover:border-brand-orange'}`}
+                  >
+                    {n}×
+                  </button>
+                ))}
+              </div>
+            )}
+            {payMode === 'deposit' && (
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-[11px] text-gray-500">Seña:</span>
+                {[20, 30, 50].map(p => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setDepositPct(p)}
+                    className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${depositPct === p ? 'bg-brand-orange text-white border-brand-orange' : 'bg-white text-gray-600 border-gray-200 hover:border-brand-orange'}`}
+                  >
+                    {p}%
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Payment method picker */}
           <div className="bg-white border border-gray-200 rounded-2xl p-3">
             <div className="flex items-center justify-between mb-1">
@@ -134,9 +218,33 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           {/* Breakdown */}
           <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 space-y-1.5">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Pago bruto</span>
+              <span className="text-gray-600">Precio total</span>
               <span className="font-bold text-gray-900">€{gross.toFixed(2)}</span>
             </div>
+            {payMode === 'deposit' && (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Pagas ahora (seña {depositPct}%)</span>
+                  <span className="font-bold text-gray-900">€{amountNow.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Resto en el local</span>
+                  <span className="text-gray-500 font-semibold">€{remaining.toFixed(2)}</span>
+                </div>
+              </>
+            )}
+            {payMode === 'installments' && (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Pagas ahora (1 de {installments})</span>
+                  <span className="font-bold text-gray-900">€{amountNow.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Restante en {installments - 1} plazos</span>
+                  <span className="text-gray-500 font-semibold">€{remaining.toFixed(2)}</span>
+                </div>
+              </>
+            )}
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Comisión plataforma {(rate * 100).toFixed(1)}%</span>
               <span className="text-brand-orange font-semibold">€{commission.toFixed(2)}</span>
@@ -146,6 +254,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               <span className="font-black text-green-600">€{net.toFixed(2)}</span>
             </div>
           </div>
+
+          {cashback > 0 && (
+            <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-2xl p-3 text-xs">
+              <Gift className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <span className="text-emerald-800 font-semibold">Ganas €{cashback.toFixed(2)} de cashback en tu wallet</span>
+              <span className="text-emerald-600 ml-auto font-bold">{(CASHBACK_RATE * 100).toFixed(0)}%</span>
+            </div>
+          )}
 
           <div className="bg-pink-50 border border-pink-200 rounded-2xl p-3 text-xs text-gray-700 space-y-1.5">
             <p className="flex items-start gap-2 font-semibold text-gray-900">
@@ -165,7 +281,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               Cancelar
             </button>
             <button onClick={handleSubmit} className="flex-[2] bg-brand-orange hover:bg-brand-orange-dark text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2">
-              <CalIcon className="w-4 h-4" /> Confirmar y pagar €{gross.toFixed(2)}
+              <CalIcon className="w-4 h-4" /> {payMode === 'deposit' ? `Reservar con seña €${amountNow.toFixed(2)}` : payMode === 'installments' ? `Pagar 1er plazo €${amountNow.toFixed(2)}` : `Confirmar y pagar €${gross.toFixed(2)}`}
             </button>
           </div>
         </div>
