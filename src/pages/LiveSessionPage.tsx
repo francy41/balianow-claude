@@ -72,6 +72,23 @@ const LiveSessionPage: React.FC = () => {
     return () => { cancelled = true; };
   }, [id]);
 
+  // PPV: comprobar si el usuario ya tiene acceso comprado (persiste tras recargar)
+  useEffect(() => {
+    if (!session) return;
+    const paid = session.pricing_mode === 'paid' && (session.price ?? 0) > 0;
+    if (!paid) return;
+    let cancelled = false;
+    (async () => {
+      const { data: sess } = await supabase.auth.getSession();
+      const uid = sess.session?.user?.id;
+      if (!uid) return;
+      const { data } = await supabase.from('live_access')
+        .select('id').eq('session_id', session.id).eq('user_id', uid).maybeSingle();
+      if (!cancelled && data) setUnlocked(true);
+    })().catch(() => { /* tabla puede no existir aún */ });
+    return () => { cancelled = true; };
+  }, [session]);
+
   // Load + subscribe donations
   useEffect(() => {
     if (!id) return;
@@ -148,7 +165,7 @@ const LiveSessionPage: React.FC = () => {
     }
   };
 
-  const handleUnlock = () => {
+  const handleUnlock = async () => {
     if (!session) return;
     if (!isAuthenticated || !user) {
       addToast({ type: 'error', message: 'Inicia sesión para comprar el acceso' });
@@ -166,6 +183,16 @@ const LiveSessionPage: React.FC = () => {
       status: 'pending',
       source: 'course',
     });
+    // Persistir el acceso para que sobreviva a recargas (fallback si la tabla no existe)
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      const uid = sess.session?.user?.id;
+      if (uid) {
+        await supabase.from('live_access').insert({
+          session_id: session.id, user_id: uid, amount: price, currency: 'EUR',
+        });
+      }
+    } catch { /* tabla puede no existir aún */ }
     setUnlocked(true);
     addToast({ type: 'success', message: `Acceso desbloqueado · €${price.toFixed(2)}` });
   };
