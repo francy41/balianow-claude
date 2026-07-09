@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, Loader2, Send, X } from 'lucide-react';
+import { ArrowLeft, Heart, Loader2, Send, X, Lock, CheckCircle, ShieldCheck } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { useUIStore } from '../store/appStore';
+import { useUIStore, useAuthStore, usePerformerStore } from '../store/appStore';
 
 interface LiveSession {
   id: string;
@@ -35,11 +35,14 @@ const LiveSessionPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const addToast = useUIStore(s => s.addToast);
+  const { user, isAuthenticated } = useAuthStore();
+  const recordTransaction = usePerformerStore(s => s.recordTransaction);
   const containerRef = useRef<HTMLDivElement>(null);
   const apiRef = useRef<any>(null);
 
   const [session, setSession] = useState<LiveSession | null>(null);
   const [loading, setLoading] = useState(true);
+  const [unlocked, setUnlocked] = useState(false);
   const [donations, setDonations] = useState<Donation[]>([]);
   const [showDonate, setShowDonate] = useState(false);
   const [donAmount, setDonAmount] = useState<number>(5);
@@ -89,6 +92,9 @@ const LiveSessionPage: React.FC = () => {
   // Load Jitsi script + mount
   useEffect(() => {
     if (!session?.jitsi_room || !containerRef.current) return;
+    // PPV gate: no montar el stream si es de pago y no se ha desbloqueado
+    const isPaid = session.pricing_mode === 'paid' && (session.price ?? 0) > 0;
+    if (isPaid && !unlocked) return;
 
     const mount = () => {
       if (!window.JitsiMeetExternalAPI || !containerRef.current) return;
@@ -117,7 +123,7 @@ const LiveSessionPage: React.FC = () => {
       try { apiRef.current?.dispose(); } catch { /* noop */ }
       apiRef.current = null;
     };
-  }, [session?.jitsi_room, navigate]);
+  }, [session?.jitsi_room, navigate, unlocked]);
 
   const sendDonation = async () => {
     if (!session || donAmount <= 0) return;
@@ -142,6 +148,28 @@ const LiveSessionPage: React.FC = () => {
     }
   };
 
+  const handleUnlock = () => {
+    if (!session) return;
+    if (!isAuthenticated || !user) {
+      addToast({ type: 'error', message: 'Inicia sesión para comprar el acceso' });
+      navigate('/auth');
+      return;
+    }
+    const price = session.price ?? 0;
+    recordTransaction({
+      performerId: session.host_id,
+      performerName: session.host_name || 'Anfitrión',
+      clientId: user.id,
+      clientName: user.name,
+      concept: `Acceso PPV · ${session.title}`,
+      gross: price,
+      status: 'pending',
+      source: 'course',
+    });
+    setUnlocked(true);
+    addToast({ type: 'success', message: `Acceso desbloqueado · €${price.toFixed(2)}` });
+  };
+
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-pink-500" /></div>
   );
@@ -151,6 +179,9 @@ const LiveSessionPage: React.FC = () => {
       <button onClick={() => navigate('/live')} className="btn-orange">Volver</button>
     </div>
   );
+
+  const isPaid = session.pricing_mode === 'paid' && (session.price ?? 0) > 0;
+  const canWatch = !isPaid || unlocked;
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -167,9 +198,43 @@ const LiveSessionPage: React.FC = () => {
       </div>
 
       <div className="grid lg:grid-cols-[1fr_320px] gap-0">
-        {/* Jitsi */}
-        <div className="aspect-video lg:aspect-auto lg:h-[calc(100vh-60px)] bg-black">
-          <div ref={containerRef} className="w-full h-full" />
+        {/* Jitsi / PPV paywall */}
+        <div className="aspect-video lg:aspect-auto lg:h-[calc(100vh-60px)] bg-black relative">
+          {canWatch ? (
+            <div ref={containerRef} className="w-full h-full" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center p-6">
+              <div className="max-w-sm w-full text-center">
+                {session.cover_url && (
+                  <img src={session.cover_url} alt={session.title} className="w-full h-40 object-cover rounded-2xl mb-5 opacity-80" />
+                )}
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center mb-4">
+                  <Lock className="w-8 h-8 text-white" />
+                </div>
+                <p className="text-[11px] font-black uppercase tracking-widest text-pink-400 mb-1">Evento de pago · PPV</p>
+                <h2 className="font-black text-2xl mb-2">{session.title}</h2>
+                <p className="text-gray-400 text-sm mb-5">Desbloquea el acceso para ver este directo en exclusiva.</p>
+
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-4 text-left space-y-2">
+                  {['Acceso completo al directo en HD', 'Chat y apoyos en vivo', 'Acceso desde cualquier dispositivo'].map(b => (
+                    <div key={b} className="flex items-center gap-2 text-sm text-gray-200">
+                      <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" /> {b}
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={handleUnlock}
+                  className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 hover:opacity-90 text-white font-black rounded-xl py-4 text-base flex items-center justify-center gap-2 shadow-lg shadow-pink-500/25"
+                >
+                  <Lock className="w-4 h-4" /> Desbloquear acceso · €{(session.price ?? 0).toFixed(2)}
+                </button>
+                <p className="text-[11px] text-gray-500 mt-3 flex items-center justify-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5" /> Pago seguro en escrow · comisión de plataforma incluida
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Donations feed */}

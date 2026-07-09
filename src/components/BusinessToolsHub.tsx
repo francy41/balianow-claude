@@ -1,5 +1,5 @@
 import React from 'react';
-import { QrCode, ScanLine, Wine, CalendarCheck, BarChart3, Users, ArrowRight } from 'lucide-react';
+import { QrCode, ScanLine, Wine, CalendarCheck, BarChart3, Users, GraduationCap, ArrowRight } from 'lucide-react';
 
 interface Tool {
   id: string;
@@ -17,6 +17,7 @@ const TOOLS: Tool[] = [
   { id: 'mesas',    icon: <Wine className="w-5 h-5" />,          title: 'Mesas VIP',       desc: 'Bottle service y palcos en eventos',       gradient: 'from-amber-500 to-orange-600',   action: 'nav', path: '/eventos' },
   { id: 'reservas', icon: <CalendarCheck className="w-5 h-5" />, title: 'Reservas con seña', desc: 'Cobra un depósito, resto en el local',   gradient: 'from-pink-500 to-rose-600',      action: 'nav', path: '/eventos' },
   { id: 'stats',    icon: <BarChart3 className="w-5 h-5" />,     title: 'Estadísticas',    desc: 'Ganancias y métricas del negocio',         gradient: 'from-emerald-500 to-teal-600',   action: 'nav', path: '/dashboard?tab=earnings' },
+  { id: 'master',   icon: <GraduationCap className="w-5 h-5" />, title: 'Masterclass',     desc: 'Entradas premium con profe invitado',      gradient: 'from-violet-500 to-purple-600',  action: 'nav', path: '/eventos?cat=Masterclass' },
   { id: 'split',    icon: <Users className="w-5 h-5" />,         title: 'Dividir pago',    desc: 'Reparte una mesa entre el grupo',          gradient: 'from-teal-500 to-cyan-600',      action: 'split' },
 ];
 

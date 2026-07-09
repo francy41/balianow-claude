@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   MapPin, Clock, Users, Calendar, Star, MessageSquare,
   Bell, Heart, Share2, CheckCircle, Music2,
@@ -91,8 +91,10 @@ const EventsList: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
+  const [searchParams] = useSearchParams();
+  const catParam = searchParams.get('cat');
   const [search, setSearch] = useState('');
-  const [selectedCat, setSelectedCat] = useState(['Todos']);
+  const [selectedCat, setSelectedCat] = useState<string[]>(catParam ? [catParam] : ['Todos']);
   const [selectedCity, setSelectedCity] = useState(['Todas']);
   const [onlyOnline, setOnlyOnline] = useState(false);
   const [dbEvents, setDbEvents] = useState<EventType[]>([]);

@@ -53,8 +53,8 @@ _Ideas de negocio para cuentas de negocio (venues, escuelas, artistas). Prioriza
 - "Dónde bailar esta noche" patrocinado (locales pagan por destacar)
 
 ### Fase 2 — Ticketing & experiencias
-- Masterclass con profe invitado (entradas premium)
-- Streaming PPV de eventos en vivo
+- ~~Masterclass con profe invitado~~ ✅ Categoría de evento con ticketing premium; filtro deep-link `/eventos?cat=Masterclass` + tile en hub
+- ~~Streaming PPV de eventos en vivo~~ ✅ Muro de pago en `LiveSessionPage` (pricing_mode 'paid' → desbloqueo con escrow antes de montar el stream)
 - Retiros y cruceros de baile (comisión por plaza)
 - Reserva de mesa en bares de salsa (partnership)
 
