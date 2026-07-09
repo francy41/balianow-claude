@@ -759,11 +759,12 @@ const AD_PLANS = [
     price: 49,
     period: '/semana',
     gradient: 'from-fuchsia-500 to-purple-600',
-    tagline: 'El más elegido',
+    tagline: 'Empieza a operar',
     popular: true,
     features: [
       'Todo lo de Destacado',
-      'Logo en el pie de página de TODA la web',
+      '📅 Sistema de reservas para tu negocio',
+      '🔳 Código QR propio (local, eventos, mesas)',
       'Prioridad en "Cerca de mí" y listados',
       'Badge 🏆 Patrocinador oficial',
     ],
@@ -775,12 +776,13 @@ const AD_PLANS = [
     price: 99,
     period: '/semana',
     gradient: 'from-amber-500 to-orange-600',
-    tagline: 'Dominación total',
+    tagline: 'Negocio completo',
     features: [
       'Todo lo de Patrocinador',
+      '🛒 Ventas online · tu tienda en BailaNow',
+      '📊 Estadísticas y métricas de tu negocio',
       '1er lugar en los resultados de búsqueda',
-      'Banner destacado en la home',
-      'Notificación push a seguidores de tu ciudad',
+      'Banner destacado en la home + push a tu ciudad',
     ],
   },
 ];
@@ -799,8 +801,32 @@ const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = ({
             Haz que te vean <span className="bg-gradient-to-r from-pink-400 to-fuchsia-400 bg-clip-text text-transparent">miles de bailarines</span>
           </h2>
           <p className="text-white/60 text-sm mt-2 max-w-2xl mx-auto">
-            Destaca tu perfil, evento o local en el home, el mapa y las búsquedas. Activación inmediata, cancela cuando quieras.
+            Destácate y activa tu negocio: reservas, ventas, código QR y presencia en el mapa. Activación inmediata, cancela cuando quieras.
           </p>
+        </div>
+
+        {/* ── Alta de cuenta de negocio (gratis) ── */}
+        <div className="mb-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-4">
+          <div className="flex items-center gap-3 flex-1 w-full">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-2xl flex-shrink-0">
+              🏪
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-display font-black text-base sm:text-lg text-white">Activa tu cuenta de negocio</h3>
+                <span className="bg-emerald-500 text-white text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full">Gratis</span>
+              </div>
+              <p className="text-white/60 text-xs mt-0.5 leading-relaxed">
+                Da de alta tu escuela, local o marca gratis y aparece en BailaNow. Después elige un plan para desbloquear reservas, ventas, código QR y más.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => navigate(`/chat?asunto=${encodeURIComponent('Quiero activar mi cuenta de negocio (gratis)')}`)}
+            className="w-full sm:w-auto flex-shrink-0 font-bold text-sm rounded-xl py-2.5 px-5 bg-white text-gray-900 hover:bg-gray-100 transition-all flex items-center justify-center gap-1.5"
+          >
+            Empezar gratis <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
