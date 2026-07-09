@@ -8,6 +8,8 @@ import { StarRating, Badge } from '../components/ui';
 import SearchTriggerBar from '../components/SearchTriggerBar';
 import BookingModal from '../components/BookingModal';
 import BusinessQRModal from '../components/BusinessQRModal';
+import SplitPaymentModal from '../components/SplitPaymentModal';
+import BusinessToolsHub from '../components/BusinessToolsHub';
 import PaymentGateway from '../components/payment/PaymentGateway';
 
 const CATEGORY_TABS = [
@@ -898,6 +900,7 @@ const PromocionatePage: React.FC = () => {
   const { addToast } = useUIStore();
   const cart = useCartStore();
   const [qrOpen, setQrOpen] = useState(false);
+  const [splitOpen, setSplitOpen] = useState(false);
   const [search, setSearch] = useState(params.get('q') || '');
   const [activeTab, setActiveTab] = useState(params.get('cat') || 'all');
   const [activePlatform, setActivePlatform] = useState(params.get('platform') || 'all');
@@ -1021,6 +1024,13 @@ const PromocionatePage: React.FC = () => {
 
         {/* ── PLAN DE PUBLICIDAD EN BAILANOW (banner principal) ── */}
         <AdPlansBanner navigate={navigate} onOpenQR={() => setQrOpen(true)} />
+
+        {/* ── Herramientas de negocio (accesos directos a lo que incluyen los planes) ── */}
+        <BusinessToolsHub
+          onNavigate={(path) => navigate(path)}
+          onOpenQR={() => setQrOpen(true)}
+          onOpenSplit={() => setSplitOpen(true)}
+        />
         {/* How it works */}
         <div className="grid grid-cols-4 gap-2 sm:gap-4 relative z-10 mb-6">
           {[
@@ -1270,6 +1280,9 @@ const PromocionatePage: React.FC = () => {
         businessName={user?.name}
         profileSlug={user?.id}
       />
+
+      {/* Split payment */}
+      <SplitPaymentModal open={splitOpen} onClose={() => setSplitOpen(false)} />
 
       {/* Seller Modal */}
       {selectedSeller && <SellerModal seller={selectedSeller} onClose={() => setSelectedSeller(null)} />}

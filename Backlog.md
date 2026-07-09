@@ -46,10 +46,11 @@ _Ideas de negocio para cuentas de negocio (venues, escuelas, artistas). Prioriza
 - ~~Código QR del negocio (generar/descargar QR a perfil/reservas)~~ ✅ `BusinessQRModal`
 - ~~Check-in con QR en la puerta~~ ✅ Ya existía: `QRScanner` (cámara + Supabase) en DashboardPage tab "scanner"
 - ~~Reservas con seña/depósito~~ ✅ `BookingModal` (pago completo o seña 20/30/50%, resto en el local)
-- Mesas VIP / bottle service (reserva premium con % por mesa)
+- ~~Mesas VIP / bottle service~~ ✅ Ya existía: `VenueSections` (mesa/vip/palco con botella) en EventsPage
+- ~~Pagar entre amigos (split de entrada/mesa)~~ ✅ `SplitPaymentModal` (reparto + compartir WhatsApp)
+- ~~Hub de herramientas de negocio~~ ✅ `BusinessToolsHub` en Promociónate (accesos directos: QR, check-in, mesas, reservas, stats, split)
 - Playlists patrocinadas en la radio
 - "Dónde bailar esta noche" patrocinado (locales pagan por destacar)
-- Pagar entre amigos (split de entrada/mesa)
 
 ### Fase 2 — Ticketing & experiencias
 - Masterclass con profe invitado (entradas premium)
