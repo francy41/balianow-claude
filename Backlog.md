@@ -38,4 +38,30 @@ Tablas `promo_sellers` + `promo_services` (JSONB platforms/tags/includes/extras/
 Actualmente deploy es manual. Considerar GitHub Action que haga build+deploy en push a master.
 
 ---
+
+## Roadmap de monetización — Cuentas de negocio
+_Ideas de negocio para cuentas de negocio (venues, escuelas, artistas). Priorizadas por facilidad × ingreso. Construir de a una, empezando por Fase 1._
+
+### Fase 1 — Quick wins
+- Código QR del negocio (generar/descargar QR a perfil/reservas) — **EN CURSO**
+- Check-in con QR en la puerta (control de aforo/asistencia)
+- Mesas VIP / bottle service (reserva premium con % por mesa)
+- Playlists patrocinadas en la radio
+- "Dónde bailar esta noche" patrocinado (locales pagan por destacar)
+- Pagar entre amigos (split de entrada/mesa)
+
+### Fase 2 — Ticketing & experiencias
+- Masterclass con profe invitado (entradas premium)
+- Streaming PPV de eventos en vivo
+- Retiros y cruceros de baile (comisión por plaza)
+- Reserva de mesa en bares de salsa (partnership)
+
+### Fase 3 — Recurrente / SaaS
+- CRM de alumnos + Marketing SMS/email a seguidores
+- Radio premium sin anuncios + Spots de audio
+- Contenido exclusivo de artistas (tipo Patreon)
+- Marketplace de coreografías · Clases 1-a-1 · DanceCamera Pro (IA)
+- App white-label para escuelas · Bonos a plazos · Cashback Wallet · Venta de leads
+
+---
 _Al completar un ítem: moverlo a PROJECT_STATE.md con fecha y decisiones tomadas. Mantener este archivo corto._

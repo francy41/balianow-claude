@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { MessageSquare, ShoppingBag, ShoppingCart, CheckCircle, Clock, TrendingUp, Shield, Users, Eye, Send, X, Trash2, CreditCard, ArrowRight, Loader2 } from 'lucide-react';
+import { MessageSquare, ShoppingBag, ShoppingCart, CheckCircle, Clock, TrendingUp, Shield, Users, Eye, Send, X, Trash2, CreditCard, ArrowRight, Loader2, QrCode } from 'lucide-react';
 import type { PromoService, PromoSeller } from '../data/mockData';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore, useCartStore } from '../store/appStore';
 import { StarRating, Badge } from '../components/ui';
 import SearchTriggerBar from '../components/SearchTriggerBar';
 import BookingModal from '../components/BookingModal';
+import BusinessQRModal from '../components/BusinessQRModal';
 import PaymentGateway from '../components/payment/PaymentGateway';
 
 const CATEGORY_TABS = [
@@ -787,7 +788,7 @@ const AD_PLANS = [
   },
 ];
 
-const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = ({ navigate }) => (
+const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate>; onOpenQR: () => void }> = ({ navigate, onOpenQR }) => (
   <section className="mb-8">
     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-gray-900 to-black p-5 sm:p-7">
       <div className="absolute -top-16 -right-16 w-64 h-64 bg-fuchsia-600/20 rounded-full blur-3xl" />
@@ -821,12 +822,20 @@ const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = ({
               </p>
             </div>
           </div>
-          <button
-            onClick={() => navigate(`/chat?asunto=${encodeURIComponent('Quiero activar mi cuenta de negocio (gratis)')}`)}
-            className="w-full sm:w-auto flex-shrink-0 font-bold text-sm rounded-xl py-2.5 px-5 bg-white text-gray-900 hover:bg-gray-100 transition-all flex items-center justify-center gap-1.5"
-          >
-            Empezar gratis <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto flex-shrink-0">
+            <button
+              onClick={onOpenQR}
+              className="font-bold text-sm rounded-xl py-2.5 px-4 bg-white/10 text-white border border-white/20 hover:bg-white/20 transition-all flex items-center justify-center gap-1.5"
+            >
+              <QrCode className="w-4 h-4" /> Genera tu QR
+            </button>
+            <button
+              onClick={() => navigate(`/chat?asunto=${encodeURIComponent('Quiero activar mi cuenta de negocio (gratis)')}`)}
+              className="font-bold text-sm rounded-xl py-2.5 px-5 bg-white text-gray-900 hover:bg-gray-100 transition-all flex items-center justify-center gap-1.5"
+            >
+              Empezar gratis <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -885,9 +894,10 @@ const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = ({
 const PromocionatePage: React.FC = () => {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const { addToast } = useUIStore();
   const cart = useCartStore();
+  const [qrOpen, setQrOpen] = useState(false);
   const [search, setSearch] = useState(params.get('q') || '');
   const [activeTab, setActiveTab] = useState(params.get('cat') || 'all');
   const [activePlatform, setActivePlatform] = useState(params.get('platform') || 'all');
@@ -1010,7 +1020,7 @@ const PromocionatePage: React.FC = () => {
         </div>
 
         {/* ── PLAN DE PUBLICIDAD EN BAILANOW (banner principal) ── */}
-        <AdPlansBanner navigate={navigate} />
+        <AdPlansBanner navigate={navigate} onOpenQR={() => setQrOpen(true)} />
         {/* How it works */}
         <div className="grid grid-cols-4 gap-2 sm:gap-4 relative z-10 mb-6">
           {[
@@ -1252,6 +1262,14 @@ const PromocionatePage: React.FC = () => {
 
       {/* Checkout — Real Stripe + PayPal gateway */}
       <PaymentGateway open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
+
+      {/* Business QR generator */}
+      <BusinessQRModal
+        open={qrOpen}
+        onClose={() => setQrOpen(false)}
+        businessName={user?.name}
+        profileSlug={user?.id}
+      />
 
       {/* Seller Modal */}
       {selectedSeller && <SellerModal seller={selectedSeller} onClose={() => setSelectedSeller(null)} />}
