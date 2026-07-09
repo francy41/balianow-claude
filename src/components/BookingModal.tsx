@@ -28,12 +28,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   const [price, setPrice] = useState(String(defaultPrice));
   const [date, setDate] = useState('');
   const [notes, setNotes] = useState('');
+  const [payMode, setPayMode] = useState<'full' | 'deposit'>('full');
+  const [depositPct, setDepositPct] = useState(30);
 
   if (!open) return null;
 
   const gross = parseFloat(price) || 0;
+  const amountNow = payMode === 'deposit' ? Math.round(gross * depositPct) / 100 : gross;
+  const remaining = Math.max(0, gross - amountNow);
   const rate = computeCommissionRate(commissions, source as any, false);
-  const { commission, net } = splitAmount(gross, rate);
+  const { commission, net } = splitAmount(amountNow, rate);
 
   const handleSubmit = () => {
     if (!isAuthenticated || !user) {
@@ -50,18 +54,24 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       addToast({ message: 'Elige una fecha para el servicio', type: 'error' });
       return;
     }
+    const baseConcept = notes.trim() ? `${concept.trim()} — ${notes.trim()}` : concept.trim();
+    const finalConcept = payMode === 'deposit'
+      ? `${baseConcept} · Seña €${amountNow.toFixed(2)} de €${gross.toFixed(2)} (resto €${remaining.toFixed(2)} en el local)`
+      : baseConcept;
     recordTransaction({
       performerId: providerId,
       performerName: providerName,
       clientId: user.id,
       clientName: user.name,
-      concept: notes.trim() ? `${concept.trim()} — ${notes.trim()}` : concept.trim(),
-      gross,
+      concept: finalConcept,
+      gross: amountNow,
       status: 'pending',  // queda en escrow hasta que el comprador confirme OK
       source,
     });
     addToast({
-      message: `Reserva confirmada · €${gross} en escrow · ${providerName} recibirá €${net} al completar`,
+      message: payMode === 'deposit'
+        ? `Reserva confirmada con seña · €${amountNow.toFixed(2)} pagados · resto €${remaining.toFixed(2)} en el local`
+        : `Reserva confirmada · €${gross.toFixed(2)} en escrow · ${providerName} recibirá €${net.toFixed(2)} al completar`,
       type: 'success'
     });
     onClose();
@@ -108,6 +118,44 @@ export const BookingModal: React.FC<BookingModalProps> = ({
 
           {helperText && <p className="text-xs text-gray-400">{helperText}</p>}
 
+          {/* Forma de reserva: pago completo o seña */}
+          <div>
+            <label className="text-xs font-bold text-gray-600 block mb-1.5">Forma de reserva</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setPayMode('full')}
+                className={`rounded-xl border-2 p-2.5 text-left transition-all ${payMode === 'full' ? 'border-brand-orange bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}
+              >
+                <span className="block text-sm font-bold text-gray-900">Pago completo</span>
+                <span className="block text-[11px] text-gray-500">€{gross.toFixed(2)} ahora</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPayMode('deposit')}
+                className={`rounded-xl border-2 p-2.5 text-left transition-all ${payMode === 'deposit' ? 'border-brand-orange bg-orange-50' : 'border-gray-200 hover:border-gray-300'}`}
+              >
+                <span className="block text-sm font-bold text-gray-900">Solo seña</span>
+                <span className="block text-[11px] text-gray-500">reserva y paga el resto en el local</span>
+              </button>
+            </div>
+            {payMode === 'deposit' && (
+              <div className="mt-2 flex items-center gap-2">
+                <span className="text-[11px] text-gray-500">Seña:</span>
+                {[20, 30, 50].map(p => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setDepositPct(p)}
+                    className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${depositPct === p ? 'bg-brand-orange text-white border-brand-orange' : 'bg-white text-gray-600 border-gray-200 hover:border-brand-orange'}`}
+                  >
+                    {p}%
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Payment method picker */}
           <div className="bg-white border border-gray-200 rounded-2xl p-3">
             <div className="flex items-center justify-between mb-1">
@@ -134,9 +182,21 @@ export const BookingModal: React.FC<BookingModalProps> = ({
           {/* Breakdown */}
           <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 space-y-1.5">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Pago bruto</span>
+              <span className="text-gray-600">Precio total</span>
               <span className="font-bold text-gray-900">€{gross.toFixed(2)}</span>
             </div>
+            {payMode === 'deposit' && (
+              <>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Pagas ahora (seña {depositPct}%)</span>
+                  <span className="font-bold text-gray-900">€{amountNow.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Resto en el local</span>
+                  <span className="text-gray-500 font-semibold">€{remaining.toFixed(2)}</span>
+                </div>
+              </>
+            )}
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Comisión plataforma {(rate * 100).toFixed(1)}%</span>
               <span className="text-brand-orange font-semibold">€{commission.toFixed(2)}</span>
@@ -165,7 +225,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
               Cancelar
             </button>
             <button onClick={handleSubmit} className="flex-[2] bg-brand-orange hover:bg-brand-orange-dark text-white font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2">
-              <CalIcon className="w-4 h-4" /> Confirmar y pagar €{gross.toFixed(2)}
+              <CalIcon className="w-4 h-4" /> {payMode === 'deposit' ? `Reservar con seña €${amountNow.toFixed(2)}` : `Confirmar y pagar €${gross.toFixed(2)}`}
             </button>
           </div>
         </div>

@@ -43,8 +43,9 @@ Actualmente deploy es manual. Considerar GitHub Action que haga build+deploy en 
 _Ideas de negocio para cuentas de negocio (venues, escuelas, artistas). Priorizadas por facilidad × ingreso. Construir de a una, empezando por Fase 1._
 
 ### Fase 1 — Quick wins
-- Código QR del negocio (generar/descargar QR a perfil/reservas) — **EN CURSO**
-- Check-in con QR en la puerta (control de aforo/asistencia)
+- ~~Código QR del negocio (generar/descargar QR a perfil/reservas)~~ ✅ `BusinessQRModal`
+- ~~Check-in con QR en la puerta~~ ✅ Ya existía: `QRScanner` (cámara + Supabase) en DashboardPage tab "scanner"
+- ~~Reservas con seña/depósito~~ ✅ `BookingModal` (pago completo o seña 20/30/50%, resto en el local)
 - Mesas VIP / bottle service (reserva premium con % por mesa)
 - Playlists patrocinadas en la radio
 - "Dónde bailar esta noche" patrocinado (locales pagan por destacar)
