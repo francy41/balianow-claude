@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Crown, Lock, CheckCircle, Loader2, Sparkles } from 'lucide-react';
+import { Crown, Lock, CheckCircle, Loader2, Sparkles, CreditCard } from 'lucide-react';
 import type { Artist } from '../data/mockData';
 import { useAuthStore, useUIStore, usePerformerStore } from '../store/appStore';
 import { supabase } from '../lib/supabase';
+import StripePayment from './payment/StripePayment';
+import { getStripe, createStripePaymentIntent } from '../lib/payments';
 
 const FAN_PRICE = 4.99;
 
@@ -22,7 +24,10 @@ const ExclusiveContentTab: React.FC<{ artist: Artist }> = ({ artist }) => {
   const recordTransaction = usePerformerStore(s => s.recordTransaction);
   const [unlocked, setUnlocked] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [processing, setProcessing] = useState(false);
+  const stripeReady = !!getStripe();
+  const [showPay, setShowPay] = useState(false);
+  const [clientSecret, setClientSecret] = useState('');
+  const [loadingIntent, setLoadingIntent] = useState(false);
 
   // ¿Ya es fan? (persiste tras recargar; fallback si la tabla no existe aún)
   useEffect(() => {
@@ -38,19 +43,45 @@ const ExclusiveContentTab: React.FC<{ artist: Artist }> = ({ artist }) => {
     return () => { cancelled = true; };
   }, [artist.id]);
 
-  const handleJoin = async () => {
+  // Crear PaymentIntent real de Stripe al abrir el pago (fallback demo si no configurado/timeout)
+  useEffect(() => {
+    if (!showPay || !stripeReady || clientSecret) return;
+    let cancelled = false;
+    setLoadingIntent(true);
+    const timeout = new Promise<never>((_, rej) => setTimeout(() => rej(new Error('demo')), 4000));
+    Promise.race([
+      createStripePaymentIntent({
+        amount: FAN_PRICE,
+        currency: 'eur',
+        items: [{ serviceId: `fan-${artist.id}`, sellerId: artist.id, sellerName: artist.name, title: `Fan · ${artist.name}`, price: FAN_PRICE, extrasTotal: 0 }],
+        userId: user?.id ?? 'guest',
+      }),
+      timeout,
+    ])
+      .then((r: any) => { if (!cancelled && r?.clientSecret) setClientSecret(r.clientSecret); })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoadingIntent(false); });
+    return () => { cancelled = true; };
+  }, [showPay, stripeReady, clientSecret, artist, user]);
+
+  const startJoin = () => {
     if (!isAuthenticated || !user) {
       addToast({ type: 'error', message: 'Inicia sesión para hacerte fan' });
       navigate('/auth');
       return;
     }
-    setProcessing(true);
+    setShowPay(true);
+  };
+
+  // Tras el pago (real de Stripe o demo): registra escrow, persiste el acceso y desbloquea
+  const finalizeJoin = async (paymentId: string) => {
+    if (!user) return;
     recordTransaction({
       performerId: artist.id,
       performerName: artist.name,
       clientId: user.id,
       clientName: user.name,
-      concept: `Membresía fan · ${artist.name}`,
+      concept: `Fan · ${artist.name} (${paymentId})`,
       gross: FAN_PRICE,
       status: 'pending',
       source: 'course',
@@ -63,9 +94,9 @@ const ExclusiveContentTab: React.FC<{ artist: Artist }> = ({ artist }) => {
           creator_id: artist.id, user_id: uid, amount: FAN_PRICE, currency: 'EUR',
         });
       }
-    } catch { /* tabla puede no existir aún */ }
+    } catch { /* fallback si la tabla no existe */ }
     setUnlocked(true);
-    setProcessing(false);
+    setShowPay(false);
     addToast({ type: 'success', message: `¡Ya eres fan de ${artist.name}! 👑` });
   };
 
@@ -110,7 +141,7 @@ const ExclusiveContentTab: React.FC<{ artist: Artist }> = ({ artist }) => {
           <h3 className="font-display font-black text-2xl mt-1">Hazte fan de {artist.name}</h3>
           <div className="mt-3 flex items-end justify-center gap-1">
             <span className="font-black text-4xl">€{FAN_PRICE.toFixed(2)}</span>
-            <span className="text-white/80 mb-1 text-sm">/mes</span>
+            <span className="text-white/80 mb-1 text-sm">· pago único</span>
           </div>
         </div>
 
@@ -124,17 +155,43 @@ const ExclusiveContentTab: React.FC<{ artist: Artist }> = ({ artist }) => {
             ))}
           </ul>
 
-          <button
-            onClick={handleJoin}
-            disabled={processing}
-            className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black rounded-xl py-3.5 text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-orange-500/25 disabled:opacity-50"
-          >
-            {processing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />}
-            {processing ? 'Procesando…' : `Hazte fan · €${FAN_PRICE.toFixed(2)}/mes`}
-          </button>
-          <p className="text-center text-[11px] text-gray-400 mt-3">
-            Pago seguro en escrow · cancela cuando quieras
-          </p>
+          {!showPay ? (
+            <>
+              <button
+                onClick={startJoin}
+                className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black rounded-xl py-3.5 text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-orange-500/25"
+              >
+                <Crown className="w-4 h-4" /> Hazte fan · €{FAN_PRICE.toFixed(2)}
+              </button>
+              <p className="text-center text-[11px] text-gray-400 mt-3">
+                Pago seguro · acceso permanente al contenido exclusivo
+              </p>
+            </>
+          ) : (
+            <div>
+              {loadingIntent ? (
+                <div className="flex items-center gap-3 py-2"><Loader2 className="w-5 h-5 animate-spin text-brand-orange" /><span className="text-sm text-gray-500">Conectando con Stripe…</span></div>
+              ) : clientSecret && stripeReady ? (
+                <StripePayment
+                  clientSecret={clientSecret}
+                  total={FAN_PRICE}
+                  onSuccess={(pi) => finalizeJoin(`stripe-${pi}`)}
+                  onError={(msg) => addToast({ type: 'error', message: msg })}
+                />
+              ) : (
+                <>
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-700 mb-3">🧪 Pago en modo demo — no se cobra dinero real. Configura <code>VITE_STRIPE_PUBLISHABLE_KEY</code> para activar el cobro.</div>
+                  <button
+                    onClick={() => finalizeJoin('demo')}
+                    className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black rounded-xl py-3.5 text-sm flex items-center justify-center gap-2"
+                  >
+                    <CreditCard className="w-4 h-4" /> Pagar €{FAN_PRICE.toFixed(2)}
+                  </button>
+                </>
+              )}
+              <button onClick={() => setShowPay(false)} className="w-full text-center text-[11px] text-gray-400 mt-2 hover:text-gray-600">Cancelar</button>
+            </div>
+          )}
         </div>
       </div>
     </div>
