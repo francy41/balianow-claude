@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, Loader2, Send, X, Lock, CheckCircle, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Heart, Loader2, Send, X, Lock, CheckCircle, ShieldCheck, CreditCard } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useUIStore, useAuthStore, usePerformerStore } from '../store/appStore';
+import StripePayment from '../components/payment/StripePayment';
+import { getStripe, createStripePaymentIntent } from '../lib/payments';
 
 interface LiveSession {
   id: string;
@@ -43,6 +45,10 @@ const LiveSessionPage: React.FC = () => {
   const [session, setSession] = useState<LiveSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [unlocked, setUnlocked] = useState(false);
+  const stripeReady = !!getStripe();
+  const [showPay, setShowPay] = useState(false);
+  const [clientSecret, setClientSecret] = useState('');
+  const [loadingIntent, setLoadingIntent] = useState(false);
   const [donations, setDonations] = useState<Donation[]>([]);
   const [showDonate, setShowDonate] = useState(false);
   const [donAmount, setDonAmount] = useState<number>(5);
@@ -88,6 +94,28 @@ const LiveSessionPage: React.FC = () => {
     })().catch(() => { /* tabla puede no existir aún */ });
     return () => { cancelled = true; };
   }, [session]);
+
+  // PPV: crear PaymentIntent real de Stripe al abrir el pago (fallback a demo si no está configurado o timeout)
+  useEffect(() => {
+    if (!showPay || !stripeReady || clientSecret || !session) return;
+    let cancelled = false;
+    setLoadingIntent(true);
+    const price = session.price ?? 0;
+    const timeout = new Promise<never>((_, rej) => setTimeout(() => rej(new Error('demo')), 4000));
+    Promise.race([
+      createStripePaymentIntent({
+        amount: price,
+        currency: 'eur',
+        items: [{ serviceId: session.id, sellerId: session.host_id, sellerName: session.host_name || 'Anfitrión', title: session.title, price, extrasTotal: 0 }],
+        userId: user?.id ?? 'guest',
+      }),
+      timeout,
+    ])
+      .then((r: any) => { if (!cancelled && r?.clientSecret) setClientSecret(r.clientSecret); })
+      .catch(() => {})
+      .finally(() => { if (!cancelled) setLoadingIntent(false); });
+    return () => { cancelled = true; };
+  }, [showPay, stripeReady, clientSecret, session, user]);
 
   // Load + subscribe donations
   useEffect(() => {
@@ -165,25 +193,30 @@ const LiveSessionPage: React.FC = () => {
     }
   };
 
-  const handleUnlock = async () => {
-    if (!session) return;
+  // Abre el paso de pago (o redirige a login)
+  const startUnlock = () => {
     if (!isAuthenticated || !user) {
       addToast({ type: 'error', message: 'Inicia sesión para comprar el acceso' });
       navigate('/auth');
       return;
     }
+    setShowPay(true);
+  };
+
+  // Tras el pago (real de Stripe o demo): registra escrow, persiste el acceso y desbloquea
+  const finalizeAccess = async (paymentId: string) => {
+    if (!session || !user) return;
     const price = session.price ?? 0;
     recordTransaction({
       performerId: session.host_id,
       performerName: session.host_name || 'Anfitrión',
       clientId: user.id,
       clientName: user.name,
-      concept: `Acceso PPV · ${session.title}`,
+      concept: `Acceso PPV · ${session.title} (${paymentId})`,
       gross: price,
       status: 'pending',
       source: 'course',
     });
-    // Persistir el acceso para que sobreviva a recargas (fallback si la tabla no existe)
     try {
       const { data: sess } = await supabase.auth.getSession();
       const uid = sess.session?.user?.id;
@@ -192,8 +225,9 @@ const LiveSessionPage: React.FC = () => {
           session_id: session.id, user_id: uid, amount: price, currency: 'EUR',
         });
       }
-    } catch { /* tabla puede no existir aún */ }
+    } catch { /* fallback si la tabla no existe */ }
     setUnlocked(true);
+    setShowPay(false);
     addToast({ type: 'success', message: `Acceso desbloqueado · €${price.toFixed(2)}` });
   };
 
@@ -250,15 +284,43 @@ const LiveSessionPage: React.FC = () => {
                   ))}
                 </div>
 
-                <button
-                  onClick={handleUnlock}
-                  className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 hover:opacity-90 text-white font-black rounded-xl py-4 text-base flex items-center justify-center gap-2 shadow-lg shadow-pink-500/25"
-                >
-                  <Lock className="w-4 h-4" /> Desbloquear acceso · €{(session.price ?? 0).toFixed(2)}
-                </button>
-                <p className="text-[11px] text-gray-500 mt-3 flex items-center justify-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Pago seguro en escrow · comisión de plataforma incluida
-                </p>
+                {!showPay ? (
+                  <>
+                    <button
+                      onClick={startUnlock}
+                      className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 hover:opacity-90 text-white font-black rounded-xl py-4 text-base flex items-center justify-center gap-2 shadow-lg shadow-pink-500/25"
+                    >
+                      <Lock className="w-4 h-4" /> Desbloquear acceso · €{(session.price ?? 0).toFixed(2)}
+                    </button>
+                    <p className="text-[11px] text-gray-500 mt-3 flex items-center justify-center gap-1">
+                      <ShieldCheck className="w-3.5 h-3.5" /> Pago seguro · comisión de plataforma incluida
+                    </p>
+                  </>
+                ) : (
+                  <div className="bg-white rounded-2xl p-4 text-gray-900 text-left">
+                    {loadingIntent ? (
+                      <div className="flex items-center gap-3 py-2"><Loader2 className="w-5 h-5 animate-spin text-pink-500" /><span className="text-sm text-gray-500">Conectando con Stripe…</span></div>
+                    ) : clientSecret && stripeReady ? (
+                      <StripePayment
+                        clientSecret={clientSecret}
+                        total={session.price ?? 0}
+                        onSuccess={(pi) => finalizeAccess(`stripe-${pi}`)}
+                        onError={(msg) => addToast({ type: 'error', message: msg })}
+                      />
+                    ) : (
+                      <>
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-700 mb-3">🧪 Pago en modo demo — no se cobra dinero real. Configura <code>VITE_STRIPE_PUBLISHABLE_KEY</code> para activar el cobro.</div>
+                        <button
+                          onClick={() => finalizeAccess('demo')}
+                          className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black rounded-xl py-3.5 text-sm flex items-center justify-center gap-2"
+                        >
+                          <CreditCard className="w-4 h-4" /> Pagar €{(session.price ?? 0).toFixed(2)}
+                        </button>
+                      </>
+                    )}
+                    <button onClick={() => setShowPay(false)} className="w-full text-center text-[11px] text-gray-400 mt-2 hover:text-gray-600">Cancelar</button>
+                  </div>
+                )}
               </div>
             </div>
           )}

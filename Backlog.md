@@ -54,7 +54,7 @@ _Ideas de negocio para cuentas de negocio (venues, escuelas, artistas). Prioriza
 
 ### Fase 2 — Ticketing & experiencias
 - ~~Masterclass con profe invitado~~ ✅ Categoría de evento con ticketing premium; filtro deep-link `/eventos?cat=Masterclass` + tile en hub
-- ~~Streaming PPV de eventos en vivo~~ ✅ Muro de pago en `LiveSessionPage` (pricing_mode 'paid' → escrow + tabla `live_access` para persistir/verificar acceso; migración en `supabase/live-access.sql` PENDIENTE de aplicar vía Management API; falta cobro real Stripe)
+- ~~Streaming PPV de eventos en vivo~~ ✅ Muro de pago en `LiveSessionPage` (pricing_mode 'paid'): cobro REAL Stripe (reutiliza Edge Function `create-payment-intent`, fallback demo) + tabla `live_access` APLICADA para persistir/verificar acceso tras recarga
 - Retiros y cruceros de baile (comisión por plaza)
 - Reserva de mesa en bares de salsa (partnership)
 
