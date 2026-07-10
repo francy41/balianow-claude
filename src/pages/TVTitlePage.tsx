@@ -20,6 +20,14 @@ const fmtDur = (s: number) => {
   return `${m} min`;
 };
 
+// El vídeo puede ser un mp4 directo o un vídeo de Cloudflare Stream
+// (URL de iframe/stream o un UID de 32 hex). Cloudflare se embebe por iframe.
+const isCfStream = (u: string) => /cloudflarestream\.com|videodelivery\.net/i.test(u) || /^[a-f0-9]{32}$/i.test(u);
+const cfEmbedUrl = (u: string) => {
+  if (/^[a-f0-9]{32}$/i.test(u)) return `https://iframe.videodelivery.net/${u}`;
+  return u;
+};
+
 const TVTitlePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -102,7 +110,19 @@ const TVTitlePage: React.FC = () => {
       {/* Player / gate */}
       <div className="relative bg-black aspect-video max-h-[70vh] w-full flex items-center justify-center">
         {playable && current?.video_url ? (
-          <video key={current.id} src={current.video_url} controls autoPlay className="w-full h-full object-contain bg-black" />
+          isCfStream(current.video_url) ? (
+            <iframe
+              key={current.id}
+              src={cfEmbedUrl(current.video_url)}
+              title={current.name}
+              className="w-full h-full"
+              style={{ border: 'none' }}
+              allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+              allowFullScreen
+            />
+          ) : (
+            <video key={current.id} src={current.video_url} controls autoPlay className="w-full h-full object-contain bg-black" />
+          )
         ) : current && !canWatch(current.access) ? (
           <div className="text-center px-6">
             <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-orange-500 to-fuchsia-600 flex items-center justify-center mb-3">
