@@ -834,7 +834,7 @@ const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate>; onOpen
         </div>
 
         <p className="text-center text-white/40 text-[11px] mt-4">
-          💬 Activamos tu campaña en menos de 24h tras confirmar el pago por chat. Facturación semanal, sin permanencia.
+          💬 Activamos tu campaña en menos de 24h tras confirmar el pago por chat. Facturación mensual, sin permanencia.
         </p>
         <div className="text-center mt-3">
           <button onClick={() => navigate('/precios')} className="text-white/70 hover:text-white text-xs font-bold inline-flex items-center gap-1">

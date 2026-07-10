@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, ArrowRight, Calendar, QrCode, ShoppingBag, Wine, BarChart3, Radio, MessageSquare } from 'lucide-react';
-import { AD_PLANS, monthlyPrice } from '../data/adPlans';
+import { CheckCircle, ArrowRight, Calendar, QrCode, ShoppingBag, Wine, BarChart3, Radio, MessageSquare, TrendingUp } from 'lucide-react';
+import { AD_PLANS, AD_BOOST } from '../data/adPlans';
 
 const TOOLS = [
   { icon: <Calendar className="w-5 h-5" />,   title: 'Reservas con seña',  desc: 'Cobra un depósito y el resto en el local' },
@@ -19,7 +19,7 @@ const STEPS = [
 ];
 
 const FAQ = [
-  { q: '¿Hay permanencia?', a: 'No. La facturación es semanal y cancelas cuando quieras.' },
+  { q: '¿Hay permanencia?', a: 'No. La facturación es mensual y cancelas cuando quieras.' },
   { q: '¿Cómo se paga?', a: 'Confirmas el plan por chat y te pasamos el enlace de pago seguro. Activamos en menos de 24h.' },
   { q: '¿Necesito cuenta de negocio?', a: 'El alta de tu escuela, local o marca es gratis. El plan solo desbloquea las herramientas de pago.' },
   { q: '¿Puedo cambiar de plan?', a: 'Sí, subes o bajas de plan cuando quieras según cómo vaya tu negocio.' },
@@ -33,6 +33,9 @@ const BusinessPricingPage: React.FC = () => {
 
   const activarGratis = () =>
     navigate(`/chat?asunto=${encodeURIComponent('Quiero activar mi cuenta de negocio (gratis)')}`);
+
+  const destacarAnuncio = () =>
+    navigate(`/chat?asunto=${encodeURIComponent('Quiero destacar mi anuncio (desde €5/mes)')}`);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-20 transition-colors">
@@ -49,7 +52,7 @@ const BusinessPricingPage: React.FC = () => {
           </h1>
           <p className="text-white/70 text-sm sm:text-lg mt-4 max-w-2xl mx-auto">
             Reservas, ventas, código QR, mesas VIP y visibilidad ante miles de bailarines.
-            Activación inmediata, facturación semanal, sin permanencia.
+            Activación inmediata, facturación mensual, sin permanencia.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 mt-7">
             <button onClick={activarGratis} className="bg-white text-gray-900 font-bold text-sm rounded-xl px-5 py-3 hover:bg-gray-100 transition-all flex items-center gap-1.5">
@@ -67,7 +70,7 @@ const BusinessPricingPage: React.FC = () => {
         <section id="planes" className="mt-12 scroll-mt-6">
           <div className="text-center mb-8">
             <h2 className="font-display font-black text-2xl sm:text-3xl text-gray-900 dark:text-white">Elige tu plan</h2>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Precios por semana · sin permanencia</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Precios por mes · sin permanencia</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-start">
@@ -93,7 +96,6 @@ const BusinessPricingPage: React.FC = () => {
                     <span className="font-display font-black text-4xl text-gray-900 dark:text-white">€{plan.price}</span>
                     <span className="text-xs mb-1.5 text-gray-400">{plan.period}</span>
                   </div>
-                  <p className="text-[11px] text-gray-400 mt-1">≈ €{monthlyPrice(plan.price)}/mes</p>
                 </div>
                 <ul className="space-y-2 flex-1 mb-5">
                   {plan.features.map((f, i) => (
@@ -118,6 +120,36 @@ const BusinessPricingPage: React.FC = () => {
           <p className="text-center text-gray-400 text-[11px] mt-5">
             💬 Activamos tu campaña en menos de 24h tras confirmar el pago por chat.
           </p>
+        </section>
+
+        {/* Destaca tu anuncio — usuarios y ofertantes */}
+        <section className="mt-10">
+          <div className="rounded-3xl border-2 border-dashed border-fuchsia-300 dark:border-fuchsia-800 bg-white dark:bg-gray-900 p-6 sm:p-8">
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <div className="flex-1 text-center sm:text-left">
+                <span className="inline-block bg-fuchsia-100 dark:bg-fuchsia-900/40 text-fuchsia-700 dark:text-fuchsia-300 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-3">
+                  Para usuarios y ofertantes
+                </span>
+                <h3 className="font-display font-black text-xl sm:text-2xl text-gray-900 dark:text-white">Destaca tu anuncio</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm mt-2 max-w-md">
+                  ¿No tienes un negocio pero quieres que te vean? Sube tu publicación o anuncio a los <strong className="text-gray-700 dark:text-gray-200">primeros lugares durante un mes</strong>. Simple y sin complicaciones.
+                </p>
+              </div>
+              <div className="text-center flex-shrink-0">
+                <div className="flex items-end justify-center gap-1">
+                  <span className="text-xs text-gray-400 mb-1">desde</span>
+                  <span className="font-display font-black text-5xl text-gray-900 dark:text-white">€{AD_BOOST.price}</span>
+                  <span className="text-xs text-gray-400 mb-1.5">{AD_BOOST.period}</span>
+                </div>
+                <button
+                  onClick={destacarAnuncio}
+                  className="mt-3 bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white font-bold rounded-xl px-6 py-3 hover:opacity-90 transition-all inline-flex items-center gap-2"
+                >
+                  <TrendingUp className="w-4 h-4" /> Destacar mi anuncio
+                </button>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* Qué incluye */}

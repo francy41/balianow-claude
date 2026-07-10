@@ -1,7 +1,7 @@
 // ── PLANES DE NEGOCIO EN BAILANOW ────────────────────────────────────────
 // Fuente única de verdad de las tarifas para negocios. La usan tanto la
 // sección "Promociónate" como la página dedicada "Precios para negocios".
-// El pago/contratación se gestiona por chat.
+// El pago/contratación se gestiona por chat. Facturación mensual, sin permanencia.
 
 export interface AdPlan {
   id: string;
@@ -17,53 +17,56 @@ export interface AdPlan {
 
 export const AD_PLANS: AdPlan[] = [
   {
-    id: 'destacado',
-    name: 'Destacado',
-    icon: '⭐',
-    price: 19,
-    period: '/semana',
-    gradient: 'from-pink-500 to-rose-600',
-    tagline: 'Visibilidad instantánea',
+    id: 'starter',
+    name: 'Starter',
+    icon: '🚀',
+    price: 100,
+    period: '/mes',
+    gradient: 'from-green-500 to-emerald-600',
+    tagline: 'Empieza a crecer',
     features: [
-      'Tu perfil/evento en "Lo más destacado" del home',
+      'Perfil/evento destacado en el home',
       'Logo en el mapa interactivo',
       'Badge ⭐ Destacado en tu ficha',
+      '🎬 1 vídeo + 🖼️ 4 flyers al mes',
     ],
   },
   {
-    id: 'patrocinador',
-    name: 'Patrocinador',
-    icon: '🏆',
-    price: 49,
-    period: '/semana',
-    gradient: 'from-fuchsia-500 to-purple-600',
-    tagline: 'Empieza a operar',
+    id: 'growth',
+    name: 'Growth',
+    icon: '📈',
+    price: 200,
+    period: '/mes',
+    gradient: 'from-amber-500 to-orange-500',
+    tagline: 'Más clientes y reservas',
     popular: true,
     features: [
-      'Todo lo de Destacado',
-      '📅 Sistema de reservas para tu negocio',
-      '🔳 Código QR propio (local, eventos, mesas)',
+      'Todo lo de Starter',
+      '📅 Sistema de reservas + 🔳 código QR',
       'Prioridad en "Cerca de mí" y listados',
-      'Badge 🏆 Patrocinador oficial',
+      '🎬 2 vídeos + 🖼️ 6 flyers al mes',
     ],
   },
   {
-    id: 'top-premium',
-    name: 'Top Premium',
-    icon: '🚀',
-    price: 99,
-    period: '/semana',
-    gradient: 'from-amber-500 to-orange-600',
-    tagline: 'Negocio completo',
+    id: 'premium',
+    name: 'Premium',
+    icon: '💎',
+    price: 400,
+    period: '/mes',
+    gradient: 'from-red-500 to-rose-600',
+    tagline: 'Máximos ingresos',
     features: [
-      'Todo lo de Patrocinador',
-      '🛒 Ventas online · tu tienda en BailaNow',
-      '📊 Estadísticas y métricas de tu negocio',
-      '1er lugar en los resultados de búsqueda',
-      'Banner destacado en la home + push a tu ciudad',
+      'Todo lo de Growth',
+      '🛒 Ventas online + 📊 estadísticas',
+      '1er lugar en búsquedas + banner en la home + push',
+      '🎬 4 vídeos + 🖼️ 8 flyers al mes',
     ],
   },
 ];
 
-// Precio semanal → mensual aproximado (×52/12).
-export const monthlyPrice = (weekly: number) => Math.round((weekly * 52) / 12);
+// Micro-plan para usuarios y ofertantes: destacar UNA publicación al top por 1 mes.
+export const AD_BOOST = {
+  price: 5,
+  period: '/mes',
+  name: 'Destaca tu anuncio',
+};
