@@ -38,9 +38,10 @@ const DashboardPage     = lazy(() => import('./pages/DashboardPage'));
 const WalletPage        = lazy(() => import('./pages/WalletPage'));
 const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'));
 const BusinessPricingPage = lazy(() => import('./pages/BusinessPricingPage'));
-const TVHomePage        = lazy(() => import('./pages/TVHomePage'));
-const TVTitlePage       = lazy(() => import('./pages/TVTitlePage'));
-const TVCreatorPage     = lazy(() => import('./pages/TVCreatorPage'));
+const TVHomePage        = lazy(() => import('./tv/TVHomePage'));
+const TVTitlePage       = lazy(() => import('./tv/TVTitlePage'));
+const TVCreatorPage     = lazy(() => import('./tv/TVCreatorPage'));
+const TVAdminPage       = lazy(() => import('./tv/TVAdminPage'));
 const DanceFlowPage     = lazy(() => import('./pages/DanceFlowPage'));
 const DanceCameraPage   = lazy(() => import('./pages/DanceCameraPage'));
 const ChoreographyPage  = lazy(() => import('./pages/ChoreographyPage'));
@@ -181,6 +182,7 @@ const App: React.FC = () => {
                   <Route path="/negocios"            element={<BusinessPricingPage />} />
                   <Route path="/tv"                  element={<TVHomePage />} />
                   <Route path="/tv/estudio"          element={<ProtectedRoute><TVCreatorPage /></ProtectedRoute>} />
+                  <Route path="/tv/admin"            element={<ProtectedRoute requiredRole="admin"><TVAdminPage /></ProtectedRoute>} />
                   <Route path="/tv/:id"              element={<TVTitlePage />} />
                   {/* Admin routes — requiredRole guard redirects silently to /dashboard if wrong role */}
                   <Route path="/admin"               element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
