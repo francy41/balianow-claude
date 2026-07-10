@@ -11,6 +11,7 @@ import BusinessQRModal from '../components/BusinessQRModal';
 import SplitPaymentModal from '../components/SplitPaymentModal';
 import BusinessToolsHub from '../components/BusinessToolsHub';
 import PaymentGateway from '../components/payment/PaymentGateway';
+import { AD_PLANS } from '../data/adPlans';
 
 const CATEGORY_TABS = [
   { id: 'all', label: 'Todo', icon: '🔥' },
@@ -737,59 +738,6 @@ function normalizeService(r: any): PromoService {
   };
 }
 
-// ── PLANES DE PUBLICIDAD EN LA PLATAFORMA BAILANOW ───────────────────────
-// Promocionar TU perfil/evento/marca DENTRO de BailaNow (distinto de los
-// servicios de redes sociales de abajo). El pago/contratación se gestiona por chat.
-const AD_PLANS = [
-  {
-    id: 'destacado',
-    name: 'Destacado',
-    icon: '⭐',
-    price: 19,
-    period: '/semana',
-    gradient: 'from-pink-500 to-rose-600',
-    tagline: 'Visibilidad instantánea',
-    features: [
-      'Tu perfil/evento en "Lo más destacado" del home',
-      'Logo en el mapa interactivo',
-      'Badge ⭐ Destacado en tu ficha',
-    ],
-  },
-  {
-    id: 'patrocinador',
-    name: 'Patrocinador',
-    icon: '🏆',
-    price: 49,
-    period: '/semana',
-    gradient: 'from-fuchsia-500 to-purple-600',
-    tagline: 'Empieza a operar',
-    popular: true,
-    features: [
-      'Todo lo de Destacado',
-      '📅 Sistema de reservas para tu negocio',
-      '🔳 Código QR propio (local, eventos, mesas)',
-      'Prioridad en "Cerca de mí" y listados',
-      'Badge 🏆 Patrocinador oficial',
-    ],
-  },
-  {
-    id: 'top-premium',
-    name: 'Top Premium',
-    icon: '🚀',
-    price: 99,
-    period: '/semana',
-    gradient: 'from-amber-500 to-orange-600',
-    tagline: 'Negocio completo',
-    features: [
-      'Todo lo de Patrocinador',
-      '🛒 Ventas online · tu tienda en BailaNow',
-      '📊 Estadísticas y métricas de tu negocio',
-      '1er lugar en los resultados de búsqueda',
-      'Banner destacado en la home + push a tu ciudad',
-    ],
-  },
-];
-
 const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate>; onOpenQR: () => void }> = ({ navigate, onOpenQR }) => (
   <section className="mb-8">
     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-gray-900 to-black p-5 sm:p-7">
@@ -888,6 +836,11 @@ const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate>; onOpen
         <p className="text-center text-white/40 text-[11px] mt-4">
           💬 Activamos tu campaña en menos de 24h tras confirmar el pago por chat. Facturación semanal, sin permanencia.
         </p>
+        <div className="text-center mt-3">
+          <button onClick={() => navigate('/precios')} className="text-white/70 hover:text-white text-xs font-bold inline-flex items-center gap-1">
+            Ver la página de precios para negocios <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
     </div>
   </section>

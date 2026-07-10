@@ -37,6 +37,7 @@ const ChatPage          = lazy(() => import('./pages/ChatPage'));
 const DashboardPage     = lazy(() => import('./pages/DashboardPage'));
 const WalletPage        = lazy(() => import('./pages/WalletPage'));
 const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'));
+const BusinessPricingPage = lazy(() => import('./pages/BusinessPricingPage'));
 const DanceFlowPage     = lazy(() => import('./pages/DanceFlowPage'));
 const DanceCameraPage   = lazy(() => import('./pages/DanceCameraPage'));
 const ChoreographyPage  = lazy(() => import('./pages/ChoreographyPage'));
@@ -173,6 +174,8 @@ const App: React.FC = () => {
                   <Route path="/afiliados"           element={<ProtectedRoute><AffiliatePage /></ProtectedRoute>} />
                   <Route path="/vendedores"          element={<VendedoresPage />} />
                   <Route path="/promocionate"        element={<PromocionatePage />} />
+                  <Route path="/precios"             element={<BusinessPricingPage />} />
+                  <Route path="/negocios"            element={<BusinessPricingPage />} />
                   {/* Admin routes — requiredRole guard redirects silently to /dashboard if wrong role */}
                   <Route path="/admin"               element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
                   <Route path="/admin/:section"      element={<ProtectedRoute requiredRole="admin"><AdminPage /></ProtectedRoute>} />
