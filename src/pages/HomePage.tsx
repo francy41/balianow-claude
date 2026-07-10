@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen } from 'lucide-react';
+import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv } from 'lucide-react';
 import { ARTISTS, EVENTS, VENUES } from '../data/mockData';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, type HeroSliderImage, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
@@ -1134,8 +1134,20 @@ const HomePage: React.FC = () => {
       {/* ── RADIOS · PLAYLISTS · REDES SOCIALES ── */}
       {isModuleOn('radio') && (
       <section className="mx-4 mt-4 space-y-2">
-        {/* Fila 1: Radios · App · Abierto · Live — cards iguales */}
-        <div className="grid grid-cols-4 gap-1.5 sm:gap-2 max-w-3xl mx-auto">
+        {/* Fila 1: BailaNow TV · Radios · App · Abierto · Live — cards iguales */}
+        <div className="grid grid-cols-5 gap-1.5 sm:gap-2 max-w-3xl mx-auto">
+          {/* BAILANOW TV */}
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+            <button onClick={() => navigate('/tv')}
+              className="w-full h-[44px] bg-gradient-to-br from-orange-500 to-fuchsia-600 px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all">
+              <div className="flex items-center gap-1">
+                <Tv className="w-3 h-3 text-white" />
+                <span className="text-white font-black text-[10px] sm:text-[11px]">TV</span>
+              </div>
+              <span className="text-white/90 text-[8px] font-bold">Clases</span>
+            </button>
+          </div>
+
           {/* RADIOS */}
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
             <button onClick={() => setRadiosOpen(v => !v)}
