@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, Lock, Loader2, Star, Heart, Check } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -39,6 +39,9 @@ const TVTitlePage: React.FC = () => {
   const [current, setCurrent] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [fav, setFav] = useState(false);
+  const [resumeAt, setResumeAt] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const lastSaveRef = useRef(0);
 
   useEffect(() => {
     if (!id) return;
@@ -75,6 +78,40 @@ const TVTitlePage: React.FC = () => {
 
   const hasSub = !!user && (user.isPremium || !!user.subscriptionPlan);
   const canWatch = (access: string) => access === 'free' || hasSub;
+
+  // Cargar la posición guardada de la clase actual (continuar viendo)
+  useEffect(() => {
+    setResumeAt(0);
+    if (!current || !isAuthenticated) return;
+    let cancelled = false;
+    (async () => {
+      const { data: sess } = await supabase.auth.getSession();
+      const uid = sess.session?.user?.id;
+      if (!uid) return;
+      const { data } = await supabase.from('tv_progress').select('position_seconds').eq('user_id', uid).eq('lesson_id', current.id).maybeSingle();
+      if (!cancelled && data) setResumeAt(data.position_seconds || 0);
+    })().catch(() => {});
+    return () => { cancelled = true; };
+  }, [current, isAuthenticated]);
+
+  const saveProgress = useCallback(async (completed = false) => {
+    const v = videoRef.current;
+    if (!v || !current || !isAuthenticated) return;
+    const { data: sess } = await supabase.auth.getSession();
+    const uid = sess.session?.user?.id;
+    if (!uid) return;
+    const done = completed || (v.duration ? v.currentTime / v.duration > 0.95 : false);
+    await supabase.from('tv_progress').upsert({
+      user_id: uid, lesson_id: current.id,
+      position_seconds: Math.floor(v.currentTime), completed: done,
+      updated_at: new Date().toISOString(),
+    }).then(() => {}, () => {});
+  }, [current, isAuthenticated]);
+
+  const onTime = () => {
+    const now = Date.now();
+    if (now - lastSaveRef.current > 10000) { lastSaveRef.current = now; saveProgress(); }
+  };
 
   const toggleFav = async () => {
     if (!isAuthenticated || !id) { navigate('/auth'); return; }
@@ -121,7 +158,18 @@ const TVTitlePage: React.FC = () => {
               allowFullScreen
             />
           ) : (
-            <video key={current.id} src={current.video_url} controls autoPlay className="w-full h-full object-contain bg-black" />
+            <video
+              ref={videoRef}
+              key={current.id}
+              src={current.video_url}
+              controls
+              autoPlay
+              onLoadedMetadata={() => { if (resumeAt > 5 && videoRef.current) videoRef.current.currentTime = resumeAt; }}
+              onTimeUpdate={onTime}
+              onPause={() => saveProgress()}
+              onEnded={() => saveProgress(true)}
+              className="w-full h-full object-contain bg-black"
+            />
           )
         ) : current && !canWatch(current.access) ? (
           <div className="text-center px-6">

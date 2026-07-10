@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Star, Loader2, Tv, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { useAuthStore } from '../store/appStore';
 
 export interface TVTitle {
   id: string;
@@ -70,7 +71,9 @@ const Row: React.FC<{ label: string; items: TVTitle[]; onOpen: (t: TVTitle) => v
 
 const TVHomePage: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuthStore();
   const [titles, setTitles] = useState<TVTitle[]>([]);
+  const [continueTitles, setContinueTitles] = useState<TVTitle[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -83,6 +86,28 @@ const TVHomePage: React.FC = () => {
       });
     return () => { cancelled = true; };
   }, []);
+
+  // Continuar viendo: títulos con progreso no completado del usuario
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let cancelled = false;
+    (async () => {
+      const { data: sess } = await supabase.auth.getSession();
+      const uid = sess.session?.user?.id;
+      if (!uid) return;
+      const { data } = await supabase.from('tv_progress')
+        .select('updated_at, lesson:tv_lessons(title_id)')
+        .eq('user_id', uid).eq('completed', false)
+        .order('updated_at', { ascending: false }).limit(20);
+      const ids = [...new Set((data || []).map((p: any) => p.lesson?.title_id).filter(Boolean))];
+      if (cancelled || ids.length === 0) return;
+      const { data: ts } = await supabase.from('tv_titles').select('*').in('id', ids).eq('status', 'published');
+      const map: Record<string, TVTitle> = {};
+      (ts || []).forEach((t: any) => { map[t.id] = normalize(t); });
+      if (!cancelled) setContinueTitles(ids.map(id => map[id]).filter(Boolean));
+    })().catch(() => {});
+    return () => { cancelled = true; };
+  }, [isAuthenticated]);
 
   const featured = useMemo(() => titles.find(t => t.featured) || titles[0], [titles]);
   const byStyle = useMemo(() => {
@@ -136,6 +161,7 @@ const TVHomePage: React.FC = () => {
           </div>
         ) : (
           <>
+            <Row label="Continuar viendo" items={continueTitles} onOpen={open} />
             <Row label="Nuevos lanzamientos" items={titles.slice(0, 12)} onOpen={open} />
             <Row label="Destacados" items={titles.filter(t => t.featured)} onOpen={open} />
             {Object.entries(byStyle).map(([style, items]) => (
