@@ -1285,9 +1285,14 @@ const HomePage: React.FC = () => {
               <span className="text-white font-black text-xs tracking-wide">Ruta de Hoy</span>
               <span className="bg-white/20 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">En vivo</span>
             </div>
-            <button onClick={() => navigate('/comunidad')} className="flex items-center gap-0.5 text-white/80 hover:text-white text-[10px] font-bold transition-colors">
-              Ver todos <ChevronRight className="w-3 h-3" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button onClick={() => navigate('/rutas')} className="flex items-center gap-1 bg-white/20 hover:bg-white/30 text-white text-[10px] font-bold px-2 py-0.5 rounded-full transition-colors">
+                🗺️ Mapa
+              </button>
+              <button onClick={() => navigate('/comunidad')} className="flex items-center gap-0.5 text-white/80 hover:text-white text-[10px] font-bold transition-colors">
+                Ver todos <ChevronRight className="w-3 h-3" />
+              </button>
+            </div>
           </div>
           {/* Posts en auto-scroll infinito hacia la izquierda */}
           {(() => {
