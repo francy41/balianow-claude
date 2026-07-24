@@ -47,20 +47,23 @@ const TVTitlePage: React.FC = () => {
     if (!id) return;
     let cancelled = false;
     (async () => {
-      const [{ data: t }, { data: ls }] = await Promise.all([
-        supabase.from('tv_titles').select('*').eq('id', id).maybeSingle(),
-        supabase.from('tv_lessons').select('*').eq('title_id', id).order('position', { ascending: true }),
-      ]);
-      if (cancelled) return;
-      setTitle(t ? {
-        id: t.id, title: t.title || '', slug: t.slug, description: t.description,
-        type: t.type || 'clase', style: t.style, level: t.level, cover_url: t.cover_url,
-        access: t.access || 'basico', featured: !!t.featured, rating: Number(t.rating) || 0, views: Number(t.views) || 0,
-      } : null);
-      const lessonList = (ls || []) as Lesson[];
-      setLessons(lessonList);
-      setCurrent(lessonList[0] || null);
-      setLoading(false);
+      try {
+        const [{ data: t }, { data: ls }] = await Promise.all([
+          supabase.from('tv_titles').select('*').eq('id', id).maybeSingle(),
+          supabase.from('tv_lessons').select('*').eq('title_id', id).order('position', { ascending: true }),
+        ]);
+        if (cancelled) return;
+        setTitle(t ? {
+          id: t.id, title: t.title || '', slug: t.slug, description: t.description,
+          type: t.type || 'clase', style: t.style, level: t.level, cover_url: t.cover_url,
+          access: t.access || 'basico', featured: !!t.featured, rating: Number(t.rating) || 0, views: Number(t.views) || 0,
+        } : null);
+        const lessonList = (ls || []) as Lesson[];
+        setLessons(lessonList);
+        setCurrent(lessonList[0] || null);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     })();
     return () => { cancelled = true; };
   }, [id]);

@@ -78,13 +78,15 @@ const TVHomePage: React.FC = () => {
 
   useEffect(() => {
     let cancelled = false;
+    // Safety: nunca dejar el spinner colgado si la consulta falla o se demora.
+    const safety = setTimeout(() => { if (!cancelled) setLoading(false); }, 8000);
     supabase.from('tv_titles').select('*').eq('status', 'published').order('created_at', { ascending: false })
       .then(({ data }) => {
         if (cancelled) return;
         setTitles((data || []).map(normalize));
         setLoading(false);
-      });
-    return () => { cancelled = true; };
+      }, () => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; clearTimeout(safety); };
   }, []);
 
   // Continuar viendo: títulos con progreso no completado del usuario
