@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Plus, Users, X, Loader2, Calendar, Clock, Trash2, Check, Route as RouteIcon } from 'lucide-react';
+import { MapPin, Plus, Users, X, Loader2, Calendar, Clock, Trash2, Check, Route as RouteIcon, MessageCircle, Send } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
 import MapErrorBoundary from '../components/MapErrorBoundary';
@@ -169,6 +169,8 @@ const RutasPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Ruta | null>(null);
   const [members, setMembers] = useState<{ user_id: string; user_name: string | null }[]>([]);
+  const [comments, setComments] = useState<{ id: string; user_id: string; user_name: string | null; text: string; created_at: string }[]>([]);
+  const [commentText, setCommentText] = useState('');
   const [creating, setCreating] = useState(false);
   const [cityFilter, setCityFilter] = useState('');
 
@@ -185,10 +187,22 @@ const RutasPage: React.FC = () => {
   useEffect(() => { load().catch(() => setLoading(false)); }, [load]);
 
   useEffect(() => {
-    if (!selected) { setMembers([]); return; }
+    if (!selected) { setMembers([]); setComments([]); return; }
     supabase.from('ruta_members').select('user_id, user_name').eq('ruta_id', selected.id)
       .then(({ data }) => setMembers((data || []) as any), () => {});
+    supabase.from('ruta_comments').select('*').eq('ruta_id', selected.id).order('created_at', { ascending: true })
+      .then(({ data }) => setComments((data || []) as any), () => {});
   }, [selected]);
+
+  const postComment = async () => {
+    if (!isAuthenticated || !user || !selected) { navigate('/auth'); return; }
+    const t = commentText.trim();
+    if (!t) return;
+    setCommentText('');
+    const { data, error } = await supabase.from('ruta_comments')
+      .insert({ ruta_id: selected.id, user_id: user.id, user_name: user.name, text: t }).select().single();
+    if (!error && data) setComments(c => [...c, data as any]);
+  };
 
   const cities = useMemo(() => [...new Set(rutas.map(r => r.city))], [rutas]);
   const filtered = useMemo(() => cityFilter ? rutas.filter(r => r.city === cityFilter) : rutas, [rutas, cityFilter]);
@@ -292,6 +306,33 @@ const RutasPage: React.FC = () => {
                         {s.address && <span className="text-gray-400 text-xs truncate">· {s.address}</span>}
                       </div>
                     ))}
+                  </div>
+
+                  {/* Chat del grupo */}
+                  <div className="mt-4 border-t border-gray-100 dark:border-gray-800 pt-3">
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1"><MessageCircle className="w-3.5 h-3.5" /> Chat del grupo</p>
+                    <div className="space-y-1.5 max-h-48 overflow-y-auto mb-2">
+                      {comments.length === 0 ? (
+                        <p className="text-xs text-gray-400">Aún no hay mensajes. Coordina la hora y el punto de encuentro con el grupo. 🙂</p>
+                      ) : comments.map(c => (
+                        <p key={c.id} className="text-sm">
+                          <span className="font-bold text-gray-900 dark:text-white text-xs">{c.user_name || 'Anónimo'}:</span>
+                          <span className="text-gray-600 dark:text-gray-300 ml-1">{c.text}</span>
+                        </p>
+                      ))}
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        className="input-field flex-1"
+                        placeholder="Escribe al grupo…"
+                        value={commentText}
+                        onChange={e => setCommentText(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') postComment(); }}
+                      />
+                      <button onClick={postComment} className="bg-pink-500 hover:bg-pink-600 text-white rounded-xl px-3.5 flex items-center justify-center transition-colors">
+                        <Send className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
