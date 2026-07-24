@@ -42,6 +42,7 @@ const TVHomePage        = lazy(() => import('./tv/TVHomePage'));
 const TVTitlePage       = lazy(() => import('./tv/TVTitlePage'));
 const TVCreatorPage     = lazy(() => import('./tv/TVCreatorPage'));
 const TVAdminPage       = lazy(() => import('./tv/TVAdminPage'));
+const RutasPage         = lazy(() => import('./pages/RutasPage'));
 const DanceFlowPage     = lazy(() => import('./pages/DanceFlowPage'));
 const DanceCameraPage   = lazy(() => import('./pages/DanceCameraPage'));
 const ChoreographyPage  = lazy(() => import('./pages/ChoreographyPage'));
@@ -180,6 +181,7 @@ const App: React.FC = () => {
                   <Route path="/promocionate"        element={<PromocionatePage />} />
                   <Route path="/precios"             element={<BusinessPricingPage />} />
                   <Route path="/negocios"            element={<BusinessPricingPage />} />
+                  <Route path="/rutas"               element={<RutasPage />} />
                   <Route path="/tv"                  element={<TVHomePage />} />
                   <Route path="/tv/estudio"          element={<ProtectedRoute><TVCreatorPage /></ProtectedRoute>} />
                   <Route path="/tv/admin"            element={<ProtectedRoute requiredRole="admin"><TVAdminPage /></ProtectedRoute>} />
