@@ -1359,6 +1359,34 @@ const HomePage: React.FC = () => {
         </div>
       )}
 
+      {/* ── BAILANOW TV — acceso destacado (encima del banner) ── */}
+      <section
+        onClick={() => navigate('/tv')}
+        className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden relative cursor-pointer active:scale-[0.99] transition-transform bg-gradient-to-br from-gray-900 via-purple-950 to-black"
+      >
+        <div className="absolute -top-10 -right-10 w-48 h-48 bg-fuchsia-600/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-orange-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative flex items-center justify-between gap-3 sm:gap-4 p-4 sm:p-5">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+              <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-fuchsia-600 flex items-center justify-center flex-shrink-0">
+                <Tv className="w-4 h-4 text-white" />
+              </span>
+              <span className="font-display font-black text-white text-lg sm:text-xl tracking-tight">
+                BailaNow <span className="bg-gradient-to-r from-orange-400 to-fuchsia-400 bg-clip-text text-transparent">TV</span>
+              </span>
+              <span className="text-[9px] font-black uppercase tracking-widest bg-white/10 text-white/80 px-2 py-0.5 rounded-full">Nuevo</span>
+            </div>
+            <p className="text-white/70 text-xs sm:text-sm line-clamp-2">
+              El Netflix del baile latino · aprende salsa, bachata, kizomba y más con los mejores profes.
+            </p>
+          </div>
+          <span className="flex-shrink-0 inline-flex items-center gap-1.5 bg-white text-gray-900 font-bold text-xs sm:text-sm rounded-xl px-3 sm:px-4 py-2.5">
+            <Play className="w-4 h-4" fill="currentColor" /> Ver clases
+          </span>
+        </div>
+      </section>
+
       {/* ── HERO BANNER — clean slider, no text overlay ── */}
       <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-pink-900 to-gray-900 relative h-[200px] sm:h-[260px] lg:h-[380px]">
         <div className="absolute inset-0">
