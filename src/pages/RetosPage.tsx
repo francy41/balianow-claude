@@ -58,6 +58,51 @@ const EntryModal: React.FC<{ reto: Reto; onClose: () => void; onDone: () => void
   );
 };
 
+/* ── Modal crear reto ── */
+const CreateRetoModal: React.FC<{ onClose: () => void; onDone: () => void }> = ({ onClose, onDone }) => {
+  const { user } = useAuthStore();
+  const { addToast } = useUIStore();
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [style, setStyle] = useState('');
+  const [ends, setEnds] = useState('');
+  const [saving, setSaving] = useState(false);
+  const save = async () => {
+    if (!user) return;
+    if (!title.trim()) { addToast({ message: 'Ponle título al reto', type: 'error' }); return; }
+    setSaving(true);
+    const { error } = await supabase.from('retos').insert({
+      creator_id: user.id, title: title.trim(), description: description.trim() || null,
+      style: style.trim() || null, ends: ends || null,
+    });
+    setSaving(false);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: '¡Reto lanzado! 🏆', type: 'success' });
+    onDone(); onClose();
+  };
+  return (
+    <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div className="bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-2xl max-w-md w-full p-5" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-black text-lg text-gray-900 dark:text-white flex items-center gap-2"><Trophy className="w-5 h-5 text-amber-500" /> Crear reto</h2>
+          <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400"><X className="w-4 h-4" /></button>
+        </div>
+        <div className="space-y-3">
+          <input className="input-field" placeholder="Título (ej: Reto Bachata Sensual)" value={title} onChange={e => setTitle(e.target.value)} />
+          <textarea className="input-field" rows={2} placeholder="En qué consiste el reto" value={description} onChange={e => setDescription(e.target.value)} />
+          <div className="grid grid-cols-2 gap-3">
+            <input className="input-field" placeholder="Estilo (ej: Bachata)" value={style} onChange={e => setStyle(e.target.value)} />
+            <input className="input-field" type="date" value={ends} onChange={e => setEnds(e.target.value)} />
+          </div>
+          <button onClick={save} disabled={saving} className="w-full bg-gradient-to-r from-amber-500 to-pink-600 text-white font-black rounded-xl py-3 text-sm disabled:opacity-50">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin inline" /> : 'Lanzar reto'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const RetosPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
@@ -68,16 +113,18 @@ const RetosPage: React.FC = () => {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [myVotes, setMyVotes] = useState<Set<string>>(new Set());
   const [participating, setParticipating] = useState(false);
+  const [creatingReto, setCreatingReto] = useState(false);
 
-  useEffect(() => {
+  const loadRetos = useCallback(async () => {
     const safety = setTimeout(() => setLoading(false), 8000);
-    supabase.from('retos').select('*').order('created_at', { ascending: false }).then(({ data }) => {
-      clearTimeout(safety);
-      const list = (data || []) as Reto[];
-      setRetos(list); setLoading(false);
-      setSelected(prev => prev ? (list.find(r => r.id === prev.id) || list[0] || null) : (list[0] || null));
-    }, () => { clearTimeout(safety); setLoading(false); });
+    const { data } = await supabase.from('retos').select('*').order('created_at', { ascending: false });
+    clearTimeout(safety);
+    const list = (data || []) as Reto[];
+    setRetos(list); setLoading(false);
+    setSelected(prev => prev ? (list.find(r => r.id === prev.id) || list[0] || null) : (list[0] || null));
   }, []);
+
+  useEffect(() => { loadRetos().catch(() => setLoading(false)); }, [loadRetos]);
 
   const loadEntries = useCallback(async (retoId: string) => {
     const { data: es } = await supabase.from('reto_entries').select('*').eq('reto_id', retoId);
@@ -110,9 +157,14 @@ const RetosPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-20">
       <div className="bg-gradient-to-br from-amber-500 via-orange-500 to-pink-600 px-4 py-6">
-        <div className="max-w-3xl mx-auto">
-          <h1 className="font-display font-black text-2xl sm:text-3xl text-white flex items-center gap-2"><Trophy className="w-7 h-7" /> Retos de baile</h1>
-          <p className="text-white/80 text-sm mt-1">Sube tu intento, vota a los mejores y sube en el ranking. 🔥</p>
+        <div className="max-w-3xl mx-auto flex items-start justify-between gap-3 flex-wrap">
+          <div>
+            <h1 className="font-display font-black text-2xl sm:text-3xl text-white flex items-center gap-2"><Trophy className="w-7 h-7" /> Retos de baile</h1>
+            <p className="text-white/80 text-sm mt-1">Sube tu intento, vota a los mejores y sube en el ranking. 🔥</p>
+          </div>
+          <button onClick={() => (isAuthenticated ? setCreatingReto(true) : navigate('/auth'))} className="bg-white text-gray-900 font-bold rounded-xl px-4 py-2.5 text-sm hover:bg-gray-100 transition-all flex items-center gap-1.5">
+            <Plus className="w-4 h-4" /> Crear reto
+          </button>
         </div>
       </div>
 
@@ -183,6 +235,7 @@ const RetosPage: React.FC = () => {
       </div>
 
       {participating && selected && <EntryModal reto={selected} onClose={() => setParticipating(false)} onDone={() => loadEntries(selected.id)} />}
+      {creatingReto && <CreateRetoModal onClose={() => setCreatingReto(false)} onDone={loadRetos} />}
     </div>
   );
 };
