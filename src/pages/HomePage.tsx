@@ -1407,6 +1407,29 @@ const HomePage: React.FC = () => {
       {/* ── SPONSORS SLIDER ── */}
       <FeaturedSlider navigate={navigate} />
 
+      {/* ── EXPLORA LA COMUNIDAD — accesos a los módulos ── */}
+      <section className="mx-3 sm:mx-4 mt-4">
+        <h2 className="font-display font-black text-base sm:text-lg text-gray-900 dark:text-white mb-2 px-1">✨ Explora la comunidad</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          {[
+            { to: '/tv',      emoji: '🎬', title: 'BailaNow TV', sub: 'Clases en vídeo',      grad: 'from-orange-500 to-fuchsia-600' },
+            { to: '/rutas',   emoji: '🗺️', title: 'Ruta de Hoy', sub: 'Salir en grupo',       grad: 'from-pink-500 to-rose-600' },
+            { to: '/parejas', emoji: '💃', title: 'Pareja de baile', sub: 'Haz match',        grad: 'from-fuchsia-500 to-purple-600' },
+            { to: '/retos',   emoji: '🏆', title: 'Retos de baile', sub: 'Compite y vota',    grad: 'from-amber-500 to-orange-600' },
+          ].map(c => (
+            <button key={c.to} onClick={() => navigate(c.to)}
+              className={`relative overflow-hidden rounded-2xl p-3.5 text-left text-white bg-gradient-to-br ${c.grad} active:scale-95 transition-transform`}>
+              <div className="absolute -top-6 -right-6 w-20 h-20 bg-white/15 rounded-full blur-2xl pointer-events-none" />
+              <div className="relative">
+                <span className="text-2xl">{c.emoji}</span>
+                <p className="font-black text-sm mt-1.5 leading-tight">{c.title}</p>
+                <p className="text-white/80 text-[11px]">{c.sub}</p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+
       {/* ── DANCEFLOW — Academia IA (debajo de Patrocinadores) ── */}
       <DanceFlowPromo />
 
