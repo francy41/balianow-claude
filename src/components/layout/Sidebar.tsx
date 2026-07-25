@@ -4,7 +4,7 @@ import {
   Compass, MapPin, Calendar, Users, Music2,
   Briefcase, BookOpen, Radio, Megaphone, MessageCircle,
   LayoutDashboard, User, ChevronDown, ChevronRight,
-  Ticket, Video, Gift, Sparkles, Home, Tv
+  Ticket, Video, Gift, Sparkles, Home, Tv, Heart, Trophy
 } from 'lucide-react';
 import { useSiteConfigStore } from '../../store/appStore';
 
@@ -55,6 +55,9 @@ const NAV: { section: string; items: NavItem[] }[] = [
   {
     section: 'COMUNIDAD',
     items: [
+      { label: '🗺️ Ruta de Hoy',     icon: <MapPin className="w-4 h-4" />,        to: '/rutas' },
+      { label: '💃 Pareja de baile',  icon: <Heart className="w-4 h-4" />,         to: '/parejas' },
+      { label: '🏆 Retos de baile',   icon: <Trophy className="w-4 h-4" />,        to: '/retos' },
       { label: 'Anuncios',  icon: <Megaphone className="w-4 h-4" />,      to: '/comunidad' },
       { label: 'Academia',  icon: <BookOpen className="w-4 h-4" />,       to: '/clases' },
       { label: 'Comunidad', icon: <MessageCircle className="w-4 h-4" />,  to: '/chat' },
