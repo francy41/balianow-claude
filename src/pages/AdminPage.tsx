@@ -8,7 +8,7 @@ import {
   Edit, Trash2, Plus, Search, Filter, RefreshCw,
   ChevronRight, ArrowUpRight, ArrowDownRight, Clock,
   Wifi, Globe, Bell, Database, Server, FileText, Save, Loader2,
-  Share2, Flag, ExternalLink, MessageSquare
+  Share2, Flag, ExternalLink, MessageSquare, Tv, Heart, Trophy, Film
 } from 'lucide-react';
 import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, useAdminOverridesStore, useSponsorsStore, DEFAULT_HOME_CATEGORIES, type HeroMediaType, type CommissionSource, type HeroSliderImage, type HomeCategory, type Sponsor } from '../store/appStore';
 import { supabase } from '../lib/supabase';
@@ -34,7 +34,8 @@ type AdminSection =
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms'
   | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter' | 'danceavatares' | 'afiliados' | 'promocionate'
-  | 'reclamaciones' | 'planificador' | 'soporte';
+  | 'reclamaciones' | 'planificador' | 'soporte'
+  | 'tv' | 'rutas' | 'parejas' | 'retos';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -60,6 +61,10 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'comisiones',     label: 'Comisiones',              icon: <DollarSign className="w-4 h-4" /> },
   { id: 'afiliados',      label: 'Afiliados & RRPP',        icon: <Share2 className="w-4 h-4" />, badge: 'NEW' },
   { id: 'promocionate',   label: 'Promociónate',            icon: <TrendingUp className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'tv',             label: 'BailaNow TV',             icon: <Tv className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'rutas',          label: 'Ruta de Hoy',             icon: <MapPin className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'parejas',        label: 'Pareja de baile',         icon: <Heart className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'retos',          label: 'Retos de baile',          icon: <Trophy className="w-4 h-4" />, badge: 'NEW' },
   { id: 'creators',       label: 'Dashboards Creators',     icon: <LayoutDashboard className="w-4 h-4" /> },
   { id: 'retiros',        label: 'Retiros pendientes',      icon: <DollarSign className="w-4 h-4" />, badge: 'esc.' },
   { id: 'diseno',         label: 'Diseño Web',              icon: <Palette className="w-4 h-4" /> },
@@ -276,6 +281,10 @@ const AdminPage: React.FC = () => {
         {active === 'comisiones'     && <ComisionesSection addToast={addToast} />}
         {active === 'afiliados'      && <AfiliadosSection addToast={addToast} />}
         {active === 'promocionate'   && <PromocionateSection addToast={addToast} />}
+        {active === 'tv'             && <TVAdminSection addToast={addToast} />}
+        {active === 'rutas'          && <RutasAdminSection addToast={addToast} />}
+        {active === 'parejas'        && <ParejasAdminSection addToast={addToast} />}
+        {active === 'retos'          && <RetosAdminSection addToast={addToast} />}
         {active === 'cms'            && <AdminCMS />}
         {active === 'diseno'         && <DisenoSection addToast={addToast} />}
         {active === 'configuracion'  && <ConfiguracionSection addToast={addToast} />}
@@ -1150,6 +1159,230 @@ const UsuariosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 };
 
 // ── 5. LOCALIDADES ────────────────────────────────────────────────────────
+// ── BAILANOW TV (gestión de títulos/clases desde superadmin) ────────────────
+const TVAdminSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const navigate = useNavigate();
+  const [titles, setTitles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from('tv_titles').select('*').order('created_at', { ascending: false });
+    setTitles(data || []);
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const togglePublish = async (t: any) => {
+    const next = t.status === 'published' ? 'draft' : 'published';
+    const { error } = await supabase.from('tv_titles').update({ status: next }).eq('id', t.id);
+    if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
+    addToast({ message: next === 'published' ? '✅ Publicado' : 'Pasado a borrador', type: 'success' }); load();
+  };
+  const remove = async (t: any) => {
+    if (!confirm(`¿Eliminar el título "${t.title}"? Se borran también sus clases.`)) return;
+    const { error } = await supabase.from('tv_titles').delete().eq('id', t.id);
+    if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
+    addToast({ message: `✅ ${t.title} eliminado`, type: 'success' }); load();
+  };
+
+  const published = titles.filter(t => t.status === 'published').length;
+  const drafts = titles.filter(t => t.status !== 'published').length;
+
+  return (
+  <div>
+    <PageHeader title="BailaNow TV" subtitle={`${titles.length} títulos en el catálogo`} action={
+      <div className="flex gap-2">
+        <Button variant="dark" icon={<Eye className="w-4 h-4" />} onClick={() => navigate('/tv')}>Ver catálogo</Button>
+        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => navigate('/tv/estudio')}>Añadir contenido</Button>
+      </div>
+    } />
+    <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
+      {[{ label: 'Títulos totales', val: titles.length }, { label: 'Publicados', val: published }, { label: 'Borradores', val: drafts }].map(s => (
+        <div key={s.label} className="card-white p-4 text-center"><p className="text-3xl font-black text-brand-orange">{s.val}</p><p className="text-gray-400 text-sm mt-1">{s.label}</p></div>
+      ))}
+    </div>
+    {loading ? <div className="py-12 text-center text-gray-400">Cargando…</div> : titles.length === 0 ? (
+      <div className="card-white p-10 text-center text-gray-400"><Tv className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No hay títulos. Usa "Añadir contenido" para crear el primero en el Estudio.</p></div>
+    ) : (
+      <AdminTable
+        headers={['Título', 'Tipo', 'Estilo', 'Acceso', 'Estado', 'Acciones']}
+        rows={titles.map(t => [
+          <span className="font-semibold">{t.title}</span>,
+          <Badge variant="gray" className="capitalize">{t.type || '—'}</Badge>,
+          <span className="capitalize">{t.style || '—'}</span>,
+          <Badge variant={t.access === 'premium' ? 'orange' : 'gray'} className="capitalize">{t.access || 'basico'}</Badge>,
+          <Badge variant={t.status === 'published' ? 'green' : 'gray'}>{t.status === 'published' ? '● Publicado' : '○ Borrador'}</Badge>,
+          <div className="flex gap-1">
+            <button onClick={() => togglePublish(t)} title={t.status === 'published' ? 'Despublicar' : 'Publicar'} className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-pink-500">{t.status === 'published' ? <Eye className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}</button>
+            <button onClick={() => navigate('/tv/estudio')} title="Editar clases en el Estudio" className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-pink-500"><Film className="w-4 h-4" /></button>
+            <button onClick={() => remove(t)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
+          </div>
+        ])}
+      />
+    )}
+  </div>
+  );
+};
+
+// ── RUTA DE HOY (moderación de rutas) ───────────────────────────────────────
+const RutasAdminSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const navigate = useNavigate();
+  const [rutas, setRutas] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from('rutas').select('*').order('created_at', { ascending: false });
+    setRutas(data || []);
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const remove = async (r: any) => {
+    if (!confirm(`¿Eliminar la ruta "${r.title}"?`)) return;
+    const { error } = await supabase.from('rutas').delete().eq('id', r.id);
+    if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
+    addToast({ message: `✅ Ruta eliminada`, type: 'success' }); load();
+  };
+
+  const cities = new Set(rutas.map(r => r.city).filter(Boolean)).size;
+
+  return (
+  <div>
+    <PageHeader title="Ruta de Hoy" subtitle={`${rutas.length} rutas creadas`} action={
+      <Button variant="dark" icon={<Eye className="w-4 h-4" />} onClick={() => navigate('/rutas')}>Ver módulo</Button>
+    } />
+    <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-6">
+      {[{ label: 'Rutas totales', val: rutas.length }, { label: 'Ciudades', val: cities }].map(s => (
+        <div key={s.label} className="card-white p-4 text-center"><p className="text-3xl font-black text-brand-orange">{s.val}</p><p className="text-gray-400 text-sm mt-1">{s.label}</p></div>
+      ))}
+    </div>
+    {loading ? <div className="py-12 text-center text-gray-400">Cargando…</div> : rutas.length === 0 ? (
+      <div className="card-white p-10 text-center text-gray-400"><MapPin className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>Aún no hay rutas creadas por los usuarios.</p></div>
+    ) : (
+      <AdminTable
+        headers={['Título', 'Ciudad', 'Creador', 'Paradas', 'Fecha', 'Acciones']}
+        rows={rutas.map(r => [
+          <span className="font-semibold">{r.title}</span>,
+          <span>{r.city || '—'}</span>,
+          <span>{r.creator_name || '—'}</span>,
+          <Badge variant="gray">{Array.isArray(r.stops) ? r.stops.length : 0}</Badge>,
+          <span className="text-gray-400 text-xs">{r.date || '—'}</span>,
+          <button onClick={() => remove(r)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>,
+        ])}
+      />
+    )}
+  </div>
+  );
+};
+
+// ── PAREJA DE BAILE (moderación de perfiles) ────────────────────────────────
+const ParejasAdminSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const navigate = useNavigate();
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from('partner_profiles').select('*').order('created_at', { ascending: false });
+    setProfiles(data || []);
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const toggleActive = async (p: any) => {
+    const { error } = await supabase.from('partner_profiles').update({ active: !p.active }).eq('user_id', p.user_id);
+    if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
+    addToast({ message: p.active ? 'Perfil ocultado' : '✅ Perfil activado', type: 'success' }); load();
+  };
+  const remove = async (p: any) => {
+    if (!confirm(`¿Eliminar el perfil de baile de "${p.name || 'usuario'}"?`)) return;
+    const { error } = await supabase.from('partner_profiles').delete().eq('user_id', p.user_id);
+    if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
+    addToast({ message: `✅ Perfil eliminado`, type: 'success' }); load();
+  };
+
+  const active = profiles.filter(p => p.active).length;
+
+  return (
+  <div>
+    <PageHeader title="Pareja de baile" subtitle={`${profiles.length} perfiles de baile`} action={
+      <Button variant="dark" icon={<Eye className="w-4 h-4" />} onClick={() => navigate('/parejas')}>Ver módulo</Button>
+    } />
+    <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-6">
+      {[{ label: 'Perfiles totales', val: profiles.length }, { label: 'Activos', val: active }].map(s => (
+        <div key={s.label} className="card-white p-4 text-center"><p className="text-3xl font-black text-brand-orange">{s.val}</p><p className="text-gray-400 text-sm mt-1">{s.label}</p></div>
+      ))}
+    </div>
+    {loading ? <div className="py-12 text-center text-gray-400">Cargando…</div> : profiles.length === 0 ? (
+      <div className="card-white p-10 text-center text-gray-400"><Heart className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>Aún no hay perfiles de baile creados.</p></div>
+    ) : (
+      <AdminTable
+        headers={['Nombre', 'Ciudad', 'Nivel', 'Estilos', 'Estado', 'Acciones']}
+        rows={profiles.map(p => [
+          <span className="font-semibold">{p.name || '—'}</span>,
+          <span>{p.city || '—'}</span>,
+          <Badge variant="gray">{p.level || '—'}</Badge>,
+          <span className="text-xs text-gray-400">{Array.isArray(p.styles) ? p.styles.join(', ') : '—'}</span>,
+          <Badge variant={p.active ? 'green' : 'gray'}>{p.active ? 'Activo' : 'Oculto'}</Badge>,
+          <div className="flex gap-1">
+            <button onClick={() => toggleActive(p)} title={p.active ? 'Ocultar' : 'Activar'} className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-pink-500">{p.active ? <Eye className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}</button>
+            <button onClick={() => remove(p)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
+          </div>
+        ])}
+      />
+    )}
+  </div>
+  );
+};
+
+// ── RETOS DE BAILE (moderación de retos) ────────────────────────────────────
+const RetosAdminSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const navigate = useNavigate();
+  const [retos, setRetos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from('retos').select('*').order('created_at', { ascending: false });
+    setRetos(data || []);
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const remove = async (r: any) => {
+    if (!confirm(`¿Eliminar el reto "${r.title}"? Se borran también sus participaciones.`)) return;
+    const { error } = await supabase.from('retos').delete().eq('id', r.id);
+    if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
+    addToast({ message: `✅ Reto eliminado`, type: 'success' }); load();
+  };
+
+  return (
+  <div>
+    <PageHeader title="Retos de baile" subtitle={`${retos.length} retos lanzados`} action={
+      <Button variant="dark" icon={<Eye className="w-4 h-4" />} onClick={() => navigate('/retos')}>Ver módulo</Button>
+    } />
+    <div className="grid grid-cols-1 gap-2 sm:gap-4 mb-6">
+      <div className="card-white p-4 text-center"><p className="text-3xl font-black text-brand-orange">{retos.length}</p><p className="text-gray-400 text-sm mt-1">Retos totales</p></div>
+    </div>
+    {loading ? <div className="py-12 text-center text-gray-400">Cargando…</div> : retos.length === 0 ? (
+      <div className="card-white p-10 text-center text-gray-400"><Trophy className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>Aún no hay retos lanzados.</p></div>
+    ) : (
+      <AdminTable
+        headers={['Título', 'Estilo', 'Termina', 'Acciones']}
+        rows={retos.map(r => [
+          <span className="font-semibold">{r.title}</span>,
+          <span className="capitalize">{r.style || '—'}</span>,
+          <span className="text-gray-400 text-xs">{r.ends || '—'}</span>,
+          <button onClick={() => remove(r)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>,
+        ])}
+      />
+    )}
+  </div>
+  );
+};
+
 const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const { openEdit } = useAdminEdit();
   const navigate = useNavigate();
