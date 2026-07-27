@@ -79,7 +79,17 @@ const TVTitlePage: React.FC = () => {
     })().catch(() => {});
   }, [id, isAuthenticated]);
 
-  const hasSub = !!user && (user.isPremium || !!user.subscriptionPlan);
+  // Acceso por membresía de BailaNow TV (titular o invitado de Pareja/Familiar)
+  const [memberAccess, setMemberAccess] = useState(false);
+  useEffect(() => {
+    if (!isAuthenticated || !user) { setMemberAccess(false); return; }
+    let cancelled = false;
+    supabase.rpc('has_membership_access', { p_uid: user.id })
+      .then(({ data }) => { if (!cancelled) setMemberAccess(!!data); }, () => {});
+    return () => { cancelled = true; };
+  }, [isAuthenticated, user]);
+
+  const hasSub = memberAccess || (!!user && (user.isPremium || !!user.subscriptionPlan));
   const canWatch = (access: string) => access === 'free' || hasSub;
 
   // Cargar la posición guardada de la clase actual (continuar viendo)
@@ -181,8 +191,8 @@ const TVTitlePage: React.FC = () => {
             </div>
             <p className="font-black text-xl">Contenido {title.access === 'premium' ? 'Premium' : 'para suscriptores'}</p>
             <p className="text-white/60 text-sm mt-1 max-w-sm mx-auto">Suscríbete a BailaNow TV para ver esta clase y todo el catálogo.</p>
-            <button onClick={() => navigate('/precios')} className="mt-4 bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white font-bold rounded-xl px-6 py-3 hover:opacity-90 transition-all">
-              Ver planes
+            <button onClick={() => navigate('/membresias')} className="mt-4 bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white font-bold rounded-xl px-6 py-3 hover:opacity-90 transition-all">
+              Ver planes de BailaNow TV
             </button>
           </div>
         ) : (

@@ -15,15 +15,15 @@ export interface DancePlan {
 export const DANCE_PLANS: DancePlan[] = [
   {
     id: 'individual', name: 'Individual', price: 10, seats: 1, emoji: '💃', gradient: 'from-sky-500 to-blue-600',
-    features: ['Acceso completo a BailaNow TV', 'Todos los cursos y clases en vídeo', 'Sin anuncios'],
+    features: ['Todo el catálogo de BailaNow TV', 'Clases en vídeo cuando quieras', 'Sin anuncios'],
   },
   {
     id: 'pareja', name: 'Pareja', price: 16, seats: 2, emoji: '👫', gradient: 'from-orange-500 to-fuchsia-600', popular: true,
-    features: ['2 accesos a BailaNow TV y cursos', 'Sala de cámaras para practicar juntos', 'Interactúa en directo con tu pareja', 'Sin anuncios'],
+    features: ['2 accesos a todo BailaNow TV', 'Sala de cámaras para practicar juntos', 'Interactúa en directo con tu pareja', 'Sin anuncios'],
   },
   {
     id: 'familiar', name: 'Familiar', price: 22, seats: 4, emoji: '👨‍👩‍👧‍👦', gradient: 'from-fuchsia-500 to-purple-600',
-    features: ['Hasta 4 accesos a BailaNow TV y cursos', 'Sala de cámaras para toda la familia', 'Practicad e interactuad juntos', 'Sin anuncios'],
+    features: ['Hasta 4 accesos a todo BailaNow TV', 'Sala de cámaras para toda la familia', 'Practicad e interactuad juntos', 'Sin anuncios'],
   },
 ];
 

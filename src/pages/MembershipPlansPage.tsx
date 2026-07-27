@@ -14,7 +14,7 @@ const MembershipPlansPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
-  useSeo({ title: 'Planes de BailaNow TV — Individual, Pareja y Familiar', description: 'Suscríbete a BailaNow TV: accede a todos los cursos de baile. Con los planes Pareja y Familiar practicáis juntos por videocámara.', path: '/membresias' });
+  useSeo({ title: 'BailaNow TV — el Netflix del baile · Planes Individual, Pareja y Familiar', description: 'Suscríbete a BailaNow TV y accede a todo el catálogo de clases de baile en vídeo. Con los planes Pareja y Familiar practicáis juntos por videocámara.', path: '/membresias' });
 
   const [loading, setLoading] = useState(true);
   const [mine, setMine] = useState<Sub | null>(null);
@@ -76,8 +76,8 @@ const MembershipPlansPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-24">
       <div className="bg-gradient-to-br from-orange-500 to-fuchsia-600 text-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14 text-center">
-          <h1 className="font-display font-black text-3xl sm:text-5xl">BailaNow TV para bailarines</h1>
-          <p className="text-white/90 mt-3 max-w-2xl mx-auto">Todos los cursos de baile en vídeo. Con los planes <b>Pareja</b> y <b>Familiar</b> practicáis juntos por videocámara, estéis donde estéis.</p>
+          <h1 className="font-display font-black text-3xl sm:text-5xl">BailaNow TV · el Netflix del baile</h1>
+          <p className="text-white/90 mt-3 max-w-2xl mx-auto">Todo el catálogo de clases de baile en vídeo, cuando quieras. Con los planes <b>Pareja</b> y <b>Familiar</b> practicáis juntos por videocámara, estéis donde estéis.</p>
         </div>
       </div>
 
