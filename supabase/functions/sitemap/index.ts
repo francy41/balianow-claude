@@ -55,17 +55,20 @@ Deno.serve(async () => {
     loc: `${BASE}/venues/${v.id}`, lastmod: v.updated_at, priority: 0.7, changefreq: 'monthly',
   }));
 
-  // Páginas públicas de ciudad de cada partner activo (bailanow.com/Madrid)
-  const seenCities = new Set<string>();
+  // Ciudades: las de partners activos + un set de grandes ciudades siempre indexadas
+  const cities = new Set<string>();
+  ['Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Málaga', 'Bilbao', 'Zaragoza', 'Murcia', 'Alicante', 'Granada'].forEach(c => cities.add(c));
   (await sbGet("partners?select=cities&status=eq.active&limit=1000")).forEach((p: any) => {
-    (p.cities || []).forEach((c: string) => {
-      const city = (c || '').trim();
-      if (city && !seenCities.has(city.toLowerCase())) {
-        seenCities.add(city.toLowerCase());
-        urls.push({ loc: `${BASE}/${encodeURIComponent(city)}`, priority: 0.8, changefreq: 'weekly' });
-      }
-    });
+    (p.cities || []).forEach((c: string) => { const city = (c || '').trim(); if (city) cities.add(city); });
   });
+
+  // Página pública de cada ciudad (bailanow.com/Madrid)
+  cities.forEach(city => urls.push({ loc: `${BASE}/${encodeURIComponent(city)}`, priority: 0.8, changefreq: 'weekly' }));
+
+  // Guías de SEO local por estilo: "dónde bailar {estilo} en {ciudad}"
+  const STYLES = ['bachata', 'salsa', 'kizomba'];
+  cities.forEach(city => STYLES.forEach(style =>
+    urls.push({ loc: `${BASE}/donde-bailar/${style}/${encodeURIComponent(city)}`, priority: 0.85, changefreq: 'weekly' })));
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

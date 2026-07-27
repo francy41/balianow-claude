@@ -155,6 +155,19 @@ const CityPartnerPage: React.FC = () => {
             </div>
           )}
 
+          {/* Guías de SEO local — enlazado interno */}
+          <div>
+            <h2 className="font-display font-black text-lg mb-3">Dónde bailar en {city}</h2>
+            <div className="flex flex-wrap gap-2">
+              {['bachata', 'salsa', 'kizomba'].map(s => (
+                <a key={s} href={`/donde-bailar/${s}/${encodeURIComponent(city)}`}
+                  className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 rounded-xl px-4 py-2 text-sm font-bold capitalize">
+                  {s} en {city} →
+                </a>
+              ))}
+            </div>
+          </div>
+
           {/* Formulario de contacto directo */}
           <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-5 sm:p-6">
             {sent ? (
