@@ -4,6 +4,7 @@ import {
   LayoutDashboard, Wallet, ListChecks, Video, CreditCard, Crown, LifeBuoy,
   Loader2, Plus, CheckCircle2, Clock, MapPin, Send, Trash2, ArrowUpRight,
   Inbox, Copy, Instagram, Facebook, Music2, MessageCircle, ArrowLeft, Check, UsersRound,
+  FolderOpen, FileText, Link2, Image as ImageIcon, PlayCircle, ExternalLink,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
@@ -11,7 +12,7 @@ import { SUBSCRIPTION_PLANS } from '../data/mockData';
 import { AD_PLANS } from '../data/adPlans';
 import { SupportThread } from './ChatPage';
 
-type Tab = 'resumen' | 'bandeja' | 'ganancias' | 'gestiones' | 'equipo' | 'contenido' | 'pagos' | 'planes' | 'soporte';
+type Tab = 'resumen' | 'bandeja' | 'ganancias' | 'gestiones' | 'equipo' | 'contenido' | 'recursos' | 'pagos' | 'planes' | 'soporte';
 
 interface PartnerRow { user_id: string; display_name: string | null; cities: string[]; commission_percent: number; status: string; bio: string | null; }
 interface TaskRow { id: string; city: string | null; title: string; type: string; status: string; amount: number; commission: number; notes: string | null; due_date: string | null; created_at: string; completed_at: string | null; rep_id: string | null; }
@@ -21,6 +22,7 @@ interface ContentRow { id: string; city: string | null; title: string; video_url
 interface InquiryRow { id: string; city: string | null; channel: string; contact_name: string | null; contact_handle: string | null; contact_email: string | null; message: string; status: string; created_at: string; }
 interface SocialRow { id: string; provider: string; handle: string | null; connected: boolean; }
 interface RepRow { id: string; role: string; name: string; contact: string | null; city: string | null; commission_percent: number; status: string; }
+interface ResourceRow { id: string; category: string; title: string; description: string | null; url: string | null; kind: string; }
 interface PolicyRow { max_rrpp_percent: number; max_promoter_percent: number; default_rrpp_percent: number; default_promoter_percent: number; }
 
 const eur = (n: number) => `€${(Number(n) || 0).toFixed(2)}`;
@@ -33,6 +35,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'gestiones', label: 'Gestiones',      icon: <ListChecks className="w-4 h-4" /> },
   { id: 'equipo',    label: 'Equipo (RRPP)',  icon: <UsersRound className="w-4 h-4" /> },
   { id: 'contenido', label: 'Contenido',      icon: <Video className="w-4 h-4" /> },
+  { id: 'recursos',  label: 'Recursos',       icon: <FolderOpen className="w-4 h-4" /> },
   { id: 'pagos',     label: 'Pagos y retiros',icon: <CreditCard className="w-4 h-4" /> },
   { id: 'planes',    label: 'Planes y política', icon: <Crown className="w-4 h-4" /> },
   { id: 'soporte',   label: 'Soporte',        icon: <LifeBuoy className="w-4 h-4" /> },
@@ -55,12 +58,13 @@ const PartnerDashboardPage: React.FC = () => {
   const [socials, setSocials] = useState<SocialRow[]>([]);
   const [reps, setReps] = useState<RepRow[]>([]);
   const [policy, setPolicy] = useState<PolicyRow | null>(null);
+  const [resources, setResources] = useState<ResourceRow[]>([]);
 
   const load = useCallback(async () => {
     if (!uid) { setLoading(false); return; }
     setLoading(true);
     const safety = setTimeout(() => setLoading(false), 8000);
-    const [p, t, m, w, c, inq, soc, rp, pol] = await Promise.all([
+    const [p, t, m, w, c, inq, soc, rp, pol, res] = await Promise.all([
       supabase.from('partners').select('*').eq('user_id', uid).maybeSingle(),
       supabase.from('partner_tasks').select('*').eq('partner_id', uid).order('created_at', { ascending: false }),
       supabase.from('partner_payout_methods').select('*').eq('partner_id', uid).order('created_at', { ascending: false }),
@@ -70,6 +74,7 @@ const PartnerDashboardPage: React.FC = () => {
       supabase.from('partner_social_connections').select('*').eq('partner_id', uid),
       supabase.from('partner_reps').select('*').eq('partner_id', uid).order('created_at', { ascending: false }),
       supabase.from('partner_rep_policies').select('*').eq('id', 1).maybeSingle(),
+      supabase.from('partner_resources').select('*').eq('active', true).order('sort', { ascending: true }),
     ]);
     setPartner((p.data as PartnerRow) || null);
     setTasks((t.data as TaskRow[]) || []);
@@ -80,6 +85,7 @@ const PartnerDashboardPage: React.FC = () => {
     setSocials((soc.data as SocialRow[]) || []);
     setReps((rp.data as RepRow[]) || []);
     setPolicy((pol.data as PolicyRow) || null);
+    setResources((res.data as ResourceRow[]) || []);
     clearTimeout(safety);
     setLoading(false);
   }, [uid]);
@@ -134,10 +140,11 @@ const PartnerDashboardPage: React.FC = () => {
         )}
 
         {tab === 'resumen'   && <Resumen earned={earned} available={available} pendingComm={pendingComm} openCount={openTasks.length} doneCount={doneTasks.length} newInquiries={inquiries.filter(i => i.status === 'new').length} onGo={setTab} />}
-        {tab === 'bandeja'   && <Bandeja uid={uid!} partner={partner} inquiries={inquiries} socials={socials} reload={load} addToast={addToast} />}
+        {tab === 'bandeja'   && <Bandeja uid={uid!} partner={partner} inquiries={inquiries} reload={load} addToast={addToast} />}
         {tab === 'ganancias' && <Ganancias earned={earned} available={available} pendingComm={pendingComm} withdrawn={withdrawn} tasks={tasks} />}
         {tab === 'gestiones' && <Gestiones uid={uid!} partner={partner} tasks={tasks} openTasks={openTasks} doneTasks={doneTasks} reps={reps} reload={load} addToast={addToast} />}
         {tab === 'equipo'    && <Equipo uid={uid!} partner={partner} reps={reps} tasks={tasks} policy={policy} reload={load} addToast={addToast} />}
+        {tab === 'recursos'  && <Recursos resources={resources} />}
         {tab === 'contenido' && <Contenido uid={uid!} partner={partner} content={content} reload={load} addToast={addToast} />}
         {tab === 'pagos'     && <Pagos uid={uid!} available={available} methods={methods} withdrawals={withdrawals} reload={load} addToast={addToast} />}
         {tab === 'planes'    && <Planes navigate={navigate} />}
@@ -686,7 +693,7 @@ const chan = (c: string) => CHANNEL_META[c] || CHANNEL_META.web;
 
 interface ThreadMsg { id: string; from_partner: boolean; text: string; created_at: string; }
 
-const Bandeja: React.FC<{ uid: string; partner: PartnerRow | null; inquiries: InquiryRow[]; socials: SocialRow[]; reload: () => Promise<void>; addToast: (t: any) => void }> = ({ uid, partner, inquiries, socials, reload, addToast }) => {
+const Bandeja: React.FC<{ uid: string; partner: PartnerRow | null; inquiries: InquiryRow[]; reload: () => Promise<void>; addToast: (t: any) => void }> = ({ uid, partner, inquiries, reload, addToast }) => {
   const [filter, setFilter] = useState<string>('all');
   const [open, setOpen] = useState<InquiryRow | null>(null);
   const [thread, setThread] = useState<ThreadMsg[]>([]);
@@ -709,20 +716,15 @@ const Bandeja: React.FC<{ uid: string; partner: PartnerRow | null; inquiries: In
     const { error } = await supabase.from('partner_inquiry_messages').insert({ inquiry_id: open.id, from_partner: true, text });
     if (!error) await supabase.from('partner_inquiries').update({ status: 'answered', last_activity_at: new Date().toISOString() }).eq('id', open.id);
 
-    // Si el mensaje llegó por una red social, intentamos entregarlo por esa red (best-effort).
-    let deliveryNote = '';
+    // Entrega best-effort por el canal correspondiente (mecanismo interno, no visible al partner).
     if (!error && open.channel !== 'web') {
-      try {
-        const { data, error: fnErr } = await supabase.functions.invoke('ghl-send', { body: { inquiry_id: open.id, text } });
-        if (fnErr || (data && data.delivered === false)) deliveryNote = `Respuesta guardada. Para entregarla en ${open.channel} conecta la integración de esa red.`;
-      } catch { deliveryNote = `Respuesta guardada (envío a ${open.channel} pendiente de configurar).`; }
+      try { await supabase.functions.invoke('ghl-send', { body: { inquiry_id: open.id, text } }); } catch { /* se reintenta desde central */ }
     }
 
     setSending(false);
     if (error) { addToast({ message: error.message, type: 'error' }); return; }
     setReply('');
     setThread(t => [...t, { id: Math.random().toString(), from_partner: true, text, created_at: new Date().toISOString() }]);
-    if (deliveryNote) addToast({ message: deliveryNote, type: 'info' });
     reload();
   };
 
@@ -758,17 +760,12 @@ const Bandeja: React.FC<{ uid: string; partner: PartnerRow | null; inquiries: In
             <button onClick={sendReply} disabled={sending} className="inline-flex items-center gap-1.5 font-bold bg-gradient-to-r from-orange-500 to-fuchsia-600 rounded-xl px-4 disabled:opacity-60">{sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}</button>
           </div>
         </div>
-        {open.channel !== 'web' && (
-          <p className="text-white/30 text-xs mt-2">💡 Este mensaje llegó por {m.label}. Tu respuesta queda registrada aquí; para enviarla al usuario en {m.label} necesitas la integración conectada (ver abajo, en Redes).</p>
-        )}
       </div>
     );
   }
 
   return (
     <div>
-      <Redes uid={uid} socials={socials} reload={reload} addToast={addToast} />
-
       {/* Filtros de canal */}
       <div className="flex gap-1.5 mb-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
         {['all', ...channelsInUse].map(c => (
@@ -782,7 +779,7 @@ const Bandeja: React.FC<{ uid: string; partner: PartnerRow | null; inquiries: In
       {filtered.length === 0 ? (
         <div className="py-16 text-center text-white/40">
           <Inbox className="w-10 h-10 mx-auto mb-2 opacity-40" />
-          <p className="text-sm">Sin mensajes todavía. Comparte tu enlace de ciudad y conecta tus redes para recibir preguntas aquí.</p>
+          <p className="text-sm">Sin mensajes todavía. Comparte tu enlace de ciudad para empezar a recibir preguntas aquí.</p>
         </div>
       ) : (
         <div className="rounded-2xl ring-1 ring-white/10 divide-y divide-white/5 overflow-hidden">
@@ -806,53 +803,62 @@ const Bandeja: React.FC<{ uid: string; partner: PartnerRow | null; inquiries: In
   );
 };
 
-const PROVIDERS = [
-  { id: 'instagram', label: 'Instagram', icon: <Instagram className="w-4 h-4" />, ph: '@tucuenta' },
-  { id: 'facebook',  label: 'Facebook',  icon: <Facebook className="w-4 h-4" />,  ph: 'tu página' },
-  { id: 'whatsapp',  label: 'WhatsApp',  icon: <MessageCircle className="w-4 h-4" />, ph: '+34...' },
-  { id: 'tiktok',    label: 'TikTok',    icon: <Music2 className="w-4 h-4" />,    ph: '@tucuenta' },
+
+// ── RECURSOS · biblioteca de la central por categorías ──
+export const RESOURCE_CATEGORIES: { id: string; label: string; emoji: string }[] = [
+  { id: 'plan_trabajo', label: 'Plan de trabajo', emoji: '🗂️' },
+  { id: 'politica',     label: 'Política',         emoji: '📜' },
+  { id: 'formaciones',  label: 'Formaciones',      emoji: '🎓' },
+  { id: 'contratos',    label: 'Contratos',        emoji: '✍️' },
+  { id: 'disenos',      label: 'Diseños gráficos', emoji: '🎨' },
+  { id: 'otros',        label: 'Otros',            emoji: '📎' },
 ];
+const catMeta = (id: string) => RESOURCE_CATEGORIES.find(c => c.id === id) || { id, label: id, emoji: '📁' };
+const KIND_ICON: Record<string, React.ReactNode> = {
+  doc: <FileText className="w-4 h-4" />, video: <PlayCircle className="w-4 h-4" />,
+  image: <ImageIcon className="w-4 h-4" />, link: <Link2 className="w-4 h-4" />,
+};
 
-const Redes: React.FC<{ uid: string; socials: SocialRow[]; reload: () => Promise<void>; addToast: (t: any) => void }> = ({ uid, socials, reload, addToast }) => {
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
-  const byProvider = (p: string) => socials.find(s => s.provider === p);
+const Recursos: React.FC<{ resources: ResourceRow[] }> = ({ resources }) => {
+  const grouped = useMemo(() => {
+    const map: Record<string, ResourceRow[]> = {};
+    resources.forEach(r => { (map[r.category] = map[r.category] || []).push(r); });
+    return map;
+  }, [resources]);
+  const order = RESOURCE_CATEGORIES.map(c => c.id).filter(id => grouped[id]?.length)
+    .concat(Object.keys(grouped).filter(id => !RESOURCE_CATEGORIES.some(c => c.id === id)));
 
-  const connect = async (provider: string) => {
-    const handle = (drafts[provider] ?? byProvider(provider)?.handle ?? '').trim();
-    if (!handle) { addToast({ message: 'Escribe tu usuario/número primero', type: 'error' }); return; }
-    const { error } = await supabase.from('partner_social_connections')
-      .upsert({ partner_id: uid, provider, handle, connected: true }, { onConflict: 'partner_id,provider' });
-    if (error) { addToast({ message: error.message, type: 'error' }); return; }
-    addToast({ message: `${provider} conectado`, type: 'success' });
-    reload();
-  };
-  const disconnect = async (provider: string) => {
-    await supabase.from('partner_social_connections').update({ connected: false }).eq('partner_id', uid).eq('provider', provider);
-    reload();
-  };
+  if (resources.length === 0) {
+    return (
+      <div className="py-16 text-center text-white/40">
+        <FolderOpen className="w-10 h-10 mx-auto mb-2 opacity-40" />
+        <p className="text-sm">Aún no hay recursos publicados. La central irá subiendo aquí planes de trabajo, formaciones, contratos y diseños.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 mb-4">
-      <p className="font-bold text-sm mb-1">Redes conectadas</p>
-      <p className="text-white/40 text-xs mb-3">Conecta tus redes para recibir sus mensajes en esta misma bandeja.</p>
-      <div className="grid sm:grid-cols-2 gap-2.5">
-        {PROVIDERS.map(p => {
-          const conn = byProvider(p.id);
-          const on = conn?.connected;
-          return (
-            <div key={p.id} className={`rounded-xl p-3 ring-1 ${on ? 'bg-emerald-500/10 ring-emerald-500/40' : 'bg-black/20 ring-white/10'}`}>
-              <div className="flex items-center gap-2 font-bold text-sm mb-2">{p.icon} {p.label} {on && <span className="text-[10px] text-emerald-400 ml-auto">CONECTADO</span>}</div>
-              <div className="flex gap-1.5">
-                <input defaultValue={conn?.handle || ''} onChange={e => setDrafts(d => ({ ...d, [p.id]: e.target.value }))} placeholder={p.ph}
-                  className="flex-1 min-w-0 rounded-lg bg-black/30 ring-1 ring-white/15 px-2.5 py-1.5 text-sm outline-none focus:ring-fuchsia-500" />
-                {on
-                  ? <button onClick={() => disconnect(p.id)} className="text-xs font-bold bg-white/10 rounded-lg px-2.5">Quitar</button>
-                  : <button onClick={() => connect(p.id)} className="text-xs font-bold bg-white text-gray-900 rounded-lg px-2.5">Conectar</button>}
-              </div>
+    <div className="space-y-6">
+      {order.map(catId => {
+        const meta = catMeta(catId);
+        return (
+          <div key={catId}>
+            <h3 className="font-display font-black text-lg mb-2.5">{meta.emoji} {meta.label}</h3>
+            <div className="grid sm:grid-cols-2 gap-2.5">
+              {grouped[catId].map(r => (
+                <a key={r.id} href={r.url || '#'} target="_blank" rel="noreferrer"
+                  className="group flex items-start gap-3 rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 hover:bg-white/10 transition">
+                  <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-fuchsia-600 flex items-center justify-center flex-shrink-0">{KIND_ICON[r.kind] || KIND_ICON.link}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold text-sm flex items-center gap-1.5">{r.title} <ExternalLink className="w-3 h-3 text-white/30 group-hover:text-white/60" /></p>
+                    {r.description && <p className="text-white/50 text-xs mt-0.5 line-clamp-2">{r.description}</p>}
+                  </div>
+                </a>
+              ))}
             </div>
-          );
-        })}
-      </div>
+          </div>
+        );
+      })}
     </div>
   );
 };
