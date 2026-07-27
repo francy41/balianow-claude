@@ -132,6 +132,9 @@ const TVHomePage: React.FC = () => {
           <div className="flex items-center gap-2 mb-3">
             <Tv className="w-5 h-5 text-fuchsia-400" />
             <span className="text-fuchsia-400 font-black text-sm tracking-widest uppercase">BailaNow TV</span>
+            <button onClick={() => navigate('/membresias')} className="ml-auto text-xs font-bold bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white rounded-full px-3 py-1.5">
+              Planes · Pareja y Familia 👫
+            </button>
           </div>
           {featured ? (
             <>
