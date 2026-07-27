@@ -3,19 +3,20 @@ import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/appStore';
 import VideoAdOverlay, { VideoAd } from './VideoAdOverlay';
+import VastAdPlayer from './VastAdPlayer';
 
 // Categorías donde puede saltar el pre-roll (primer segmento de la ruta)
 const CATEGORY_SEGMENTS = new Set(['eventos', 'artistas', 'bailarinas', 'venues', 'tv', 'clases', 'marketplace', 'comunidad', 'live', 'cerca']);
 const MIN_GAP_MS = 6 * 60 * 1000; // no más de 1 anuncio cada 6 min
 const LS_KEY = 'bn_ad_last';
 
-interface AdRow extends VideoAd { provider: string; targets: string[]; weight: number; starts: string | null; ends: string | null; active: boolean; }
+interface AdRow extends VideoAd { provider: string; vast_tag_url: string | null; targets: string[]; weight: number; starts: string | null; ends: string | null; active: boolean; }
 
 const StreamingAds: React.FC = () => {
   const loc = useLocation();
   const { user } = useAuthStore();
   const [ads, setAds] = useState<AdRow[]>([]);
-  const [current, setCurrent] = useState<VideoAd | null>(null);
+  const [current, setCurrent] = useState<AdRow | null>(null);
   const lastSeg = useRef<string>('');
 
   // Los Premium y el staff no ven anuncios (gancho para vender Premium).
@@ -24,7 +25,7 @@ const StreamingAds: React.FC = () => {
   useEffect(() => {
     if (adsDisabled) return;
     let cancelled = false;
-    supabase.from('video_ads').select('*').eq('active', true).eq('provider', 'video')
+    supabase.from('video_ads').select('*').eq('active', true)
       .then(({ data }) => { if (!cancelled) setAds((data as AdRow[]) || []); }, () => {});
     return () => { cancelled = true; };
   }, [adsDisabled]);
@@ -43,7 +44,7 @@ const StreamingAds: React.FC = () => {
     // Anuncios elegibles: target 'all' o esta categoría, dentro de fechas
     const today = new Date().toISOString().slice(0, 10);
     const eligible = ads.filter(a =>
-      a.video_url &&
+      (a.provider === 'vast' ? !!a.vast_tag_url : !!a.video_url) &&
       (a.targets?.includes('all') || a.targets?.includes(seg)) &&
       (!a.starts || a.starts <= today) &&
       (!a.ends || a.ends >= today));
@@ -59,6 +60,9 @@ const StreamingAds: React.FC = () => {
   }, [loc.pathname, ads, adsDisabled, current]);
 
   if (!current) return null;
+  if (current.provider === 'vast' && current.vast_tag_url) {
+    return <VastAdPlayer tagUrl={current.vast_tag_url} adId={current.id} advertiser={current.advertiser} onClose={() => setCurrent(null)} />;
+  }
   return <VideoAdOverlay ad={current} onClose={() => setCurrent(null)} />;
 };
 

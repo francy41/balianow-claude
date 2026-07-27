@@ -8,7 +8,7 @@ interface AdRow {
   impressions: number; completions: number; clicks: number; skips: number;
 }
 const CATS = ['all', 'eventos', 'artistas', 'bailarinas', 'venues', 'tv', 'clases', 'marketplace', 'comunidad', 'live'];
-const empty = { title: '', advertiser: '', video_url: '', poster_url: '', click_url: '', skip_after: '5', weight: '1', targets: ['all'] as string[] };
+const empty = { title: '', advertiser: '', provider: 'video', video_url: '', vast_tag_url: '', poster_url: '', click_url: '', skip_after: '5', weight: '1', targets: ['all'] as string[] };
 
 const VideoAdsAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToast }) => {
   const [ads, setAds] = useState<AdRow[]>([]);
@@ -27,11 +27,16 @@ const VideoAdsAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToa
   const toggleTarget = (c: string) => setF(s => ({ ...s, targets: s.targets.includes(c) ? s.targets.filter(x => x !== c) : [...s.targets, c] }));
 
   const create = async () => {
-    if (!f.title.trim() || !f.video_url.trim()) { addToast({ message: 'Título y URL del vídeo son obligatorios', type: 'error' }); return; }
+    if (!f.title.trim()) { addToast({ message: 'El título es obligatorio', type: 'error' }); return; }
+    if (f.provider === 'vast' ? !f.vast_tag_url.trim() : !f.video_url.trim()) {
+      addToast({ message: f.provider === 'vast' ? 'Pega la etiqueta VAST de Google' : 'La URL del vídeo es obligatoria', type: 'error' }); return;
+    }
     setSaving(true);
     const { error } = await supabase.from('video_ads').insert({
-      title: f.title.trim(), advertiser: f.advertiser.trim() || null, provider: 'video',
-      video_url: f.video_url.trim(), poster_url: f.poster_url.trim() || null, click_url: f.click_url.trim() || null,
+      title: f.title.trim(), advertiser: f.advertiser.trim() || null, provider: f.provider,
+      video_url: f.provider === 'video' ? f.video_url.trim() : null,
+      vast_tag_url: f.provider === 'vast' ? f.vast_tag_url.trim() : null,
+      poster_url: f.poster_url.trim() || null, click_url: f.click_url.trim() || null,
       skip_after: parseInt(f.skip_after) || 0, weight: parseInt(f.weight) || 1,
       targets: f.targets.length ? f.targets : ['all'], active: true,
     });
@@ -61,7 +66,14 @@ const VideoAdsAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToa
             <input value={f.title} onChange={e => setF(s => ({ ...s, title: e.target.value }))} placeholder="Título del anuncio *" className="rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm" />
             <input value={f.advertiser} onChange={e => setF(s => ({ ...s, advertiser: e.target.value }))} placeholder="Anunciante" className="rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm" />
           </div>
-          <input value={f.video_url} onChange={e => setF(s => ({ ...s, video_url: e.target.value }))} placeholder="URL del vídeo (MP4/HLS) *" className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm" />
+          <div className="flex gap-2">
+            <button type="button" onClick={() => setF(s => ({ ...s, provider: 'video' }))} className={`flex-1 rounded-lg py-2 text-sm font-bold ${f.provider === 'video' ? 'bg-brand-orange text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'}`}>Vídeo propio</button>
+            <button type="button" onClick={() => setF(s => ({ ...s, provider: 'vast' }))} className={`flex-1 rounded-lg py-2 text-sm font-bold ${f.provider === 'vast' ? 'bg-brand-orange text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'}`}>Google (VAST)</button>
+          </div>
+          {f.provider === 'video'
+            ? <input value={f.video_url} onChange={e => setF(s => ({ ...s, video_url: e.target.value }))} placeholder="URL del vídeo (MP4/HLS) *" className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm" />
+            : <input value={f.vast_tag_url} onChange={e => setF(s => ({ ...s, vast_tag_url: e.target.value }))} placeholder="Etiqueta VAST de Google Ad Manager (adTagUrl) *" className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm" />}
+          {f.provider === 'vast' && <p className="text-[11px] text-gray-400 -mt-1">El tiempo de "saltar" y las métricas los gestiona Google; aquí solo defines dónde aparece.</p>}
           <div className="grid sm:grid-cols-2 gap-2.5">
             <input value={f.poster_url} onChange={e => setF(s => ({ ...s, poster_url: e.target.value }))} placeholder="URL imagen de portada (opcional)" className="rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm" />
             <input value={f.click_url} onChange={e => setF(s => ({ ...s, click_url: e.target.value }))} placeholder="URL de destino al hacer clic" className="rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm" />
