@@ -7,7 +7,7 @@ import {
 type Tab = 'solicitudes' | 'partners' | 'contenido' | 'retiros' | 'politicas';
 
 interface AppRow { id: string; user_id: string; name: string | null; email: string | null; phone: string | null; city: string; is_content_creator: boolean; can_edit_video: boolean; portfolio_url: string | null; motivation: string | null; status: string; created_at: string; }
-interface PartnerRow { user_id: string; display_name: string | null; cities: string[]; commission_percent: number; status: string; }
+interface PartnerRow { user_id: string; display_name: string | null; cities: string[]; commission_percent: number; status: string; ghl_location_id?: string | null; }
 interface TaskRow { partner_id: string; status: string; commission: number; }
 interface WithdrawalRow { id: string; partner_id: string; method: string | null; amount: number; status: string; requested_at: string; }
 interface ContentRow { id: string; partner_id: string; city: string | null; title: string; video_url: string | null; needs_editing: boolean; status: string; created_at: string; }
@@ -239,6 +239,7 @@ const PartnerAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToas
 const PartnerCard: React.FC<{ p: PartnerRow; earned: number; onSave: (p: PartnerRow, patch: Partial<PartnerRow>) => void }> = ({ p, earned, onSave }) => {
   const [commission, setCommission] = useState(String(p.commission_percent));
   const [cities, setCities] = useState((p.cities || []).join(', '));
+  const [ghl, setGhl] = useState(p.ghl_location_id || '');
 
   return (
     <div className="rounded-2xl border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800/50">
@@ -261,8 +262,12 @@ const PartnerCard: React.FC<{ p: PartnerRow; earned: number; onSave: (p: Partner
           <input value={commission} onChange={e => setCommission(e.target.value)} type="number" className="w-full mt-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm" />
         </div>
         <button
-          onClick={() => onSave(p, { commission_percent: parseFloat(commission) || 0, cities: cities.split(',').map(c => c.trim()).filter(Boolean) })}
+          onClick={() => onSave(p, { commission_percent: parseFloat(commission) || 0, cities: cities.split(',').map(c => c.trim()).filter(Boolean), ghl_location_id: ghl.trim() || null })}
           className="inline-flex items-center gap-1 text-sm font-bold bg-brand-orange text-white rounded-lg px-4 py-2"><Save className="w-4 h-4" /> Guardar</button>
+      </div>
+      <div className="mt-2.5">
+        <label className="text-xs font-bold text-gray-500">GHL Location ID (para la bandeja de redes)</label>
+        <input value={ghl} onChange={e => setGhl(e.target.value)} placeholder="p. ej. abc123XYZ..." className="w-full mt-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm" />
       </div>
     </div>
   );

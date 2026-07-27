@@ -713,7 +713,7 @@ const Bandeja: React.FC<{ uid: string; partner: PartnerRow | null; inquiries: In
     let deliveryNote = '';
     if (!error && open.channel !== 'web') {
       try {
-        const { data, error: fnErr } = await supabase.functions.invoke('social-send', { body: { inquiry_id: open.id, text } });
+        const { data, error: fnErr } = await supabase.functions.invoke('ghl-send', { body: { inquiry_id: open.id, text } });
         if (fnErr || (data && data.delivered === false)) deliveryNote = `Respuesta guardada. Para entregarla en ${open.channel} conecta la integración de esa red.`;
       } catch { deliveryNote = `Respuesta guardada (envío a ${open.channel} pendiente de configurar).`; }
     }
