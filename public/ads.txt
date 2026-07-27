@@ -1,0 +1,4 @@
+# ads.txt de BailaNow
+# Necesario para monetizar con Google AdSense / Ad Manager.
+# Cuando tengas tu cuenta aprobada, añade aquí tu línea (te la da Google):
+# google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
