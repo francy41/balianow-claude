@@ -34,7 +34,7 @@ const TVCreatorPage: React.FC = () => {
   const uid = user?.id;
 
   const loadTitles = useCallback(async () => {
-    if (!uid) return;
+    if (!uid) { setLoading(false); return; }
     const { data } = await supabase.from('tv_titles').select('*').eq('creator_id', uid).order('created_at', { ascending: false });
     setTitles((data || []) as TitleRow[]);
     setLoading(false);
