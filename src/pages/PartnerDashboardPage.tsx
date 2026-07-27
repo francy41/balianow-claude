@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Wallet, ListChecks, Video, CreditCard, Crown, LifeBuoy,
   Loader2, Plus, CheckCircle2, Clock, MapPin, Send, Trash2, ArrowUpRight,
-  Inbox, Copy, Instagram, Facebook, Music2, MessageCircle, ArrowLeft, Check,
+  Inbox, Copy, Instagram, Facebook, Music2, MessageCircle, ArrowLeft, Check, UsersRound,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
@@ -11,15 +11,17 @@ import { SUBSCRIPTION_PLANS } from '../data/mockData';
 import { AD_PLANS } from '../data/adPlans';
 import { SupportThread } from './ChatPage';
 
-type Tab = 'resumen' | 'bandeja' | 'ganancias' | 'gestiones' | 'contenido' | 'pagos' | 'planes' | 'soporte';
+type Tab = 'resumen' | 'bandeja' | 'ganancias' | 'gestiones' | 'equipo' | 'contenido' | 'pagos' | 'planes' | 'soporte';
 
 interface PartnerRow { user_id: string; display_name: string | null; cities: string[]; commission_percent: number; status: string; bio: string | null; }
-interface TaskRow { id: string; city: string | null; title: string; type: string; status: string; amount: number; commission: number; notes: string | null; due_date: string | null; created_at: string; completed_at: string | null; }
+interface TaskRow { id: string; city: string | null; title: string; type: string; status: string; amount: number; commission: number; notes: string | null; due_date: string | null; created_at: string; completed_at: string | null; rep_id: string | null; }
 interface PayoutRow { id: string; type: string; label: string | null; details: string | null; is_default: boolean; }
 interface WithdrawalRow { id: string; method: string | null; amount: number; status: string; requested_at: string; }
 interface ContentRow { id: string; city: string | null; title: string; video_url: string | null; needs_editing: boolean; status: string; created_at: string; }
 interface InquiryRow { id: string; city: string | null; channel: string; contact_name: string | null; contact_handle: string | null; contact_email: string | null; message: string; status: string; created_at: string; }
 interface SocialRow { id: string; provider: string; handle: string | null; connected: boolean; }
+interface RepRow { id: string; role: string; name: string; contact: string | null; city: string | null; commission_percent: number; status: string; }
+interface PolicyRow { max_rrpp_percent: number; max_promoter_percent: number; default_rrpp_percent: number; default_promoter_percent: number; }
 
 const eur = (n: number) => `€${(Number(n) || 0).toFixed(2)}`;
 const STATUS_LABEL: Record<string, string> = { pending: 'Pendiente', in_progress: 'En curso', completed: 'Completada', paid: 'Pagado', rejected: 'Rechazado', submitted: 'Enviado', in_editing: 'En edición', published: 'Publicado' };
@@ -29,6 +31,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'bandeja',   label: 'Bandeja',        icon: <Inbox className="w-4 h-4" /> },
   { id: 'ganancias', label: 'Ganancias',      icon: <Wallet className="w-4 h-4" /> },
   { id: 'gestiones', label: 'Gestiones',      icon: <ListChecks className="w-4 h-4" /> },
+  { id: 'equipo',    label: 'Equipo (RRPP)',  icon: <UsersRound className="w-4 h-4" /> },
   { id: 'contenido', label: 'Contenido',      icon: <Video className="w-4 h-4" /> },
   { id: 'pagos',     label: 'Pagos y retiros',icon: <CreditCard className="w-4 h-4" /> },
   { id: 'planes',    label: 'Planes y política', icon: <Crown className="w-4 h-4" /> },
@@ -50,12 +53,14 @@ const PartnerDashboardPage: React.FC = () => {
   const [content, setContent] = useState<ContentRow[]>([]);
   const [inquiries, setInquiries] = useState<InquiryRow[]>([]);
   const [socials, setSocials] = useState<SocialRow[]>([]);
+  const [reps, setReps] = useState<RepRow[]>([]);
+  const [policy, setPolicy] = useState<PolicyRow | null>(null);
 
   const load = useCallback(async () => {
     if (!uid) { setLoading(false); return; }
     setLoading(true);
     const safety = setTimeout(() => setLoading(false), 8000);
-    const [p, t, m, w, c, inq, soc] = await Promise.all([
+    const [p, t, m, w, c, inq, soc, rp, pol] = await Promise.all([
       supabase.from('partners').select('*').eq('user_id', uid).maybeSingle(),
       supabase.from('partner_tasks').select('*').eq('partner_id', uid).order('created_at', { ascending: false }),
       supabase.from('partner_payout_methods').select('*').eq('partner_id', uid).order('created_at', { ascending: false }),
@@ -63,6 +68,8 @@ const PartnerDashboardPage: React.FC = () => {
       supabase.from('partner_content').select('*').eq('partner_id', uid).order('created_at', { ascending: false }),
       supabase.from('partner_inquiries').select('*').eq('partner_id', uid).order('last_activity_at', { ascending: false }),
       supabase.from('partner_social_connections').select('*').eq('partner_id', uid),
+      supabase.from('partner_reps').select('*').eq('partner_id', uid).order('created_at', { ascending: false }),
+      supabase.from('partner_rep_policies').select('*').eq('id', 1).maybeSingle(),
     ]);
     setPartner((p.data as PartnerRow) || null);
     setTasks((t.data as TaskRow[]) || []);
@@ -71,6 +78,8 @@ const PartnerDashboardPage: React.FC = () => {
     setContent((c.data as ContentRow[]) || []);
     setInquiries((inq.data as InquiryRow[]) || []);
     setSocials((soc.data as SocialRow[]) || []);
+    setReps((rp.data as RepRow[]) || []);
+    setPolicy((pol.data as PolicyRow) || null);
     clearTimeout(safety);
     setLoading(false);
   }, [uid]);
@@ -127,7 +136,8 @@ const PartnerDashboardPage: React.FC = () => {
         {tab === 'resumen'   && <Resumen earned={earned} available={available} pendingComm={pendingComm} openCount={openTasks.length} doneCount={doneTasks.length} newInquiries={inquiries.filter(i => i.status === 'new').length} onGo={setTab} />}
         {tab === 'bandeja'   && <Bandeja uid={uid!} partner={partner} inquiries={inquiries} socials={socials} reload={load} addToast={addToast} />}
         {tab === 'ganancias' && <Ganancias earned={earned} available={available} pendingComm={pendingComm} withdrawn={withdrawn} tasks={tasks} />}
-        {tab === 'gestiones' && <Gestiones uid={uid!} partner={partner} tasks={tasks} openTasks={openTasks} doneTasks={doneTasks} reload={load} addToast={addToast} />}
+        {tab === 'gestiones' && <Gestiones uid={uid!} partner={partner} tasks={tasks} openTasks={openTasks} doneTasks={doneTasks} reps={reps} reload={load} addToast={addToast} />}
+        {tab === 'equipo'    && <Equipo uid={uid!} partner={partner} reps={reps} tasks={tasks} policy={policy} reload={load} addToast={addToast} />}
         {tab === 'contenido' && <Contenido uid={uid!} partner={partner} content={content} reload={load} addToast={addToast} />}
         {tab === 'pagos'     && <Pagos uid={uid!} available={available} methods={methods} withdrawals={withdrawals} reload={load} addToast={addToast} />}
         {tab === 'planes'    && <Planes navigate={navigate} />}
@@ -232,14 +242,16 @@ const TASK_TYPES = [
   { v: 'content', l: 'Contenido' }, { v: 'promo', l: 'Promoción' }, { v: 'other', l: 'Otro' },
 ];
 
-const Gestiones: React.FC<{ uid: string; partner: PartnerRow | null; tasks: TaskRow[]; openTasks: TaskRow[]; doneTasks: TaskRow[]; reload: () => Promise<void>; addToast: (t: any) => void }> = ({ uid, partner, openTasks, doneTasks, reload, addToast }) => {
+const Gestiones: React.FC<{ uid: string; partner: PartnerRow | null; tasks: TaskRow[]; openTasks: TaskRow[]; doneTasks: TaskRow[]; reps: RepRow[]; reload: () => Promise<void>; addToast: (t: any) => void }> = ({ uid, partner, openTasks, doneTasks, reps, reload, addToast }) => {
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState('');
   const [type, setType] = useState('event');
   const [amount, setAmount] = useState('');
   const [city, setCity] = useState(partner?.cities?.[0] || '');
+  const [repId, setRepId] = useState('');
   const [saving, setSaving] = useState(false);
   const commPct = partner?.commission_percent ?? 10;
+  const activeReps = reps.filter(r => r.status === 'active');
 
   const add = async () => {
     if (!title.trim()) { addToast({ message: 'Ponle un título a la gestión', type: 'error' }); return; }
@@ -248,10 +260,11 @@ const Gestiones: React.FC<{ uid: string; partner: PartnerRow | null; tasks: Task
     const { error } = await supabase.from('partner_tasks').insert({
       partner_id: uid, title: title.trim(), type, city: city.trim() || null,
       amount: amt, commission: Math.round(amt * commPct) / 100, status: 'pending',
+      rep_id: repId || null,
     });
     setSaving(false);
     if (error) { addToast({ message: error.message, type: 'error' }); return; }
-    setTitle(''); setAmount(''); setShowForm(false);
+    setTitle(''); setAmount(''); setRepId(''); setShowForm(false);
     addToast({ message: 'Gestión creada', type: 'success' });
     reload();
   };
@@ -306,6 +319,15 @@ const Gestiones: React.FC<{ uid: string; partner: PartnerRow | null; tasks: Task
             <input value={city} onChange={e => setCity(e.target.value)} placeholder="Ciudad" className="rounded-xl bg-black/30 ring-1 ring-white/15 px-3.5 py-2.5 outline-none focus:ring-fuchsia-500" />
             <input value={amount} onChange={e => setAmount(e.target.value)} type="number" placeholder="Valor €" className="rounded-xl bg-black/30 ring-1 ring-white/15 px-3.5 py-2.5 outline-none focus:ring-fuchsia-500" />
           </div>
+          {activeReps.length > 0 && (
+            <div>
+              <label className="text-white/50 text-xs">¿Traída por un RRPP/Promotor?</label>
+              <select value={repId} onChange={e => setRepId(e.target.value)} className="w-full mt-1 rounded-xl bg-black/30 ring-1 ring-white/15 px-3.5 py-2.5 outline-none">
+                <option value="" className="bg-gray-900">— Directa (yo) —</option>
+                {activeReps.map(r => <option key={r.id} value={r.id} className="bg-gray-900">{r.name} ({r.role === 'promoter' ? 'Promotor' : 'RRPP'} · {r.commission_percent}%)</option>)}
+              </select>
+            </div>
+          )}
           <p className="text-white/40 text-xs">Tu comisión ({commPct}%): <b className="text-emerald-400">{eur((parseFloat(amount) || 0) * commPct / 100)}</b></p>
           <button onClick={add} disabled={saving} className="w-full bg-white text-gray-900 font-bold rounded-xl py-2.5 disabled:opacity-60">{saving ? 'Guardando…' : 'Crear gestión'}</button>
         </div>
@@ -528,6 +550,129 @@ const Planes: React.FC<{ navigate: (p: string) => void }> = ({ navigate }) => (
     </div>
   </div>
 );
+
+// ── EQUIPO · RRPP y Promotores de la ciudad (comisión acotada por BailaNow) ──
+const REP_ROLES = [{ v: 'rrpp', l: 'RRPP' }, { v: 'promoter', l: 'Promotor' }];
+
+const Equipo: React.FC<{ uid: string; partner: PartnerRow | null; reps: RepRow[]; tasks: TaskRow[]; policy: PolicyRow | null; reload: () => Promise<void>; addToast: (t: any) => void }> = ({ uid, partner, reps, tasks, policy, reload, addToast }) => {
+  const maxRrpp = policy?.max_rrpp_percent ?? 20;
+  const maxPromoter = policy?.max_promoter_percent ?? 15;
+  const maxFor = (role: string) => (role === 'promoter' ? maxPromoter : maxRrpp);
+  const defFor = (role: string) => (role === 'promoter' ? (policy?.default_promoter_percent ?? 8) : (policy?.default_rrpp_percent ?? 10));
+
+  const [showForm, setShowForm] = useState(false);
+  const [role, setRole] = useState('rrpp');
+  const [name, setName] = useState('');
+  const [contact, setContact] = useState('');
+  const [commission, setCommission] = useState(String(defFor('rrpp')));
+  const [saving, setSaving] = useState(false);
+
+  const onRole = (r: string) => { setRole(r); setCommission(String(defFor(r))); };
+
+  const earnedByRep = useMemo(() => {
+    const map: Record<string, number> = {};
+    tasks.forEach(t => { if (t.rep_id && t.status === 'completed') { const r = reps.find(x => x.id === t.rep_id); if (r) map[r.id] = (map[r.id] || 0) + Number(t.amount || 0) * Number(r.commission_percent || 0) / 100; } });
+    return map;
+  }, [tasks, reps]);
+
+  const create = async () => {
+    if (!name.trim()) { addToast({ message: 'Escribe el nombre del RRPP/Promotor', type: 'error' }); return; }
+    const pct = Math.min(parseFloat(commission) || 0, maxFor(role));
+    setSaving(true);
+    const { error } = await supabase.from('partner_reps').insert({
+      partner_id: uid, role, name: name.trim(), contact: contact.trim() || null,
+      city: partner?.cities?.[0] || null, commission_percent: pct, status: 'active',
+    });
+    setSaving(false);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    setName(''); setContact(''); setRole('rrpp'); setCommission(String(defFor('rrpp'))); setShowForm(false);
+    addToast({ message: `${name.trim()} añadido al equipo`, type: 'success' });
+    reload();
+  };
+
+  const saveCommission = async (r: RepRow, value: string) => {
+    const pct = Math.min(parseFloat(value) || 0, maxFor(r.role));
+    const { error } = await supabase.from('partner_reps').update({ commission_percent: pct }).eq('id', r.id);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: `Comisión guardada (${pct}%)`, type: 'success' });
+    reload();
+  };
+  const toggle = async (r: RepRow) => { await supabase.from('partner_reps').update({ status: r.status === 'active' ? 'suspended' : 'active' }).eq('id', r.id); reload(); };
+  const remove = async (r: RepRow) => { await supabase.from('partner_reps').delete().eq('id', r.id); reload(); };
+
+  return (
+    <div>
+      {/* Política de BailaNow */}
+      <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 mb-4">
+        <p className="text-white/70 text-sm">📋 Tope de comisión fijado por <b className="text-white">BailaNow</b>:
+          <span className="ml-1">RRPP hasta <b className="text-fuchsia-300">{maxRrpp}%</b> · Promotores hasta <b className="text-fuchsia-300">{maxPromoter}%</b>.</span>
+        </p>
+        <p className="text-white/40 text-xs mt-1">Puedes asignar la comisión que quieras hasta ese máximo; el sistema no permite superarlo.</p>
+      </div>
+
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-bold">Tu equipo en la ciudad</h3>
+        <button onClick={() => setShowForm(v => !v)} className="inline-flex items-center gap-1.5 text-sm font-bold bg-gradient-to-r from-orange-500 to-fuchsia-600 rounded-xl px-3.5 py-2"><Plus className="w-4 h-4" /> Añadir</button>
+      </div>
+
+      {showForm && (
+        <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 mb-4 space-y-3">
+          <div className="grid sm:grid-cols-2 gap-2.5">
+            <select value={role} onChange={e => onRole(e.target.value)} className="rounded-xl bg-black/30 ring-1 ring-white/15 px-3.5 py-2.5 outline-none">
+              {REP_ROLES.map(r => <option key={r.v} value={r.v} className="bg-gray-900">{r.l}</option>)}
+            </select>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="Nombre" className="rounded-xl bg-black/30 ring-1 ring-white/15 px-3.5 py-2.5 outline-none focus:ring-fuchsia-500" />
+          </div>
+          <input value={contact} onChange={e => setContact(e.target.value)} placeholder="Contacto (email / teléfono / @)" className="w-full rounded-xl bg-black/30 ring-1 ring-white/15 px-3.5 py-2.5 outline-none focus:ring-fuchsia-500" />
+          <div>
+            <label className="text-white/50 text-xs">Comisión % (máx {maxFor(role)}% para {role === 'promoter' ? 'Promotor' : 'RRPP'})</label>
+            <input value={commission} onChange={e => setCommission(e.target.value)} type="number" max={maxFor(role)} min={0}
+              className="w-full mt-1 rounded-xl bg-black/30 ring-1 ring-white/15 px-3.5 py-2.5 outline-none focus:ring-fuchsia-500" />
+            {(parseFloat(commission) || 0) > maxFor(role) && <p className="text-amber-400 text-xs mt-1">Se ajustará a {maxFor(role)}% (tope de BailaNow).</p>}
+          </div>
+          <button onClick={create} disabled={saving} className="w-full bg-white text-gray-900 font-bold rounded-xl py-2.5 disabled:opacity-60">{saving ? 'Guardando…' : 'Añadir al equipo'}</button>
+        </div>
+      )}
+
+      {reps.length === 0 ? (
+        <div className="py-14 text-center text-white/40">
+          <UsersRound className="w-10 h-10 mx-auto mb-2 opacity-40" />
+          <p className="text-sm">Aún no tienes RRPP ni promotores. Añádelos para que traigan eventos y clientes a tu ciudad.</p>
+        </div>
+      ) : (
+        <div className="space-y-2.5">
+          {reps.map(r => <RepCard key={r.id} r={r} max={maxFor(r.role)} earned={earnedByRep[r.id] || 0} onSave={saveCommission} onToggle={toggle} onRemove={remove} />)}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const RepCard: React.FC<{ r: RepRow; max: number; earned: number; onSave: (r: RepRow, v: string) => void; onToggle: (r: RepRow) => void; onRemove: (r: RepRow) => void }> = ({ r, max, earned, onSave, onToggle, onRemove }) => {
+  const [val, setVal] = useState(String(r.commission_percent));
+  return (
+    <div className={`rounded-2xl ring-1 p-4 ${r.status === 'active' ? 'bg-white/[0.03] ring-white/10' : 'bg-white/[0.02] ring-white/5 opacity-60'}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="font-bold">{r.name} <span className={`ml-1.5 text-[10px] font-black px-1.5 py-0.5 rounded ${r.role === 'promoter' ? 'bg-sky-500/20 text-sky-300' : 'bg-fuchsia-500/20 text-fuchsia-300'}`}>{r.role === 'promoter' ? 'PROMOTOR' : 'RRPP'}</span></p>
+          <p className="text-white/40 text-xs">{r.contact || '—'} · {r.city || ''}</p>
+          <p className="text-emerald-400 text-xs font-bold mt-1">Generado: {eur(earned)}</p>
+        </div>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <button onClick={() => onToggle(r)} className="text-xs font-bold bg-white/10 rounded-lg px-2.5 py-1.5">{r.status === 'active' ? 'Suspender' : 'Activar'}</button>
+          <button onClick={() => onRemove(r)} className="p-1.5 rounded-lg bg-white/5 text-white/40 hover:text-red-400"><Trash2 className="w-3.5 h-3.5" /></button>
+        </div>
+      </div>
+      <div className="flex items-end gap-2 mt-3">
+        <div className="flex-1">
+          <label className="text-white/40 text-xs">Comisión % (máx {max}%)</label>
+          <input value={val} onChange={e => setVal(e.target.value)} type="number" max={max} min={0} className="w-full mt-1 rounded-lg bg-black/30 ring-1 ring-white/15 px-3 py-2 text-sm outline-none focus:ring-fuchsia-500" />
+        </div>
+        <button onClick={() => onSave(r, val)} className="inline-flex items-center gap-1 text-sm font-bold bg-brand-orange text-white rounded-lg px-3.5 py-2">Guardar</button>
+      </div>
+    </div>
+  );
+};
 
 // ── BANDEJA UNIFICADA (preguntas directas + redes sociales) ──
 const CHANNEL_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
