@@ -52,6 +52,8 @@ const PartnerApplyPage     = lazy(() => import('./pages/PartnerApplyPage'));
 const PartnerDashboardPage = lazy(() => import('./pages/PartnerDashboardPage'));
 const CityPartnerPage      = lazy(() => import('./pages/CityPartnerPage'));
 const DanceGuidePage       = lazy(() => import('./pages/DanceGuidePage'));
+const MembershipPlansPage  = lazy(() => import('./pages/MembershipPlansPage'));
+const PracticeRoomPage     = lazy(() => import('./pages/PracticeRoomPage'));
 const DanceFlowPage     = lazy(() => import('./pages/DanceFlowPage'));
 const DanceCameraPage   = lazy(() => import('./pages/DanceCameraPage'));
 const ChoreographyPage  = lazy(() => import('./pages/ChoreographyPage'));
@@ -198,6 +200,8 @@ const App: React.FC = () => {
                   <Route path="/partner/aplicar"     element={<PartnerApplyPage />} />
                   {/* SEO local: "dónde bailar bachata en Madrid" */}
                   <Route path="/donde-bailar/:style/:city" element={<DanceGuidePage />} />
+                  <Route path="/membresias"          element={<MembershipPlansPage />} />
+                  <Route path="/practicar/:room"     element={<ProtectedRoute><PracticeRoomPage /></ProtectedRoute>} />
                   <Route path="/partner"             element={<ProtectedRoute requiredRole="partner"><PartnerDashboardPage /></ProtectedRoute>} />
                   <Route path="/tv"                  element={<TVHomePage />} />
                   <Route path="/tv/estudio"          element={<ProtectedRoute><TVCreatorPage /></ProtectedRoute>} />
