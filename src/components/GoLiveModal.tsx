@@ -164,7 +164,7 @@ const GoLiveModal: React.FC<Props> = ({ isOpen, onClose, defaultCategory = 'show
           {/* Tipo */}
           <div>
             <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mb-2">Tipo</label>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
               {CATEGORIES.map(c => (
                 <button key={c.v} onClick={() => setCategory(c.v)}
                   className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 transition ${category === c.v ? 'border-pink-500 bg-pink-50 dark:bg-pink-500/10 text-pink-600' : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400'}`}>

@@ -2417,8 +2417,8 @@ const RetirosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           <p className="text-sm mt-1">Aparecerán aquí cuando los creators soliciten retirar fondos.</p>
         </div>
       ) : (
-        <div className="card-white overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="card-white overflow-x-auto">
+          <table className="w-full text-sm min-w-[600px]">
             <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
               <tr>
                 <th className="text-left px-4 py-3">Creator</th>

@@ -127,8 +127,8 @@ const CategoriesPanel: React.FC = () => {
         </div>
       )}
 
-      <div className="card-white overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="card-white overflow-x-auto">
+        <table className="w-full text-sm min-w-[600px]">
           <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
             <tr>
               <th className="text-left px-3 py-3 w-12">Orden</th>
