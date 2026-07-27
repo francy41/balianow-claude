@@ -66,6 +66,8 @@ const LiveNowPage: React.FC = () => {
 
   useEffect(() => {
     let cancelled = false;
+    // Safety: nunca dejar el spinner colgado si la vista falla o se demora.
+    const safety = setTimeout(() => { if (!cancelled) setLoading(false); }, 8000);
     (async () => {
       setLoading(true);
       const { data } = await supabase
@@ -82,8 +84,8 @@ const LiveNowPage: React.FC = () => {
       setScheduled(sched);
       setActiveStream(live[0] || null);
       setLoading(false);
-    })();
-    return () => { cancelled = true; };
+    })().catch(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; clearTimeout(safety); };
   }, []);
 
   useEffect(() => { setViewers(activeStream?.viewers || 0); }, [activeStream?.id, activeStream?.viewers]);
