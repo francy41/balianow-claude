@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { MapPin, Send, Loader2, Instagram, Facebook, Music2, MessageCircle, Calendar, Sparkles, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useUIStore } from '../store/appStore';
+import { useSeo } from '../hooks/useSeo';
 
 interface CityPartner { partner_id: string; display_name: string | null; socials: { provider: string; handle: string | null }[]; }
 interface CityEvent { id: string; title: string; date: string | null; cover: string | null; }
@@ -29,6 +30,12 @@ const CityPartnerPage: React.FC = () => {
   const navigate = useNavigate();
   const { addToast } = useUIStore();
   const city = useMemo(() => titleCase(decodeURIComponent(cityParam || '')), [cityParam]);
+
+  useSeo({
+    title: `Baila en ${city} — clases, eventos y comunidad latina | BailaNow`,
+    description: `Descubre la escena de danza latina en ${city}: eventos, clases, artistas y tu partner local de BailaNow. Salsa, bachata, kizomba y más.`,
+    path: `/${cityParam || ''}`,
+  });
 
   const [loading, setLoading] = useState(true);
   const [partner, setPartner] = useState<CityPartner | null>(null);

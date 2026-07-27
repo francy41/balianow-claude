@@ -9,6 +9,8 @@ Disallow: /auth
 Disallow: /auth/*
 Disallow: /redes
 Disallow: /perfil
+Disallow: /partner
+Allow: /partner/aplicar
 
 Sitemap: https://bailanow.com/sitemap.xml
 

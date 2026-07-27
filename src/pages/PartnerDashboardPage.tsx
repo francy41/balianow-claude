@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
+import { useRealtime } from '../hooks/useRealtime';
 import { SUBSCRIPTION_PLANS } from '../data/mockData';
 import { AD_PLANS } from '../data/adPlans';
 import { SupportThread } from './ChatPage';
@@ -92,6 +93,13 @@ const PartnerDashboardPage: React.FC = () => {
   }, [uid]);
 
   useEffect(() => { load().catch(() => setLoading(false)); }, [load]);
+
+  // Tiempo real: consultas, gestiones y retiros se reflejan al instante en el panel.
+  useRealtime(uid ? `partner-live-${uid}` : null, [
+    { table: 'partner_inquiries', filter: `partner_id=eq.${uid}` },
+    { table: 'partner_tasks', filter: `partner_id=eq.${uid}` },
+    { table: 'partner_withdrawals', filter: `partner_id=eq.${uid}` },
+  ], () => { load(); });
 
   // ── Métricas de ganancias ──
   const earned = useMemo(() => tasks.filter(t => t.status === 'completed').reduce((s, t) => s + Number(t.commission || 0), 0), [tasks]);

@@ -14,7 +14,7 @@
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 1/7 · COMUNIDAD + TV + is_admin() + DEMO                            ║
+-- ║ BLOQUE 1/8 · COMUNIDAD + TV + is_admin() + DEMO                            ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · SETUP COMPLETO de módulos nuevos + datos demo.
 -- Ejecutar UNA vez en el SQL Editor de Supabase (o vía Management API).
@@ -346,7 +346,7 @@ on conflict (id) do nothing;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 2/7 · MÓDULO PARTNER POR CIUDADES                                   ║
+-- ║ BLOQUE 2/8 · MÓDULO PARTNER POR CIUDADES                                   ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · MÓDULO PARTNER POR CIUDADES.
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -522,7 +522,7 @@ create policy pc_own on public.partner_content for all
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 3/7 · BANDEJA UNIFICADA + ENLACE DE CIUDAD + REDES                  ║
+-- ║ BLOQUE 3/8 · BANDEJA UNIFICADA + ENLACE DE CIUDAD + REDES                  ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · BANDEJA UNIFICADA del Partner + enlace de ciudad + redes sociales.
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -646,7 +646,7 @@ grant execute on function public.city_partner(text) to anon, authenticated;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 4/7 · EQUIPO RRPP/PROMOTORES + POLÍTICA DE COMISIONES               ║
+-- ║ BLOQUE 4/8 · EQUIPO RRPP/PROMOTORES + POLÍTICA DE COMISIONES               ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · EQUIPO del Partner: RRPP y Promotores por ciudad.
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -745,7 +745,7 @@ create index if not exists partner_tasks_rep_idx on public.partner_tasks (rep_id
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 5/7 · ENRUTADO DE REDES SOCIALES (para las Edge Functions)          ║
+-- ║ BLOQUE 5/8 · ENRUTADO DE REDES SOCIALES (para las Edge Functions)          ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · Enrutado de redes sociales para la bandeja del partner.
 -- Ejecutar UNA vez (después de partner-inbox.sql). 100% idempotente.
@@ -781,7 +781,7 @@ create policy pst_admin on public.partner_social_tokens for all
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 6/7 · CONECTOR GHL (GoHighLevel) — ghl_location_id en partners       ║
+-- ║ BLOQUE 6/8 · CONECTOR GHL (GoHighLevel) — ghl_location_id en partners       ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · Conector GHL (GoHighLevel) para la bandeja del partner.
 -- Ejecutar UNA vez (después de partner-inbox.sql). 100% idempotente.
@@ -795,7 +795,7 @@ create index if not exists partners_ghl_location_idx on public.partners (ghl_loc
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 7/7 · RECURSOS PARA PARTNERS (biblioteca por categorías)             ║
+-- ║ BLOQUE 7/8 · RECURSOS PARA PARTNERS (biblioteca por categorías)             ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · RECURSOS para partners (biblioteca por categorías).
 -- Ejecutar UNA vez (después de partner-module.sql). 100% idempotente.
@@ -832,3 +832,111 @@ create policy pres_read on public.partner_resources for select using (
 drop policy if exists pres_admin on public.partner_resources;
 create policy pres_admin on public.partner_resources for all
   using (public.is_admin()) with check (public.is_admin());
+
+
+-- ╔══════════════════════════════════════════════════════════════════════════╗
+-- ║ BLOQUE 8/8 · NOTIFICACIONES EN TIEMPO REAL (ventas, consultas, retiros)     ║
+-- ╚══════════════════════════════════════════════════════════════════════════╝
+-- BailaNow · Notificaciones en TIEMPO REAL para dashboards (creadores, vendedores, partners).
+-- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
+--
+-- 1) Asegura la tabla notifications + RLS.
+-- 2) La activa en Realtime (supabase_realtime) para que lleguen al instante.
+-- 3) Triggers que crean notificaciones automáticas en: nuevas consultas (bandeja
+--    del partner), nuevas ventas (escrow) y cambios de estado de retiros.
+
+create or replace function public.is_admin()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.profiles where id = auth.uid() and role in ('admin','superadmin'));
+$$;
+
+-- ── 1) Tabla ──────────────────────────────────────────────────────
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  type text not null default 'info',        -- sale | consulta | withdrawal | booking | payment | refund | info
+  title text not null,
+  body text,
+  link text,
+  read boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists notifications_user_idx on public.notifications (user_id, read, created_at desc);
+
+alter table public.notifications enable row level security;
+drop policy if exists notif_read on public.notifications;
+create policy notif_read on public.notifications for select using (auth.uid() = user_id);
+drop policy if exists notif_update on public.notifications;
+create policy notif_update on public.notifications for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists notif_insert on public.notifications;
+create policy notif_insert on public.notifications for insert with check (public.is_admin() or auth.uid() = user_id);
+
+-- ── 2) Realtime ───────────────────────────────────────────────────
+-- Añadir la tabla a la publicación de realtime (ignora si ya está añadida).
+do $$
+begin
+  alter publication supabase_realtime add table public.notifications;
+exception when duplicate_object then null; when others then null;
+end $$;
+
+-- Helper para insertar notificaciones desde triggers (SECURITY DEFINER = salta RLS).
+create or replace function public.push_notification(p_user uuid, p_type text, p_title text, p_body text, p_link text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if p_user is null then return; end if;
+  insert into public.notifications (user_id, type, title, body, link)
+  values (p_user, p_type, p_title, p_body, p_link);
+end $$;
+
+-- ── 3a) Consultas nuevas → notifica al partner ────────────────────
+create or replace function public.notify_partner_inquiry()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  perform public.push_notification(
+    new.partner_id, 'consulta', 'Nueva consulta',
+    coalesce(new.contact_name, 'Alguien') || ': ' || left(coalesce(new.message,''), 80),
+    '/partner');
+  return new;
+end $$;
+drop trigger if exists trg_notify_inquiry on public.partner_inquiries;
+create trigger trg_notify_inquiry after insert on public.partner_inquiries
+  for each row execute function public.notify_partner_inquiry();
+
+-- ── 3b) Retiros del partner: cambio de estado → notifica ──────────
+create or replace function public.notify_partner_withdrawal()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.status is distinct from old.status then
+    perform public.push_notification(
+      new.partner_id, 'withdrawal', 'Retiro ' ||
+      case new.status when 'paid' then 'pagado ✔️' when 'rejected' then 'rechazado' else new.status end,
+      'Importe: €' || new.amount, '/partner');
+  end if;
+  return new;
+end $$;
+drop trigger if exists trg_notify_withdrawal on public.partner_withdrawals;
+create trigger trg_notify_withdrawal after update on public.partner_withdrawals
+  for each row execute function public.notify_partner_withdrawal();
+
+-- ── 3c) Ventas (escrow) → notifica al vendedor. DEFENSIVO: solo si
+--        existe la tabla escrows con columna payee_id. ─────────────
+do $$
+begin
+  if exists (select 1 from information_schema.columns
+             where table_schema='public' and table_name='escrows' and column_name='payee_id') then
+    execute $f$
+      create or replace function public.notify_escrow_sale()
+      returns trigger language plpgsql security definer set search_path = public as $inner$
+      begin
+        perform public.push_notification(
+          new.payee_id, 'sale', 'Nueva venta 💸',
+          'Has recibido un pago de €' || coalesce(new.amount::text,'0') ||
+          case when new.concept is not null then ' · ' || new.concept else '' end,
+          '/dashboard');
+        return new;
+      end $inner$;
+    $f$;
+    execute 'drop trigger if exists trg_notify_sale on public.escrows';
+    execute 'create trigger trg_notify_sale after insert on public.escrows for each row execute function public.notify_escrow_sale()';
+  end if;
+end $$;
