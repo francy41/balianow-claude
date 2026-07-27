@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Wallet, ListChecks, Video, CreditCard, Crown, LifeBuoy,
   Loader2, Plus, CheckCircle2, Clock, MapPin, Send, Trash2, ArrowUpRight,
+  Inbox, Copy, Instagram, Facebook, Music2, MessageCircle, ArrowLeft, Check,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
@@ -10,19 +11,22 @@ import { SUBSCRIPTION_PLANS } from '../data/mockData';
 import { AD_PLANS } from '../data/adPlans';
 import { SupportThread } from './ChatPage';
 
-type Tab = 'resumen' | 'ganancias' | 'gestiones' | 'contenido' | 'pagos' | 'planes' | 'soporte';
+type Tab = 'resumen' | 'bandeja' | 'ganancias' | 'gestiones' | 'contenido' | 'pagos' | 'planes' | 'soporte';
 
 interface PartnerRow { user_id: string; display_name: string | null; cities: string[]; commission_percent: number; status: string; bio: string | null; }
 interface TaskRow { id: string; city: string | null; title: string; type: string; status: string; amount: number; commission: number; notes: string | null; due_date: string | null; created_at: string; completed_at: string | null; }
 interface PayoutRow { id: string; type: string; label: string | null; details: string | null; is_default: boolean; }
 interface WithdrawalRow { id: string; method: string | null; amount: number; status: string; requested_at: string; }
 interface ContentRow { id: string; city: string | null; title: string; video_url: string | null; needs_editing: boolean; status: string; created_at: string; }
+interface InquiryRow { id: string; city: string | null; channel: string; contact_name: string | null; contact_handle: string | null; contact_email: string | null; message: string; status: string; created_at: string; }
+interface SocialRow { id: string; provider: string; handle: string | null; connected: boolean; }
 
 const eur = (n: number) => `€${(Number(n) || 0).toFixed(2)}`;
 const STATUS_LABEL: Record<string, string> = { pending: 'Pendiente', in_progress: 'En curso', completed: 'Completada', paid: 'Pagado', rejected: 'Rechazado', submitted: 'Enviado', in_editing: 'En edición', published: 'Publicado' };
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'resumen',   label: 'Resumen',        icon: <LayoutDashboard className="w-4 h-4" /> },
+  { id: 'bandeja',   label: 'Bandeja',        icon: <Inbox className="w-4 h-4" /> },
   { id: 'ganancias', label: 'Ganancias',      icon: <Wallet className="w-4 h-4" /> },
   { id: 'gestiones', label: 'Gestiones',      icon: <ListChecks className="w-4 h-4" /> },
   { id: 'contenido', label: 'Contenido',      icon: <Video className="w-4 h-4" /> },
@@ -44,23 +48,29 @@ const PartnerDashboardPage: React.FC = () => {
   const [methods, setMethods] = useState<PayoutRow[]>([]);
   const [withdrawals, setWithdrawals] = useState<WithdrawalRow[]>([]);
   const [content, setContent] = useState<ContentRow[]>([]);
+  const [inquiries, setInquiries] = useState<InquiryRow[]>([]);
+  const [socials, setSocials] = useState<SocialRow[]>([]);
 
   const load = useCallback(async () => {
     if (!uid) { setLoading(false); return; }
     setLoading(true);
     const safety = setTimeout(() => setLoading(false), 8000);
-    const [p, t, m, w, c] = await Promise.all([
+    const [p, t, m, w, c, inq, soc] = await Promise.all([
       supabase.from('partners').select('*').eq('user_id', uid).maybeSingle(),
       supabase.from('partner_tasks').select('*').eq('partner_id', uid).order('created_at', { ascending: false }),
       supabase.from('partner_payout_methods').select('*').eq('partner_id', uid).order('created_at', { ascending: false }),
       supabase.from('partner_withdrawals').select('*').eq('partner_id', uid).order('requested_at', { ascending: false }),
       supabase.from('partner_content').select('*').eq('partner_id', uid).order('created_at', { ascending: false }),
+      supabase.from('partner_inquiries').select('*').eq('partner_id', uid).order('last_activity_at', { ascending: false }),
+      supabase.from('partner_social_connections').select('*').eq('partner_id', uid),
     ]);
     setPartner((p.data as PartnerRow) || null);
     setTasks((t.data as TaskRow[]) || []);
     setMethods((m.data as PayoutRow[]) || []);
     setWithdrawals((w.data as WithdrawalRow[]) || []);
     setContent((c.data as ContentRow[]) || []);
+    setInquiries((inq.data as InquiryRow[]) || []);
+    setSocials((soc.data as SocialRow[]) || []);
     clearTimeout(safety);
     setLoading(false);
   }, [uid]);
@@ -91,6 +101,7 @@ const PartnerDashboardPage: React.FC = () => {
             <span>Comisión: <b className="text-white">{partner?.commission_percent ?? 10}%</b></span>
             {partner?.status === 'suspended' && <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-300 text-xs font-bold">Suspendido</span>}
           </div>
+          {partner?.cities?.[0] && <DirectLink city={partner.cities[0]} addToast={addToast} />}
         </div>
       </div>
 
@@ -113,7 +124,8 @@ const PartnerDashboardPage: React.FC = () => {
           </div>
         )}
 
-        {tab === 'resumen'   && <Resumen earned={earned} available={available} pendingComm={pendingComm} openCount={openTasks.length} doneCount={doneTasks.length} onGo={setTab} />}
+        {tab === 'resumen'   && <Resumen earned={earned} available={available} pendingComm={pendingComm} openCount={openTasks.length} doneCount={doneTasks.length} newInquiries={inquiries.filter(i => i.status === 'new').length} onGo={setTab} />}
+        {tab === 'bandeja'   && <Bandeja uid={uid!} partner={partner} inquiries={inquiries} socials={socials} reload={load} addToast={addToast} />}
         {tab === 'ganancias' && <Ganancias earned={earned} available={available} pendingComm={pendingComm} withdrawn={withdrawn} tasks={tasks} />}
         {tab === 'gestiones' && <Gestiones uid={uid!} partner={partner} tasks={tasks} openTasks={openTasks} doneTasks={doneTasks} reload={load} addToast={addToast} />}
         {tab === 'contenido' && <Contenido uid={uid!} partner={partner} content={content} reload={load} addToast={addToast} />}
@@ -134,7 +146,26 @@ const Stat: React.FC<{ label: string; value: string; sub?: string; grad: string 
   </div>
 );
 
-const Resumen: React.FC<{ earned: number; available: number; pendingComm: number; openCount: number; doneCount: number; onGo: (t: Tab) => void }> = ({ earned, available, pendingComm, openCount, doneCount, onGo }) => (
+const DirectLink: React.FC<{ city: string; addToast: (t: any) => void }> = ({ city, addToast }) => {
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://bailanow.com';
+  const url = `${origin}/${encodeURIComponent(city)}`;
+  const pretty = url.replace(/^https?:\/\//, '');
+  const copy = () => {
+    navigator.clipboard?.writeText(url).then(
+      () => addToast({ message: 'Enlace copiado ✔️', type: 'success' }),
+      () => addToast({ message: url, type: 'info' }),
+    );
+  };
+  return (
+    <div className="mt-3 inline-flex items-center gap-2 rounded-xl bg-white/10 ring-1 ring-white/15 pl-3 pr-1.5 py-1.5">
+      <span className="text-xs text-white/50">Tu enlace:</span>
+      <a href={url} target="_blank" rel="noreferrer" className="text-sm font-bold text-fuchsia-300">{pretty}</a>
+      <button onClick={copy} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20"><Copy className="w-3.5 h-3.5" /></button>
+    </div>
+  );
+};
+
+const Resumen: React.FC<{ earned: number; available: number; pendingComm: number; openCount: number; doneCount: number; newInquiries: number; onGo: (t: Tab) => void }> = ({ earned, available, pendingComm, openCount, doneCount, newInquiries, onGo }) => (
   <div>
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       <Stat label="Disponible" value={eur(available)} sub="Listo para retirar" grad="from-emerald-500 to-green-600" />
@@ -142,9 +173,15 @@ const Resumen: React.FC<{ earned: number; available: number; pendingComm: number
       <Stat label="Por cobrar" value={eur(pendingComm)} sub="Gestiones en curso" grad="from-fuchsia-500 to-purple-600" />
       <Stat label="Gestiones" value={`${openCount + doneCount}`} sub={`${openCount} pendientes · ${doneCount} hechas`} grad="from-sky-500 to-blue-600" />
     </div>
-    <div className="grid sm:grid-cols-2 gap-3 mt-4">
+    <div className="grid sm:grid-cols-3 gap-3 mt-4">
+      <button onClick={() => onGo('bandeja')} className="text-left rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 hover:bg-white/10 transition relative">
+        {newInquiries > 0 && <span className="absolute top-3 right-3 text-[10px] font-black bg-fuchsia-500 rounded-full px-2 py-0.5">{newInquiries} nuevas</span>}
+        <Inbox className="w-6 h-6 text-fuchsia-400" />
+        <p className="font-bold mt-2">Bandeja de entrada</p>
+        <p className="text-white/50 text-sm">Preguntas de tu ciudad y redes sociales, todo en un chat.</p>
+      </button>
       <button onClick={() => onGo('gestiones')} className="text-left rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 hover:bg-white/10 transition">
-        <ListChecks className="w-6 h-6 text-fuchsia-400" />
+        <ListChecks className="w-6 h-6 text-sky-400" />
         <p className="font-bold mt-2">Tus gestiones</p>
         <p className="text-white/50 text-sm">Trabajos pendientes y completados de tu ciudad.</p>
       </button>
@@ -491,5 +528,177 @@ const Planes: React.FC<{ navigate: (p: string) => void }> = ({ navigate }) => (
     </div>
   </div>
 );
+
+// ── BANDEJA UNIFICADA (preguntas directas + redes sociales) ──
+const CHANNEL_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+  web:       { label: 'Web',       icon: <Inbox className="w-3.5 h-3.5" />,         color: 'bg-fuchsia-500' },
+  instagram: { label: 'Instagram', icon: <Instagram className="w-3.5 h-3.5" />,     color: 'bg-pink-600' },
+  facebook:  { label: 'Facebook',  icon: <Facebook className="w-3.5 h-3.5" />,      color: 'bg-blue-600' },
+  whatsapp:  { label: 'WhatsApp',  icon: <MessageCircle className="w-3.5 h-3.5" />, color: 'bg-emerald-600' },
+  tiktok:    { label: 'TikTok',    icon: <Music2 className="w-3.5 h-3.5" />,        color: 'bg-gray-900' },
+};
+const chan = (c: string) => CHANNEL_META[c] || CHANNEL_META.web;
+
+interface ThreadMsg { id: string; from_partner: boolean; text: string; created_at: string; }
+
+const Bandeja: React.FC<{ uid: string; partner: PartnerRow | null; inquiries: InquiryRow[]; socials: SocialRow[]; reload: () => Promise<void>; addToast: (t: any) => void }> = ({ uid, partner, inquiries, socials, reload, addToast }) => {
+  const [filter, setFilter] = useState<string>('all');
+  const [open, setOpen] = useState<InquiryRow | null>(null);
+  const [thread, setThread] = useState<ThreadMsg[]>([]);
+  const [reply, setReply] = useState('');
+  const [sending, setSending] = useState(false);
+
+  const filtered = filter === 'all' ? inquiries : inquiries.filter(i => i.channel === filter);
+  const channelsInUse = Array.from(new Set(inquiries.map(i => i.channel)));
+
+  const openThread = async (i: InquiryRow) => {
+    setOpen(i); setThread([]); setReply('');
+    const { data } = await supabase.from('partner_inquiry_messages').select('*').eq('inquiry_id', i.id).order('created_at', { ascending: true });
+    setThread((data as ThreadMsg[]) || []);
+  };
+
+  const sendReply = async () => {
+    if (!open || !reply.trim()) return;
+    setSending(true);
+    const text = reply.trim();
+    const { error } = await supabase.from('partner_inquiry_messages').insert({ inquiry_id: open.id, from_partner: true, text });
+    if (!error) await supabase.from('partner_inquiries').update({ status: 'answered', last_activity_at: new Date().toISOString() }).eq('id', open.id);
+    setSending(false);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    setReply('');
+    setThread(t => [...t, { id: Math.random().toString(), from_partner: true, text, created_at: new Date().toISOString() }]);
+    reload();
+  };
+
+  const close = async (i: InquiryRow) => { await supabase.from('partner_inquiries').update({ status: 'closed' }).eq('id', i.id); setOpen(null); reload(); };
+
+  // Vista de conversación
+  if (open) {
+    const m = chan(open.channel);
+    return (
+      <div>
+        <button onClick={() => setOpen(null)} className="inline-flex items-center gap-1.5 text-sm text-white/60 mb-3"><ArrowLeft className="w-4 h-4" /> Volver a la bandeja</button>
+        <div className="rounded-2xl ring-1 ring-white/10 overflow-hidden">
+          <div className="p-4 bg-white/[0.04] flex items-center justify-between">
+            <div>
+              <p className="font-bold">{open.contact_name || 'Contacto'} <span className={`ml-2 inline-flex items-center gap-1 text-[10px] font-black text-white px-1.5 py-0.5 rounded ${m.color}`}>{m.icon}{m.label}</span></p>
+              <p className="text-white/40 text-xs">{open.contact_handle || '—'} · {open.city || ''}</p>
+            </div>
+            <button onClick={() => close(open)} className="text-xs font-bold text-white/50 hover:text-white bg-white/5 rounded-lg px-2.5 py-1.5">Cerrar</button>
+          </div>
+          <div className="p-4 space-y-3 max-h-[45vh] overflow-y-auto">
+            <div className="max-w-[80%]">
+              <div className="rounded-2xl rounded-tl-sm bg-white/10 px-3.5 py-2.5 text-sm">{open.message}</div>
+              <p className="text-white/30 text-[10px] mt-1">{new Date(open.created_at).toLocaleString('es')}</p>
+            </div>
+            {thread.map(t => (
+              <div key={t.id} className={`max-w-[80%] ${t.from_partner ? 'ml-auto text-right' : ''}`}>
+                <div className={`inline-block rounded-2xl px-3.5 py-2.5 text-sm ${t.from_partner ? 'rounded-tr-sm bg-gradient-to-r from-orange-500 to-fuchsia-600' : 'rounded-tl-sm bg-white/10'}`}>{t.text}</div>
+              </div>
+            ))}
+          </div>
+          <div className="p-3 border-t border-white/10 flex gap-2">
+            <input value={reply} onChange={e => setReply(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendReply()} placeholder="Escribe tu respuesta…" className="flex-1 rounded-xl bg-black/30 ring-1 ring-white/15 px-3.5 py-2.5 outline-none focus:ring-fuchsia-500" />
+            <button onClick={sendReply} disabled={sending} className="inline-flex items-center gap-1.5 font-bold bg-gradient-to-r from-orange-500 to-fuchsia-600 rounded-xl px-4 disabled:opacity-60">{sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}</button>
+          </div>
+        </div>
+        {open.channel !== 'web' && (
+          <p className="text-white/30 text-xs mt-2">💡 Este mensaje llegó por {m.label}. Tu respuesta queda registrada aquí; para enviarla al usuario en {m.label} necesitas la integración conectada (ver abajo, en Redes).</p>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <Redes uid={uid} socials={socials} reload={reload} addToast={addToast} />
+
+      {/* Filtros de canal */}
+      <div className="flex gap-1.5 mb-3 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        {['all', ...channelsInUse].map(c => (
+          <button key={c} onClick={() => setFilter(c)}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap ${filter === c ? 'bg-white text-gray-900' : 'bg-white/5 text-white/60'}`}>
+            {c === 'all' ? 'Todos' : <>{chan(c).icon} {chan(c).label}</>}
+          </button>
+        ))}
+      </div>
+
+      {filtered.length === 0 ? (
+        <div className="py-16 text-center text-white/40">
+          <Inbox className="w-10 h-10 mx-auto mb-2 opacity-40" />
+          <p className="text-sm">Sin mensajes todavía. Comparte tu enlace de ciudad y conecta tus redes para recibir preguntas aquí.</p>
+        </div>
+      ) : (
+        <div className="rounded-2xl ring-1 ring-white/10 divide-y divide-white/5 overflow-hidden">
+          {filtered.map(i => {
+            const m = chan(i.channel);
+            return (
+              <button key={i.id} onClick={() => openThread(i)} className="w-full text-left flex items-center gap-3 p-3.5 bg-white/[0.03] hover:bg-white/[0.06] transition">
+                <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-white flex-shrink-0 ${m.color}`}>{m.icon}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-sm truncate">{i.contact_name || i.contact_handle || 'Contacto'} <span className="text-white/30 font-normal">· {m.label}</span></p>
+                  <p className="text-white/50 text-xs truncate">{i.message}</p>
+                </div>
+                {i.status === 'new' && <span className="text-[10px] font-black bg-fuchsia-500 rounded-full px-2 py-0.5 flex-shrink-0">NUEVO</span>}
+                {i.status === 'answered' && <Check className="w-4 h-4 text-emerald-400 flex-shrink-0" />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const PROVIDERS = [
+  { id: 'instagram', label: 'Instagram', icon: <Instagram className="w-4 h-4" />, ph: '@tucuenta' },
+  { id: 'facebook',  label: 'Facebook',  icon: <Facebook className="w-4 h-4" />,  ph: 'tu página' },
+  { id: 'whatsapp',  label: 'WhatsApp',  icon: <MessageCircle className="w-4 h-4" />, ph: '+34...' },
+  { id: 'tiktok',    label: 'TikTok',    icon: <Music2 className="w-4 h-4" />,    ph: '@tucuenta' },
+];
+
+const Redes: React.FC<{ uid: string; socials: SocialRow[]; reload: () => Promise<void>; addToast: (t: any) => void }> = ({ uid, socials, reload, addToast }) => {
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const byProvider = (p: string) => socials.find(s => s.provider === p);
+
+  const connect = async (provider: string) => {
+    const handle = (drafts[provider] ?? byProvider(provider)?.handle ?? '').trim();
+    if (!handle) { addToast({ message: 'Escribe tu usuario/número primero', type: 'error' }); return; }
+    const { error } = await supabase.from('partner_social_connections')
+      .upsert({ partner_id: uid, provider, handle, connected: true }, { onConflict: 'partner_id,provider' });
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: `${provider} conectado`, type: 'success' });
+    reload();
+  };
+  const disconnect = async (provider: string) => {
+    await supabase.from('partner_social_connections').update({ connected: false }).eq('partner_id', uid).eq('provider', provider);
+    reload();
+  };
+
+  return (
+    <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 mb-4">
+      <p className="font-bold text-sm mb-1">Redes conectadas</p>
+      <p className="text-white/40 text-xs mb-3">Conecta tus redes para recibir sus mensajes en esta misma bandeja.</p>
+      <div className="grid sm:grid-cols-2 gap-2.5">
+        {PROVIDERS.map(p => {
+          const conn = byProvider(p.id);
+          const on = conn?.connected;
+          return (
+            <div key={p.id} className={`rounded-xl p-3 ring-1 ${on ? 'bg-emerald-500/10 ring-emerald-500/40' : 'bg-black/20 ring-white/10'}`}>
+              <div className="flex items-center gap-2 font-bold text-sm mb-2">{p.icon} {p.label} {on && <span className="text-[10px] text-emerald-400 ml-auto">CONECTADO</span>}</div>
+              <div className="flex gap-1.5">
+                <input defaultValue={conn?.handle || ''} onChange={e => setDrafts(d => ({ ...d, [p.id]: e.target.value }))} placeholder={p.ph}
+                  className="flex-1 min-w-0 rounded-lg bg-black/30 ring-1 ring-white/15 px-2.5 py-1.5 text-sm outline-none focus:ring-fuchsia-500" />
+                {on
+                  ? <button onClick={() => disconnect(p.id)} className="text-xs font-bold bg-white/10 rounded-lg px-2.5">Quitar</button>
+                  : <button onClick={() => connect(p.id)} className="text-xs font-bold bg-white text-gray-900 rounded-lg px-2.5">Conectar</button>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 export default PartnerDashboardPage;
