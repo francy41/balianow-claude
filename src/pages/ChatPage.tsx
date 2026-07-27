@@ -347,7 +347,7 @@ const ChatWindow: React.FC<{
 };
 
 // ── SUPPORT THREAD (lado usuario) — persiste en support_messages, lo lee el superadmin ──
-const SupportThread: React.FC<{
+export const SupportThread: React.FC<{
   user: NonNullable<ReturnType<typeof useAuthStore.getState>['user']>;
   onBack: () => void;
 }> = ({ user, onBack }) => {

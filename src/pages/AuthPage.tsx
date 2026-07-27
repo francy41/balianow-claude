@@ -25,11 +25,12 @@ const ROLES: { id: UserRole; label: string; icon: string; desc: string; badge?: 
   { id: 'venue',     label: 'Venue / Local',       icon: '🏛️', desc: 'Gestiona tu espacio y eventos' },
   { id: 'instructor',label: 'Profesor/a',          icon: '🎓', desc: 'Da clases online y workshops' },
   { id: 'business',  label: 'Vendedor / Empresa',  icon: '🏪', desc: 'Vende servicios, cursos y productos latinos', badge: 'NUEVO' },
+  { id: 'partner',   label: 'Partner de ciudad',   icon: '🌎', desc: 'Representa BailaNow en tu ciudad y gana comisiones', badge: 'PARTNER' },
 ];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PASSWORD_RE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
-const ALLOWED_ROLES: UserRole[] = ['user', 'dj', 'dancer', 'artist', 'venue', 'instructor', 'business', 'promoter'];
+const ALLOWED_ROLES: UserRole[] = ['user', 'dj', 'dancer', 'artist', 'venue', 'instructor', 'business', 'promoter', 'partner'];
 
 const CITIES = [
   'Madrid', 'Barcelona', 'Valencia', 'Sevilla', 'Bilbao', 'Málaga',
@@ -170,6 +171,8 @@ const AuthPage: React.FC = () => {
       const { user: loggedUser } = useAuthStore.getState();
       if (loggedUser?.role === 'admin' || loggedUser?.role === 'superadmin') {
         navigate('/admin');
+      } else if (loggedUser?.role === 'partner') {
+        navigate('/partner');
       } else {
         goAfterLogin();
       }
@@ -216,17 +219,21 @@ const AuthPage: React.FC = () => {
       return;
     }
 
-    const supa = await supabaseRegister(email, regPassword, { name, role: selectedRole, city: regCity.trim() || 'Madrid' });
+    // Partner es un alta con aprobación: se registra como usuario normal y va a la solicitud.
+    const partnerFlow = selectedRole === 'partner';
+    const registerRole: UserRole = partnerFlow ? 'user' : selectedRole;
+
+    const supa = await supabaseRegister(email, regPassword, { name, role: registerRole, city: regCity.trim() || 'Madrid' });
     if (supa.success) {
       if (supa.hasSession) {
         // Autoconfirm ON: el usuario ya tiene sesión → entrar directo
         addToast({ message: `¡Bienvenido/a ${name}! Cuenta creada 🎉`, type: 'success' });
-        goAfterLogin();
+        if (partnerFlow) navigate('/partner/aplicar'); else goAfterLogin();
       } else if (supa.needsVerification) {
         setPendingEmail(email);
         setView('verify');
       } else {
-        addToast({ message: '¡Cuenta creada! Ya puedes iniciar sesión.', type: 'success' });
+        addToast({ message: partnerFlow ? '¡Cuenta creada! Entra para completar tu solicitud de partner.' : '¡Cuenta creada! Ya puedes iniciar sesión.', type: 'success' });
         setView('login');
       }
       return;

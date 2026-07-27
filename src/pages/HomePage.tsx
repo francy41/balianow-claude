@@ -1430,6 +1430,30 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* ── CTA PARTNER — ¿Quieres ser partner de tu ciudad? ── */}
+      <section className="mx-3 sm:mx-4 mt-4">
+        <button onClick={() => navigate('/partner/aplicar')}
+          className="relative w-full overflow-hidden rounded-3xl p-5 sm:p-7 text-left text-white bg-gradient-to-br from-orange-500 via-fuchsia-600 to-purple-700 active:scale-[0.99] transition-transform">
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/15 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-12 -left-12 w-44 h-44 bg-black/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative flex items-center justify-between gap-4">
+            <div>
+              <span className="inline-block text-[10px] font-black uppercase tracking-widest bg-white/20 rounded-full px-2.5 py-1">Programa Partner</span>
+              <h2 className="font-display font-black text-xl sm:text-3xl mt-2 leading-tight max-w-lg">
+                ¿Quieres ser partner de BailaNow en tu ciudad?
+              </h2>
+              <p className="text-white/85 text-sm mt-1.5 max-w-md">
+                Gestiona los eventos de tu zona, crea contenido y gana comisiones por cada gestión. Con soporte directo de la central.
+              </p>
+              <span className="inline-flex items-center gap-1.5 mt-3 bg-white text-gray-900 font-bold rounded-xl px-4 py-2 text-sm">
+                Quiero ser partner →
+              </span>
+            </div>
+            <div className="hidden sm:block text-6xl flex-shrink-0">🌎</div>
+          </div>
+        </button>
+      </section>
+
       {/* ── DANCEFLOW — Academia IA (debajo de Patrocinadores) ── */}
       <DanceFlowPromo />
 
