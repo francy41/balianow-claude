@@ -1,16 +1,17 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import {
-  Loader2, Check, X, Globe, Users, Video, DollarSign, MapPin, Save, Ban, RotateCcw,
+  Loader2, Check, X, Globe, Users, Video, DollarSign, MapPin, Save, Ban, RotateCcw, Shield,
 } from 'lucide-react';
 
-type Tab = 'solicitudes' | 'partners' | 'contenido' | 'retiros';
+type Tab = 'solicitudes' | 'partners' | 'contenido' | 'retiros' | 'politicas';
 
 interface AppRow { id: string; user_id: string; name: string | null; email: string | null; phone: string | null; city: string; is_content_creator: boolean; can_edit_video: boolean; portfolio_url: string | null; motivation: string | null; status: string; created_at: string; }
 interface PartnerRow { user_id: string; display_name: string | null; cities: string[]; commission_percent: number; status: string; }
 interface TaskRow { partner_id: string; status: string; commission: number; }
 interface WithdrawalRow { id: string; partner_id: string; method: string | null; amount: number; status: string; requested_at: string; }
 interface ContentRow { id: string; partner_id: string; city: string | null; title: string; video_url: string | null; needs_editing: boolean; status: string; created_at: string; }
+interface PolicyRow { max_rrpp_percent: number; max_promoter_percent: number; default_rrpp_percent: number; default_promoter_percent: number; }
 
 const eur = (n: number) => `€${(Number(n) || 0).toFixed(2)}`;
 const nowIso = () => new Date().toISOString();
@@ -23,25 +24,35 @@ const PartnerAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToas
   const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [withdrawals, setWithdrawals] = useState<WithdrawalRow[]>([]);
   const [content, setContent] = useState<ContentRow[]>([]);
+  const [policy, setPolicy] = useState<PolicyRow | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     const safety = setTimeout(() => setLoading(false), 8000);
-    const [a, p, t, w, c] = await Promise.all([
+    const [a, p, t, w, c, pol] = await Promise.all([
       supabase.from('partner_applications').select('*').order('created_at', { ascending: false }),
       supabase.from('partners').select('*').order('created_at', { ascending: false }),
       supabase.from('partner_tasks').select('partner_id,status,commission'),
       supabase.from('partner_withdrawals').select('*').order('requested_at', { ascending: false }),
       supabase.from('partner_content').select('*').order('created_at', { ascending: false }),
+      supabase.from('partner_rep_policies').select('*').eq('id', 1).maybeSingle(),
     ]);
     setApps((a.data as AppRow[]) || []);
     setPartners((p.data as PartnerRow[]) || []);
     setTasks((t.data as TaskRow[]) || []);
     setWithdrawals((w.data as WithdrawalRow[]) || []);
     setContent((c.data as ContentRow[]) || []);
+    setPolicy((pol.data as PolicyRow) || null);
     clearTimeout(safety);
     setLoading(false);
   }, []);
+
+  const savePolicy = async (patch: Partial<PolicyRow>) => {
+    const { error } = await supabase.from('partner_rep_policies').update({ ...patch, updated_at: nowIso() }).eq('id', 1);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: 'Política actualizada', type: 'success' });
+    load();
+  };
 
   useEffect(() => { load(); }, [load]);
 
@@ -103,6 +114,7 @@ const PartnerAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToas
     { id: 'partners',    label: 'Partners',    icon: <Users className="w-4 h-4" />, count: partners.length },
     { id: 'contenido',   label: 'Contenido central', icon: <Video className="w-4 h-4" />, count: editQueue.length },
     { id: 'retiros',     label: 'Retiros',     icon: <DollarSign className="w-4 h-4" />, count: pendingWithdrawals.length },
+    { id: 'politicas',   label: 'Políticas RRPP', icon: <Shield className="w-4 h-4" /> },
   ];
 
   if (loading) return <div className="py-24 flex justify-center"><Loader2 className="w-7 h-7 animate-spin text-brand-orange" /></div>;
@@ -189,6 +201,9 @@ const PartnerAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToas
         )
       )}
 
+      {/* POLÍTICAS RRPP */}
+      {tab === 'politicas' && <PolicyEditor policy={policy} onSave={savePolicy} />}
+
       {/* RETIROS */}
       {tab === 'retiros' && (
         withdrawals.length === 0 ? <Empty text="No hay retiros solicitados." /> : (
@@ -248,6 +263,53 @@ const PartnerCard: React.FC<{ p: PartnerRow; earned: number; onSave: (p: Partner
         <button
           onClick={() => onSave(p, { commission_percent: parseFloat(commission) || 0, cities: cities.split(',').map(c => c.trim()).filter(Boolean) })}
           className="inline-flex items-center gap-1 text-sm font-bold bg-brand-orange text-white rounded-lg px-4 py-2"><Save className="w-4 h-4" /> Guardar</button>
+      </div>
+    </div>
+  );
+};
+
+const PolicyEditor: React.FC<{ policy: PolicyRow | null; onSave: (patch: Partial<PolicyRow>) => void }> = ({ policy, onSave }) => {
+  const [maxR, setMaxR] = useState(String(policy?.max_rrpp_percent ?? 20));
+  const [maxP, setMaxP] = useState(String(policy?.max_promoter_percent ?? 15));
+  const [defR, setDefR] = useState(String(policy?.default_rrpp_percent ?? 10));
+  const [defP, setDefP] = useState(String(policy?.default_promoter_percent ?? 8));
+
+  const field = (label: string, value: string, set: (v: string) => void) => (
+    <div>
+      <label className="text-xs font-bold text-gray-500">{label}</label>
+      <div className="flex items-center mt-1">
+        <input value={value} onChange={e => set(e.target.value)} type="number" className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm" />
+        <span className="ml-2 text-gray-400">%</span>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="max-w-xl">
+      <div className="rounded-2xl bg-brand-orange/5 border border-brand-orange/20 p-4 mb-4">
+        <p className="text-sm text-gray-700 dark:text-gray-200">Estos topes limitan la comisión que un partner puede asignar a sus RRPP y promotores. El sistema recorta automáticamente cualquier valor que los supere (se aplica también en base de datos).</p>
+      </div>
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800/50 space-y-4">
+        <div>
+          <p className="font-bold text-gray-900 dark:text-white mb-2">RRPP</p>
+          <div className="grid grid-cols-2 gap-3">
+            {field('Comisión máxima', maxR, setMaxR)}
+            {field('Comisión por defecto', defR, setDefR)}
+          </div>
+        </div>
+        <div>
+          <p className="font-bold text-gray-900 dark:text-white mb-2">Promotores</p>
+          <div className="grid grid-cols-2 gap-3">
+            {field('Comisión máxima', maxP, setMaxP)}
+            {field('Comisión por defecto', defP, setDefP)}
+          </div>
+        </div>
+        <button
+          onClick={() => onSave({
+            max_rrpp_percent: parseFloat(maxR) || 0, max_promoter_percent: parseFloat(maxP) || 0,
+            default_rrpp_percent: parseFloat(defR) || 0, default_promoter_percent: parseFloat(defP) || 0,
+          })}
+          className="inline-flex items-center gap-1.5 text-sm font-bold bg-brand-orange text-white rounded-lg px-4 py-2"><Save className="w-4 h-4" /> Guardar política</button>
       </div>
     </div>
   );
