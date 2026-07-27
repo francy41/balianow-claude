@@ -173,8 +173,8 @@ const NewsletterAdminPanel: React.FC = () => {
           <p>{items.length === 0 ? 'Aún no hay suscriptores' : 'No hay suscriptores que coincidan'}</p>
         </div>
       ) : (
-        <div className="card-white overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="card-white overflow-x-auto">
+          <table className="w-full text-sm min-w-[600px]">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="text-left p-3 font-bold text-gray-600">Email</th>

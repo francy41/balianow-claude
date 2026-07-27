@@ -12,7 +12,7 @@ import { SUBSCRIPTION_PLANS } from '../data/mockData';
 import { AD_PLANS } from '../data/adPlans';
 import { SupportThread } from './ChatPage';
 
-type Tab = 'resumen' | 'bandeja' | 'ganancias' | 'gestiones' | 'equipo' | 'contenido' | 'recursos' | 'pagos' | 'planes' | 'soporte';
+type Tab = 'resumen' | 'bandeja' | 'ganancias' | 'gestiones' | 'equipo' | 'contenido' | 'recursos' | 'redes' | 'pagos' | 'planes' | 'soporte';
 
 interface PartnerRow { user_id: string; display_name: string | null; cities: string[]; commission_percent: number; status: string; bio: string | null; }
 interface TaskRow { id: string; city: string | null; title: string; type: string; status: string; amount: number; commission: number; notes: string | null; due_date: string | null; created_at: string; completed_at: string | null; rep_id: string | null; }
@@ -36,6 +36,7 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'equipo',    label: 'Equipo (RRPP)',  icon: <UsersRound className="w-4 h-4" /> },
   { id: 'contenido', label: 'Contenido',      icon: <Video className="w-4 h-4" /> },
   { id: 'recursos',  label: 'Recursos',       icon: <FolderOpen className="w-4 h-4" /> },
+  { id: 'redes',     label: 'Mis redes',      icon: <Instagram className="w-4 h-4" /> },
   { id: 'pagos',     label: 'Pagos y retiros',icon: <CreditCard className="w-4 h-4" /> },
   { id: 'planes',    label: 'Planes y política', icon: <Crown className="w-4 h-4" /> },
   { id: 'soporte',   label: 'Soporte',        icon: <LifeBuoy className="w-4 h-4" /> },
@@ -145,6 +146,7 @@ const PartnerDashboardPage: React.FC = () => {
         {tab === 'gestiones' && <Gestiones uid={uid!} partner={partner} tasks={tasks} openTasks={openTasks} doneTasks={doneTasks} reps={reps} reload={load} addToast={addToast} />}
         {tab === 'equipo'    && <Equipo uid={uid!} partner={partner} reps={reps} tasks={tasks} policy={policy} reload={load} addToast={addToast} />}
         {tab === 'recursos'  && <Recursos resources={resources} />}
+        {tab === 'redes'     && <MisRedes uid={uid!} partner={partner} socials={socials} reload={load} addToast={addToast} />}
         {tab === 'contenido' && <Contenido uid={uid!} partner={partner} content={content} reload={load} addToast={addToast} />}
         {tab === 'pagos'     && <Pagos uid={uid!} available={available} methods={methods} withdrawals={withdrawals} reload={load} addToast={addToast} />}
         {tab === 'planes'    && <Planes navigate={navigate} />}
@@ -803,6 +805,64 @@ const Bandeja: React.FC<{ uid: string; partner: PartnerRow | null; inquiries: In
   );
 };
 
+
+// ── MIS REDES · enlaces públicos del partner (salen en su página de ciudad) ──
+const SOCIAL_PROVIDERS = [
+  { id: 'instagram', label: 'Instagram', icon: <Instagram className="w-4 h-4" />, ph: '@tucuenta' },
+  { id: 'facebook',  label: 'Facebook',  icon: <Facebook className="w-4 h-4" />,  ph: 'tu página' },
+  { id: 'tiktok',    label: 'TikTok',    icon: <Music2 className="w-4 h-4" />,    ph: '@tucuenta' },
+  { id: 'whatsapp',  label: 'WhatsApp',  icon: <MessageCircle className="w-4 h-4" />, ph: '+34...' },
+];
+
+const MisRedes: React.FC<{ uid: string; partner: PartnerRow | null; socials: SocialRow[]; reload: () => Promise<void>; addToast: (t: any) => void }> = ({ uid, partner, socials, reload, addToast }) => {
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const byProvider = (p: string) => socials.find(s => s.provider === p);
+  const city = partner?.cities?.[0];
+
+  const save = async (provider: string) => {
+    const handle = (drafts[provider] ?? byProvider(provider)?.handle ?? '').trim();
+    if (!handle) { addToast({ message: 'Escribe tu usuario o número', type: 'error' }); return; }
+    const { error } = await supabase.from('partner_social_connections')
+      .upsert({ partner_id: uid, provider, handle, connected: true }, { onConflict: 'partner_id,provider' });
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: 'Red guardada ✔️', type: 'success' });
+    reload();
+  };
+  const remove = async (provider: string) => {
+    await supabase.from('partner_social_connections').update({ connected: false, handle: null }).eq('partner_id', uid).eq('provider', provider);
+    reload();
+  };
+
+  return (
+    <div>
+      <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 mb-4">
+        <p className="font-bold">Tus redes sociales</p>
+        <p className="text-white/50 text-sm mt-0.5">
+          Aparecen en tu página pública{city ? <> (<span className="text-fuchsia-300">bailanow.com/{city}</span>)</> : ''} para que la gente de tu ciudad te siga y te contacte.
+        </p>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-2.5">
+        {SOCIAL_PROVIDERS.map(p => {
+          const conn = byProvider(p.id);
+          const on = conn?.connected && conn?.handle;
+          return (
+            <div key={p.id} className={`rounded-2xl p-4 ring-1 ${on ? 'bg-emerald-500/10 ring-emerald-500/40' : 'bg-white/5 ring-white/10'}`}>
+              <div className="flex items-center gap-2 font-bold text-sm mb-2">{p.icon} {p.label} {on && <span className="text-[10px] text-emerald-400 ml-auto">VISIBLE</span>}</div>
+              <div className="flex gap-1.5">
+                <input defaultValue={conn?.handle || ''} onChange={e => setDrafts(d => ({ ...d, [p.id]: e.target.value }))} placeholder={p.ph}
+                  className="flex-1 min-w-0 rounded-lg bg-black/30 ring-1 ring-white/15 px-3 py-2 text-sm outline-none focus:ring-fuchsia-500" />
+                {on
+                  ? <button onClick={() => remove(p.id)} className="text-xs font-bold bg-white/10 rounded-lg px-3">Quitar</button>
+                  : <button onClick={() => save(p.id)} className="text-xs font-bold bg-white text-gray-900 rounded-lg px-3">Guardar</button>}
+                {on && <button onClick={() => save(p.id)} className="text-xs font-bold bg-white text-gray-900 rounded-lg px-3">Actualizar</button>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
 
 // ── RECURSOS · biblioteca de la central por categorías ──
 export const RESOURCE_CATEGORIES: { id: string; label: string; emoji: string }[] = [
