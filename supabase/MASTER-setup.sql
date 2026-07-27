@@ -14,7 +14,7 @@
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 1/9 · COMUNIDAD + TV + is_admin() + DEMO                            ║
+-- ║ BLOQUE 1/10 · COMUNIDAD + TV + is_admin() + DEMO                            ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · SETUP COMPLETO de módulos nuevos + datos demo.
 -- Ejecutar UNA vez en el SQL Editor de Supabase (o vía Management API).
@@ -346,7 +346,7 @@ on conflict (id) do nothing;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 2/9 · MÓDULO PARTNER POR CIUDADES                                   ║
+-- ║ BLOQUE 2/10 · MÓDULO PARTNER POR CIUDADES                                   ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · MÓDULO PARTNER POR CIUDADES.
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -522,7 +522,7 @@ create policy pc_own on public.partner_content for all
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 3/9 · BANDEJA UNIFICADA + ENLACE DE CIUDAD + REDES                  ║
+-- ║ BLOQUE 3/10 · BANDEJA UNIFICADA + ENLACE DE CIUDAD + REDES                  ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · BANDEJA UNIFICADA del Partner + enlace de ciudad + redes sociales.
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -646,7 +646,7 @@ grant execute on function public.city_partner(text) to anon, authenticated;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 4/9 · EQUIPO RRPP/PROMOTORES + POLÍTICA DE COMISIONES               ║
+-- ║ BLOQUE 4/10 · EQUIPO RRPP/PROMOTORES + POLÍTICA DE COMISIONES               ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · EQUIPO del Partner: RRPP y Promotores por ciudad.
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -745,7 +745,7 @@ create index if not exists partner_tasks_rep_idx on public.partner_tasks (rep_id
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 5/9 · ENRUTADO DE REDES SOCIALES (para las Edge Functions)          ║
+-- ║ BLOQUE 5/10 · ENRUTADO DE REDES SOCIALES (para las Edge Functions)          ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · Enrutado de redes sociales para la bandeja del partner.
 -- Ejecutar UNA vez (después de partner-inbox.sql). 100% idempotente.
@@ -781,7 +781,7 @@ create policy pst_admin on public.partner_social_tokens for all
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 6/9 · CONECTOR GHL (GoHighLevel) — ghl_location_id en partners       ║
+-- ║ BLOQUE 6/10 · CONECTOR GHL (GoHighLevel) — ghl_location_id en partners       ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · Conector GHL (GoHighLevel) para la bandeja del partner.
 -- Ejecutar UNA vez (después de partner-inbox.sql). 100% idempotente.
@@ -795,7 +795,7 @@ create index if not exists partners_ghl_location_idx on public.partners (ghl_loc
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 7/9 · RECURSOS PARA PARTNERS (biblioteca por categorías)             ║
+-- ║ BLOQUE 7/10 · RECURSOS PARA PARTNERS (biblioteca por categorías)             ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · RECURSOS para partners (biblioteca por categorías).
 -- Ejecutar UNA vez (después de partner-module.sql). 100% idempotente.
@@ -835,7 +835,7 @@ create policy pres_admin on public.partner_resources for all
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 8/9 · NOTIFICACIONES EN TIEMPO REAL (ventas, consultas, retiros)     ║
+-- ║ BLOQUE 8/10 · NOTIFICACIONES EN TIEMPO REAL (ventas, consultas, retiros)     ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · Notificaciones en TIEMPO REAL para dashboards (creadores, vendedores, partners).
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -943,7 +943,7 @@ end $$;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 9/9 · ANUNCIOS EN VÍDEO (pre-roll estilo RTVE)                       ║
+-- ║ BLOQUE 9/10 · ANUNCIOS EN VÍDEO (pre-roll estilo RTVE)                       ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · ANUNCIOS EN VÍDEO (pre-roll estilo RTVE).
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -1007,3 +1007,46 @@ values (
   'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
   null, 'https://bailanow.com/promocionate', 5, '{all}', false)
 on conflict (id) do nothing;
+
+
+-- ╔══════════════════════════════════════════════════════════════════════════╗
+-- ║ BLOQUE 10/10 · DONACIONES (registro + total recaudado)                      ║
+-- ╚══════════════════════════════════════════════════════════════════════════╝
+-- BailaNow · DONACIONES (registro + total recaudado).
+-- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
+-- Las donaciones se registran vía el webhook de Stripe (checkout.session.completed
+-- con metadata.type='donation'), que usa service_role y salta RLS.
+
+create or replace function public.is_admin()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.profiles where id = auth.uid() and role in ('admin','superadmin'));
+$$;
+
+create table if not exists public.donations (
+  id uuid primary key default gen_random_uuid(),
+  stripe_session_id text unique,
+  amount numeric(10,2) not null default 0,
+  currency text not null default 'eur',
+  email text,
+  message text,
+  status text not null default 'completed',
+  created_at timestamptz not null default now()
+);
+create index if not exists donations_created_idx on public.donations (created_at desc);
+
+alter table public.donations enable row level security;
+-- Solo admin/superadmin lee las donaciones (el webhook escribe con service_role).
+drop policy if exists donations_admin on public.donations;
+create policy donations_admin on public.donations for select using (public.is_admin());
+
+-- Resumen (total recaudado + nº) para el panel, sin exponer filas.
+create or replace function public.get_donations_summary()
+returns json language sql stable security definer set search_path = public as $$
+  select json_build_object(
+    'total', coalesce(sum(amount), 0),
+    'count', count(*),
+    'this_month', coalesce(sum(amount) filter (where created_at >= date_trunc('month', now())), 0)
+  )
+  from public.donations where status = 'completed';
+$$;
+grant execute on function public.get_donations_summary() to authenticated;

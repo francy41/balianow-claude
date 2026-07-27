@@ -24,6 +24,7 @@ import ClaimsAdminSection from '../components/ClaimsAdminSection';
 import SupportAdminSection from '../components/SupportAdminSection';
 import PartnerAdminSection from '../components/PartnerAdminSection';
 import VideoAdsAdminSection from '../components/VideoAdsAdminSection';
+import DonationsAdminSection from '../components/DonationsAdminSection';
 import { uploadImage, uploadVideo } from '../lib/uploadHelper';
 import { fetchCommissionPercent, getCachedCommissionPercent, setCommissionPercent } from '../lib/commission';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
@@ -37,7 +38,7 @@ type AdminSection =
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms'
   | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter' | 'danceavatares' | 'afiliados' | 'promocionate'
   | 'reclamaciones' | 'planificador' | 'soporte'
-  | 'tv' | 'rutas' | 'parejas' | 'retos' | 'partner' | 'publicidad';
+  | 'tv' | 'rutas' | 'parejas' | 'retos' | 'partner' | 'publicidad' | 'donaciones';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -69,6 +70,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'retos',          label: 'Retos de baile',          icon: <Trophy className="w-4 h-4" />, badge: 'NEW' },
   { id: 'partner',        label: 'Partners de ciudad',      icon: <Globe className="w-4 h-4" />, badge: 'NEW' },
   { id: 'publicidad',     label: 'Publicidad (Vídeo)',      icon: <TrendingUp className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'donaciones',     label: 'Donaciones',              icon: <Heart className="w-4 h-4" />, badge: 'NEW' },
   { id: 'creators',       label: 'Dashboards Creators',     icon: <LayoutDashboard className="w-4 h-4" /> },
   { id: 'retiros',        label: 'Retiros pendientes',      icon: <DollarSign className="w-4 h-4" />, badge: 'esc.' },
   { id: 'diseno',         label: 'Diseño Web',              icon: <Palette className="w-4 h-4" /> },
@@ -291,6 +293,7 @@ const AdminPage: React.FC = () => {
         {active === 'retos'          && <RetosAdminSection addToast={addToast} />}
         {active === 'partner'        && <PartnerAdminSection addToast={addToast} />}
         {active === 'publicidad'     && <VideoAdsAdminSection addToast={addToast} />}
+        {active === 'donaciones'     && <DonationsAdminSection />}
         {active === 'cms'            && <AdminCMS />}
         {active === 'diseno'         && <DisenoSection addToast={addToast} />}
         {active === 'configuracion'  && <ConfiguracionSection addToast={addToast} />}
