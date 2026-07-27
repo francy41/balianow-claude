@@ -708,10 +708,21 @@ const Bandeja: React.FC<{ uid: string; partner: PartnerRow | null; inquiries: In
     const text = reply.trim();
     const { error } = await supabase.from('partner_inquiry_messages').insert({ inquiry_id: open.id, from_partner: true, text });
     if (!error) await supabase.from('partner_inquiries').update({ status: 'answered', last_activity_at: new Date().toISOString() }).eq('id', open.id);
+
+    // Si el mensaje llegó por una red social, intentamos entregarlo por esa red (best-effort).
+    let deliveryNote = '';
+    if (!error && open.channel !== 'web') {
+      try {
+        const { data, error: fnErr } = await supabase.functions.invoke('social-send', { body: { inquiry_id: open.id, text } });
+        if (fnErr || (data && data.delivered === false)) deliveryNote = `Respuesta guardada. Para entregarla en ${open.channel} conecta la integración de esa red.`;
+      } catch { deliveryNote = `Respuesta guardada (envío a ${open.channel} pendiente de configurar).`; }
+    }
+
     setSending(false);
     if (error) { addToast({ message: error.message, type: 'error' }); return; }
     setReply('');
     setThread(t => [...t, { id: Math.random().toString(), from_partner: true, text, created_at: new Date().toISOString() }]);
+    if (deliveryNote) addToast({ message: deliveryNote, type: 'info' });
     reload();
   };
 
