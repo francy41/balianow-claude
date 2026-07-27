@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapPin, Video, Scissors, CheckCircle2, Sparkles, Send, Loader2, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
+import { useSeo } from '../hooks/useSeo';
 
 const REQUISITOS = [
   { icon: <Video className="w-5 h-5" />, title: 'Creador de contenido', text: 'Grabas vídeos y fotos de los eventos y la escena de tu ciudad.' },
@@ -14,6 +15,12 @@ const PartnerApplyPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
+
+  useSeo({
+    title: '¿Quieres ser partner de BailaNow en tu ciudad?',
+    description: 'Únete al programa Partner de BailaNow: gestiona los eventos de tu ciudad, crea contenido y gana comisiones por cada gestión. Con soporte directo de la central.',
+    path: '/partner/aplicar',
+  });
 
   const [city, setCity] = useState('');
   const [phone, setPhone] = useState('');

@@ -45,6 +45,40 @@
     <meta name="twitter:description" content="Contrata DJs, artistas y bailarines. Eventos, venues y marketplace latino." />
     <meta name="twitter:image" content="https://bailanow.com/og-default.svg" />
 
+    <!-- Google Search Console: pega tu meta de verificación aquí para indexar el sitio -->
+    <!-- <meta name="google-site-verification" content="TU_TOKEN_DE_SEARCH_CONSOLE" /> -->
+
+    <!-- Datos estructurados (JSON-LD) para Google -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "BailaNow",
+      "url": "https://bailanow.com",
+      "logo": "https://bailanow.com/icon-512.png",
+      "description": "BailaNow: ecosistema de danza latina. DJs, artistas y bailarines, eventos, venues, clases, marketplace y directos.",
+      "sameAs": [
+        "https://instagram.com/bailanow",
+        "https://facebook.com/bailanow",
+        "https://tiktok.com/@bailanow"
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "BailaNow",
+      "url": "https://bailanow.com",
+      "inLanguage": "es-ES",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": { "@type": "EntryPoint", "urlTemplate": "https://bailanow.com/cerca?q={search_term_string}" },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
     <!-- Preconnect / fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

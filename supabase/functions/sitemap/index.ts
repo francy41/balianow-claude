@@ -11,6 +11,7 @@ const BASE = 'https://bailanow.com';
 const STATIC_URLS = [
   '', '/cerca', '/clases', '/eventos', '/artistas', '/venues',
   '/marketplace', '/live', '/mapa', '/promocionate', '/vendedores',
+  '/tv', '/rutas', '/comunidad', '/partner/aplicar',
   '/legal/terminos', '/legal/privacidad', '/legal/cookies',
 ];
 
@@ -53,6 +54,18 @@ Deno.serve(async () => {
   (await sbGet('venues?select=id,updated_at&limit=5000')).forEach((v: any) => urls.push({
     loc: `${BASE}/venues/${v.id}`, lastmod: v.updated_at, priority: 0.7, changefreq: 'monthly',
   }));
+
+  // Páginas públicas de ciudad de cada partner activo (bailanow.com/Madrid)
+  const seenCities = new Set<string>();
+  (await sbGet("partners?select=cities&status=eq.active&limit=1000")).forEach((p: any) => {
+    (p.cities || []).forEach((c: string) => {
+      const city = (c || '').trim();
+      if (city && !seenCities.has(city.toLowerCase())) {
+        seenCities.add(city.toLowerCase());
+        urls.push({ loc: `${BASE}/${encodeURIComponent(city)}`, priority: 0.8, changefreq: 'weekly' });
+      }
+    });
+  });
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

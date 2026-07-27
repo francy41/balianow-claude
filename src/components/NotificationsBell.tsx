@@ -2,13 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Bell, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useUIStore } from '../store/appStore';
 
 type Notif = { id: string; type: string; title: string; body: string | null; link: string | null; read: boolean; created_at: string };
 
-const ICON: Record<string, string> = { payment: '💸', refund: '↩️', booking: '📅', info: '🔔' };
+const ICON: Record<string, string> = { payment: '💸', sale: '💸', refund: '↩️', booking: '📅', consulta: '💬', withdrawal: '🏦', info: '🔔' };
 
 const NotificationsBell: React.FC = () => {
   const navigate = useNavigate();
+  const { addToast } = useUIStore();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<Notif[]>([]);
   const ref = useRef<HTMLDivElement>(null);
@@ -23,9 +25,27 @@ const NotificationsBell: React.FC = () => {
   };
 
   useEffect(() => {
-    load();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const uid = session.user.id;
+      await load();
+      // Tiempo real: las notificaciones nuevas aparecen al instante + aviso.
+      channel = supabase
+        .channel(`notif-${uid}`)
+        .on('postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${uid}` },
+          (payload) => {
+            const n = payload.new as Notif;
+            setItems(xs => xs.some(x => x.id === n.id) ? xs : [n, ...xs]);
+            addToast({ message: `🔔 ${n.title}`, type: 'info' });
+          })
+        .subscribe();
+    })();
+    // Fallback por si el socket se cae
     const t = setInterval(load, 60_000);
-    return () => clearInterval(t);
+    return () => { clearInterval(t); if (channel) supabase.removeChannel(channel); };
   }, []);
 
   // Cerrar al hacer clic fuera
