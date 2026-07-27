@@ -47,6 +47,7 @@ const ParejasPage       = lazy(() => import('./pages/ParejasPage'));
 const RetosPage         = lazy(() => import('./pages/RetosPage'));
 const PartnerApplyPage     = lazy(() => import('./pages/PartnerApplyPage'));
 const PartnerDashboardPage = lazy(() => import('./pages/PartnerDashboardPage'));
+const CityPartnerPage      = lazy(() => import('./pages/CityPartnerPage'));
 const DanceFlowPage     = lazy(() => import('./pages/DanceFlowPage'));
 const DanceCameraPage   = lazy(() => import('./pages/DanceCameraPage'));
 const ChoreographyPage  = lazy(() => import('./pages/ChoreographyPage'));
@@ -208,6 +209,11 @@ const App: React.FC = () => {
                   <Route path="/terminos"            element={<Navigate to="/legal/terminos" replace />} />
                   <Route path="/privacidad"          element={<Navigate to="/legal/privacidad" replace />} />
                   <Route path="/cookies"             element={<Navigate to="/legal/cookies" replace />} />
+
+                  {/* ── Enlace de ciudad del partner (bailanow.com/Madrid) ── */}
+                  {/* Debe ir al final: solo captura segmentos que ninguna ruta anterior reclamó */}
+                  <Route path="/ciudad/:city"        element={<CityPartnerPage />} />
+                  <Route path="/:city"               element={<CityPartnerPage />} />
 
                   {/* ── 404 ── */}
                   <Route path="*"                    element={<NotFoundPage />} />
