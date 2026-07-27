@@ -10,6 +10,7 @@ import DarkModeToggle from './components/DarkModeToggle';
 import GhlChatWidget from './components/GhlChatWidget';
 import RouteErrorBoundary from './components/RouteErrorBoundary';
 import RouteAnalytics from './components/RouteAnalytics';
+import StreamingAds from './components/StreamingAds';
 import { ToastContainer, FullPageLoader } from './components/ui';
 import { useSupabaseAuthListener } from './hooks/useSupabaseAuth';
 import { useSiteConfigLoader } from './hooks/useSiteConfig';
@@ -134,6 +135,7 @@ const App: React.FC = () => {
   return (
     <BrowserRouter>
       <RouteAnalytics />
+      <StreamingAds />
       <ErrorBoundary>
         <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] transition-colors duration-300" style={{ overflowX: 'clip' }}>
           {/* Sidebar — fixed left, hidden on mobile until toggled */}
