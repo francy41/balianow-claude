@@ -101,6 +101,19 @@ serve(async (req) => {
     // ── SUSCRIPCIONES ──────────────────────────────────────────
     case 'checkout.session.completed': {
       const s = event.data.object as Stripe.Checkout.Session;
+      // Donaciones (pago único) → registrar recaudación
+      if (s.metadata?.type === 'donation') {
+        await supabase.from('donations').upsert({
+          stripe_session_id: s.id,
+          amount: (s.amount_total ?? 0) / 100,
+          currency: s.currency ?? 'eur',
+          email: s.customer_details?.email ?? null,
+          message: (s.metadata?.message as string) || null,
+          status: 'completed',
+        }, { onConflict: 'stripe_session_id' });
+        console.log('✅ Donación registrada');
+        break;
+      }
       if (s.mode !== 'subscription') break;
       const rowId = s.client_reference_id || s.metadata?.subscriptionRowId;
       if (!rowId) break;
