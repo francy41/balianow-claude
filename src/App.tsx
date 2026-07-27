@@ -9,6 +9,7 @@ import GlobalSearch from './components/GlobalSearch';
 import DarkModeToggle from './components/DarkModeToggle';
 import GhlChatWidget from './components/GhlChatWidget';
 import RouteErrorBoundary from './components/RouteErrorBoundary';
+import RouteAnalytics from './components/RouteAnalytics';
 import { ToastContainer, FullPageLoader } from './components/ui';
 import { useSupabaseAuthListener } from './hooks/useSupabaseAuth';
 import { useSiteConfigLoader } from './hooks/useSiteConfig';
@@ -48,6 +49,7 @@ const RetosPage         = lazy(() => import('./pages/RetosPage'));
 const PartnerApplyPage     = lazy(() => import('./pages/PartnerApplyPage'));
 const PartnerDashboardPage = lazy(() => import('./pages/PartnerDashboardPage'));
 const CityPartnerPage      = lazy(() => import('./pages/CityPartnerPage'));
+const DanceGuidePage       = lazy(() => import('./pages/DanceGuidePage'));
 const DanceFlowPage     = lazy(() => import('./pages/DanceFlowPage'));
 const DanceCameraPage   = lazy(() => import('./pages/DanceCameraPage'));
 const ChoreographyPage  = lazy(() => import('./pages/ChoreographyPage'));
@@ -131,6 +133,7 @@ const App: React.FC = () => {
 
   return (
     <BrowserRouter>
+      <RouteAnalytics />
       <ErrorBoundary>
         <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] transition-colors duration-300" style={{ overflowX: 'clip' }}>
           {/* Sidebar — fixed left, hidden on mobile until toggled */}
@@ -190,6 +193,8 @@ const App: React.FC = () => {
                   <Route path="/parejas"             element={<ParejasPage />} />
                   <Route path="/retos"               element={<RetosPage />} />
                   <Route path="/partner/aplicar"     element={<PartnerApplyPage />} />
+                  {/* SEO local: "dónde bailar bachata en Madrid" */}
+                  <Route path="/donde-bailar/:style/:city" element={<DanceGuidePage />} />
                   <Route path="/partner"             element={<ProtectedRoute requiredRole="partner"><PartnerDashboardPage /></ProtectedRoute>} />
                   <Route path="/tv"                  element={<TVHomePage />} />
                   <Route path="/tv/estudio"          element={<ProtectedRoute><TVCreatorPage /></ProtectedRoute>} />
