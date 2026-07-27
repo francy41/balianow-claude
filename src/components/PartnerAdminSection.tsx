@@ -1,10 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import {
-  Loader2, Check, X, Globe, Users, Video, DollarSign, MapPin, Save, Ban, RotateCcw, Shield,
+  Loader2, Check, X, Globe, Users, Video, DollarSign, MapPin, Save, Ban, RotateCcw, Shield, FolderOpen, Plus, Trash2, ExternalLink,
 } from 'lucide-react';
 
-type Tab = 'solicitudes' | 'partners' | 'contenido' | 'retiros' | 'politicas';
+type Tab = 'solicitudes' | 'partners' | 'contenido' | 'retiros' | 'politicas' | 'recursos';
+
+const RESOURCE_CATS = [
+  { id: 'plan_trabajo', label: 'Plan de trabajo' },
+  { id: 'politica', label: 'Política' },
+  { id: 'formaciones', label: 'Formaciones' },
+  { id: 'contratos', label: 'Contratos' },
+  { id: 'disenos', label: 'Diseños gráficos' },
+  { id: 'otros', label: 'Otros' },
+];
+const KINDS = [{ id: 'link', label: 'Enlace' }, { id: 'doc', label: 'Documento' }, { id: 'video', label: 'Vídeo' }, { id: 'image', label: 'Imagen' }];
 
 interface AppRow { id: string; user_id: string; name: string | null; email: string | null; phone: string | null; city: string; is_content_creator: boolean; can_edit_video: boolean; portfolio_url: string | null; motivation: string | null; status: string; created_at: string; }
 interface PartnerRow { user_id: string; display_name: string | null; cities: string[]; commission_percent: number; status: string; ghl_location_id?: string | null; }
@@ -12,6 +22,7 @@ interface TaskRow { partner_id: string; status: string; commission: number; }
 interface WithdrawalRow { id: string; partner_id: string; method: string | null; amount: number; status: string; requested_at: string; }
 interface ContentRow { id: string; partner_id: string; city: string | null; title: string; video_url: string | null; needs_editing: boolean; status: string; created_at: string; }
 interface PolicyRow { max_rrpp_percent: number; max_promoter_percent: number; default_rrpp_percent: number; default_promoter_percent: number; }
+interface ResourceRow { id: string; category: string; title: string; description: string | null; url: string | null; kind: string; active: boolean; sort: number; }
 
 const eur = (n: number) => `€${(Number(n) || 0).toFixed(2)}`;
 const nowIso = () => new Date().toISOString();
@@ -25,17 +36,19 @@ const PartnerAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToas
   const [withdrawals, setWithdrawals] = useState<WithdrawalRow[]>([]);
   const [content, setContent] = useState<ContentRow[]>([]);
   const [policy, setPolicy] = useState<PolicyRow | null>(null);
+  const [resources, setResources] = useState<ResourceRow[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
     const safety = setTimeout(() => setLoading(false), 8000);
-    const [a, p, t, w, c, pol] = await Promise.all([
+    const [a, p, t, w, c, pol, res] = await Promise.all([
       supabase.from('partner_applications').select('*').order('created_at', { ascending: false }),
       supabase.from('partners').select('*').order('created_at', { ascending: false }),
       supabase.from('partner_tasks').select('partner_id,status,commission'),
       supabase.from('partner_withdrawals').select('*').order('requested_at', { ascending: false }),
       supabase.from('partner_content').select('*').order('created_at', { ascending: false }),
       supabase.from('partner_rep_policies').select('*').eq('id', 1).maybeSingle(),
+      supabase.from('partner_resources').select('*').order('sort', { ascending: true }),
     ]);
     setApps((a.data as AppRow[]) || []);
     setPartners((p.data as PartnerRow[]) || []);
@@ -43,6 +56,7 @@ const PartnerAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToas
     setWithdrawals((w.data as WithdrawalRow[]) || []);
     setContent((c.data as ContentRow[]) || []);
     setPolicy((pol.data as PolicyRow) || null);
+    setResources((res.data as ResourceRow[]) || []);
     clearTimeout(safety);
     setLoading(false);
   }, []);
@@ -115,6 +129,7 @@ const PartnerAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToas
     { id: 'contenido',   label: 'Contenido central', icon: <Video className="w-4 h-4" />, count: editQueue.length },
     { id: 'retiros',     label: 'Retiros',     icon: <DollarSign className="w-4 h-4" />, count: pendingWithdrawals.length },
     { id: 'politicas',   label: 'Políticas RRPP', icon: <Shield className="w-4 h-4" /> },
+    { id: 'recursos',    label: 'Recursos', icon: <FolderOpen className="w-4 h-4" />, count: resources.length },
   ];
 
   if (loading) return <div className="py-24 flex justify-center"><Loader2 className="w-7 h-7 animate-spin text-brand-orange" /></div>;
@@ -203,6 +218,9 @@ const PartnerAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToas
 
       {/* POLÍTICAS RRPP */}
       {tab === 'politicas' && <PolicyEditor policy={policy} onSave={savePolicy} />}
+
+      {/* RECURSOS */}
+      {tab === 'recursos' && <ResourcesAdmin resources={resources} reload={load} addToast={addToast} />}
 
       {/* RETIROS */}
       {tab === 'retiros' && (
@@ -316,6 +334,69 @@ const PolicyEditor: React.FC<{ policy: PolicyRow | null; onSave: (patch: Partial
           })}
           className="inline-flex items-center gap-1.5 text-sm font-bold bg-brand-orange text-white rounded-lg px-4 py-2"><Save className="w-4 h-4" /> Guardar política</button>
       </div>
+    </div>
+  );
+};
+
+const ResourcesAdmin: React.FC<{ resources: ResourceRow[]; reload: () => Promise<void>; addToast: (t: any) => void }> = ({ resources, reload, addToast }) => {
+  const [category, setCategory] = useState('plan_trabajo');
+  const [kind, setKind] = useState('link');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [url, setUrl] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const add = async () => {
+    if (!title.trim()) { addToast({ message: 'Ponle un título al recurso', type: 'error' }); return; }
+    setSaving(true);
+    const { error } = await supabase.from('partner_resources').insert({
+      category, kind, title: title.trim(), description: description.trim() || null, url: url.trim() || null, active: true,
+    });
+    setSaving(false);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    setTitle(''); setDescription(''); setUrl('');
+    addToast({ message: 'Recurso publicado', type: 'success' });
+    reload();
+  };
+  const toggle = async (r: ResourceRow) => { await supabase.from('partner_resources').update({ active: !r.active }).eq('id', r.id); reload(); };
+  const del = async (r: ResourceRow) => { await supabase.from('partner_resources').delete().eq('id', r.id); reload(); };
+
+  const catLabel = (id: string) => RESOURCE_CATS.find(c => c.id === id)?.label || id;
+
+  return (
+    <div>
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800/50 mb-5 space-y-3">
+        <p className="font-bold text-gray-900 dark:text-white">Publicar recurso para los partners</p>
+        <div className="grid sm:grid-cols-2 gap-2.5">
+          <select value={category} onChange={e => setCategory(e.target.value)} className="rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm">
+            {RESOURCE_CATS.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+          </select>
+          <select value={kind} onChange={e => setKind(e.target.value)} className="rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm">
+            {KINDS.map(k => <option key={k.id} value={k.id}>{k.label}</option>)}
+          </select>
+        </div>
+        <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Título (ej. Plan de trabajo Q3, Contrato tipo, Kit de diseño…)" className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm" />
+        <input value={description} onChange={e => setDescription(e.target.value)} placeholder="Descripción (opcional)" className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm" />
+        <input value={url} onChange={e => setUrl(e.target.value)} placeholder="Enlace (Drive, PDF, Figma, YouTube…)" className="w-full rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm" />
+        <button onClick={add} disabled={saving} className="inline-flex items-center gap-1.5 text-sm font-bold bg-brand-orange text-white rounded-lg px-4 py-2 disabled:opacity-60"><Plus className="w-4 h-4" /> {saving ? 'Publicando…' : 'Publicar recurso'}</button>
+      </div>
+
+      {resources.length === 0 ? <Empty text="Aún no has publicado recursos." /> : (
+        <div className="space-y-2">
+          {resources.map(r => (
+            <div key={r.id} className={`rounded-xl border border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-800/50 flex items-center justify-between gap-3 ${!r.active && 'opacity-50'}`}>
+              <div className="min-w-0">
+                <p className="font-bold text-sm text-gray-900 dark:text-white truncate">{r.title} <span className="text-[10px] font-black text-brand-orange ml-1">{catLabel(r.category)}</span></p>
+                {r.url && <a href={r.url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 inline-flex items-center gap-1">abrir <ExternalLink className="w-3 h-3" /></a>}
+              </div>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                <button onClick={() => toggle(r)} className="text-xs font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg px-2.5 py-1.5">{r.active ? 'Ocultar' : 'Mostrar'}</button>
+                <button onClick={() => del(r)} className="p-1.5 text-gray-400 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
