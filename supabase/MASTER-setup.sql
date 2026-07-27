@@ -14,7 +14,7 @@
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 1/5 · COMUNIDAD + TV + is_admin() + DEMO                            ║
+-- ║ BLOQUE 1/6 · COMUNIDAD + TV + is_admin() + DEMO                            ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · SETUP COMPLETO de módulos nuevos + datos demo.
 -- Ejecutar UNA vez en el SQL Editor de Supabase (o vía Management API).
@@ -346,7 +346,7 @@ on conflict (id) do nothing;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 2/5 · MÓDULO PARTNER POR CIUDADES                                   ║
+-- ║ BLOQUE 2/6 · MÓDULO PARTNER POR CIUDADES                                   ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · MÓDULO PARTNER POR CIUDADES.
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -522,7 +522,7 @@ create policy pc_own on public.partner_content for all
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 3/5 · BANDEJA UNIFICADA + ENLACE DE CIUDAD + REDES                  ║
+-- ║ BLOQUE 3/6 · BANDEJA UNIFICADA + ENLACE DE CIUDAD + REDES                  ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · BANDEJA UNIFICADA del Partner + enlace de ciudad + redes sociales.
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -646,7 +646,7 @@ grant execute on function public.city_partner(text) to anon, authenticated;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 4/5 · EQUIPO RRPP/PROMOTORES + POLÍTICA DE COMISIONES               ║
+-- ║ BLOQUE 4/6 · EQUIPO RRPP/PROMOTORES + POLÍTICA DE COMISIONES               ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · EQUIPO del Partner: RRPP y Promotores por ciudad.
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -745,7 +745,7 @@ create index if not exists partner_tasks_rep_idx on public.partner_tasks (rep_id
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 5/5 · ENRUTADO DE REDES SOCIALES (para las Edge Functions)          ║
+-- ║ BLOQUE 5/6 · ENRUTADO DE REDES SOCIALES (para las Edge Functions)          ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · Enrutado de redes sociales para la bandeja del partner.
 -- Ejecutar UNA vez (después de partner-inbox.sql). 100% idempotente.
@@ -778,3 +778,17 @@ alter table public.partner_social_tokens enable row level security;
 drop policy if exists pst_admin on public.partner_social_tokens;
 create policy pst_admin on public.partner_social_tokens for all
   using (public.is_admin()) with check (public.is_admin());
+
+
+-- ╔══════════════════════════════════════════════════════════════════════════╗
+-- ║ BLOQUE 6/6 · CONECTOR GHL (GoHighLevel) — ghl_location_id en partners       ║
+-- ╚══════════════════════════════════════════════════════════════════════════╝
+-- BailaNow · Conector GHL (GoHighLevel) para la bandeja del partner.
+-- Ejecutar UNA vez (después de partner-inbox.sql). 100% idempotente.
+--
+-- GHL ya trae inbox unificado (IG/FB/WhatsApp/SMS/Email). Solo necesitamos saber
+-- qué "location" de GHL corresponde a cada partner para enrutar los mensajes.
+-- El token de la API de GHL se guarda en partner_social_tokens (provider='ghl').
+
+alter table public.partners add column if not exists ghl_location_id text;
+create index if not exists partners_ghl_location_idx on public.partners (ghl_location_id);
