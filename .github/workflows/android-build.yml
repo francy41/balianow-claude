@@ -1,15 +1,12 @@
 name: Build Android App
 
-# Se puede lanzar manualmente desde la pestaña Actions de GitHub
+# Solo MANUAL por ahora: este build falla en el paso "Descifrar keystore" hasta
+# que se corrija el secreto ANDROID_KEYSTORE_PASSWORD (debe coincidir con la
+# contraseña con la que se cifró android/keystore.enc). Mientras tanto, se lanza
+# a mano desde Actions → "Build Android App" → "Run workflow" para no fallar en
+# cada push. Para reactivar el disparo automático, vuelve a añadir el bloque push.
 on:
   workflow_dispatch:
-  push:
-    branches: [master]
-    paths:
-      - 'src/**'
-      - 'android/**'
-      - 'capacitor.config.ts'
-      - '.github/workflows/android-build.yml'
 
 jobs:
   build:
