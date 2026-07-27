@@ -11,6 +11,7 @@ import GhlChatWidget from './components/GhlChatWidget';
 import RouteErrorBoundary from './components/RouteErrorBoundary';
 import RouteAnalytics from './components/RouteAnalytics';
 import StreamingAds from './components/StreamingAds';
+import DonationButton from './components/DonationButton';
 import { ToastContainer, FullPageLoader } from './components/ui';
 import { useSupabaseAuthListener } from './hooks/useSupabaseAuth';
 import { useSiteConfigLoader } from './hooks/useSiteConfig';
@@ -236,6 +237,7 @@ const App: React.FC = () => {
           <CookieBanner />
           <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
           <DarkModeToggle />
+          <DonationButton />
           <GhlChatWidget />
 
           {/* DevRoleSwitcher — solo en modo desarrollo */}
