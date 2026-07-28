@@ -22,9 +22,9 @@ interface Choreo {
 }
 
 const GRADIENTS = [
-  'from-pink-500 to-fuchsia-600', 'from-cyan-500 to-blue-600', 'from-fuchsia-500 to-purple-600',
-  'from-amber-500 to-orange-600', 'from-rose-400 to-pink-600', 'from-red-500 to-orange-500',
-  'from-green-400 to-emerald-600', 'from-violet-500 to-indigo-600', 'from-yellow-400 to-red-500',
+  'bg-pink-500', 'bg-cyan-500', 'bg-fuchsia-500',
+  'bg-amber-500', 'bg-rose-400', 'bg-red-500',
+  'bg-green-400', 'bg-violet-500', 'bg-yellow-400',
 ];
 
 const DanceChoreoAdmin: React.FC = () => {

@@ -859,7 +859,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                   const list = event.sponsors.filter((s: any) => s.tier === tier);
                   if (list.length === 0) return null;
                   const tierLabel = tier === 'platinum' ? 'Platino' : 'Oro';
-                  const tierColor = tier === 'platinum' ? 'from-purple-100 to-fuchsia-100 border-purple-200' : 'from-yellow-50 to-amber-50 border-yellow-200';
+                  const tierColor = tier === 'platinum' ? 'bg-purple-100 border-purple-200' : 'bg-yellow-50 border-yellow-200';
                   return (
                     <div key={tier}>
                       <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">{tierLabel}</p>

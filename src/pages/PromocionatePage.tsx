@@ -24,14 +24,14 @@ const CATEGORY_TABS = [
 
 // Sub-categorías por plataforma (filtro fino)
 const PLATFORM_TABS = [
-  { id: 'all',       label: 'Todas',    icon: '🌐', color: 'from-pink-500 to-fuchsia-600' },
-  { id: 'TikTok',    label: 'TikTok',   icon: '🎵', color: 'from-pink-500 to-rose-600' },
+  { id: 'all',       label: 'Todas',    icon: '🌐', color: 'bg-pink-500' },
+  { id: 'TikTok',    label: 'TikTok',   icon: '🎵', color: 'bg-pink-500' },
   { id: 'Instagram', label: 'Instagram',icon: '📸', color: 'from-purple-500 via-pink-500 to-orange-400' },
-  { id: 'Facebook',  label: 'Facebook', icon: '📘', color: 'from-blue-600 to-blue-800' },
-  { id: 'YouTube',   label: 'YouTube',  icon: '▶️', color: 'from-red-500 to-red-700' },
-  { id: 'Spotify',   label: 'Spotify',  icon: '🎧', color: 'from-green-500 to-green-700' },
-  { id: 'Twitch',    label: 'Twitch',   icon: '🎮', color: 'from-purple-600 to-violet-800' },
-  { id: 'X',         label: 'X/Twitter',icon: '🐦', color: 'from-gray-700 to-black' },
+  { id: 'Facebook',  label: 'Facebook', icon: '📘', color: 'bg-blue-600' },
+  { id: 'YouTube',   label: 'YouTube',  icon: '▶️', color: 'bg-red-500' },
+  { id: 'Spotify',   label: 'Spotify',  icon: '🎧', color: 'bg-green-500' },
+  { id: 'Twitch',    label: 'Twitch',   icon: '🎮', color: 'bg-purple-600' },
+  { id: 'X',         label: 'X/Twitter',icon: '🐦', color: 'bg-gray-700' },
 ];
 
 const formatFollowers = (n: number) => {

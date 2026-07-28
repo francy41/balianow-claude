@@ -22,7 +22,7 @@ export const AD_PLANS: AdPlan[] = [
     icon: '🚀',
     price: 100,
     period: '/mes',
-    gradient: 'from-green-500 to-emerald-600',
+    gradient: 'bg-green-500',
     tagline: 'Empieza a crecer',
     features: [
       'Perfil/evento destacado en el home',
@@ -37,7 +37,7 @@ export const AD_PLANS: AdPlan[] = [
     icon: '📈',
     price: 200,
     period: '/mes',
-    gradient: 'from-amber-500 to-orange-500',
+    gradient: 'bg-amber-500',
     tagline: 'Más clientes y reservas',
     popular: true,
     features: [
@@ -53,7 +53,7 @@ export const AD_PLANS: AdPlan[] = [
     icon: '💎',
     price: 400,
     period: '/mes',
-    gradient: 'from-red-500 to-rose-600',
+    gradient: 'bg-red-500',
     tagline: 'Máximos ingresos',
     features: [
       'Todo lo de Growth',

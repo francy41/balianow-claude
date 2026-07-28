@@ -1406,7 +1406,7 @@ export const CATEGORIES = [
 export const SUBSCRIPTION_PLANS = [
   {
     id: 'basic', name: 'Básico', price: 9, currency: 'EUR', period: 'mes',
-    color: 'from-purple-600 to-purple-800',
+    color: 'bg-purple-600',
     description: 'Ideal para empezar a crecer',
     features: [
       'Perfil verificado con badge',
@@ -1418,7 +1418,7 @@ export const SUBSCRIPTION_PLANS = [
   },
   {
     id: 'standard', name: 'Estándar', price: 20, currency: 'EUR', period: 'mes',
-    color: 'from-pink-600 to-purple-700',
+    color: 'bg-pink-600',
     description: 'Para artistas activos',
     features: [
       'Todo lo del plan Básico',
@@ -1431,7 +1431,7 @@ export const SUBSCRIPTION_PLANS = [
   },
   {
     id: 'pro', name: 'Pro', price: 50, currency: 'EUR', period: 'mes',
-    color: 'from-yellow-500 to-pink-600',
+    color: 'bg-yellow-500',
     description: 'Para profesionales serios',
     features: [
       'Todo lo del plan Estándar',
@@ -1445,7 +1445,7 @@ export const SUBSCRIPTION_PLANS = [
   },
   {
     id: 'elite', name: 'Elite', price: 150, currency: 'EUR', period: 'mes',
-    color: 'from-yellow-400 to-pink-500',
+    color: 'bg-yellow-400',
     description: 'Presencia total en el ecosistema',
     features: [
       'Todo lo del plan Pro',

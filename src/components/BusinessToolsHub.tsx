@@ -12,13 +12,13 @@ interface Tool {
 }
 
 const TOOLS: Tool[] = [
-  { id: 'qr',       icon: <QrCode className="w-5 h-5" />,        title: 'Código QR',       desc: 'QR a tu perfil, reservas o enlace',        gradient: 'from-fuchsia-500 to-purple-600', action: 'qr' },
-  { id: 'checkin',  icon: <ScanLine className="w-5 h-5" />,      title: 'Check-in en puerta', desc: 'Escanea entradas con la cámara',        gradient: 'from-blue-500 to-indigo-600',    action: 'nav', path: '/dashboard?tab=scanner' },
-  { id: 'mesas',    icon: <Wine className="w-5 h-5" />,          title: 'Mesas VIP',       desc: 'Bottle service y palcos en eventos',       gradient: 'from-amber-500 to-orange-600',   action: 'nav', path: '/eventos' },
-  { id: 'reservas', icon: <CalendarCheck className="w-5 h-5" />, title: 'Reservas con seña', desc: 'Cobra un depósito, resto en el local',   gradient: 'from-pink-500 to-rose-600',      action: 'nav', path: '/eventos' },
-  { id: 'stats',    icon: <BarChart3 className="w-5 h-5" />,     title: 'Estadísticas',    desc: 'Ganancias y métricas del negocio',         gradient: 'from-emerald-500 to-teal-600',   action: 'nav', path: '/dashboard?tab=earnings' },
-  { id: 'master',   icon: <GraduationCap className="w-5 h-5" />, title: 'Masterclass',     desc: 'Entradas premium con profe invitado',      gradient: 'from-violet-500 to-purple-600',  action: 'nav', path: '/eventos?cat=Masterclass' },
-  { id: 'split',    icon: <Users className="w-5 h-5" />,         title: 'Dividir pago',    desc: 'Reparte una mesa entre el grupo',          gradient: 'from-teal-500 to-cyan-600',      action: 'split' },
+  { id: 'qr',       icon: <QrCode className="w-5 h-5" />,        title: 'Código QR',       desc: 'QR a tu perfil, reservas o enlace',        gradient: 'bg-fuchsia-500', action: 'qr' },
+  { id: 'checkin',  icon: <ScanLine className="w-5 h-5" />,      title: 'Check-in en puerta', desc: 'Escanea entradas con la cámara',        gradient: 'bg-blue-500',    action: 'nav', path: '/dashboard?tab=scanner' },
+  { id: 'mesas',    icon: <Wine className="w-5 h-5" />,          title: 'Mesas VIP',       desc: 'Bottle service y palcos en eventos',       gradient: 'bg-amber-500',   action: 'nav', path: '/eventos' },
+  { id: 'reservas', icon: <CalendarCheck className="w-5 h-5" />, title: 'Reservas con seña', desc: 'Cobra un depósito, resto en el local',   gradient: 'bg-pink-500',      action: 'nav', path: '/eventos' },
+  { id: 'stats',    icon: <BarChart3 className="w-5 h-5" />,     title: 'Estadísticas',    desc: 'Ganancias y métricas del negocio',         gradient: 'bg-emerald-500',   action: 'nav', path: '/dashboard?tab=earnings' },
+  { id: 'master',   icon: <GraduationCap className="w-5 h-5" />, title: 'Masterclass',     desc: 'Entradas premium con profe invitado',      gradient: 'bg-violet-500',  action: 'nav', path: '/eventos?cat=Masterclass' },
+  { id: 'split',    icon: <Users className="w-5 h-5" />,         title: 'Dividir pago',    desc: 'Reparte una mesa entre el grupo',          gradient: 'bg-teal-500',      action: 'split' },
 ];
 
 interface BusinessToolsHubProps {

@@ -226,13 +226,13 @@ const VENUE_VIDEOS: Record<string, { url: string; title: string }> = {
 };
 
 const SOCIAL_COLORS: Record<string, string> = {
-  instagram:  'from-purple-500 to-pink-500',
-  youtube:    'from-red-500 to-red-600',
-  facebook:   'from-blue-500 to-blue-700',
-  spotify:    'from-green-500 to-green-600',
-  soundcloud: 'from-pink-500 to-pink-600',
-  tiktok:     'from-gray-900 to-pink-500',
-  twitch:     'from-purple-600 to-purple-800',
+  instagram:  'bg-purple-500',
+  youtube:    'bg-red-500',
+  facebook:   'bg-blue-500',
+  spotify:    'bg-green-500',
+  soundcloud: 'bg-pink-500',
+  tiktok:     'bg-gray-900',
+  twitch:     'bg-purple-600',
 };
 
 const SocialIcon: React.FC<{ kind: string }> = ({ kind }) => {
@@ -479,7 +479,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                     <a key={key}
                       href={`https://${key}.com/${handle}`}
                       target="_blank" rel="noreferrer"
-                      className={`bg-gradient-to-br ${SOCIAL_COLORS[key] || 'from-gray-400 to-gray-600'} text-white aspect-square rounded-xl flex flex-col items-center justify-center gap-0.5 hover:scale-105 transition-transform p-2`}>
+                      className={`bg-gradient-to-br ${SOCIAL_COLORS[key] || 'bg-gray-400'} text-white aspect-square rounded-xl flex flex-col items-center justify-center gap-0.5 hover:scale-105 transition-transform p-2`}>
                       <SocialIcon kind={key} />
                       <span className="text-[9px] font-bold uppercase tracking-wider">{key}</span>
                     </a>
