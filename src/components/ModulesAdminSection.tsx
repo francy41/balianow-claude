@@ -52,17 +52,30 @@ const ModulesAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToas
 
       {/* Catálogo global */}
       <h3 className="font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-1.5"><Tag className="w-4 h-4" /> Catálogo global (a todos)</h3>
-      <div className="space-y-2 mb-8">
-        {catalog.map(m => <CatalogRowEditor key={m.module_id} m={m} onSave={saveRow} />)}
-      </div>
+      {catalog.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 p-5 mb-8 text-sm">
+          <p className="font-bold text-amber-800 dark:text-amber-300">Aún no hay módulos en el catálogo</p>
+          <p className="text-amber-700 dark:text-amber-400 mt-1">
+            Los módulos se guardan en la base de datos para que puedas editar precios y disponibilidad.
+            Para cargarlos, ejecuta <code className="font-mono bg-amber-100 dark:bg-amber-900/40 px-1 rounded">supabase/module-catalog.sql</code> en
+            Supabase → SQL Editor. Aparecerán aquí Reservas, Contratación, Pagos, Cursos, Transmisiones, Perfil PRO y el Pack Full.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2 mb-8">
+          {catalog.map(m => <CatalogRowEditor key={m.module_id} m={m} onSave={saveRow} />)}
+        </div>
+      )}
 
       {/* Excepciones por perfil */}
       <h3 className="font-bold text-gray-900 dark:text-white mb-2">Excepciones por perfil (rol o usuario)</h3>
       <div className="rounded-2xl border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800/50 mb-4">
         <div className="grid sm:grid-cols-5 gap-2 items-end">
           <div><label className="text-[11px] font-bold text-gray-500">Módulo</label>
-            <select value={ov.module_id} onChange={e => setOv(s => ({ ...s, module_id: e.target.value }))} className="w-full mt-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-2 py-2 text-sm">
-              {catalog.map(m => <option key={m.module_id} value={m.module_id}>{m.name}</option>)}
+            <select value={ov.module_id} onChange={e => setOv(s => ({ ...s, module_id: e.target.value }))} disabled={catalog.length === 0} className="w-full mt-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-2 py-2 text-sm disabled:opacity-50">
+              {catalog.length === 0
+                ? <option value="">— Sin módulos (ejecuta el SQL) —</option>
+                : catalog.map(m => <option key={m.module_id} value={m.module_id}>{m.name}</option>)}
             </select></div>
           <div><label className="text-[11px] font-bold text-gray-500">Ámbito</label>
             <select value={ov.scope_type} onChange={e => setOv(s => ({ ...s, scope_type: e.target.value }))} className="w-full mt-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-2 py-2 text-sm">
@@ -80,7 +93,7 @@ const ModulesAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToas
               <option value="true">Activo</option><option value="false">Oculto</option><option value="">Según catálogo</option>
             </select></div>
         </div>
-        <button onClick={addOverride} className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold bg-brand-orange text-white rounded-lg px-4 py-2"><Plus className="w-4 h-4" /> Añadir excepción</button>
+        <button onClick={addOverride} disabled={catalog.length === 0} className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold bg-brand-orange text-white rounded-lg px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"><Plus className="w-4 h-4" /> Añadir excepción</button>
       </div>
       {overrides.length > 0 && (
         <div className="space-y-2">
