@@ -10,14 +10,18 @@
  */
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-export type LangCode = 'es' | 'en' | 'pt' | 'fr' | 'zh' | 'ar' | 'hi' | 'ru';
+export type LangCode = 'es' | 'en' | 'pt' | 'fr' | 'zh' | 'ar' | 'hi' | 'ru' | 'de' | 'it' | 'ja' | 'ko';
 
 export const LANGUAGES: { code: LangCode; name: string; flag: string; rtl?: boolean }[] = [
   { code: 'es', name: 'Español',    flag: '🇪🇸' },
   { code: 'en', name: 'English',    flag: '🇬🇧' },
   { code: 'pt', name: 'Português',  flag: '🇧🇷' },
   { code: 'fr', name: 'Français',   flag: '🇫🇷' },
+  { code: 'it', name: 'Italiano',   flag: '🇮🇹' },
+  { code: 'de', name: 'Deutsch',    flag: '🇩🇪' },
   { code: 'zh', name: '中文',        flag: '🇨🇳' },
+  { code: 'ja', name: '日本語',       flag: '🇯🇵' },
+  { code: 'ko', name: '한국어',       flag: '🇰🇷' },
   { code: 'hi', name: 'हिन्दी',       flag: '🇮🇳' },
   { code: 'ar', name: 'العربية',     flag: '🇸🇦', rtl: true },
   { code: 'ru', name: 'Русский',    flag: '🇷🇺' },
@@ -114,6 +118,10 @@ const STRINGS: Record<LangCode, Dict> = {
     'df.sessions': 'сессий', 'df.viewAll': 'Смотреть все', 'df.live': 'ПРЯМОЙ ЭФИР',
     'rank.title': '🏆 Мировой рейтинг танцев', 'rank.seeAll': 'Полный рейтинг',
   },
+  it: { 'nav.home': 'Home', 'nav.near': 'Vicino', 'nav.events': 'Eventi', 'nav.danceflow': 'Balla con IA' },
+  de: { 'nav.home': 'Start', 'nav.near': 'In der Nähe', 'nav.events': 'Events', 'nav.danceflow': 'Tanz mit KI' },
+  ja: { 'nav.home': 'ホーム', 'nav.near': '近く', 'nav.events': 'イベント', 'nav.danceflow': 'AIとダンス' },
+  ko: { 'nav.home': '홈', 'nav.near': '내 주변', 'nav.events': '이벤트', 'nav.danceflow': 'AI와 춤' },
 };
 
 const STORAGE_KEY = 'bn-lang';

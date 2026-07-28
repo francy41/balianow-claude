@@ -43,7 +43,8 @@ function pick(obj: any, keys: string[]): string {
 serve(async (req) => {
   const url = new URL(req.url);
   if (req.method !== 'POST') return new Response('Method not allowed', { status: 405 });
-  if (SECRET && url.searchParams.get('key') !== SECRET) return new Response('Forbidden', { status: 403 });
+  // fail-closed: exige el secreto siempre (si no está configurado, rechaza).
+  if (!SECRET || url.searchParams.get('key') !== SECRET) return new Response('Forbidden', { status: 403 });
 
   let body: any;
   try { body = await req.json(); } catch { return new Response('Bad JSON', { status: 400 }); }

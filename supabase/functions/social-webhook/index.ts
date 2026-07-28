@@ -27,7 +27,7 @@ const APP_SECRET = Deno.env.get('META_APP_SECRET') ?? '';
 
 // ── Validación de firma X-Hub-Signature-256 (HMAC SHA-256 con el App Secret) ──
 async function validSignature(payload: string, header: string | null): Promise<boolean> {
-  if (!APP_SECRET) return true;              // sin secreto configurado → no bloquear (dev)
+  if (!APP_SECRET) return false;             // fail-closed: sin secreto, se rechaza (seguridad)
   if (!header) return false;
   const expected = header.replace('sha256=', '').trim();
   const key = await crypto.subtle.importKey(
