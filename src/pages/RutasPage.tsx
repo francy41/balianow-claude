@@ -25,8 +25,16 @@ const numberPin = (n: number) => L.divIcon({
 const FitStops: React.FC<{ stops: Stop[] }> = ({ stops }) => {
   const map = useMap();
   useEffect(() => {
-    if (stops.length === 1) map.setView([stops[0].lat, stops[0].lng], 14);
-    else if (stops.length > 1) map.fitBounds(stops.map(s => [s.lat, s.lng]) as any, { padding: [40, 40], maxZoom: 15 });
+    // Leaflet en móvil necesita recalcular el tamaño cuando el contenedor se apila/redimensiona,
+    // si no el mapa sale gris o descentrado.
+    const apply = () => {
+      map.invalidateSize();
+      if (stops.length === 1) map.setView([stops[0].lat, stops[0].lng], 14);
+      else if (stops.length > 1) map.fitBounds(stops.map(s => [s.lat, s.lng]) as any, { padding: [30, 30], maxZoom: 15 });
+    };
+    const t = setTimeout(apply, 200);
+    window.addEventListener('resize', apply);
+    return () => { clearTimeout(t); window.removeEventListener('resize', apply); };
   }, [stops, map]);
   return null;
 };
@@ -206,6 +214,10 @@ const RutasPage: React.FC = () => {
 
   const cities = useMemo(() => [...new Set(rutas.map(r => r.city))], [rutas]);
   const filtered = useMemo(() => cityFilter ? rutas.filter(r => r.city === cityFilter) : rutas, [rutas, cityFilter]);
+  // Mantén siempre una ruta seleccionada dentro del filtro (para que el mapa nunca quede vacío en móvil).
+  useEffect(() => {
+    if (filtered.length && (!selected || !filtered.some(r => r.id === selected.id))) setSelected(filtered[0]);
+  }, [filtered, selected]);
   const isMember = !!user && members.some(m => m.user_id === user.id);
 
   const toggleJoin = async () => {
