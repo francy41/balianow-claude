@@ -376,7 +376,7 @@ const Contenido: React.FC<{ uid: string; partner: PartnerRow | null; content: Co
     const { error } = await supabase.from('partner_content').insert({
       partner_id: uid, title: title.trim(), video_url: videoUrl.trim() || null,
       needs_editing: needsEditing, city: city.trim() || null,
-      status: needsEditing ? 'submitted' : 'submitted',
+      status: 'submitted',
     });
     setSaving(false);
     if (error) { addToast({ message: error.message, type: 'error' }); return; }
