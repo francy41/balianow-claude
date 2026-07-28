@@ -7,9 +7,9 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview",
+    "preview": "npm run build && wrangler dev",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist",
+    "deploy": "npm run build && wrangler deploy",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "mobile:build": "tsc && vite build",
     "mobile:sync": "npm run mobile:build && npx cap sync",
@@ -61,6 +61,7 @@
   },
   "devDependencies": {
     "@capacitor/assets": "^3.0.5",
+    "@cloudflare/vite-plugin": "^1.47.0",
     "@playwright/test": "^1.60.0",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^18.2.55",
@@ -77,6 +78,7 @@
     "tailwindcss": "^3.4.1",
     "terser": "^5.48.0",
     "typescript": "^5.2.2",
-    "vite": "^6.4.2"
+    "vite": "^6.4.2",
+    "wrangler": "^4.114.0"
   }
 }
