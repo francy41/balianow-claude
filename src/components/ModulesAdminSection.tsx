@@ -11,17 +11,25 @@ const ModulesAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToas
   const [catalog, setCatalog] = useState<CatalogRow[]>([]);
   const [overrides, setOverrides] = useState<Override[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [ov, setOv] = useState({ module_id: 'reservas', scope_type: 'role', scope_value: 'venue', price: '', active: 'true' });
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [c, o] = await Promise.all([
-      supabase.from('module_catalog').select('*').order('sort', { ascending: true }),
-      supabase.from('module_overrides').select('*').order('created_at', { ascending: false }),
-    ]);
-    setCatalog((c.data as CatalogRow[]) || []);
-    setOverrides((o.data as Override[]) || []);
-    setLoading(false);
+    setLoadError(null);
+    try {
+      const [c, o] = await Promise.all([
+        supabase.from('module_catalog').select('*').order('sort', { ascending: true }),
+        supabase.from('module_overrides').select('*').order('created_at', { ascending: false }),
+      ]);
+      if (c.error) throw c.error;
+      setCatalog((c.data as CatalogRow[]) || []);
+      setOverrides((o.data as Override[]) || []);
+    } catch (e: any) {
+      setLoadError(e?.message || 'No se pudieron cargar los módulos.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
   useEffect(() => { load(); }, [load]);
 
@@ -49,6 +57,13 @@ const ModulesAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToas
         <h2 className="font-display font-black text-2xl text-gray-900 dark:text-white">Módulos de creador</h2>
         <p className="text-gray-500 text-sm">Precios y disponibilidad de los módulos. Cambios globales (a todos) o excepciones por perfil.</p>
       </div>
+
+      {loadError && (
+        <div className="rounded-2xl border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4 mb-6 text-sm flex items-center justify-between gap-3">
+          <span className="text-red-700 dark:text-red-300">No se pudieron cargar los módulos: {loadError}</span>
+          <button onClick={load} className="shrink-0 text-xs font-bold bg-red-600 text-white rounded-lg px-3 py-1.5">Reintentar</button>
+        </div>
+      )}
 
       {/* Catálogo global */}
       <h3 className="font-bold text-gray-900 dark:text-white mb-2 flex items-center gap-1.5"><Tag className="w-4 h-4" /> Catálogo global (a todos)</h3>
