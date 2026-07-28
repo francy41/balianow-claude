@@ -338,7 +338,7 @@ const ComposerModal: React.FC<{ userName: string; onClose: () => void; onPosted:
         <button
           onClick={submit}
           disabled={sending}
-          className="w-full mt-4 bg-gradient-to-r from-brand-orange to-pink-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
+          className="w-full mt-4 bg-brand-orange text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 active:scale-95 transition-transform disabled:opacity-50"
         >
           {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           Publicar

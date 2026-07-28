@@ -53,7 +53,7 @@ const ProfilePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-12">
       {/* Cover */}
-      <div className="relative h-48 sm:h-64 bg-gradient-to-r from-brand-orange to-pink-500 overflow-hidden">
+      <div className="relative h-48 sm:h-64 bg-brand-orange overflow-hidden">
         {user.coverPhoto && <img src={user.coverPhoto} alt="Foto de portada" loading="lazy" className="w-full h-full object-cover" />}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/30" />
         <button onClick={() => setEditOpen(true)}

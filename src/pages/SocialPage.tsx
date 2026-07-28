@@ -142,7 +142,7 @@ const SocialPage: React.FC = () => {
   if (brands.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-        <div className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white px-4 py-5">
+        <div className="bg-brand-orange text-white px-4 py-5">
           <h1 className="font-display font-black text-2xl flex items-center gap-2">
             <Share2 className="w-6 h-6" /> Gestor de Redes Sociales
           </h1>
@@ -150,7 +150,7 @@ const SocialPage: React.FC = () => {
         </div>
         <div className="max-w-2xl mx-auto p-4 sm:p-8 space-y-6">
           <div className="card-white p-6 text-center">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-100 to-fuchsia-100 dark:from-pink-900/30 dark:to-fuchsia-900/30 flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-full bg-brand-orange dark:from-pink-900/30 dark:to-fuchsia-900/30 flex items-center justify-center mx-auto mb-4">
               <Sparkles className="w-8 h-8 text-pink-500" />
             </div>
             <h2 className="font-display font-black text-xl mb-2">Conecta tus marcas con GoHighLevel</h2>
@@ -188,7 +188,7 @@ const SocialPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
       {/* Header con selector de marca */}
-      <div className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white px-3 py-2 flex items-center gap-2 flex-shrink-0 flex-wrap">
+      <div className="bg-brand-orange text-white px-3 py-2 flex items-center gap-2 flex-shrink-0 flex-wrap">
         <div className="flex items-center gap-2 mr-auto">
           <Share2 className="w-5 h-5 flex-shrink-0" />
           <BrandSelector brands={brands} activeId={activeBrandId} onSwitch={switchBrand} />

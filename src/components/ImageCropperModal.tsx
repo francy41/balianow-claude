@@ -166,7 +166,7 @@ const ImageCropperModal: React.FC<Props> = ({
     <div className="fixed inset-0 z-[1200] bg-black/90 backdrop-blur-md flex items-center justify-center p-3" onClick={onClose}>
       <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white p-4 flex items-center justify-between flex-shrink-0">
+        <div className="bg-brand-orange text-white p-4 flex items-center justify-between flex-shrink-0">
           <div>
             <h2 className="font-black text-base">✂️ Ajusta tu imagen</h2>
             <p className="text-xs opacity-90">Arrastra para mover · usa el zoom · gira si quieres</p>
@@ -221,7 +221,7 @@ const ImageCropperModal: React.FC<Props> = ({
         <div className="border-t border-gray-100 dark:border-gray-800 p-3 flex items-center justify-end gap-2 flex-shrink-0 bg-gray-50 dark:bg-gray-950">
           <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-gray-600">Cancelar</button>
           <button onClick={handleSave} disabled={saving}
-            className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-sm font-black px-5 py-2.5 rounded-xl flex items-center gap-2 active:scale-95 disabled:opacity-40">
+            className="bg-brand-orange text-white text-sm font-black px-5 py-2.5 rounded-xl flex items-center gap-2 active:scale-95 disabled:opacity-40">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
             Aplicar y subir
           </button>

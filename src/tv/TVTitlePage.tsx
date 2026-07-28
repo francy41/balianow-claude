@@ -192,12 +192,12 @@ const TVTitlePage: React.FC = () => {
           )
         ) : current && !canWatch(current.access) ? (
           <div className="text-center px-6">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-br from-orange-500 to-fuchsia-600 flex items-center justify-center mb-3">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-brand-orange flex items-center justify-center mb-3">
               <Lock className="w-7 h-7" />
             </div>
             <p className="font-black text-xl">Contenido {title.access === 'premium' ? 'Premium' : 'para suscriptores'}</p>
             <p className="text-white/60 text-sm mt-1 max-w-sm mx-auto">Suscríbete a BailaNow TV para ver esta clase y todo el catálogo.</p>
-            <button onClick={() => navigate('/membresias')} className="mt-4 bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white font-bold rounded-xl px-6 py-3 hover:opacity-90 transition-all">
+            <button onClick={() => navigate('/membresias')} className="mt-4 bg-brand-orange text-white font-bold rounded-xl px-6 py-3 hover:opacity-90 transition-all">
               Ver planes de BailaNow TV
             </button>
           </div>

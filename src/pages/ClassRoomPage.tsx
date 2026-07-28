@@ -103,7 +103,7 @@ const ClassRoomPage: React.FC = () => {
           <h2 className="font-black text-white text-xl mb-1">{error || 'Sin acceso'}</h2>
           <p className="text-gray-400 text-sm mb-5">No pudimos cargar esta clase.</p>
           <button onClick={() => navigate('/dashboard')}
-            className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold px-5 py-2.5 rounded-xl">
+            className="bg-brand-orange text-white font-bold px-5 py-2.5 rounded-xl">
             Volver al dashboard
           </button>
         </div>

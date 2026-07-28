@@ -65,7 +65,7 @@ const AuthCallbackPage: React.FC = () => {
           <p className="text-gray-400 text-sm mb-6">{error}</p>
           <button
             onClick={() => navigate('/auth')}
-            className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold px-6 py-3 rounded-xl text-sm"
+            className="bg-brand-orange text-white font-bold px-6 py-3 rounded-xl text-sm"
           >
             Volver al inicio de sesión
           </button>
@@ -79,8 +79,8 @@ const AuthCallbackPage: React.FC = () => {
       <div className="text-center">
         {/* Animated logo */}
         <div className="relative w-16 h-16 mx-auto mb-6">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 animate-ping opacity-30" />
-          <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-pink-500/40">
+          <div className="absolute inset-0 rounded-full bg-brand-orange animate-ping opacity-30" />
+          <div className="relative w-16 h-16 rounded-full bg-brand-orange flex items-center justify-center shadow-lg shadow-pink-500/40">
             <span className="text-2xl">🎵</span>
           </div>
         </div>

@@ -54,7 +54,7 @@ const RouteErrorFallback: React.FC<{ error: Error | null; onReset: () => void }>
       <div className="flex gap-2">
         <button
           onClick={() => { onReset(); navigate('/', { replace: true }); }}
-          className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold px-5 py-2.5 rounded-xl"
+          className="bg-brand-orange text-white font-bold px-5 py-2.5 rounded-xl"
         >
           Ir al inicio
         </button>

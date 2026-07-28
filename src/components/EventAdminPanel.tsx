@@ -213,7 +213,7 @@ const EventAdminPanel: React.FC<Props> = ({ eventId, onSaved, ownerUserId }) => 
       <button
         onClick={() => setOpen(true)}
         title={isOwner ? "Panel de edición del evento (dueño)" : "Panel de edición del evento (admin)"}
-        className="fixed z-[70] bottom-24 left-4 sm:bottom-8 sm:left-8 flex items-center gap-2 bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black text-sm px-5 py-3.5 rounded-2xl shadow-2xl shadow-fuchsia-500/40 hover:scale-105 transition-all ring-2 ring-white/40"
+        className="fixed z-[70] bottom-24 left-4 sm:bottom-8 sm:left-8 flex items-center gap-2 bg-brand-orange text-white font-black text-sm px-5 py-3.5 rounded-2xl shadow-2xl shadow-fuchsia-500/40 hover:scale-105 transition-all ring-2 ring-white/40"
       >
         <Settings2 className="w-5 h-5" /> Editar Evento
       </button>
@@ -230,7 +230,7 @@ const EventAdminPanel: React.FC<Props> = ({ eventId, onSaved, ownerUserId }) => 
           {/* Panel */}
           <div className="relative z-10 w-full max-w-2xl bg-white h-full flex flex-col shadow-2xl overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-purple-600 to-fuchsia-600 flex-shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 bg-brand-orange flex-shrink-0">
               <div>
                 <h2 className="text-white font-black text-lg">Panel de Edición del Evento</h2>
                 <p className="text-white/70 text-xs">{isOwner ? 'Gestionado por ti (dueño)' : 'Solo visible para administradores'}</p>
@@ -536,7 +536,7 @@ const GeneralTab: React.FC<{
       <button
         onClick={onSave}
         disabled={saving || !data.title.trim()}
-        className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+        className="w-full bg-brand-orange text-white font-black py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
       >
         {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
         Guardar datos generales
@@ -799,7 +799,7 @@ const LineupTab: React.FC<{
       <button
         onClick={onSave}
         disabled={saving}
-        className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+        className="w-full bg-brand-orange text-white font-black py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
       >
         {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
         Guardar Lineup
@@ -971,7 +971,7 @@ const SponsorsTab: React.FC<{
       <button
         onClick={onSave}
         disabled={saving}
-        className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+        className="w-full bg-brand-orange text-white font-black py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
       >
         {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
         Guardar Patrocinadores
@@ -1094,7 +1094,7 @@ const LiveTab: React.FC<{
       <button
         onClick={onSave}
         disabled={saving}
-        className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+        className="w-full bg-brand-orange text-white font-black py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
       >
         {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
         Guardar configuración Live

@@ -37,7 +37,7 @@ const PagoExitosoPage: React.FC = () => {
             {/* Success animation */}
             <div className="relative mx-auto w-28 h-28 mb-6">
               <div className="absolute inset-0 bg-green-100 dark:bg-green-900/30 rounded-full animate-ping opacity-40" />
-              <div className="relative w-28 h-28 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center shadow-2xl shadow-green-500/40">
+              <div className="relative w-28 h-28 bg-emerald-500 rounded-full flex items-center justify-center shadow-2xl shadow-green-500/40">
                 <CheckCircle className="w-14 h-14 text-white" />
               </div>
             </div>
@@ -80,7 +80,7 @@ const PagoExitosoPage: React.FC = () => {
               </button>
               <button
                 onClick={() => navigate('/dashboard')}
-                className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold py-3 rounded-xl hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25"
+                className="flex-1 flex items-center justify-center gap-2 bg-brand-orange text-white font-bold py-3 rounded-xl hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25"
               >
                 <LayoutDashboard className="w-4 h-4" /> Mi Dashboard
               </button>
@@ -98,7 +98,7 @@ const PagoExitosoPage: React.FC = () => {
             </p>
             <button
               onClick={() => navigate('/promocionate')}
-              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold py-3 rounded-xl"
+              className="w-full flex items-center justify-center gap-2 bg-brand-orange text-white font-bold py-3 rounded-xl"
             >
               <ArrowRight className="w-4 h-4" /> Volver a intentarlo
             </button>

@@ -186,7 +186,7 @@ const BulkPostComposer: React.FC<Props> = ({ isOpen, onClose }) => {
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4">
       <div className="bg-white dark:bg-[#0f0f1e] w-full sm:max-w-3xl rounded-t-3xl sm:rounded-3xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white px-5 py-4 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-brand-orange text-white px-5 py-4 flex items-center justify-between z-10">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5" />
             <h2 className="font-bold text-lg">Publicar en varias marcas</h2>

@@ -124,7 +124,7 @@ const WorldLeaderboard: React.FC<{ variant?: 'full' | 'widget' }> = ({ variant =
     <div className="space-y-4">
       {/* Tu posición */}
       {myRank ? (
-        <div className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white rounded-2xl p-4 flex items-center gap-3 shadow-lg">
+        <div className="bg-brand-orange text-white rounded-2xl p-4 flex items-center gap-3 shadow-lg">
           <span className="text-2xl font-black">{medal(myRank.world_rank)}</span>
           <span className="text-2xl">{countryFlag(myRank.country_code)}</span>
           <div className="flex-1">
@@ -144,11 +144,11 @@ const WorldLeaderboard: React.FC<{ variant?: 'full' | 'widget' }> = ({ variant =
       {/* Tabs */}
       <div className="flex gap-2">
         <button onClick={() => setTab('world')}
-          className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${tab === 'world' ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600'}`}>
+          className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${tab === 'world' ? 'bg-brand-orange text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600'}`}>
           🌍 {t('df.ranking')}
         </button>
         <button onClick={() => setTab('countries')}
-          className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${tab === 'countries' ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600'}`}>
+          className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${tab === 'countries' ? 'bg-brand-orange text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600'}`}>
           🏳️ {t('df.countryRanking')}
         </button>
       </div>
@@ -165,7 +165,7 @@ const WorldLeaderboard: React.FC<{ variant?: 'full' | 'widget' }> = ({ variant =
                 <span className="text-2xl">{countryFlag(r.country_code)}</span>
                 {r.avatar
                   ? <img src={r.avatar} className="w-9 h-9 rounded-full object-cover" alt="" />
-                  : <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-400 to-fuchsia-600 flex items-center justify-center text-white text-sm font-bold">{r.name[0]}</div>}
+                  : <div className="w-9 h-9 rounded-full bg-brand-orange flex items-center justify-center text-white text-sm font-bold">{r.name[0]}</div>}
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-sm text-gray-900 dark:text-white truncate flex items-center gap-1.5">
                     {r.name}

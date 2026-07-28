@@ -82,7 +82,7 @@ const CreatorModulesPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-24">
-      <div className="bg-gradient-to-br from-orange-500 to-fuchsia-600 text-white">
+      <div className="bg-brand-orange text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-14 text-center">
           <span className="inline-flex items-center gap-2 text-white/85 font-black text-xs tracking-widest uppercase mb-3"><Sparkles className="w-4 h-4" /> Tu panel a tu medida</span>
           <h1 className="font-display font-black text-3xl sm:text-5xl">Añade módulos a tu panel</h1>
@@ -92,7 +92,7 @@ const CreatorModulesPage: React.FC = () => {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 -mt-6">
         {/* Pack Full */}
-        <div className={`rounded-3xl p-6 mb-6 text-white bg-gradient-to-br from-fuchsia-600 to-purple-700 shadow-lg ${hasFull ? 'ring-4 ring-emerald-400' : ''}`}>
+        <div className={`rounded-3xl p-6 mb-6 text-white bg-brand-orange shadow-lg ${hasFull ? 'ring-4 ring-emerald-400' : ''}`}>
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
               <div className="flex items-center gap-2"><span className="text-3xl">{full.emoji}</span><h2 className="font-display font-black text-2xl">{full.name}</h2></div>

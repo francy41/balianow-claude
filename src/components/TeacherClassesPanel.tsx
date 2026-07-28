@@ -209,7 +209,7 @@ const TeacherClassesPanel: React.FC = () => {
         ].map((t: any) => (
           <button key={t.id} onClick={() => setTab(t.id)}
             className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-              tab === t.id ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'
+              tab === t.id ? 'bg-brand-orange text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'
             }`}>
             {t.icon} {t.label}
           </button>
@@ -224,7 +224,7 @@ const TeacherClassesPanel: React.FC = () => {
               <Sparkles className="w-4 h-4 text-pink-500" /> Mis clases
             </h3>
             <button onClick={() => setEditingOffering({ duration_minutes: 60, max_students: 1, is_online: true, price: 25, currency: 'EUR', style: [] })}
-              className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 active:scale-95">
+              className="bg-brand-orange text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 active:scale-95">
               <Plus className="w-3.5 h-3.5" /> Nueva clase
             </button>
           </div>
@@ -235,7 +235,7 @@ const TeacherClassesPanel: React.FC = () => {
               <p className="text-sm mb-1 font-bold text-gray-700">Aún no tienes clases creadas</p>
               <p className="text-xs mb-4">Crea tu primera clase para que los estudiantes puedan reservar</p>
               <button onClick={() => setEditingOffering({ duration_minutes: 60, max_students: 1, is_online: true, price: 25, currency: 'EUR', style: [] })}
-                className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold px-5 py-2.5 rounded-xl text-sm">
+                className="bg-brand-orange text-white font-bold px-5 py-2.5 rounded-xl text-sm">
                 + Crear mi primera clase
               </button>
             </div>
@@ -314,7 +314,7 @@ const TeacherClassesPanel: React.FC = () => {
                 const canJoin = minutesUntil !== null && minutesUntil <= 15 && minutesUntil >= -120;
                 return (
                   <div key={b.id} className="card-white p-3 flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center text-white font-black text-sm flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-brand-orange flex items-center justify-center text-white font-black text-sm flex-shrink-0">
                       {(b.student_name || 'E')[0]}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -398,7 +398,7 @@ const OfferingEditor: React.FC<{
   return (
     <div className="fixed inset-0 z-[1100] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-2 sm:p-4" onClick={onClose}>
       <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-gray-900 sm:rounded-3xl rounded-t-3xl shadow-2xl w-full max-w-xl max-h-[92vh] overflow-hidden flex flex-col">
-        <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white">
+        <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between flex-shrink-0 bg-brand-orange text-white">
           <h2 className="font-black text-base">{form.id ? '✏️ Editar clase' : '✨ Nueva clase'}</h2>
           <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
             <X className="w-4 h-4" />
@@ -499,7 +499,7 @@ const OfferingEditor: React.FC<{
         <div className="border-t border-gray-100 dark:border-gray-800 p-3 flex items-center justify-end gap-2 flex-shrink-0 bg-gray-50 dark:bg-gray-950">
           <button onClick={onClose} className="px-4 py-2 text-sm font-bold text-gray-600">Cancelar</button>
           <button onClick={() => onSave(form)} disabled={!form.title}
-            className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-sm font-black px-5 py-2.5 rounded-xl flex items-center gap-2 active:scale-95 disabled:opacity-40">
+            className="bg-brand-orange text-white text-sm font-black px-5 py-2.5 rounded-xl flex items-center gap-2 active:scale-95 disabled:opacity-40">
             <Save className="w-4 h-4" /> {form.id ? 'Guardar cambios' : 'Crear clase'}
           </button>
         </div>
@@ -567,7 +567,7 @@ const SlotEditor: React.FC<{
   return (
     <div className="fixed inset-0 z-[1100] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-2 sm:p-4" onClick={onClose}>
       <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-gray-900 sm:rounded-3xl rounded-t-3xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-hidden flex flex-col">
-        <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between flex-shrink-0 bg-gradient-to-r from-purple-500 to-violet-600 text-white">
+        <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between flex-shrink-0 bg-brand-orange text-white">
           <div>
             <h2 className="font-black text-base">📅 Horarios disponibles</h2>
             <p className="text-xs opacity-90 truncate">{offering.title}</p>
@@ -579,7 +579,7 @@ const SlotEditor: React.FC<{
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {/* Añadir nuevos */}
-          <div className="bg-gradient-to-br from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 rounded-2xl p-3 space-y-2">
+          <div className="bg-brand-orange dark:from-pink-900/20 dark:to-purple-900/20 rounded-2xl p-3 space-y-2">
             <p className="text-xs font-black uppercase text-gray-500 tracking-wider">➕ Añadir horarios</p>
             <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)}
               min={new Date().toISOString().split('T')[0]}
@@ -598,7 +598,7 @@ const SlotEditor: React.FC<{
               })}
             </div>
             <button onClick={addSlots} disabled={saving || !newDate || newTimes.length === 0}
-              className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-95 disabled:opacity-40">
+              className="w-full bg-brand-orange text-white font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-2 active:scale-95 disabled:opacity-40">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
               Añadir {newTimes.length} horario{newTimes.length !== 1 ? 's' : ''}
             </button>

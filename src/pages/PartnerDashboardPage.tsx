@@ -323,7 +323,7 @@ const Gestiones: React.FC<{ uid: string; partner: PartnerRow | null; tasks: Task
     <div>
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-bold">Gestiones de tu ciudad</h3>
-        <button onClick={() => setShowForm(v => !v)} className="inline-flex items-center gap-1.5 text-sm font-bold bg-gradient-to-r from-orange-500 to-fuchsia-600 rounded-xl px-3.5 py-2"><Plus className="w-4 h-4" /> Nueva</button>
+        <button onClick={() => setShowForm(v => !v)} className="inline-flex items-center gap-1.5 text-sm font-bold bg-brand-orange rounded-xl px-3.5 py-2"><Plus className="w-4 h-4" /> Nueva</button>
       </div>
 
       {showForm && (
@@ -398,7 +398,7 @@ const Contenido: React.FC<{ uid: string; partner: PartnerRow | null; content: Co
           <span className="font-bold text-sm">✂️ No sé editar — enviar a la central</span>
           <p className="text-white/50 text-xs mt-0.5">El equipo de BailaNow editará tu material y lo publicará.</p>
         </button>
-        <button onClick={submit} disabled={saving} className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-fuchsia-600 font-bold rounded-xl py-2.5 disabled:opacity-60">
+        <button onClick={submit} disabled={saving} className="w-full inline-flex items-center justify-center gap-2 bg-brand-orange font-bold rounded-xl py-2.5 disabled:opacity-60">
           {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} Enviar
         </button>
       </div>
@@ -464,7 +464,7 @@ const Pagos: React.FC<{ uid: string; available: number; methods: PayoutRow[]; wi
 
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-green-600 p-5">
+      <div className="rounded-2xl bg-emerald-500 p-5">
         <p className="text-white/80 text-xs font-bold uppercase">Saldo disponible</p>
         <p className="font-display font-black text-3xl">{eur(available)}</p>
       </div>
@@ -500,7 +500,7 @@ const Pagos: React.FC<{ uid: string; available: number; methods: PayoutRow[]; wi
         <h3 className="font-bold mb-2">Retirar ganancias</h3>
         <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 flex flex-col sm:flex-row gap-2.5">
           <input value={amount} onChange={e => setAmount(e.target.value)} type="number" placeholder={`Importe (máx. ${eur(available)})`} className="flex-1 rounded-xl bg-black/30 ring-1 ring-white/15 px-3.5 py-2.5 outline-none focus:ring-fuchsia-500" />
-          <button onClick={requestWithdrawal} disabled={requesting} className="inline-flex items-center justify-center gap-1.5 font-bold bg-gradient-to-r from-orange-500 to-fuchsia-600 rounded-xl px-5 py-2.5 disabled:opacity-60"><ArrowUpRight className="w-4 h-4" /> Solicitar retiro</button>
+          <button onClick={requestWithdrawal} disabled={requesting} className="inline-flex items-center justify-center gap-1.5 font-bold bg-brand-orange rounded-xl px-5 py-2.5 disabled:opacity-60"><ArrowUpRight className="w-4 h-4" /> Solicitar retiro</button>
         </div>
       </div>
 
@@ -629,7 +629,7 @@ const Equipo: React.FC<{ uid: string; partner: PartnerRow | null; reps: RepRow[]
 
       <div className="flex items-center justify-between mb-3">
         <h3 className="font-bold">Tu equipo en la ciudad</h3>
-        <button onClick={() => setShowForm(v => !v)} className="inline-flex items-center gap-1.5 text-sm font-bold bg-gradient-to-r from-orange-500 to-fuchsia-600 rounded-xl px-3.5 py-2"><Plus className="w-4 h-4" /> Añadir</button>
+        <button onClick={() => setShowForm(v => !v)} className="inline-flex items-center gap-1.5 text-sm font-bold bg-brand-orange rounded-xl px-3.5 py-2"><Plus className="w-4 h-4" /> Añadir</button>
       </div>
 
       {showForm && (
@@ -761,13 +761,13 @@ const Bandeja: React.FC<{ uid: string; partner: PartnerRow | null; inquiries: In
             </div>
             {thread.map(t => (
               <div key={t.id} className={`max-w-[80%] ${t.from_partner ? 'ml-auto text-right' : ''}`}>
-                <div className={`inline-block rounded-2xl px-3.5 py-2.5 text-sm ${t.from_partner ? 'rounded-tr-sm bg-gradient-to-r from-orange-500 to-fuchsia-600' : 'rounded-tl-sm bg-white/10'}`}>{t.text}</div>
+                <div className={`inline-block rounded-2xl px-3.5 py-2.5 text-sm ${t.from_partner ? 'rounded-tr-sm bg-brand-orange' : 'rounded-tl-sm bg-white/10'}`}>{t.text}</div>
               </div>
             ))}
           </div>
           <div className="p-3 border-t border-white/10 flex gap-2">
             <input value={reply} onChange={e => setReply(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendReply()} placeholder="Escribe tu respuesta…" className="flex-1 rounded-xl bg-black/30 ring-1 ring-white/15 px-3.5 py-2.5 outline-none focus:ring-fuchsia-500" />
-            <button onClick={sendReply} disabled={sending} className="inline-flex items-center gap-1.5 font-bold bg-gradient-to-r from-orange-500 to-fuchsia-600 rounded-xl px-4 disabled:opacity-60">{sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}</button>
+            <button onClick={sendReply} disabled={sending} className="inline-flex items-center gap-1.5 font-bold bg-brand-orange rounded-xl px-4 disabled:opacity-60">{sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}</button>
           </div>
         </div>
       </div>
@@ -916,7 +916,7 @@ const Recursos: React.FC<{ resources: ResourceRow[] }> = ({ resources }) => {
               {grouped[catId].map(r => (
                 <a key={r.id} href={r.url || '#'} target="_blank" rel="noreferrer"
                   className="group flex items-start gap-3 rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 hover:bg-white/10 transition">
-                  <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-fuchsia-600 flex items-center justify-center flex-shrink-0">{KIND_ICON[r.kind] || KIND_ICON.link}</span>
+                  <span className="w-9 h-9 rounded-xl bg-brand-orange flex items-center justify-center flex-shrink-0">{KIND_ICON[r.kind] || KIND_ICON.link}</span>
                   <div className="min-w-0 flex-1">
                     <p className="font-bold text-sm flex items-center gap-1.5">{r.title} <ExternalLink className="w-3 h-3 text-white/30 group-hover:text-white/60" /></p>
                     {r.description && <p className="text-white/50 text-xs mt-0.5 line-clamp-2">{r.description}</p>}

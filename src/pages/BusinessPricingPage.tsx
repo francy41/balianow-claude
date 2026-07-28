@@ -44,11 +44,11 @@ const BusinessPricingPage: React.FC = () => {
         <div className="absolute -top-20 -right-20 w-72 h-72 bg-fuchsia-600/20 rounded-full blur-3xl" />
         <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-orange-500/20 rounded-full blur-3xl" />
         <div className="relative max-w-5xl mx-auto px-4 py-14 sm:py-20 text-center">
-          <span className="inline-block bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-4">
+          <span className="inline-block bg-brand-orange text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-4">
             Para negocios
           </span>
           <h1 className="font-display font-black text-3xl sm:text-5xl text-white leading-tight">
-            Haz crecer tu negocio <span className="bg-gradient-to-r from-orange-400 to-fuchsia-400 bg-clip-text text-transparent">de baile</span>
+            Haz crecer tu negocio <span className="bg-brand-orange bg-clip-text text-transparent">de baile</span>
           </h1>
           <p className="text-white/70 text-sm sm:text-lg mt-4 max-w-2xl mx-auto">
             Reservas, ventas, código QR, mesas VIP y visibilidad ante miles de bailarines.
@@ -82,7 +82,7 @@ const BusinessPricingPage: React.FC = () => {
                     : 'bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800'
                 }`}>
                 {plan.popular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full whitespace-nowrap">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-orange text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full whitespace-nowrap">
                     ⚡ Más popular
                   </span>
                 )}
@@ -109,7 +109,7 @@ const BusinessPricingPage: React.FC = () => {
                   onClick={() => contratar(plan.name, plan.price, plan.period)}
                   className={`w-full font-bold text-sm rounded-xl py-3 transition-all flex items-center justify-center gap-1.5 ${
                     plan.popular
-                      ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white hover:opacity-90'
+                      ? 'bg-brand-orange text-white hover:opacity-90'
                       : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90'
                   }`}>
                   Contratar <ArrowRight className="w-4 h-4" />
@@ -143,7 +143,7 @@ const BusinessPricingPage: React.FC = () => {
                 </div>
                 <button
                   onClick={destacarAnuncio}
-                  className="mt-3 bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white font-bold rounded-xl px-6 py-3 hover:opacity-90 transition-all inline-flex items-center gap-2"
+                  className="mt-3 bg-brand-orange text-white font-bold rounded-xl px-6 py-3 hover:opacity-90 transition-all inline-flex items-center gap-2"
                 >
                   <TrendingUp className="w-4 h-4" /> Destacar mi anuncio
                 </button>
@@ -161,7 +161,7 @@ const BusinessPricingPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {TOOLS.map(t => (
               <div key={t.title} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-5">
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-orange-500 to-fuchsia-600 flex items-center justify-center text-white mb-3">
+                <div className="w-11 h-11 rounded-xl bg-brand-orange flex items-center justify-center text-white mb-3">
                   {t.icon}
                 </div>
                 <p className="font-bold text-gray-900 dark:text-white text-sm">{t.title}</p>
@@ -179,7 +179,7 @@ const BusinessPricingPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {STEPS.map(s => (
               <div key={s.n} className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl p-6 text-center">
-                <div className="w-10 h-10 mx-auto rounded-xl bg-gradient-to-br from-orange-500 to-fuchsia-600 text-white font-black flex items-center justify-center mb-3">
+                <div className="w-10 h-10 mx-auto rounded-xl bg-brand-orange text-white font-black flex items-center justify-center mb-3">
                   {s.n}
                 </div>
                 <p className="font-bold text-gray-900 dark:text-white text-sm">{s.title}</p>
@@ -205,7 +205,7 @@ const BusinessPricingPage: React.FC = () => {
         </section>
 
         {/* CTA final */}
-        <section className="mt-16 bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl p-8 text-center relative overflow-hidden">
+        <section className="mt-16 bg-gray-800 rounded-3xl p-8 text-center relative overflow-hidden">
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-orange-500/20 rounded-full blur-3xl" />
           <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-fuchsia-500/20 rounded-full blur-3xl" />
           <div className="relative">
@@ -213,7 +213,7 @@ const BusinessPricingPage: React.FC = () => {
             <p className="text-gray-400 text-sm mb-5 max-w-md mx-auto">
               Da de alta tu negocio gratis y elige un plan cuando quieras desbloquear reservas, ventas y más.
             </p>
-            <button onClick={activarGratis} className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold rounded-xl px-6 py-3 hover:opacity-90 transition-all inline-flex items-center gap-2">
+            <button onClick={activarGratis} className="bg-brand-orange text-white font-bold rounded-xl px-6 py-3 hover:opacity-90 transition-all inline-flex items-center gap-2">
               <MessageSquare className="w-4 h-4" /> Activa tu cuenta gratis
             </button>
           </div>

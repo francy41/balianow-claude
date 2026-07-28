@@ -139,7 +139,7 @@ const ClaimProfileButton: React.FC<Props> = ({ targetTable, targetId, targetName
                 <button
                   onClick={submit}
                   disabled={submitting}
-                  className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 disabled:opacity-50 hover:opacity-90 transition-opacity"
+                  className="w-full bg-brand-orange text-white font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 disabled:opacity-50 hover:opacity-90 transition-opacity"
                 >
                   {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Mail className="w-5 h-5" />}
                   {submitting ? 'Enviando...' : 'Enviar solicitud'}

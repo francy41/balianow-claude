@@ -46,7 +46,7 @@ const TvMonetizationCard: React.FC<{ uid: string; addToast: (t: any) => void }> 
     <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 mb-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-fuchsia-600 flex items-center justify-center"><DollarSign className="w-5 h-5 text-white" /></div>
+          <div className="w-9 h-9 rounded-xl bg-brand-orange flex items-center justify-center"><DollarSign className="w-5 h-5 text-white" /></div>
           <div>
             <p className="font-bold text-white text-sm">Monetización · gana con tus vídeos</p>
             <p className="text-white/50 text-xs">Modelo 60/40: tú recibes el 60% de los ingresos por anuncios de tus vídeos.</p>
@@ -54,7 +54,7 @@ const TvMonetizationCard: React.FC<{ uid: string; addToast: (t: any) => void }> 
         </div>
         {badge
           ? <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg ring-1 ${badge.cls}`}>{badge.icon} {badge.txt}</span>
-          : <button onClick={() => setOpen(o => !o)} className="text-xs font-bold bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white rounded-lg px-3.5 py-2">Solicitar monetización</button>}
+          : <button onClick={() => setOpen(o => !o)} className="text-xs font-bold bg-brand-orange text-white rounded-lg px-3.5 py-2">Solicitar monetización</button>}
       </div>
 
       {open && !badge && (

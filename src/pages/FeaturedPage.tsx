@@ -47,7 +47,7 @@ const FeaturedPage: React.FC = () => {
             <button key={f.id} onClick={() => setFilter(f.id)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                 filter === f.id
-                  ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white shadow-md'
+                  ? 'bg-brand-orange text-white shadow-md'
                   : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
               }`}>
               {f.label}

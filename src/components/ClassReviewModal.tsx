@@ -95,7 +95,7 @@ const ClassReviewModal: React.FC<Props> = ({ open, booking, onClose, onSubmitted
               Cerrar
             </button>
             <button onClick={submit} disabled={saving || rating === 0}
-              className="flex-1 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black py-2.5 rounded-xl text-sm shadow-lg flex items-center justify-center gap-2 active:scale-95 disabled:opacity-40">
+              className="flex-1 bg-brand-orange text-white font-black py-2.5 rounded-xl text-sm shadow-lg flex items-center justify-center gap-2 active:scale-95 disabled:opacity-40">
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               Enviar
             </button>

@@ -55,7 +55,7 @@ const SellerCard: React.FC<{ seller: PromoSeller; onClick: () => void }> = ({ se
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
           <p className="font-bold text-sm text-gray-900 truncate">{seller.name}</p>
-          {seller.isPro && <span className="text-[8px] bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white px-1.5 py-0.5 rounded font-black">PRO</span>}
+          {seller.isPro && <span className="text-[8px] bg-brand-orange text-white px-1.5 py-0.5 rounded font-black">PRO</span>}
         </div>
         <div className="flex items-center gap-2 mt-0.5">
           <StarRating rating={seller.rating} count={seller.reviews} />
@@ -184,7 +184,7 @@ const PromoServiceCard: React.FC<{
           >
             <ShoppingCart className="w-3.5 h-3.5" /> {isInCart ? 'Reservado' : 'Reservar'}
           </button>
-          <button onClick={onBuy} className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold rounded-xl py-2.5 text-xs hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25">
+          <button onClick={onBuy} className="flex-1 flex items-center justify-center gap-1.5 bg-brand-orange text-white font-bold rounded-xl py-2.5 text-xs hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25">
             <ShoppingBag className="w-3.5 h-3.5" /> Contratar
           </button>
         </div>
@@ -218,7 +218,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
           <div className="absolute top-0 right-0 w-40 h-40 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+              <div className="w-9 h-9 rounded-xl bg-brand-orange flex items-center justify-center shadow-lg shadow-purple-500/30">
                 <ShoppingCart className="w-4.5 h-4.5 text-white" style={{ width: 18, height: 18 }} />
               </div>
               <div>
@@ -230,7 +230,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
             </div>
             <div className="flex items-center gap-2">
               {items.length > 0 && (
-                <span className="bg-gradient-to-r from-purple-500 to-fuchsia-600 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-lg shadow-purple-500/30">
+                <span className="bg-brand-orange text-white text-xs font-black px-2.5 py-1 rounded-full shadow-lg shadow-purple-500/30">
                   {items.length}
                 </span>
               )}
@@ -256,7 +256,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
               </div>
               <p className="text-white/60 font-bold text-base">Tu carrito está vacío</p>
               <p className="text-white/30 text-sm mt-2 max-w-[200px] leading-relaxed">Reserva servicios y págalos todos juntos con un solo pago</p>
-              <button onClick={onClose} className="mt-6 bg-gradient-to-r from-purple-500 to-fuchsia-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:from-purple-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-purple-500/25">
+              <button onClick={onClose} className="mt-6 bg-brand-orange text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:from-purple-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-purple-500/25">
                 Explorar servicios
               </button>
             </div>
@@ -275,7 +275,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
                     <div className="flex items-start gap-3 p-3.5">
                       <div className="relative flex-shrink-0">
                         <img src={item.sellerAvatar} alt={item.sellerName} className="w-11 h-11 rounded-xl object-cover ring-2 ring-purple-500/30" />
-                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-br from-pink-500 to-fuchsia-600 rounded-full flex items-center justify-center text-[8px] font-black text-white">
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-brand-orange rounded-full flex items-center justify-center text-[8px] font-black text-white">
                           {idx + 1}
                         </div>
                       </div>
@@ -290,7 +290,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                        <span className="font-black text-base text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-fuchsia-400">
+                        <span className="font-black text-base text-transparent bg-clip-text bg-brand-orange">
                           €{itemTotal.toFixed(2)}
                         </span>
                         <button
@@ -315,7 +315,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
                                 onClick={() => toggleExtra(item.id, eidx)}
                                 className={`w-4 h-4 rounded flex items-center justify-center transition-all flex-shrink-0 cursor-pointer border ${
                                   extra.selected
-                                    ? 'bg-gradient-to-br from-pink-500 to-fuchsia-600 border-transparent shadow-lg shadow-pink-500/30'
+                                    ? 'bg-brand-orange border-transparent shadow-lg shadow-pink-500/30'
                                     : 'border-white/20 bg-white/5 hover:border-purple-400/50'
                                 }`}
                               >
@@ -367,7 +367,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
                         <div className="flex-1 min-w-0">
                           <p className="text-[11px] font-bold text-white/70 truncate">{s.sellerName}</p>
                           <div className="h-1 bg-white/5 rounded-full mt-1 overflow-hidden">
-                            <div className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full" style={{ width: '85%' }} />
+                            <div className="h-full bg-emerald-500 rounded-full" style={{ width: '85%' }} />
                           </div>
                         </div>
                         <div className="text-right flex-shrink-0">
@@ -405,7 +405,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
               <div className="h-px bg-white/5" />
               <div className="flex justify-between items-center">
                 <span className="text-base font-black text-white">Total a pagar</span>
-                <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-fuchsia-400">
+                <span className="text-2xl font-black text-transparent bg-clip-text bg-brand-orange">
                   €{getTotal().toFixed(2)}
                 </span>
               </div>
@@ -598,7 +598,7 @@ const CheckoutModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open,
             <button
               onClick={handlePay}
               disabled={processing}
-              className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black rounded-xl py-4 text-sm hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full bg-brand-orange text-white font-black rounded-xl py-4 text-sm hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {processing ? (
                 <>
@@ -639,7 +639,7 @@ const SellerModal: React.FC<{ seller: PromoSeller; onClose: () => void }> = ({ s
           <div>
             <div className="flex items-center gap-2">
               <h2 className="font-black text-lg text-gray-900">{seller.name}</h2>
-              {seller.isPro && <span className="text-[9px] bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white px-2 py-0.5 rounded font-black">PRO</span>}
+              {seller.isPro && <span className="text-[9px] bg-brand-orange text-white px-2 py-0.5 rounded font-black">PRO</span>}
             </div>
             <div className="flex items-center gap-3 mt-1">
               <StarRating rating={seller.rating} count={seller.reviews} size="md" />
@@ -745,11 +745,11 @@ const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate>; onOpen
       <div className="absolute -bottom-16 -left-16 w-64 h-64 bg-pink-600/20 rounded-full blur-3xl" />
       <div className="relative">
         <div className="text-center mb-6">
-          <span className="inline-block bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-3">
+          <span className="inline-block bg-brand-orange text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-3">
             Publicítate en BailaNow
           </span>
           <h2 className="font-display font-black text-2xl sm:text-3xl text-white">
-            Haz que te vean <span className="bg-gradient-to-r from-pink-400 to-fuchsia-400 bg-clip-text text-transparent">miles de bailarines</span>
+            Haz que te vean <span className="bg-brand-orange bg-clip-text text-transparent">miles de bailarines</span>
           </h2>
           <p className="text-white/60 text-sm mt-2 max-w-2xl mx-auto">
             Destácate y activa tu negocio: reservas, ventas, código QR y presencia en el mapa. Activación inmediata, cancela cuando quieras.
@@ -759,7 +759,7 @@ const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate>; onOpen
         {/* ── Alta de cuenta de negocio (gratis) ── */}
         <div className="mb-6 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-4">
           <div className="flex items-center gap-3 flex-1 w-full">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-2xl flex-shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center text-2xl flex-shrink-0">
               🏪
             </div>
             <div className="min-w-0">
@@ -797,7 +797,7 @@ const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate>; onOpen
                   : 'bg-white/5 border border-white/10 backdrop-blur-sm'
               }`}>
               {plan.popular && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full whitespace-nowrap">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-orange text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full whitespace-nowrap">
                   ⚡ Más popular
                 </span>
               )}
@@ -824,7 +824,7 @@ const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate>; onOpen
                 onClick={() => navigate(`/chat?asunto=${encodeURIComponent(`Quiero el plan de publicidad ${plan.name} (€${plan.price}${plan.period})`)}`)}
                 className={`w-full font-bold text-sm rounded-xl py-2.5 transition-all flex items-center justify-center gap-1.5 ${
                   plan.popular
-                    ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white hover:opacity-90'
+                    ? 'bg-brand-orange text-white hover:opacity-90'
                     : 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
                 }`}>
                 Contratar <ArrowRight className="w-4 h-4" />
@@ -1008,7 +1008,7 @@ const PromocionatePage: React.FC = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all ${
                 activeTab === tab.id
-                  ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white shadow-lg shadow-pink-500/25'
+                  ? 'bg-brand-orange text-white shadow-lg shadow-pink-500/25'
                   : 'bg-white text-gray-600 border border-gray-200 hover:border-pink-300'
               }`}
             >
@@ -1117,7 +1117,7 @@ const PromocionatePage: React.FC = () => {
                       onClick={() => setSellerFilter(isFiltering ? null : seller.id)}
                     />
                     <div className="absolute top-2 right-2 flex flex-col items-end gap-1 z-10 pointer-events-none">
-                      <span className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow">
+                      <span className="bg-brand-orange text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow">
                         {sellerServices.length} servicio{sellerServices.length !== 1 ? 's' : ''}
                       </span>
                       {isFiltering && (
@@ -1174,7 +1174,7 @@ const PromocionatePage: React.FC = () => {
         )}
 
         {/* CTA bottom */}
-        <div className="mt-10 bg-gradient-to-r from-gray-900 to-gray-800 rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden">
+        <div className="mt-10 bg-gray-800 rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden">
           <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-500/20 rounded-full blur-3xl" />
           <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-fuchsia-500/20 rounded-full blur-3xl" />
           <div className="relative">

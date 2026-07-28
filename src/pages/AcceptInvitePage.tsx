@@ -86,7 +86,7 @@ const AcceptInvitePage: React.FC = () => {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 to-orange-400 shadow-lg mb-3">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-brand-orange shadow-lg mb-3">
             <Shield className="w-8 h-8 text-white" />
           </div>
           <h1 className="font-display font-black text-2xl text-gray-900">BailaNow</h1>

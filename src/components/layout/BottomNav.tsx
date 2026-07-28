@@ -32,7 +32,7 @@ const BottomNav: React.FC = () => {
     {!isHome && (
     <button
       onClick={() => window.dispatchEvent(new Event('bn:open-search'))}
-      className="lg:hidden fixed bottom-20 right-4 z-30 w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white shadow-2xl shadow-pink-500/40 flex items-center justify-center active:scale-95"
+      className="lg:hidden fixed bottom-20 right-4 z-30 w-12 h-12 rounded-full bg-brand-orange text-white shadow-2xl shadow-pink-500/40 flex items-center justify-center active:scale-95"
       style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
       title="Buscar"
     >
@@ -59,7 +59,7 @@ const BottomNav: React.FC = () => {
               </div>
               <span className="text-[8px] sm:text-[9px] font-semibold">{tab.label}</span>
               {isActive && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r from-pink-500 to-fuchsia-500 rounded-full shadow-lg shadow-pink-500/50" />
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-brand-orange rounded-full shadow-lg shadow-pink-500/50" />
               )}
             </Link>
           );

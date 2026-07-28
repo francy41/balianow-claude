@@ -74,7 +74,7 @@ const SplitPaymentModal: React.FC<SplitPaymentModalProps> = ({
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
           <h2 className="font-black text-lg text-gray-900 dark:text-white flex items-center gap-2">
-            <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+            <span className="w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center">
               <Users className="w-5 h-5 text-white" />
             </span>
             Dividir el pago
@@ -131,7 +131,7 @@ const SplitPaymentModal: React.FC<SplitPaymentModalProps> = ({
           </div>
 
           {/* Resultado por persona */}
-          <div className="rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-4 text-center mb-3">
+          <div className="rounded-2xl bg-emerald-500 p-4 text-center mb-3">
             <p className="text-white/80 text-[11px] uppercase font-bold tracking-wide">Cada persona paga</p>
             <p className="text-white font-black text-3xl mt-0.5">€{perPerson.toFixed(2)}</p>
             <p className="text-white/70 text-[11px] mt-0.5">€{total.toFixed(2)} entre {people}</p>
@@ -161,7 +161,7 @@ const SplitPaymentModal: React.FC<SplitPaymentModalProps> = ({
             <button
               onClick={handleWhatsApp}
               disabled={total <= 0}
-              className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-xl py-2.5 text-sm hover:opacity-90 transition-all shadow-lg shadow-emerald-500/25 disabled:opacity-50"
+              className="flex-1 flex items-center justify-center gap-1.5 bg-emerald-500 text-white font-bold rounded-xl py-2.5 text-sm hover:opacity-90 transition-all shadow-lg shadow-emerald-500/25 disabled:opacity-50"
             >
               <Share2 className="w-4 h-4" /> Compartir
             </button>

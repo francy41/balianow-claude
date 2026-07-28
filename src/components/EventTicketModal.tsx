@@ -164,7 +164,7 @@ const EventTicketModal: React.FC<Props> = ({
       <div className="relative bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl w-full sm:max-w-lg max-h-[95vh] flex flex-col z-10 overflow-hidden">
 
         {/* Header */}
-        <div className="bg-gradient-to-r from-brand-orange to-pink-500 px-6 py-4 flex-shrink-0">
+        <div className="bg-brand-orange px-6 py-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-white font-black text-lg flex items-center gap-2">
@@ -290,7 +290,7 @@ const EventTicketModal: React.FC<Props> = ({
                   <button
                     onClick={payDemo}
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-brand-orange to-pink-500 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 text-lg"
+                    className="w-full bg-brand-orange text-white font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 text-lg"
                   >
                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
                     {loading ? 'Procesando…' : `Pagar €${total.toFixed(2)} (Demo)`}

@@ -123,7 +123,7 @@ const FeaturedSlider: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = (
     <section className="mt-3 px-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
-          <div className="w-1 h-3 rounded-full bg-gradient-to-b from-pink-500 to-fuchsia-600" />
+          <div className="w-1 h-3 rounded-full bg-brand-orange" />
           <span className="text-[11px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">🔥 Lo más destacado</span>
         </div>
         <button onClick={() => navigate('/destacados')} className="flex items-center gap-0.5 text-[10px] font-bold text-pink-500 hover:text-fuchsia-500 transition-colors">
@@ -178,7 +178,7 @@ const SponsorsFooterStrip: React.FC<{ navigate: ReturnType<typeof useNavigate> }
   return (
     <section className="mt-8 mx-4">
       <div className="flex items-center gap-1.5 mb-3">
-        <div className="w-1 h-3 rounded-full bg-gradient-to-b from-gray-400 to-gray-500" />
+        <div className="w-1 h-3 rounded-full bg-gray-800" />
         <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Nuestros Patrocinadores</span>
       </div>
       <div className="relative overflow-hidden" style={{
@@ -490,7 +490,7 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
               {/* Search Button */}
               <button
                 onClick={() => handleSearch()}
-                className="flex-shrink-0 px-4 py-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white rounded-xl font-bold text-sm transition-all active:scale-95"
+                className="flex-shrink-0 px-4 py-2 bg-brand-orange text-white rounded-xl font-bold text-sm transition-all active:scale-95"
               >
                 Buscar
               </button>
@@ -604,7 +604,7 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="font-display font-black text-2xl sm:text-3xl bg-gradient-to-r from-brand-orange to-pink-600 bg-clip-text text-transparent mb-1">
+            <h2 className="font-display font-black text-2xl sm:text-3xl bg-brand-orange bg-clip-text text-transparent mb-1">
               🔥 Ruta de Hoy
             </h2>
             <p className="text-gray-500 text-sm">Lo que está pasando ahora mismo en tu comunidad</p>
@@ -664,13 +664,13 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
           {/* Navigation Arrows */}
           <button
             onClick={() => scroll('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 z-10 w-10 h-10 rounded-full bg-gradient-to-r from-brand-orange to-pink-500 text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 z-10 w-10 h-10 rounded-full bg-brand-orange text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
           >
             <ChevronRight className="w-5 h-5 rotate-180" />
           </button>
           <button
             onClick={() => scroll('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 z-10 w-10 h-10 rounded-full bg-gradient-to-r from-brand-orange to-pink-500 text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 z-10 w-10 h-10 rounded-full bg-brand-orange text-white flex items-center justify-center hover:scale-110 transition-transform shadow-lg"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -726,7 +726,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
           <div>
             <div className="flex items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-500" />
+                <span className="w-3 h-3 rounded-full bg-brand-orange" />
                 <h3 className="font-display font-bold text-sm sm:text-base text-gray-900 uppercase tracking-wider">
                   ⭐ Principales
                 </h3>
@@ -779,7 +779,7 @@ const HomeSectionWithSearch: React.FC<HomeSectionProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
         <h2 className={`font-display font-black text-lg uppercase tracking-wide ${
-          gradient ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 bg-clip-text text-transparent' : 'text-gray-900 dark:text-white'
+          gradient ? 'bg-brand-orange bg-clip-text text-transparent' : 'text-gray-900 dark:text-white'
         }`}>
           {title}
         </h2>
@@ -788,7 +788,7 @@ const HomeSectionWithSearch: React.FC<HomeSectionProps> = ({
             onClick={onAction}
             className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform"
           >
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center shadow-lg shadow-pink-500/30 group-hover:shadow-pink-500/50 transition-shadow">
+            <div className="w-9 h-9 rounded-full bg-brand-orange flex items-center justify-center shadow-lg shadow-pink-500/30 group-hover:shadow-pink-500/50 transition-shadow">
               <ArrowRight className="w-4 h-4 text-white" />
             </div>
             <span className="text-[9px] font-black uppercase tracking-widest text-pink-500">{actionLabel}</span>
@@ -880,7 +880,7 @@ const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
           <h2 className="font-display font-black text-base sm:text-lg text-gray-900 dark:text-white">Locales Abiertos Ahora</h2>
         </div>
         <button onClick={() => navigate('/venues?open=true')} className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+          <div className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
             <ArrowRight className="w-4 h-4 text-white" />
           </div>
           <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">Ver Todos</span>
@@ -958,7 +958,7 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
           <h2 className="font-display font-black text-base sm:text-lg text-gray-900 dark:text-white">En Directo Ahora</h2>
         </div>
         <button onClick={() => navigate('/live')} className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/30">
+          <div className="w-9 h-9 rounded-full bg-red-500 flex items-center justify-center shadow-lg shadow-red-500/30">
             <ArrowRight className="w-4 h-4 text-white" />
           </div>
           <span className="text-[9px] font-black uppercase tracking-widest text-red-500">Ver Todos</span>
@@ -1139,7 +1139,7 @@ const HomePage: React.FC = () => {
           {/* BAILANOW TV */}
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
             <button onClick={() => navigate('/tv')}
-              className="w-full h-[44px] bg-gradient-to-br from-orange-500 to-fuchsia-600 px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all">
+              className="w-full h-[44px] bg-brand-orange px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all">
               <div className="flex items-center gap-1">
                 <Tv className="w-3 h-3 text-white" />
                 <span className="text-white font-black text-[10px] sm:text-[11px]">TV</span>
@@ -1151,7 +1151,7 @@ const HomePage: React.FC = () => {
           {/* RADIOS */}
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
             <button onClick={() => setRadiosOpen(v => !v)}
-              className="w-full h-[44px] bg-gradient-to-br from-pink-500 to-fuchsia-600 px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all">
+              className="w-full h-[44px] bg-brand-orange px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all">
               <div className="flex items-center gap-1">
                 <Radio className="w-3 h-3 text-white" />
                 <span className="text-white font-black text-[10px] sm:text-[11px]">Radios</span>
@@ -1167,7 +1167,7 @@ const HomePage: React.FC = () => {
             <a
               href="https://lpwwdjujxwxdvyoznehp.supabase.co/storage/v1/object/public/covers/app/bailanow-app.apk"
               download="BailaNow.apk"
-              className="w-full h-[44px] bg-gradient-to-br from-rose-500 to-pink-600 px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all"
+              className="w-full h-[44px] bg-red-500 px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all"
             >
               <div className="flex items-center gap-1">
                 <Smartphone className="w-3 h-3 text-white" />
@@ -1183,7 +1183,7 @@ const HomePage: React.FC = () => {
           {/* ABIERTO AHORA */}
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
             <button onClick={() => navigate('/venues?open=true')}
-              className="w-full h-[44px] bg-gradient-to-br from-emerald-500 to-green-600 px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all"
+              className="w-full h-[44px] bg-emerald-500 px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all"
             >
               <div className="flex items-center gap-1">
                 <DoorOpen className="w-3 h-3 text-white" />
@@ -1198,7 +1198,7 @@ const HomePage: React.FC = () => {
           {/* LIVE */}
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
             <button onClick={() => navigate('/live')}
-              className="w-full h-[44px] bg-gradient-to-br from-red-500 to-rose-600 px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all"
+              className="w-full h-[44px] bg-red-500 px-1.5 sm:px-2 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all"
             >
               <div className="flex items-center gap-1">
                 <Video className="w-3 h-3 text-white" />
@@ -1214,7 +1214,7 @@ const HomePage: React.FC = () => {
         {/* Paneles desplegables debajo de la fila (Radios y Playlists) */}
         {radiosOpen && (
           <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden max-w-3xl mx-auto">
-            <div className="bg-gradient-to-r from-pink-500 to-fuchsia-600 px-3 py-1.5 flex items-center justify-between">
+            <div className="bg-brand-orange px-3 py-1.5 flex items-center justify-between">
               <div className="flex items-center gap-1.5">
                 <Radio className="w-3 h-3 text-white" />
                 <span className="text-white font-bold text-[11px]">Radios en vivo</span>
@@ -1279,7 +1279,7 @@ const HomePage: React.FC = () => {
       <section className="mx-4 mt-2">
         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-brand-orange to-pink-500 px-4 py-2.5 flex items-center justify-between">
+          <div className="bg-brand-orange px-4 py-2.5 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-sm">🔥</span>
               <span className="text-white font-black text-xs tracking-wide">Ruta de Hoy</span>
@@ -1374,11 +1374,11 @@ const HomePage: React.FC = () => {
         <div className="relative flex items-center justify-between gap-3 sm:gap-4 p-4 sm:p-5">
           <div className="min-w-0">
             <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-              <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-fuchsia-600 flex items-center justify-center flex-shrink-0">
+              <span className="w-8 h-8 rounded-lg bg-brand-orange flex items-center justify-center flex-shrink-0">
                 <Tv className="w-4 h-4 text-white" />
               </span>
               <span className="font-display font-black text-white text-lg sm:text-xl tracking-tight">
-                BailaNow <span className="bg-gradient-to-r from-orange-400 to-fuchsia-400 bg-clip-text text-transparent">TV</span>
+                BailaNow <span className="bg-brand-orange bg-clip-text text-transparent">TV</span>
               </span>
               <span className="text-[9px] font-black uppercase tracking-widest bg-white/10 text-white/80 px-2 py-0.5 rounded-full">Nuevo</span>
             </div>
@@ -1526,7 +1526,7 @@ const HomePage: React.FC = () => {
 
       {/* ── MI PANEL (logged-in user) ── */}
       {isPerformer && myBalance && isModuleOn('creator-panel') && (
-        <section className="mx-4 mt-4 bg-gradient-to-r from-brand-orange to-pink-500 rounded-3xl p-5 sm:p-6 text-white shadow-card">
+        <section className="mx-4 mt-4 bg-brand-orange rounded-3xl p-5 sm:p-6 text-white shadow-card">
           <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
             <div>
               <p className="text-white/70 text-xs font-semibold uppercase tracking-wider">Mi Panel Creator</p>
@@ -1715,7 +1715,7 @@ const HomePage: React.FC = () => {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-1.5">
             <span className="font-display font-black text-sm text-gray-900 dark:text-white">Baila</span>
-            <span className="font-display font-black text-sm bg-gradient-to-r from-pink-500 to-fuchsia-600 bg-clip-text text-transparent">Now</span>
+            <span className="font-display font-black text-sm bg-brand-orange bg-clip-text text-transparent">Now</span>
             <span className="text-gray-400 text-xs ml-1">© 2025</span>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-gray-400">

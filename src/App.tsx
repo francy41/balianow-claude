@@ -98,7 +98,7 @@ class ErrorBoundary extends React.Component<
             <p className="text-gray-400 mb-6">{this.state.error?.message || 'Error inesperado'}</p>
             <button
               onClick={() => { this.setState({ hasError: false, error: null }); window.location.href = '/'; }}
-              className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold px-6 py-3 rounded-xl"
+              className="bg-brand-orange text-white font-bold px-6 py-3 rounded-xl"
             >
               Volver al inicio
             </button>

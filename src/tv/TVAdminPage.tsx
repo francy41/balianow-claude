@@ -83,7 +83,7 @@ const TVAdminPage: React.FC = () => {
         <div className="flex gap-2 mb-6">
           {(['contenido', 'regalias'] as const).map(t => (
             <button key={t} onClick={() => setTab(t)}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${tab === t ? 'bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800'}`}>
+              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${tab === t ? 'bg-brand-orange text-white' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800'}`}>
               {t === 'contenido' ? 'Contenido' : 'Regalías'}
             </button>
           ))}

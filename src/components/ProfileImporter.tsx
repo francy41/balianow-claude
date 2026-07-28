@@ -311,11 +311,11 @@ const ProfileImporter: React.FC = () => {
       {/* Selector de modo */}
       <div className="flex gap-2">
         <button onClick={() => setMode('link')}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold ${mode === 'link' ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold ${mode === 'link' ? 'bg-brand-orange text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>
           <Sparkles className="w-4 h-4" /> Desde link (IA)
         </button>
         <button onClick={() => setMode('bulk')}
-          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold ${mode === 'bulk' ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold ${mode === 'bulk' ? 'bg-brand-orange text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'}`}>
           <FileText className="w-4 h-4" /> JSON / CSV
         </button>
       </div>

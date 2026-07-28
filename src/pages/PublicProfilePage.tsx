@@ -152,7 +152,7 @@ const PublicProfilePage: React.FC = () => {
           <div className="text-6xl mb-4">👤</div>
           <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Perfil no encontrado</h2>
           <p className="text-gray-400 mb-6">{error || 'Este perfil no existe o fue eliminado'}</p>
-          <Link to="/" className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold px-6 py-3 rounded-xl inline-block">
+          <Link to="/" className="bg-brand-orange text-white font-bold px-6 py-3 rounded-xl inline-block">
             Volver a BailaNow
           </Link>
         </div>
@@ -215,7 +215,7 @@ const PublicProfilePage: React.FC = () => {
                 {role.emoji} {role.label}
               </span>
               {profile.is_premium && (
-                <span className="text-xs font-black text-white px-2 py-1 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 shadow">
+                <span className="text-xs font-black text-white px-2 py-1 rounded-full bg-amber-500 shadow">
                   ⭐ PREMIUM
                 </span>
               )}
@@ -240,7 +240,7 @@ const PublicProfilePage: React.FC = () => {
             <div className="flex flex-wrap gap-1.5 mt-4">
               {(profile.styles || []).map(s => (
                 <Link key={s} to={`/cerca?style=${encodeURIComponent(s)}`}
-                  className="text-xs font-bold px-3 py-1 rounded-full bg-gradient-to-r from-pink-100 to-fuchsia-100 dark:from-pink-900/30 dark:to-fuchsia-900/30 text-pink-700 dark:text-pink-300 hover:scale-105 transition-transform">
+                  className="text-xs font-bold px-3 py-1 rounded-full bg-brand-orange dark:from-pink-900/30 dark:to-fuchsia-900/30 text-pink-700 dark:text-pink-300 hover:scale-105 transition-transform">
                   🎵 {s}
                 </Link>
               ))}
@@ -257,12 +257,12 @@ const PublicProfilePage: React.FC = () => {
         <div className="grid grid-cols-2 gap-3 mb-4">
           {profile.whatsapp && (
             <a href={`https://wa.me/${profile.whatsapp.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer"
-              className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-black py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg active:scale-95">
+              className="bg-emerald-500 text-white font-black py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg active:scale-95">
               <MessageCircle className="w-4 h-4" /> WhatsApp
             </a>
           )}
           <button onClick={() => navigate(`/chat?with=${profile.id}`)}
-            className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg active:scale-95">
+            className="bg-brand-orange text-white font-black py-3 rounded-2xl flex items-center justify-center gap-2 shadow-lg active:scale-95">
             <MessageCircle className="w-4 h-4" /> Chat BailaNow
           </button>
         </div>
@@ -341,7 +341,7 @@ const PublicProfilePage: React.FC = () => {
       {(isAdmin || user?.id === profile?.id) && (
         <button
           onClick={() => setEditOpen(true)}
-          className="fixed bottom-36 lg:bottom-6 right-4 z-30 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold rounded-full px-5 py-3 shadow-lg shadow-pink-500/40 flex items-center gap-2 active:scale-95"
+          className="fixed bottom-36 lg:bottom-6 right-4 z-30 bg-brand-orange text-white font-bold rounded-full px-5 py-3 shadow-lg shadow-pink-500/40 flex items-center gap-2 active:scale-95"
           title="Editar este perfil"
         >
           <Edit className="w-5 h-5" />

@@ -442,7 +442,7 @@ const LegalPage: React.FC = () => {
             ¿Tienes preguntas legales, de privacidad o sobre cookies?
           </p>
           <div className="flex flex-wrap gap-2 justify-center">
-            <a href={`mailto:${COMPANY_EMAIL}`} className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-sm font-bold px-4 py-2 rounded-xl hover:from-pink-600 hover:to-fuchsia-700 transition-all">
+            <a href={`mailto:${COMPANY_EMAIL}`} className="inline-flex items-center gap-2 bg-brand-orange text-white text-sm font-bold px-4 py-2 rounded-xl hover:from-pink-600 hover:to-fuchsia-700 transition-all">
               {COMPANY_EMAIL}
             </a>
             <a href={`mailto:${PRIVACY_EMAIL}`} className="inline-flex items-center gap-2 border-2 border-pink-500 text-pink-500 text-sm font-bold px-4 py-2 rounded-xl hover:bg-pink-50 transition-all">

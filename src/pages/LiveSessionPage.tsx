@@ -269,7 +269,7 @@ const LiveSessionPage: React.FC = () => {
                 {session.cover_url && (
                   <img src={session.cover_url} alt={session.title} className="w-full h-40 object-cover rounded-2xl mb-5 opacity-80" />
                 )}
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center mb-4">
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-brand-orange flex items-center justify-center mb-4">
                   <Lock className="w-8 h-8 text-white" />
                 </div>
                 <p className="text-[11px] font-black uppercase tracking-widest text-pink-400 mb-1">Evento de pago · PPV</p>
@@ -288,7 +288,7 @@ const LiveSessionPage: React.FC = () => {
                   <>
                     <button
                       onClick={startUnlock}
-                      className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 hover:opacity-90 text-white font-black rounded-xl py-4 text-base flex items-center justify-center gap-2 shadow-lg shadow-pink-500/25"
+                      className="w-full bg-brand-orange hover:opacity-90 text-white font-black rounded-xl py-4 text-base flex items-center justify-center gap-2 shadow-lg shadow-pink-500/25"
                     >
                       <Lock className="w-4 h-4" /> Desbloquear acceso · €{(session.price ?? 0).toFixed(2)}
                     </button>
@@ -312,7 +312,7 @@ const LiveSessionPage: React.FC = () => {
                         <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-700 mb-3">🧪 Pago en modo demo — no se cobra dinero real. Configura <code>VITE_STRIPE_PUBLISHABLE_KEY</code> para activar el cobro.</div>
                         <button
                           onClick={() => finalizeAccess('demo')}
-                          className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black rounded-xl py-3.5 text-sm flex items-center justify-center gap-2"
+                          className="w-full bg-brand-orange text-white font-black rounded-xl py-3.5 text-sm flex items-center justify-center gap-2"
                         >
                           <CreditCard className="w-4 h-4" /> Pagar €{(session.price ?? 0).toFixed(2)}
                         </button>
