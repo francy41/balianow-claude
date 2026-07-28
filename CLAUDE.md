@@ -3,7 +3,7 @@
 ## Identidad del proyecto
 - Nombre: BailaNow
 - Descripción: Ecosistema SaaS de danza latina — artistas, venues, eventos, marketplace, radio en vivo, suscripciones premium
-- Stack: React 18 + Vite 6 + TypeScript + Tailwind CSS + Zustand + Supabase + Vercel + Capacitor (Android)
+- Stack: React 18 + Vite 6 + TypeScript + Tailwind CSS + Zustand + Supabase + Cloudflare (Workers) + Capacitor (Android)
 - Propietario: Solfa Mende / solfamendez41@gmail.com (superadmin)
 - Repo: github.com/francy41/balianow-claude · rama: master
 - Dominio producción: bailanow.com
@@ -12,8 +12,17 @@
 - Desarrollo: `npm run dev` (puerto 3000)
 - Build: `npm run build`
 - Typecheck: `npx tsc --noEmit`
-- Deploy: `npm run build && npx vercel --prod --yes` → luego `npx vercel alias set <url> bailanow.com`
+- Deploy: **automático** — todo push/merge a `master` en GitHub dispara build + deploy en Cloudflare Workers (~1-2 min). NO hay comando manual (ya no se usa Vercel).
+- Ver despliegues: panel Cloudflare → proyecto `balianow-claude` → pestaña "Despliegues"
 - Gestor de paquetes: npm (no usar pnpm/yarn)
+
+## Hosting / Deploy (Cloudflare Workers)
+- Web servida como assets estáticos SPA por Cloudflare Workers. GitHub conectado → deploy automático desde `master`.
+- Config en `wrangler.jsonc`: `assets.not_found_handling: single-page-application` (fallback SPA sin `404.html`), `nodejs_compat`.
+- Build command: `npm run build` · salida: `dist/` · Vite usa `@cloudflare/vite-plugin`.
+- Dominios personalizados en el Worker: `bailanow.com` + `www.bailanow.com` (DNS + SSL gestionados por Cloudflare). Registros MX/TXT del correo (Amazon SES/Resend) intactos.
+- Sitemap: `scripts/gen-sitemap.mjs` genera `public/sitemap.xml` en build tomando la Edge Function `sitemap` de Supabase (envía `VITE_SUPABASE_ANON_KEY` por si hay verify_jwt). Es no-fatal: si falla, el build continúa.
+- Variables `VITE_*` viven en el panel de Cloudflare (Settings → Environment variables), no en Vercel.
 
 ## Reglas de arquitectura (no deducibles leyendo el código)
 - Supabase directo (ENOTFOUND en Postgres): toda migración SQL usa el Management API REST `/v1/projects/{ref}/database/query`
@@ -31,7 +40,7 @@
 - `src/components/AdminEditModal.tsx` — modal edición genérica con `KEY_ALIASES` para mapear camelCase→snake_case
 
 ## Carpetas que NUNCA se deben tocar
-- `node_modules/`, `dist/`, `.vercel/`, `android/` (Capacitor, solo tocar con comandos específicos)
+- `node_modules/`, `dist/`, `.wrangler/`, `.vercel/` (heredada, ya sin uso), `android/` (Capacitor, solo tocar con comandos específicos)
 
 ## Convenciones de código
 - Componentes: PascalCase, en `src/components/` o `src/pages/`
