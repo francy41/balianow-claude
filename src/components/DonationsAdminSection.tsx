@@ -34,7 +34,7 @@ const DonationsAdminSection: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-        <div className="rounded-2xl p-5 bg-gradient-to-br from-orange-500 to-fuchsia-600 text-white">
+        <div className="rounded-2xl p-5 bg-brand-orange text-white">
           <div className="flex items-center gap-2 text-white/85 text-xs font-bold uppercase tracking-wide"><Heart className="w-4 h-4" fill="currentColor" /> Total recaudado</div>
           <p className="font-display font-black text-3xl mt-1">{eur(summary.total)}</p>
         </div>

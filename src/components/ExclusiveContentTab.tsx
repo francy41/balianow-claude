@@ -108,7 +108,7 @@ const ExclusiveContentTab: React.FC<{ artist: Artist }> = ({ artist }) => {
   if (unlocked) {
     return (
       <div className="space-y-4">
-        <div className="rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 p-5 text-white flex items-center gap-4">
+        <div className="rounded-2xl bg-amber-500 p-5 text-white flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
             <Crown className="w-6 h-6" />
           </div>
@@ -133,7 +133,7 @@ const ExclusiveContentTab: React.FC<{ artist: Artist }> = ({ artist }) => {
   return (
     <div className="max-w-md mx-auto">
       <div className="card-white rounded-3xl overflow-hidden">
-        <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-6 text-white text-center">
+        <div className="bg-amber-500 p-6 text-white text-center">
           <div className="w-16 h-16 mx-auto rounded-2xl bg-white/20 flex items-center justify-center mb-3">
             <Lock className="w-8 h-8" />
           </div>
@@ -159,7 +159,7 @@ const ExclusiveContentTab: React.FC<{ artist: Artist }> = ({ artist }) => {
             <>
               <button
                 onClick={startJoin}
-                className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black rounded-xl py-3.5 text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-orange-500/25"
+                className="w-full bg-amber-500 text-white font-black rounded-xl py-3.5 text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-lg shadow-orange-500/25"
               >
                 <Crown className="w-4 h-4" /> Hazte fan · €{FAN_PRICE.toFixed(2)}
               </button>
@@ -183,7 +183,7 @@ const ExclusiveContentTab: React.FC<{ artist: Artist }> = ({ artist }) => {
                   <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-700 mb-3">🧪 Pago en modo demo — no se cobra dinero real. Configura <code>VITE_STRIPE_PUBLISHABLE_KEY</code> para activar el cobro.</div>
                   <button
                     onClick={() => finalizeJoin('demo')}
-                    className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-black rounded-xl py-3.5 text-sm flex items-center justify-center gap-2"
+                    className="w-full bg-amber-500 text-white font-black rounded-xl py-3.5 text-sm flex items-center justify-center gap-2"
                   >
                     <CreditCard className="w-4 h-4" /> Pagar €{FAN_PRICE.toFixed(2)}
                   </button>

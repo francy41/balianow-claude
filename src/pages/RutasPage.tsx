@@ -140,7 +140,7 @@ const CreateRutaModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
               <div className="space-y-1.5 mb-3">
                 {stops.map((s, i) => (
                   <div key={i} className="flex items-center gap-2 bg-white dark:bg-gray-900 rounded-lg px-2.5 py-1.5">
-                    <span className="w-5 h-5 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 text-white text-[10px] font-black flex items-center justify-center flex-shrink-0">{i + 1}</span>
+                    <span className="w-5 h-5 rounded-full bg-brand-orange text-white text-[10px] font-black flex items-center justify-center flex-shrink-0">{i + 1}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{s.name}</p>
                       <p className="text-[10px] text-gray-400 truncate">{s.address}</p>
@@ -159,7 +159,7 @@ const CreateRutaModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
             </div>
           </div>
 
-          <button onClick={save} disabled={saving} className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black rounded-xl py-3.5 text-sm hover:opacity-90 transition-all disabled:opacity-50">
+          <button onClick={save} disabled={saving} className="w-full bg-brand-orange text-white font-black rounded-xl py-3.5 text-sm hover:opacity-90 transition-all disabled:opacity-50">
             {saving ? <Loader2 className="w-4 h-4 animate-spin inline" /> : 'Publicar ruta'}
           </button>
         </div>
@@ -265,7 +265,7 @@ const RutasPage: React.FC = () => {
             <RouteIcon className="w-10 h-10 mx-auto text-gray-300 mb-2" />
             <p className="text-gray-900 dark:text-white font-bold">Aún no hay rutas</p>
             <p className="text-gray-400 text-sm mt-1">Sé el primero: crea la ruta de esta noche y que el grupo se una.</p>
-            <button onClick={() => (isAuthenticated ? setCreating(true) : navigate('/auth'))} className="mt-4 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold rounded-xl px-5 py-2.5 text-sm">Crear la primera ruta</button>
+            <button onClick={() => (isAuthenticated ? setCreating(true) : navigate('/auth'))} className="mt-4 bg-brand-orange text-white font-bold rounded-xl px-5 py-2.5 text-sm">Crear la primera ruta</button>
           </div>
         ) : (
           <div className="grid lg:grid-cols-[360px_1fr] gap-4">
@@ -301,7 +301,7 @@ const RutasPage: React.FC = () => {
                         {selected.time && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {selected.time}</span>}
                       </p>
                     </div>
-                    <button onClick={toggleJoin} className={`flex-shrink-0 rounded-xl px-4 py-2 text-sm font-bold flex items-center gap-1.5 ${isMember ? 'bg-emerald-100 text-emerald-700' : 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white'}`}>
+                    <button onClick={toggleJoin} className={`flex-shrink-0 rounded-xl px-4 py-2 text-sm font-bold flex items-center gap-1.5 ${isMember ? 'bg-emerald-100 text-emerald-700' : 'bg-brand-orange text-white'}`}>
                       {isMember ? <><Check className="w-4 h-4" /> Voy</> : <><Users className="w-4 h-4" /> Unirme</>}
                     </button>
                   </div>
@@ -313,7 +313,7 @@ const RutasPage: React.FC = () => {
                   <div className="mt-3 space-y-1.5">
                     {selected.stops.map((s, i) => (
                       <div key={i} className="flex items-center gap-2 text-sm">
-                        <span className="w-5 h-5 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 text-white text-[10px] font-black flex items-center justify-center flex-shrink-0">{i + 1}</span>
+                        <span className="w-5 h-5 rounded-full bg-brand-orange text-white text-[10px] font-black flex items-center justify-center flex-shrink-0">{i + 1}</span>
                         <span className="font-bold text-gray-900 dark:text-white">{s.name}</span>
                         {s.address && <span className="text-gray-400 text-xs truncate">· {s.address}</span>}
                       </div>

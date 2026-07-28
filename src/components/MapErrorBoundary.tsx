@@ -37,7 +37,7 @@ class MapErrorBoundary extends React.Component<Props, State> {
             <h3 className="font-black text-gray-900 dark:text-white mb-1">El mapa no pudo cargar</h3>
             <p className="text-xs text-gray-500 mb-4">{this.state.error?.message || 'Error desconocido'}</p>
             <button onClick={this.reset}
-              className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 mx-auto active:scale-95">
+              className="bg-brand-orange text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center gap-2 mx-auto active:scale-95">
               <RefreshCw className="w-3.5 h-3.5" /> Reintentar
             </button>
           </div>

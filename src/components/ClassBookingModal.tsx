@@ -276,7 +276,7 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
                 <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-2xl">
                   {offering.vendor_avatar
                     ? <img src={offering.vendor_avatar} alt="" className="w-12 h-12 rounded-full object-cover" />
-                    : <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center text-white text-lg font-black">{offering.vendor_name[0]}</div>
+                    : <div className="w-12 h-12 rounded-full bg-brand-orange flex items-center justify-center text-white text-lg font-black">{offering.vendor_name[0]}</div>
                   }
                   <div className="flex-1">
                     <p className="text-[10px] uppercase font-bold text-gray-400">Profesor</p>
@@ -307,7 +307,7 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
                       <button key={d} onClick={() => { setSelectedDate(d); setSelectedSlot(null); }}
                         className={`flex-shrink-0 w-16 py-3 rounded-2xl border-2 transition-all ${
                           isSelected
-                            ? 'bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white border-transparent shadow-lg'
+                            ? 'bg-brand-orange text-white border-transparent shadow-lg'
                             : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-pink-300'
                         }`}>
                         <p className="text-[10px] uppercase font-bold">{f.day}</p>
@@ -336,7 +336,7 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
                             isFull
                               ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 line-through cursor-not-allowed'
                               : isSelected
-                                ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white shadow-lg'
+                                ? 'bg-brand-orange text-white shadow-lg'
                                 : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-pink-300'
                           }`}>
                           {fmtTime(slot.starts_at)}
@@ -379,7 +379,7 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
                 </div>
               )}
               <button onClick={onBooked}
-                className="mt-5 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg flex items-center gap-2 mx-auto">
+                className="mt-5 bg-brand-orange text-white font-black px-6 py-3 rounded-2xl shadow-lg flex items-center gap-2 mx-auto">
                 <Video className="w-4 h-4" />
                 Ver mis clases y entrar a la sala
                 <ArrowRight className="w-4 h-4" />
@@ -397,7 +397,7 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
               <p className="text-[10px] text-gray-400">Incluye {commissionPct}% plataforma</p>
             </div>
             <button onClick={handleConfirm} disabled={!selectedSlot || submitting}
-              className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg shadow-pink-500/30 flex items-center gap-2 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed">
+              className="bg-brand-orange text-white font-black px-6 py-3 rounded-2xl shadow-lg shadow-pink-500/30 flex items-center gap-2 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed">
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
               <span>Reservar y pagar</span>
               <ArrowRight className="w-4 h-4" />

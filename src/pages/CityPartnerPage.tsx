@@ -95,7 +95,7 @@ const CityPartnerPage: React.FC = () => {
             <MapPin className="w-4 h-4" /> BailaNow · {city}
           </span>
           <h1 className="font-display font-black text-3xl sm:text-5xl leading-tight">
-            La danza latina de <span className="bg-gradient-to-r from-orange-400 to-fuchsia-400 bg-clip-text text-transparent">{city}</span>
+            La danza latina de <span className="bg-brand-orange bg-clip-text text-transparent">{city}</span>
           </h1>
           {partner ? (
             <p className="text-white/70 mt-4 max-w-xl mx-auto">
@@ -112,7 +112,7 @@ const CityPartnerPage: React.FC = () => {
 
       {!partner ? (
         <div className="max-w-2xl mx-auto px-5">
-          <div className="rounded-2xl bg-gradient-to-br from-orange-500 to-fuchsia-600 p-6 text-center">
+          <div className="rounded-2xl bg-brand-orange p-6 text-center">
             <Sparkles className="w-9 h-9 mx-auto mb-2" />
             <p className="font-display font-black text-xl">Sé el partner de {city}</p>
             <p className="text-white/85 text-sm mt-1 max-w-md mx-auto">Gestiona los eventos de tu ciudad, crea contenido y gana comisiones.</p>
@@ -185,7 +185,7 @@ const CityPartnerPage: React.FC = () => {
                   <input value={handle} onChange={e => setHandle(e.target.value)} placeholder="Tu Instagram, email o teléfono" className="rounded-xl bg-black/30 ring-1 ring-white/15 px-4 py-3 outline-none focus:ring-fuchsia-500" />
                 </div>
                 <textarea value={message} onChange={e => setMessage(e.target.value)} rows={4} placeholder="Escribe tu pregunta…" className="w-full rounded-xl bg-black/30 ring-1 ring-white/15 px-4 py-3 mb-4 outline-none focus:ring-fuchsia-500 resize-none" />
-                <button onClick={submit} disabled={sending} className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-fuchsia-600 font-bold rounded-xl py-3.5 disabled:opacity-60">
+                <button onClick={submit} disabled={sending} className="w-full inline-flex items-center justify-center gap-2 bg-brand-orange font-bold rounded-xl py-3.5 disabled:opacity-60">
                   {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />} Enviar pregunta
                 </button>
               </>

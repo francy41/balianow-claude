@@ -60,7 +60,7 @@ const RecruitPage: React.FC = () => {
         <div className="relative max-w-4xl mx-auto px-5 pt-16 pb-10 text-center">
           <span className="inline-flex items-center gap-2 text-fuchsia-300 font-black text-xs tracking-widest uppercase mb-4"><Sparkles className="w-4 h-4" /> Únete a BailaNow</span>
           <h1 className="font-display font-black text-3xl sm:text-5xl leading-tight">
-            ¿Eres un apasionado del <span className="bg-gradient-to-r from-orange-400 to-fuchsia-400 bg-clip-text text-transparent">baile y la música latina</span>?
+            ¿Eres un apasionado del <span className="bg-brand-orange bg-clip-text text-transparent">baile y la música latina</span>?
           </h1>
           <p className="text-white/80 text-lg mt-5 max-w-2xl mx-auto">
             Artista, bailarín, músico, dueño de local, promotor… o quieres ser <b className="text-white">partner de tu ciudad</b> en BailaNow.
@@ -68,7 +68,7 @@ const RecruitPage: React.FC = () => {
             pasarelas de pago, tus cursos y transmisiones online, y todo lo que necesitas para conseguir eventos. <b className="text-white">Todo en uno.</b>
           </p>
           <div className="flex flex-wrap justify-center gap-3 mt-7">
-            <button onClick={() => document.getElementById('solicitud')?.scrollIntoView({ behavior: 'smooth' })} className="bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white font-bold rounded-xl px-6 py-3.5 inline-flex items-center gap-2">Solicitar unirme <ArrowRight className="w-4 h-4" /></button>
+            <button onClick={() => document.getElementById('solicitud')?.scrollIntoView({ behavior: 'smooth' })} className="bg-brand-orange text-white font-bold rounded-xl px-6 py-3.5 inline-flex items-center gap-2">Solicitar unirme <ArrowRight className="w-4 h-4" /></button>
             <button onClick={() => navigate('/partner/aplicar')} className="bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl px-6 py-3.5">Ser partner de mi ciudad 🌎</button>
           </div>
         </div>
@@ -91,7 +91,7 @@ const RecruitPage: React.FC = () => {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {FEATURES.map(f => (
             <div key={f.t} className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-fuchsia-600 flex items-center justify-center">{f.icon}</div>
+              <div className="w-10 h-10 rounded-xl bg-brand-orange flex items-center justify-center">{f.icon}</div>
               <p className="font-bold mt-3">{f.t}</p>
               <p className="text-white/60 text-sm mt-0.5">{f.d}</p>
             </div>
@@ -125,7 +125,7 @@ const RecruitPage: React.FC = () => {
                 <input value={form.city} onChange={e => set('city', e.target.value)} placeholder="Ciudad" className="w-full rounded-xl bg-black/30 ring-1 ring-white/15 px-4 py-3 outline-none focus:ring-fuchsia-500" />
                 <input value={form.portfolio} onChange={e => set('portfolio', e.target.value)} placeholder="Enlace a tu trabajo (Instagram, YouTube, web…)" className="w-full rounded-xl bg-black/30 ring-1 ring-white/15 px-4 py-3 outline-none focus:ring-fuchsia-500" />
                 <textarea value={form.message} onChange={e => set('message', e.target.value)} rows={3} placeholder="Cuéntanos sobre ti y qué ofreces" className="w-full rounded-xl bg-black/30 ring-1 ring-white/15 px-4 py-3 outline-none focus:ring-fuchsia-500 resize-none" />
-                <button onClick={submit} disabled={sending} className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white font-bold rounded-xl py-3.5 disabled:opacity-60">
+                <button onClick={submit} disabled={sending} className="w-full inline-flex items-center justify-center gap-2 bg-brand-orange text-white font-bold rounded-xl py-3.5 disabled:opacity-60">
                   {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />} Enviar solicitud
                 </button>
               </div>

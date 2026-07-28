@@ -150,7 +150,7 @@ const LivePreviewModal: React.FC<Props> = ({ isOpen, onClose, session }) => {
           <div className="flex items-center gap-3">
             {session.host_avatar
               ? <img src={session.host_avatar} className="w-10 h-10 rounded-full object-cover" alt="" />
-              : <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600" />}
+              : <div className="w-10 h-10 rounded-full bg-brand-orange" />}
             <div className="flex-1">
               <div className="font-bold text-gray-900 dark:text-white">{session.host_name || 'Anfitrión'}</div>
               {session.city && <div className="text-xs text-gray-500">{session.city}</div>}

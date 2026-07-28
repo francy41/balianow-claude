@@ -360,7 +360,7 @@ const NearMePage: React.FC = () => {
       <article key={`c-${it.type}-${it.id}`} onClick={() => goTo(it)}
         className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-md hover:shadow-xl border border-gray-100 dark:border-gray-800 cursor-pointer active:scale-[0.97] transition-all flex flex-col">
         {/* Cover */}
-        <div className="relative w-full aspect-square bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
+        <div className="relative w-full aspect-square bg-gray-800 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
           {it.img
             ? <img src={it.img} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
             : <div className="w-full h-full flex items-center justify-center text-4xl">{typeMeta.emoji}</div>}
@@ -452,7 +452,7 @@ const NearMePage: React.FC = () => {
           </div>
         </header>
         {it.img && (
-          <div className="relative w-full aspect-[16/9] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
+          <div className="relative w-full aspect-[16/9] bg-gray-800 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
             <img src={it.img} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
             {it.type === 'venue' && it.isOpenNow && (
@@ -576,7 +576,7 @@ const NearMePage: React.FC = () => {
             <button key={t.key} onClick={() => setActiveTab(t.key as any)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                 activeTab === t.key
-                  ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white shadow-lg shadow-pink-500/30'
+                  ? 'bg-brand-orange text-white shadow-lg shadow-pink-500/30'
                   : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
               }`}>
               <span className="mr-1">{t.icon}</span>{t.label}
@@ -607,7 +607,7 @@ const NearMePage: React.FC = () => {
             <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-3" />
             <p className="font-bold text-gray-700 dark:text-gray-300">Activa tu ubicación</p>
             <p className="text-gray-400 text-xs mt-1 mb-4">o elige una ciudad para empezar</p>
-            <button onClick={handleLocate} className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold px-6 py-3 rounded-xl">
+            <button onClick={handleLocate} className="bg-brand-orange text-white font-bold px-6 py-3 rounded-xl">
               📍 Usar mi ubicación
             </button>
           </div>
@@ -674,7 +674,7 @@ const NearMePage: React.FC = () => {
             </div>
             <div className="p-4 space-y-2 overflow-y-auto">
               <button onClick={handleLocate}
-                className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2 mb-2 active:scale-95">
+                className="w-full bg-brand-orange text-white font-bold py-3 rounded-2xl flex items-center justify-center gap-2 mb-2 active:scale-95">
                 {locating
                   ? <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Localizando…</>
                   : <><Navigation className="w-4 h-4" /> Usar mi ubicación actual</>
@@ -699,7 +699,7 @@ const NearMePage: React.FC = () => {
       {position && (
         <div className="fixed left-0 right-0 bottom-[68px] lg:bottom-4 z-30 px-3 pointer-events-none">
           <button onClick={() => navigate('/mapa')}
-            className="pointer-events-auto w-full sm:w-auto sm:mx-auto sm:max-w-xs flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white px-5 py-3.5 rounded-2xl shadow-2xl shadow-pink-500/40 font-bold text-base active:scale-95 transition-transform mx-auto block">
+            className="pointer-events-auto w-full sm:w-auto sm:mx-auto sm:max-w-xs flex items-center justify-center gap-2 bg-brand-orange text-white px-5 py-3.5 rounded-2xl shadow-2xl shadow-pink-500/40 font-bold text-base active:scale-95 transition-transform mx-auto block">
             <Map className="w-5 h-5" /> Ver mapa
           </button>
         </div>

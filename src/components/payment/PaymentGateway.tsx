@@ -29,7 +29,7 @@ const SuccessScreen: React.FC<{
     {/* Animated checkmark */}
     <div className="relative mx-auto w-24 h-24 mb-5">
       <div className="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-30" />
-      <div className="relative w-24 h-24 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-xl shadow-green-500/30">
+      <div className="relative w-24 h-24 bg-emerald-500 rounded-full flex items-center justify-center shadow-xl shadow-green-500/30">
         <CheckCircle className="w-12 h-12 text-white" />
       </div>
     </div>
@@ -38,7 +38,7 @@ const SuccessScreen: React.FC<{
     <p className="text-gray-400 text-sm mb-1">
       Procesado con <span className="font-semibold text-gray-600 capitalize">{provider}</span>
     </p>
-    <p className="font-black text-3xl text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-fuchsia-600 mb-6">
+    <p className="font-black text-3xl text-transparent bg-clip-text bg-brand-orange mb-6">
       {fmtEur(total)}
     </p>
 
@@ -78,7 +78,7 @@ const SuccessScreen: React.FC<{
     </div>
 
     <button onClick={onClose}
-      className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black rounded-2xl py-4 text-sm hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2">
+      className="w-full bg-brand-orange text-white font-black rounded-2xl py-4 text-sm hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2">
       Ver mis pedidos <ArrowRight className="w-4 h-4" />
     </button>
     <p className="text-[10px] text-gray-400 mt-3">Recibirás un email de confirmación en breve</p>
@@ -347,7 +347,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
                     {/* Botón de simulación SIEMPRE visible para pruebas */}
                     {!loadingIntent && !clientSecret && (
                       <>
-                        <div className="bg-gradient-to-br from-amber-50 to-pink-50 border border-amber-200 rounded-2xl p-3 mb-2">
+                        <div className="bg-amber-500 border border-amber-200 rounded-2xl p-3 mb-2">
                           <div className="flex items-start gap-2 mb-2">
                             <span className="text-lg">🧪</span>
                             <div>
@@ -400,7 +400,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
                 {method === 'wallet' && (
                   <div className="space-y-3">
                     {/* Balance card */}
-                    <div className="bg-gradient-to-r from-pink-500 to-fuchsia-600 rounded-2xl p-4 text-white relative overflow-hidden">
+                    <div className="bg-brand-orange rounded-2xl p-4 text-white relative overflow-hidden">
                       <div className="absolute -top-4 -right-4 w-20 h-20 bg-white/10 rounded-full" />
                       <div className="absolute -bottom-6 -left-6 w-28 h-28 bg-white/5 rounded-full" />
                       <div className="relative">
@@ -426,7 +426,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
                           </div>
                         </div>
                         <button onClick={handleWalletPay} disabled={walletLoading}
-                          className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black rounded-2xl py-4 text-sm hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2 disabled:opacity-60">
+                          className="w-full bg-brand-orange text-white font-black rounded-2xl py-4 text-sm hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2 disabled:opacity-60">
                           {walletLoading
                             ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Procesando...</>
                             : <><Wallet className="w-4 h-4" /> Pagar {fmtEur(subtotal)} con Wallet</>

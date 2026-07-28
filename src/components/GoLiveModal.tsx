@@ -152,7 +152,7 @@ const GoLiveModal: React.FC<Props> = ({ isOpen, onClose, defaultCategory = 'show
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4">
       <div className="bg-white dark:bg-[#0f0f1e] w-full sm:max-w-2xl rounded-t-3xl sm:rounded-3xl max-h-[95vh] overflow-y-auto">
         {/* Header */}
-        <div className="sticky top-0 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white px-5 py-4 flex items-center justify-between z-10">
+        <div className="sticky top-0 bg-brand-orange text-white px-5 py-4 flex items-center justify-between z-10">
           <div className="flex items-center gap-2">
             <Radio className="w-5 h-5 animate-pulse" />
             <h2 className="font-bold text-lg">Iniciar Live</h2>

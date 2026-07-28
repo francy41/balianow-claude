@@ -74,7 +74,7 @@ const MembershipPlansPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-24">
-      <div className="bg-gradient-to-br from-orange-500 to-fuchsia-600 text-white">
+      <div className="bg-brand-orange text-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14 text-center">
           <h1 className="font-display font-black text-3xl sm:text-5xl">BailaNow TV · el Netflix del baile</h1>
           <p className="text-white/90 mt-3 max-w-2xl mx-auto">Todo el catálogo de clases de baile en vídeo, cuando quieras. Con los planes <b>Pareja</b> y <b>Familiar</b> practicáis juntos por videocámara, estéis donde estéis.</p>
@@ -112,7 +112,7 @@ const MembershipPlansPage: React.FC = () => {
             <div className="flex flex-wrap gap-2">
               <button onClick={() => navigate('/tv')} className="inline-flex items-center gap-1.5 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold rounded-xl px-5 py-2.5 text-sm"><Video className="w-4 h-4" /> Ver BailaNow TV</button>
               {((mine && seats > 1) || memberOf) && (
-                <button onClick={() => navigate(`/practicar/${mine ? user!.id : memberOf!.owner_id}`)} className="inline-flex items-center gap-1.5 bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white font-bold rounded-xl px-5 py-2.5 text-sm"><Users className="w-4 h-4" /> Practicar juntos (cámaras)</button>
+                <button onClick={() => navigate(`/practicar/${mine ? user!.id : memberOf!.owner_id}`)} className="inline-flex items-center gap-1.5 bg-brand-orange text-white font-bold rounded-xl px-5 py-2.5 text-sm"><Users className="w-4 h-4" /> Practicar juntos (cámaras)</button>
               )}
             </div>
           </div>
@@ -147,7 +147,7 @@ const MembershipPlansPage: React.FC = () => {
             <div className="grid grid-cols-[1fr_70px_70px] text-sm">
               <div className="px-4 py-3 font-bold text-gray-500 bg-gray-50 dark:bg-gray-800">Beneficio</div>
               <div className="px-2 py-3 font-bold text-center text-gray-400 bg-gray-50 dark:bg-gray-800">Gratis</div>
-              <div className="px-2 py-3 font-black text-center text-white bg-gradient-to-r from-orange-500 to-fuchsia-600">Premium</div>
+              <div className="px-2 py-3 font-black text-center text-white bg-brand-orange">Premium</div>
               {[
                 ['🎬 Todo el catálogo de vídeos', false],
                 ['👫 Bailes en grupo por cámara (pareja/familia)', false],

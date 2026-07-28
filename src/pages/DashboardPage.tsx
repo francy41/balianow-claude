@@ -81,7 +81,7 @@ const DashboardPage: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4">
         {/* Header con portada */}
         <div className="card-white rounded-3xl mb-6 relative overflow-hidden">
-          <div className="relative h-32 sm:h-40 bg-gradient-to-r from-brand-orange to-pink-400 overflow-hidden">
+          <div className="relative h-32 sm:h-40 bg-brand-orange overflow-hidden">
             {user.coverPhoto && <img src={user.coverPhoto} alt="" className="w-full h-full object-cover" />}
             <button onClick={() => setShowProfileEdit(true)}
               className="absolute top-3 right-3 bg-white/90 hover:bg-white text-gray-800 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow">
@@ -520,7 +520,7 @@ const EarningsTab: React.FC<{ performerId: string; performerName: string }> = ({
               {data.map(d => (
                 <div key={d.month} className="flex-1 flex flex-col items-center gap-1">
                   <div className="w-full bg-gray-100 rounded-t-lg flex-1 flex items-end overflow-hidden">
-                    <div className="w-full bg-gradient-to-t from-brand-orange to-pink-300 rounded-t-lg" style={{ height: `${(d.gross / max) * 100}%`, minHeight: d.gross > 0 ? 4 : 0 }} />
+                    <div className="w-full bg-brand-orange rounded-t-lg" style={{ height: `${(d.gross / max) * 100}%`, minHeight: d.gross > 0 ? 4 : 0 }} />
                   </div>
                   <span className="text-[10px] text-gray-500 font-bold">{d.month}</span>
                   <span className="text-[10px] text-gray-400">€{Math.round(d.net)}</span>
@@ -1171,14 +1171,14 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
       <div className="card-white rounded-2xl p-1.5 flex gap-1 overflow-x-auto">
         <button onClick={() => setFanTab('classes')}
           className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-            fanTab === 'classes' ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'
+            fanTab === 'classes' ? 'bg-brand-orange text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'
           }`}>
           <Video className="w-4 h-4" /> Mis clases
           {classBookings.length > 0 && <span className="bg-white text-pink-600 text-[10px] font-black px-1.5 py-0.5 rounded-full">{classBookings.length}</span>}
         </button>
         <button onClick={() => setFanTab('tickets')}
           className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-            fanTab === 'tickets' ? 'bg-gradient-to-r from-brand-orange to-pink-500 text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'
+            fanTab === 'tickets' ? 'bg-brand-orange text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'
           }`}>
           🎫 Entradas
           {myTickets.length > 0 && <span className="bg-white text-brand-orange text-[10px] font-black px-1.5 py-0.5 rounded-full">{myTickets.length}</span>}
@@ -1212,7 +1212,7 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
       {/* ── Mis Clases reservadas (sala Jitsi) ── */}
       {fanTab === 'classes' && (
         <div className="space-y-3">
-          <div className="card-white p-5 bg-gradient-to-br from-pink-50 to-fuchsia-50 border border-pink-100">
+          <div className="card-white p-5 bg-brand-orange border border-pink-100">
             <h2 className="font-display font-black text-xl text-gray-900 mb-1 flex items-center gap-2">
               <Video className="w-5 h-5 text-pink-500" /> Mis clases reservadas
             </h2>
@@ -1231,7 +1231,7 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
               <Video className="w-12 h-12 mx-auto mb-3 opacity-30" />
               <p className="text-sm mb-1 font-bold text-gray-700">Aún no tienes clases reservadas</p>
               <p className="text-xs mb-4">Explora nuestras clases online y reserva la tuya</p>
-              <button onClick={() => navigate('/clases')} className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold px-5 py-2.5 rounded-xl text-sm">
+              <button onClick={() => navigate('/clases')} className="bg-brand-orange text-white font-bold px-5 py-2.5 rounded-xl text-sm">
                 🎓 Ver clases disponibles
               </button>
             </div>
@@ -1247,7 +1247,7 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
               <div key={b.id} className="card-white overflow-hidden border-2 border-pink-100 hover:border-pink-300 transition-all">
                 <div className="flex flex-col sm:flex-row">
                   {/* Cover */}
-                  <div className="w-full sm:w-40 h-32 sm:h-auto bg-gradient-to-br from-pink-100 to-purple-200 relative flex-shrink-0">
+                  <div className="w-full sm:w-40 h-32 sm:h-auto bg-brand-orange relative flex-shrink-0">
                     {b.offering?.cover_image && (
                       <img src={b.offering.cover_image} alt={b.offering.title} className="w-full h-full object-cover" />
                     )}
@@ -1283,13 +1283,13 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
                     <div className="flex items-center gap-2 mt-1">
                       {canJoin && !isPast && (
                         <button onClick={() => navigate(`/clase/${b.id}`)}
-                          className="flex-1 bg-gradient-to-r from-red-500 to-rose-600 text-white font-black px-4 py-2.5 rounded-xl text-sm shadow-lg shadow-red-500/30 active:scale-95 flex items-center justify-center gap-2">
+                          className="flex-1 bg-red-500 text-white font-black px-4 py-2.5 rounded-xl text-sm shadow-lg shadow-red-500/30 active:scale-95 flex items-center justify-center gap-2">
                           <Video className="w-4 h-4" /> Entrar a la sala ahora
                         </button>
                       )}
                       {!canJoin && !isPast && (
                         <button onClick={() => navigate(`/clase/${b.id}`)}
-                          className="flex-1 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black px-4 py-2.5 rounded-xl text-sm shadow-lg active:scale-95 flex items-center justify-center gap-2">
+                          className="flex-1 bg-brand-orange text-white font-black px-4 py-2.5 rounded-xl text-sm shadow-lg active:scale-95 flex items-center justify-center gap-2">
                           <Video className="w-4 h-4" /> Acceder a la sala
                           {minutesUntil !== null && minutesUntil > 15 && (
                             <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full">
@@ -1301,7 +1301,7 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
                       {isPast && (
                         <>
                           <button onClick={() => setReviewBooking(b)}
-                            className="flex-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-black px-4 py-2.5 rounded-xl text-sm shadow-lg active:scale-95 flex items-center justify-center gap-1">
+                            className="flex-1 bg-amber-500 text-white font-black px-4 py-2.5 rounded-xl text-sm shadow-lg active:scale-95 flex items-center justify-center gap-1">
                             ⭐ Valorar clase
                           </button>
                           <button onClick={() => navigate(`/clase/${b.id}`)}
@@ -1343,7 +1343,7 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
       {/* ── Mis Entradas de eventos (QR real) ── */}
       {fanTab === 'tickets' && (
         <div className="space-y-3">
-          <div className="card-white p-5 bg-gradient-to-br from-orange-50 to-pink-50 border border-orange-100">
+          <div className="card-white p-5 bg-brand-orange border border-orange-100">
             <h2 className="font-display font-black text-xl text-gray-900 mb-1 flex items-center gap-2">
               🎫 Mis entradas
             </h2>

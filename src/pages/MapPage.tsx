@@ -297,7 +297,7 @@ const MapPage: React.FC = () => {
             <button key={f.key} onClick={() => setFilter(f.key)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold shadow-lg transition-all ${
                 filter === f.key
-                  ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white'
+                  ? 'bg-brand-orange text-white'
                   : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
               }`}>
               {f.label}
@@ -426,7 +426,7 @@ const MapPage: React.FC = () => {
                 else if (/^[0-9a-f-]{8,}/i.test(selectedItem.id)) navigate(`/p/${selectedItem.id}`);
                 else navigate(`/artistas/${selectedItem.id}`);
               }}
-              className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-xs font-bold px-4 py-2 rounded-xl active:scale-95 shadow-lg shadow-pink-500/30">
+              className="bg-brand-orange text-white text-xs font-bold px-4 py-2 rounded-xl active:scale-95 shadow-lg shadow-pink-500/30">
               Ver →
             </button>
           </div>

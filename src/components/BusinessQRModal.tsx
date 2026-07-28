@@ -72,7 +72,7 @@ const BusinessQRModal: React.FC<BusinessQRModalProps> = ({ open, onClose, busine
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
           <h2 className="font-black text-lg text-gray-900 dark:text-white flex items-center gap-2">
-            <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center">
+            <span className="w-9 h-9 rounded-xl bg-brand-orange flex items-center justify-center">
               <QrCode className="w-5 h-5 text-white" />
             </span>
             Tu código QR
@@ -105,7 +105,7 @@ const BusinessQRModal: React.FC<BusinessQRModalProps> = ({ open, onClose, busine
                 onClick={() => setPresetId(p.id)}
                 className={`flex flex-col items-center gap-1 py-2.5 rounded-xl text-[11px] font-bold border transition-all ${
                   presetId === p.id
-                    ? 'bg-gradient-to-br from-fuchsia-500 to-purple-600 text-white border-transparent shadow-lg shadow-fuchsia-500/25'
+                    ? 'bg-brand-orange text-white border-transparent shadow-lg shadow-fuchsia-500/25'
                     : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-fuchsia-300'
                 }`}
               >
@@ -144,7 +144,7 @@ const BusinessQRModal: React.FC<BusinessQRModalProps> = ({ open, onClose, busine
             </button>
             <button
               onClick={handleDownload}
-              className="flex-1 flex items-center justify-center gap-1.5 bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white font-bold rounded-xl py-2.5 text-sm hover:opacity-90 transition-all shadow-lg shadow-fuchsia-500/25"
+              className="flex-1 flex items-center justify-center gap-1.5 bg-brand-orange text-white font-bold rounded-xl py-2.5 text-sm hover:opacity-90 transition-all shadow-lg shadow-fuchsia-500/25"
             >
               <Download className="w-4 h-4" /> Descargar PNG
             </button>

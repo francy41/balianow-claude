@@ -333,7 +333,7 @@ const AffiliatePage: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 {PROMO_MATERIALS.map(m => (
                   <div key={m.id} className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:border-purple-300 transition-colors">
-                    <div className="w-full h-24 bg-gradient-to-br from-purple-200 to-pink-200 rounded-lg mb-3 flex items-center justify-center">
+                    <div className="w-full h-24 bg-brand-orange rounded-lg mb-3 flex items-center justify-center">
                       <span className="text-3xl">{m.type === 'video' ? '🎬' : '🖼️'}</span>
                     </div>
                     <p className="font-semibold text-xs text-gray-900">{m.name}</p>

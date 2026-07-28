@@ -167,7 +167,7 @@ const ClassesPage: React.FC = () => {
             <button key={s} onClick={() => setFilterStyle(s)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                 filterStyle === s
-                  ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white shadow-lg'
+                  ? 'bg-brand-orange text-white shadow-lg'
                   : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
               }`}>
               {s}
@@ -276,7 +276,7 @@ const ClassCard: React.FC<{ cls: ClassOffering; onClick: () => void; onPractice?
     <article onClick={onClick}
       className="bg-white dark:bg-gray-900 rounded-3xl overflow-hidden shadow-md hover:shadow-2xl border border-gray-100 dark:border-gray-800 cursor-pointer active:scale-[0.99] transition-all">
       {/* Cover */}
-      <div className="relative aspect-[16/10] bg-gradient-to-br from-pink-100 to-purple-200">
+      <div className="relative aspect-[16/10] bg-brand-orange">
         {cls.cover_image && <img src={cls.cover_image} alt={cls.title} className="w-full h-full object-cover" loading="lazy" />}
         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
         <div className="absolute top-2 left-2 flex gap-1.5 flex-wrap">
@@ -300,7 +300,7 @@ const ClassCard: React.FC<{ cls: ClassOffering; onClick: () => void; onPractice?
           <div className="flex items-center gap-2 mb-2">
             {cls.vendor_avatar
               ? <img src={cls.vendor_avatar} alt="" className="w-6 h-6 rounded-full object-cover" />
-              : <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center text-white text-[10px] font-black">{cls.vendor_name[0]}</div>
+              : <div className="w-6 h-6 rounded-full bg-brand-orange flex items-center justify-center text-white text-[10px] font-black">{cls.vendor_name[0]}</div>
             }
             <span className="text-xs font-bold text-gray-700 dark:text-gray-300 truncate">{cls.vendor_name}</span>
           </div>
@@ -313,7 +313,7 @@ const ClassCard: React.FC<{ cls: ClassOffering; onClick: () => void; onPractice?
         </div>
 
         {cls.next_slot ? (
-          <div className="bg-gradient-to-r from-pink-50 to-purple-50 dark:from-pink-900/20 dark:to-purple-900/20 rounded-xl px-3 py-2 flex items-center justify-between">
+          <div className="bg-brand-orange dark:from-pink-900/20 dark:to-purple-900/20 rounded-xl px-3 py-2 flex items-center justify-between">
             <div>
               <p className="text-[10px] uppercase font-black text-pink-600 dark:text-pink-300">Próxima clase</p>
               <p className="text-xs font-bold text-gray-900 dark:text-white">{fmtDate(cls.next_slot.starts_at)}</p>
@@ -330,7 +330,7 @@ const ClassCard: React.FC<{ cls: ClassOffering; onClick: () => void; onPractice?
         {onPackage && (
           <button
             onClick={(e) => { e.stopPropagation(); onPackage(); }}
-            className="w-full mt-2 bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity">
+            className="w-full mt-2 bg-brand-orange text-white font-black text-xs py-2.5 rounded-xl flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity">
             📦 Ver paquetes de clase
           </button>
         )}

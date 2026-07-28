@@ -91,7 +91,7 @@ const PartnerApplyPage: React.FC = () => {
             <Sparkles className="w-4 h-4" /> Programa Partner
           </span>
           <h1 className="font-display font-black text-3xl sm:text-5xl leading-tight">
-            ¿Quieres ser <span className="bg-gradient-to-r from-orange-400 to-fuchsia-400 bg-clip-text text-transparent">partner de BailaNow</span> en tu ciudad?
+            ¿Quieres ser <span className="bg-brand-orange bg-clip-text text-transparent">partner de BailaNow</span> en tu ciudad?
           </h1>
           <p className="text-white/70 mt-4 max-w-xl mx-auto">
             Conviértete en el representante de la danza latina de tu ciudad: gestiona eventos, sube contenido,
@@ -121,7 +121,7 @@ const PartnerApplyPage: React.FC = () => {
         <div className="space-y-2.5">
           {REQUISITOS.map(r => (
             <div key={r.title} className="flex gap-3 rounded-2xl bg-white/5 ring-1 ring-white/10 p-4">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-fuchsia-600 flex items-center justify-center flex-shrink-0">{r.icon}</div>
+              <div className="w-10 h-10 rounded-xl bg-brand-orange flex items-center justify-center flex-shrink-0">{r.icon}</div>
               <div>
                 <p className="font-bold">{r.title}</p>
                 <p className="text-white/60 text-sm">{r.text}</p>
@@ -192,7 +192,7 @@ const PartnerApplyPage: React.FC = () => {
               className="w-full rounded-xl bg-black/30 ring-1 ring-white/15 px-4 py-3 mb-5 outline-none focus:ring-fuchsia-500 resize-none" />
 
             <button onClick={submit} disabled={sending}
-              className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white font-bold rounded-xl px-6 py-3.5 hover:opacity-90 disabled:opacity-60 transition">
+              className="w-full inline-flex items-center justify-center gap-2 bg-brand-orange text-white font-bold rounded-xl px-6 py-3.5 hover:opacity-90 disabled:opacity-60 transition">
               {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
               {sending ? 'Enviando…' : 'Enviar solicitud'}
             </button>

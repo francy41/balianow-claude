@@ -113,7 +113,7 @@ const WeeklyScheduleEditor: React.FC<Props> = ({
         type="button"
         onClick={onSave}
         disabled={saving}
-        className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50">
+        className="w-full bg-brand-orange text-white font-black py-3 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50">
         {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
         Guardar horario
       </button>

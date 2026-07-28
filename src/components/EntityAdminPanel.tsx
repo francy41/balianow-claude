@@ -305,7 +305,7 @@ const EntityAdminPanel: React.FC<Props> = ({ kind, id, onSaved, ownerUserId }) =
         onClick={openPanel}
         disabled={loading}
         title={`Editar ${label} (admin)`}
-        className="fixed z-[70] bottom-24 left-4 sm:bottom-8 sm:left-8 flex items-center gap-2 bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black text-sm px-5 py-3.5 rounded-2xl shadow-2xl shadow-fuchsia-500/40 hover:scale-105 transition-all ring-2 ring-white/40"
+        className="fixed z-[70] bottom-24 left-4 sm:bottom-8 sm:left-8 flex items-center gap-2 bg-brand-orange text-white font-black text-sm px-5 py-3.5 rounded-2xl shadow-2xl shadow-fuchsia-500/40 hover:scale-105 transition-all ring-2 ring-white/40"
       >
         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Settings2 className="w-5 h-5" />}
         Editar {label}
@@ -316,7 +316,7 @@ const EntityAdminPanel: React.FC<Props> = ({ kind, id, onSaved, ownerUserId }) =
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setOpen(false)} />
           <div className="relative z-10 w-full max-w-2xl bg-white h-full flex flex-col shadow-2xl overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-purple-600 to-fuchsia-600 flex-shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 bg-brand-orange flex-shrink-0">
               <div>
                 <h2 className="text-white font-black text-lg capitalize">Editar {label}</h2>
                 <p className="text-white/70 text-xs">{isOwner ? 'Gestionado por ti (dueño)' : 'Panel de edición · solo administradores'}</p>
@@ -374,7 +374,7 @@ const EntityAdminPanel: React.FC<Props> = ({ kind, id, onSaved, ownerUserId }) =
                 <button
                   onClick={save}
                   disabled={saving}
-                  className="flex-1 bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black py-2.5 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
+                  className="flex-1 bg-brand-orange text-white font-black py-2.5 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
                 >
                   {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                   Guardar cambios

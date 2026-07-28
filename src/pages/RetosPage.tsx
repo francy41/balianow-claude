@@ -49,7 +49,7 @@ const EntryModal: React.FC<{ reto: Reto; onClose: () => void; onDone: () => void
         <div className="space-y-3">
           <input className="input-field" placeholder="Enlace de tu vídeo (YouTube o mp4)" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} />
           <textarea className="input-field" rows={2} placeholder="Comentario (opcional)" value={caption} onChange={e => setCaption(e.target.value)} />
-          <button onClick={save} disabled={saving} className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black rounded-xl py-3 text-sm disabled:opacity-50">
+          <button onClick={save} disabled={saving} className="w-full bg-brand-orange text-white font-black rounded-xl py-3 text-sm disabled:opacity-50">
             {saving ? <Loader2 className="w-4 h-4 animate-spin inline" /> : 'Subir mi intento'}
           </button>
         </div>
@@ -94,7 +94,7 @@ const CreateRetoModal: React.FC<{ onClose: () => void; onDone: () => void }> = (
             <input className="input-field" placeholder="Estilo (ej: Bachata)" value={style} onChange={e => setStyle(e.target.value)} />
             <input className="input-field" type="date" value={ends} onChange={e => setEnds(e.target.value)} />
           </div>
-          <button onClick={save} disabled={saving} className="w-full bg-gradient-to-r from-amber-500 to-pink-600 text-white font-black rounded-xl py-3 text-sm disabled:opacity-50">
+          <button onClick={save} disabled={saving} className="w-full bg-amber-500 text-white font-black rounded-xl py-3 text-sm disabled:opacity-50">
             {saving ? <Loader2 className="w-4 h-4 animate-spin inline" /> : 'Lanzar reto'}
           </button>
         </div>
@@ -182,7 +182,7 @@ const RetosPage: React.FC = () => {
             {/* Retos (chips) */}
             <div className="flex gap-2 overflow-x-auto pb-2 mb-3" style={{ scrollbarWidth: 'none' }}>
               {retos.map(r => (
-                <button key={r.id} onClick={() => setSelected(r)} className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold ${selected?.id === r.id ? 'bg-gradient-to-r from-orange-500 to-pink-600 text-white' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800'}`}>
+                <button key={r.id} onClick={() => setSelected(r)} className={`flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold ${selected?.id === r.id ? 'bg-brand-orange text-white' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800'}`}>
                   {r.title}
                 </button>
               ))}
@@ -200,7 +200,7 @@ const RetosPage: React.FC = () => {
                         <span>{entries.length} participantes</span>
                       </div>
                     </div>
-                    <button onClick={() => (isAuthenticated ? setParticipating(true) : navigate('/auth'))} className="flex-shrink-0 bg-gradient-to-r from-orange-500 to-pink-600 text-white font-bold rounded-xl px-4 py-2 text-sm flex items-center gap-1.5">
+                    <button onClick={() => (isAuthenticated ? setParticipating(true) : navigate('/auth'))} className="flex-shrink-0 bg-brand-orange text-white font-bold rounded-xl px-4 py-2 text-sm flex items-center gap-1.5">
                       <Plus className="w-4 h-4" /> Participar
                     </button>
                   </div>

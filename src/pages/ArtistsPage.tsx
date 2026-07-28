@@ -325,7 +325,7 @@ const ArtistCard: React.FC<{ artist: DbArtist; onClick: () => void }> = ({ artis
     onClick={onClick}
     className="card-white overflow-hidden hover:shadow-card-hover transition-all duration-300 cursor-pointer hover:scale-[1.02]"
   >
-    <div className="relative h-40 overflow-hidden bg-gradient-to-br from-pink-400 to-fuchsia-600">
+    <div className="relative h-40 overflow-hidden bg-brand-orange">
       {artist.cover
         ? <img src={artist.cover} alt={artist.name} className="w-full h-full object-cover" loading="lazy" />
         : <div className="w-full h-full flex items-center justify-center"><Music className="w-12 h-12 text-white/40" /></div>}

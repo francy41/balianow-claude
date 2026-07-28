@@ -63,7 +63,7 @@ const CookieBanner: React.FC = () => {
             <div className="space-y-2">
               <button
                 onClick={() => save('accepted', { analytics: true, marketing: true })}
-                className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold text-sm py-2.5 rounded-xl hover:from-pink-600 hover:to-fuchsia-700 transition-all"
+                className="w-full flex items-center justify-center gap-2 bg-brand-orange text-white font-bold text-sm py-2.5 rounded-xl hover:from-pink-600 hover:to-fuchsia-700 transition-all"
               >
                 <Check className="w-4 h-4" /> Aceptar todas
               </button>
@@ -141,7 +141,7 @@ const CookieBanner: React.FC = () => {
 
             <button
               onClick={() => save('custom')}
-              className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold text-sm py-2.5 rounded-xl"
+              className="w-full bg-brand-orange text-white font-bold text-sm py-2.5 rounded-xl"
             >
               Guardar preferencias
             </button>

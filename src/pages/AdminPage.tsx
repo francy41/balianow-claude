@@ -636,7 +636,7 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
               <span className="text-[10px] text-gray-400 font-mono ml-auto">{editData.route}</span>
             </div>
             <div className="flex gap-2">
-              <button onClick={saveEdit} className="flex-1 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold text-sm rounded-lg py-2">Guardar</button>
+              <button onClick={saveEdit} className="flex-1 bg-brand-orange text-white font-bold text-sm rounded-lg py-2">Guardar</button>
               <button onClick={() => setEditingId(null)} className="flex-1 border border-gray-200 text-gray-600 font-bold text-sm rounded-lg py-2">Cancelar</button>
             </div>
           </div>
@@ -807,7 +807,7 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
               </div>
             )}
             <div className="flex gap-2">
-              <button onClick={addCategory} className="flex-1 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold text-sm rounded-xl py-2.5">
+              <button onClick={addCategory} className="flex-1 bg-brand-orange text-white font-bold text-sm rounded-xl py-2.5">
                 Agregar al home
               </button>
               <button onClick={() => setShowNewForm(false)} className="flex-1 border border-gray-200 text-gray-600 font-bold text-sm rounded-xl py-2.5">
@@ -1678,7 +1678,7 @@ const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
             <div key={`${a.source}-${a.id}`} className="card-white p-4 text-center hover:shadow-card-hover transition-shadow">
               {a.avatar
                 ? <img src={a.avatar} alt={a.name} className="w-16 h-16 rounded-full mx-auto mb-3 ring-2 ring-brand-orange/30 object-cover" />
-                : <div className="w-16 h-16 rounded-full mx-auto mb-3 bg-gradient-to-br from-pink-400 to-fuchsia-600 flex items-center justify-center text-white text-xl font-bold">{(a.name || '?')[0]?.toUpperCase()}</div>}
+                : <div className="w-16 h-16 rounded-full mx-auto mb-3 bg-brand-orange flex items-center justify-center text-white text-xl font-bold">{(a.name || '?')[0]?.toUpperCase()}</div>}
               <p className="font-bold text-gray-900 text-sm">{a.name}</p>
               <p className="text-gray-400 text-xs capitalize mt-0.5">{a.type} · {a.city || '—'}</p>
               {a.rating > 0 && <div className="flex items-center justify-center gap-1 mt-1"><span className="text-brand-orange text-xs">⭐</span><span className="text-xs font-semibold">{a.rating}</span></div>}
@@ -2581,7 +2581,7 @@ const FinanzasSection: React.FC = () => {
                 {monthly.map(m => (
                   <div key={m.label} className="flex-1 flex flex-col items-center gap-1 group">
                     <div className="w-full bg-gray-100 rounded-t-lg flex-1 flex items-end overflow-hidden">
-                      <div className="w-full bg-gradient-to-t from-brand-orange to-pink-300 rounded-t-lg transition-all"
+                      <div className="w-full bg-brand-orange rounded-t-lg transition-all"
                         style={{ height: `${(m.gross / maxGross) * 100}%`, minHeight: m.gross > 0 ? 4 : 0 }} />
                     </div>
                     <span className="text-[10px] text-gray-500 font-bold uppercase">{m.label}</span>
@@ -2609,7 +2609,7 @@ const FinanzasSection: React.FC = () => {
                   <span className="font-bold">€{c.gross.toFixed(0)} <span className="text-gray-400 text-xs font-normal">({c.tx} tx)</span></span>
                 </div>
                 <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-brand-orange to-pink-500 rounded-full" style={{ width: `${pct}%` }} />
+                  <div className="h-full bg-brand-orange rounded-full" style={{ width: `${pct}%` }} />
                 </div>
                 <p className="text-[10px] text-brand-orange mt-0.5">€{c.commission.toFixed(0)} comisión generada</p>
               </div>
@@ -3893,7 +3893,7 @@ const PatrocinadoresSection: React.FC<{ addToast: Function }> = ({ addToast }) =
       {showForm && (
         <div className="fixed inset-0 z-[80] bg-black/60 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
           <div onClick={e => e.stopPropagation()} className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto">
-            <div className="bg-gradient-to-r from-brand-orange to-pink-500 p-5 rounded-t-3xl flex items-center justify-between">
+            <div className="bg-brand-orange p-5 rounded-t-3xl flex items-center justify-between">
               <h3 className="text-white font-black text-lg">{editId ? '✏️ Editar Patrocinador' : '➕ Nuevo Patrocinador'}</h3>
               <button onClick={() => setShowForm(false)} className="text-white/80 hover:text-white"><XCircle className="w-5 h-5" /></button>
             </div>
@@ -4619,7 +4619,7 @@ const ConfigInput: React.FC<{
           className="input-field font-mono text-xs flex-1"
         />
         <button onClick={() => onSave(value)} disabled={!dirty || saving}
-          className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold px-4 py-2 rounded-xl text-xs disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap">
+          className="bg-brand-orange text-white font-bold px-4 py-2 rounded-xl text-xs disabled:opacity-40 disabled:cursor-not-allowed whitespace-nowrap">
           {saving ? '...' : value.trim() ? 'Guardar' : 'Vaciar'}
         </button>
       </div>
@@ -4751,7 +4751,7 @@ const ReclamacionesSection: React.FC<{ addToast: Function; onCountChange?: (n: n
               return (
               <div key={c.id} className="bg-white border border-amber-200 rounded-2xl p-4 shadow-sm">
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-fuchsia-500 flex items-center justify-center text-white font-black text-sm flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-brand-orange flex items-center justify-center text-white font-black text-sm flex-shrink-0">
                     {name[0].toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -5098,7 +5098,7 @@ const PlanificadorSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
 
         {/* Submit */}
         <button onClick={schedule} disabled={scheduling}
-          className="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 text-white font-black py-3.5 rounded-2xl text-base flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 transition-opacity shadow-lg">
+          className="w-full bg-brand-orange text-white font-black py-3.5 rounded-2xl text-base flex items-center justify-center gap-2 hover:opacity-90 disabled:opacity-50 transition-opacity shadow-lg">
           {scheduling ? <><Loader2 className="w-5 h-5 animate-spin" /> Programando…</> : <><Calendar className="w-5 h-5" /> Programar en GHL</>}
         </button>
       </div>

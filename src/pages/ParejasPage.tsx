@@ -67,7 +67,7 @@ const ProfileForm: React.FC<{ initial: Profile | null; onSaved: () => void; onCa
         <textarea className="input-field" rows={2} placeholder="Sobre ti como bailarín/a (opcional)" value={bio} onChange={e => setBio(e.target.value)} />
         <div className="flex gap-2">
           {onCancel && <button onClick={onCancel} className="flex-1 btn-outline text-sm">Cancelar</button>}
-          <button onClick={save} disabled={saving} className="flex-[2] bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold rounded-xl py-3 text-sm disabled:opacity-50">
+          <button onClick={save} disabled={saving} className="flex-[2] bg-brand-orange text-white font-bold rounded-xl py-3 text-sm disabled:opacity-50">
             {saving ? <Loader2 className="w-4 h-4 animate-spin inline" /> : 'Guardar y empezar'}
           </button>
         </div>
@@ -145,7 +145,7 @@ const ParejasPage: React.FC = () => {
         <Heart className="w-12 h-12 text-pink-500" />
         <h1 className="font-display font-black text-2xl text-gray-900 dark:text-white">Encuentra tu pareja de baile</h1>
         <p className="text-gray-500 text-sm max-w-xs">Inicia sesión para descubrir bailarines de tu ciudad y hacer match.</p>
-        <button onClick={() => navigate('/auth')} className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold rounded-xl px-6 py-3">Entrar</button>
+        <button onClick={() => navigate('/auth')} className="bg-brand-orange text-white font-bold rounded-xl px-6 py-3">Entrar</button>
       </div>
     );
   }
@@ -204,7 +204,7 @@ const ParejasPage: React.FC = () => {
                   <button onClick={pass} className="w-14 h-14 rounded-full bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-400 hover:border-gray-400 active:scale-95 transition-all">
                     <X className="w-7 h-7" />
                   </button>
-                  <button onClick={like} className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center text-white shadow-lg shadow-pink-500/30 active:scale-95 transition-all">
+                  <button onClick={like} className="w-16 h-16 rounded-full bg-brand-orange flex items-center justify-center text-white shadow-lg shadow-pink-500/30 active:scale-95 transition-all">
                     <Heart className="w-8 h-8" fill="currentColor" />
                   </button>
                 </div>
@@ -224,7 +224,7 @@ const ParejasPage: React.FC = () => {
       {matchPopup && (
         <div className="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm flex items-center justify-center p-6" onClick={() => setMatchPopup(null)}>
           <div className="bg-white dark:bg-gray-900 rounded-3xl p-6 max-w-xs w-full text-center" onClick={e => e.stopPropagation()}>
-            <p className="font-display font-black text-3xl bg-gradient-to-r from-pink-500 to-fuchsia-600 bg-clip-text text-transparent">¡Es un match!</p>
+            <p className="font-display font-black text-3xl bg-brand-orange bg-clip-text text-transparent">¡Es un match!</p>
             <p className="text-gray-500 text-sm mt-1">A ti y a {matchPopup.name} os gusta bailar juntos 💃🕺</p>
             <div className="flex justify-center gap-3 my-4">
               <div className="w-16 h-16 rounded-full overflow-hidden ring-2 ring-pink-500">
@@ -234,7 +234,7 @@ const ParejasPage: React.FC = () => {
                 {matchPopup.avatar ? <img src={matchPopup.avatar} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center">🕺</div>}
               </div>
             </div>
-            <button onClick={() => { setMatchPopup(null); navigate('/chat'); }} className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold rounded-xl py-3 text-sm flex items-center justify-center gap-2">
+            <button onClick={() => { setMatchPopup(null); navigate('/chat'); }} className="w-full bg-brand-orange text-white font-bold rounded-xl py-3 text-sm flex items-center justify-center gap-2">
               <MessageCircle className="w-4 h-4" /> Enviar mensaje
             </button>
             <button onClick={() => setMatchPopup(null)} className="w-full text-gray-400 text-xs mt-2">Seguir buscando</button>

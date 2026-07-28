@@ -232,7 +232,7 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
     <div className="fixed inset-0 z-[70] bg-black/60 flex items-center justify-center p-4" onClick={onClose}>
       <div onClick={e => e.stopPropagation()} className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col">
         {/* Header con portada */}
-        <div className="relative h-40 bg-gradient-to-br from-brand-orange to-pink-500 flex-shrink-0">
+        <div className="relative h-40 bg-brand-orange flex-shrink-0">
           {form.coverPhoto && <img src={form.coverPhoto} alt="" className="w-full h-full object-cover" />}
           <div className="absolute inset-0 bg-black/30" />
           <button onClick={onClose} className="absolute top-3 right-3 bg-white/20 hover:bg-white/30 text-white rounded-full p-1.5">
@@ -356,7 +356,7 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
                       }}
                         className={`text-xs font-bold px-3 py-1.5 rounded-full transition-all ${
                           active
-                            ? 'bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white shadow-md scale-105'
+                            ? 'bg-brand-orange text-white shadow-md scale-105'
                             : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-pink-50'
                         }`}>
                         {active && '✓ '}{s}

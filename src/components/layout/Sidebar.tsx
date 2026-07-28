@@ -118,7 +118,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
               <span className="text-2xl">💃</span>
               <span className="font-display font-black text-lg">
                 <span className="text-white">Baila</span>
-                <span className="bg-gradient-to-r from-pink-400 to-fuchsia-500 bg-clip-text text-transparent">Now</span>
+                <span className="bg-brand-orange bg-clip-text text-transparent">Now</span>
               </span>
             </>
           )}

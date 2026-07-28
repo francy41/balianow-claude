@@ -150,7 +150,7 @@ const ClassPackageBookingModal: React.FC<Props> = ({ artist, onClose }) => {
     <div className="fixed inset-0 z-[1000] bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-3" onClick={onClose}>
       <div onClick={e => e.stopPropagation()} className="bg-white sm:rounded-3xl rounded-t-3xl shadow-2xl w-full max-w-lg max-h-[92vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 bg-gradient-to-r from-pink-500 to-fuchsia-600 flex-shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 bg-brand-orange flex-shrink-0">
           <div>
             <h2 className="text-white font-black text-lg leading-tight">Reservar clase</h2>
             <p className="text-white/80 text-xs">con {artist.name}</p>
@@ -200,13 +200,13 @@ const ClassPackageBookingModal: React.FC<Props> = ({ artist, onClose }) => {
                 ) : (
                   <>
                     <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-[11px] text-amber-700">🧪 Pago en modo demo — no se cobra dinero real. Añade <code>VITE_STRIPE_PUBLISHABLE_KEY</code> para activar el cobro real.</div>
-                    <button onClick={payDemo} disabled={submitting} className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 disabled:opacity-50">
+                    <button onClick={payDemo} disabled={submitting} className="w-full bg-brand-orange text-white font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 disabled:opacity-50">
                       {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />} Pagar €{(selected?.price ?? 0).toFixed(2)}
                     </button>
                   </>
                 )
               ) : (
-                <button onClick={payDemo} disabled={submitting} className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 disabled:opacity-50">
+                <button onClick={payDemo} disabled={submitting} className="w-full bg-brand-orange text-white font-black py-3.5 rounded-2xl flex items-center justify-center gap-2 disabled:opacity-50">
                   {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />} Pagar €{(selected?.price ?? 0).toFixed(2)} con Wallet
                 </button>
               )}
@@ -216,7 +216,7 @@ const ClassPackageBookingModal: React.FC<Props> = ({ artist, onClose }) => {
               <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3"><Check className="w-8 h-8 text-green-600" /></div>
               <h3 className="font-black text-xl text-gray-900 mb-1">¡Reserva creada!</h3>
               <p className="text-sm text-gray-500 mb-4">Se notificará al instructor y a los participantes invitados. La sala en directo se generó automáticamente.</p>
-              <button onClick={onClose} className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black px-6 py-3 rounded-2xl mx-auto flex items-center gap-2"><Video className="w-4 h-4" /> Entendido</button>
+              <button onClick={onClose} className="bg-brand-orange text-white font-black px-6 py-3 rounded-2xl mx-auto flex items-center gap-2"><Video className="w-4 h-4" /> Entendido</button>
             </div>
           ) : packages.length === 0 ? (
             <div className="text-center py-10 text-gray-400">Este instructor todavía no ofrece paquetes de clase.</div>
@@ -308,7 +308,7 @@ const ClassPackageBookingModal: React.FC<Props> = ({ artist, onClose }) => {
             </div>
             {step === 'pick' ? (
               <button onClick={goToPay} disabled={!selected}
-                className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-black px-6 py-3 rounded-2xl shadow-lg flex items-center gap-2 disabled:opacity-40">
+                className="bg-brand-orange text-white font-black px-6 py-3 rounded-2xl shadow-lg flex items-center gap-2 disabled:opacity-40">
                 Continuar al pago <CreditCard className="w-4 h-4" />
               </button>
             ) : (

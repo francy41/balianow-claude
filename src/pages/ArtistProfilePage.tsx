@@ -194,7 +194,7 @@ const ArtistProfilePage: React.FC = () => {
         <p className="text-6xl">🔍</p>
         <h2 className="font-display font-black text-xl text-gray-900 dark:text-white">Artista no encontrado</h2>
         <p className="text-sm text-gray-500">El perfil que buscas ya no existe o fue eliminado.</p>
-        <button onClick={() => navigate('/artistas')} className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold px-6 py-3 rounded-xl">
+        <button onClick={() => navigate('/artistas')} className="bg-brand-orange text-white font-bold px-6 py-3 rounded-xl">
           Ver todos los artistas
         </button>
       </div>
@@ -809,7 +809,7 @@ const OffersTab: React.FC<{ artist: Artist; onBook: (p: OfferPackage) => void; o
   const packages = artist.packages || [];
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-pink-50 to-pink-50 rounded-2xl p-4 sm:p-5 border border-pink-100">
+      <div className="bg-brand-orange rounded-2xl p-4 sm:p-5 border border-pink-100">
         <div className="flex items-start gap-3">
           <Lock className="w-5 h-5 text-brand-orange flex-shrink-0 mt-0.5" />
           <div>

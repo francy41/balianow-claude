@@ -32,7 +32,7 @@ const PracticeRoomPage: React.FC = () => {
           <Users className="w-12 h-12 mx-auto text-fuchsia-400 mb-3" />
           <h1 className="font-display font-black text-2xl">Sala solo para planes Pareja o Familiar</h1>
           <p className="text-white/60 mt-2">Necesitas un plan Pareja o Familiar (o ser miembro invitado) para practicar juntos por cámara.</p>
-          <button onClick={() => navigate('/membresias')} className="mt-5 bg-gradient-to-r from-orange-500 to-fuchsia-600 font-bold rounded-xl px-6 py-3">Ver planes</button>
+          <button onClick={() => navigate('/membresias')} className="mt-5 bg-brand-orange font-bold rounded-xl px-6 py-3">Ver planes</button>
         </div>
       </div>
     );

@@ -47,7 +47,7 @@ const TicketSalesTab: React.FC<{ performerId: string }> = ({ performerId }) => {
   return (
     <div>
       <div className="grid grid-cols-3 gap-3 mb-5">
-        <div className="rounded-2xl p-4 bg-gradient-to-br from-emerald-500 to-green-600 text-white">
+        <div className="rounded-2xl p-4 bg-emerald-500 text-white">
           <p className="text-white/85 text-xs font-bold uppercase flex items-center gap-1"><TrendingUp className="w-3.5 h-3.5" /> Recaudado</p>
           <p className="font-display font-black text-2xl mt-1">{eur(totalRevenue)}</p>
         </div>

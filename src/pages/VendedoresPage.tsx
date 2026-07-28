@@ -117,7 +117,7 @@ const VendedoresPage: React.FC = () => {
               {services.map(svc => (
                 <button key={svc.id} onClick={() => navigate(`/marketplace/${svc.id}`)}
                   className="flex-shrink-0 w-52 bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-md border border-gray-100 dark:border-gray-700 transition-all text-left">
-                  {svc.cover ? <img src={svc.cover} alt={svc.title} className="w-full h-28 object-cover" /> : <div className="w-full h-28 bg-gradient-to-br from-purple-900 to-pink-900" />}
+                  {svc.cover ? <img src={svc.cover} alt={svc.title} className="w-full h-28 object-cover" /> : <div className="w-full h-28 bg-brand-orange" />}
                   <div className="p-3">
                     <p className="font-bold text-gray-900 dark:text-white text-xs line-clamp-2">{svc.title}</p>
                     <p className="text-gray-500 text-[10px] mt-1">{svc.artistName}</p>
@@ -161,7 +161,7 @@ const VendedoresPage: React.FC = () => {
                   {artist.cover ? (
                     <img src={artist.cover} alt={artist.name} className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
-                    <div className="w-full h-32 bg-gradient-to-br from-gray-800 to-purple-900 flex items-center justify-center text-3xl">🎧</div>
+                    <div className="w-full h-32 bg-gray-800 flex items-center justify-center text-3xl">🎧</div>
                   )}
                   {artist.isPremium && <span className="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-[8px] font-black px-1.5 py-0.5 rounded">PRO</span>}
                   {artist.isLive && <span className="absolute top-2 right-2 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded flex items-center gap-0.5"><span className="w-1 h-1 bg-white rounded-full animate-pulse" /> LIVE</span>}

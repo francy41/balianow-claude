@@ -107,7 +107,7 @@ const HomeFabStack: React.FC = () => {
       {/* Botón principal toggle */}
       <button
         onClick={() => setOpen(o => !o)}
-        className={`fixed bottom-20 right-4 z-40 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center text-white transition-all duration-300 active:scale-95 ${open ? 'bg-gradient-to-br from-gray-600 to-gray-800 rotate-45' : 'bg-gradient-to-br from-pink-500 to-fuchsia-600 hover:scale-110 shadow-pink-500/50'}`}
+        className={`fixed bottom-20 right-4 z-40 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center text-white transition-all duration-300 active:scale-95 ${open ? 'bg-gray-800 rotate-45' : 'bg-brand-orange hover:scale-110 shadow-pink-500/50'}`}
         aria-label={open ? 'Cerrar menú' : 'Abrir acciones rápidas'}
       >
         {open ? <X className="w-7 h-7" /> : <Plus className="w-7 h-7" />}

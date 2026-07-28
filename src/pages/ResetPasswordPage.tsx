@@ -110,7 +110,7 @@ const ResetPasswordPage: React.FC = () => {
             Este enlace de recuperación ya no es válido. Solicita uno nuevo desde la página de inicio de sesión.
           </p>
           <button onClick={() => navigate('/auth')}
-            className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold px-6 py-3 rounded-xl text-sm">
+            className="bg-brand-orange text-white font-bold px-6 py-3 rounded-xl text-sm">
             Solicitar nuevo enlace
           </button>
         </div>

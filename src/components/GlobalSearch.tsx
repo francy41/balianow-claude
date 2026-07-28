@@ -186,7 +186,7 @@ const GlobalSearch: React.FC<Props> = ({ open, onClose }) => {
                 <div className="flex flex-wrap gap-1.5">
                   {POPULAR_QUERIES.map(q => (
                     <button key={q} onClick={() => setQuery(q)}
-                      className="px-3 py-1.5 bg-gradient-to-r from-pink-50 to-fuchsia-50 dark:from-pink-900/20 dark:to-fuchsia-900/20 rounded-full text-xs font-bold text-pink-700 dark:text-pink-300 hover:scale-105 transition-transform">
+                      className="px-3 py-1.5 bg-brand-orange dark:from-pink-900/20 dark:to-fuchsia-900/20 rounded-full text-xs font-bold text-pink-700 dark:text-pink-300 hover:scale-105 transition-transform">
                       🔥 {q}
                     </button>
                   ))}

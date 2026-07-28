@@ -479,7 +479,7 @@ const AuthPage: React.FC = () => {
                           <div className="flex items-center gap-2">
                             <p className="text-gray-800 dark:text-gray-200 font-semibold text-sm">{role.label}</p>
                             {role.badge && (
-                              <span className="text-[9px] font-black bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white px-1.5 py-0.5 rounded-full">
+                              <span className="text-[9px] font-black bg-brand-orange text-white px-1.5 py-0.5 rounded-full">
                                 {role.badge}
                               </span>
                             )}

@@ -39,7 +39,7 @@ const TitleCard: React.FC<{ t: TVTitle; onOpen: () => void }> = ({ t, onOpen }) 
         : <div className="w-full h-full flex items-center justify-center text-3xl">💃</div>}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
       <span className={`absolute top-2 left-2 text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded ${
-        t.access === 'premium' ? 'bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white'
+        t.access === 'premium' ? 'bg-brand-orange text-white'
         : t.access === 'free' ? 'bg-emerald-500 text-white' : 'bg-white/20 text-white backdrop-blur-sm'}`}>
         {ACCESS_LABEL[t.access]}
       </span>
@@ -134,7 +134,7 @@ const TVHomePage: React.FC = () => {
           <div className="flex items-center gap-2 mb-3">
             <Tv className="w-5 h-5 text-fuchsia-400" />
             <span className="text-fuchsia-400 font-black text-sm tracking-widest uppercase">BailaNow TV</span>
-            <button onClick={() => navigate('/membresias')} className="ml-auto text-xs font-bold bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white rounded-full px-3 py-1.5">
+            <button onClick={() => navigate('/membresias')} className="ml-auto text-xs font-bold bg-brand-orange text-white rounded-full px-3 py-1.5">
               Planes · Pareja y Familia 👫
             </button>
           </div>
@@ -148,7 +148,7 @@ const TVHomePage: React.FC = () => {
             </>
           ) : (
             <h1 className="font-display font-black text-3xl sm:text-5xl text-white max-w-2xl leading-tight">
-              Aprende a bailar <span className="bg-gradient-to-r from-orange-400 to-fuchsia-400 bg-clip-text text-transparent">como un profesional</span>
+              Aprende a bailar <span className="bg-brand-orange bg-clip-text text-transparent">como un profesional</span>
             </h1>
           )}
         </div>
@@ -162,7 +162,7 @@ const TVHomePage: React.FC = () => {
             <Sparkles className="w-10 h-10 mx-auto text-fuchsia-400 mb-3" />
             <p className="text-white font-bold text-lg">Aún no hay clases publicadas</p>
             <p className="text-white/50 text-sm mt-1 max-w-md mx-auto">Estamos incorporando profesores y coreografías. Vuelve pronto para ver el catálogo.</p>
-            <button onClick={() => navigate('/precios')} className="mt-5 inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white font-bold rounded-xl px-5 py-2.5 hover:opacity-90 transition-all">
+            <button onClick={() => navigate('/precios')} className="mt-5 inline-flex items-center gap-2 bg-brand-orange text-white font-bold rounded-xl px-5 py-2.5 hover:opacity-90 transition-all">
               ¿Eres profe? Publica tu contenido
             </button>
           </div>

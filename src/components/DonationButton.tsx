@@ -56,7 +56,7 @@ const DonationButton: React.FC = () => {
       <button onClick={() => setOpen(true)} aria-label="Donar a BailaNow" className="fixed left-3 bottom-28 lg:bottom-6 z-[45] flex items-center gap-2 group">
         <span className="relative flex items-center justify-center">
           <span className="absolute inline-flex h-full w-full rounded-full bg-pink-500 opacity-60 animate-ping" />
-          <span className="relative w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-fuchsia-600 shadow-lg shadow-fuchsia-600/40 flex items-center justify-center animate-pulse group-hover:animate-none">
+          <span className="relative w-12 h-12 rounded-full bg-brand-orange shadow-lg shadow-fuchsia-600/40 flex items-center justify-center animate-pulse group-hover:animate-none">
             <Heart className="w-5 h-5 text-white" fill="currentColor" />
           </span>
         </span>
@@ -90,12 +90,12 @@ const DonationButton: React.FC = () => {
                   <>
                     <div className="grid grid-cols-5 gap-2 mt-5">
                       {AMOUNTS.map(a => (
-                        <button key={a} onClick={() => { setAmount(a); setCustom(''); }} className={`rounded-xl py-3 font-black text-sm transition ${!custom && amount === a ? 'bg-gradient-to-br from-orange-500 to-fuchsia-600 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200'}`}>{a}€</button>
+                        <button key={a} onClick={() => { setAmount(a); setCustom(''); }} className={`rounded-xl py-3 font-black text-sm transition ${!custom && amount === a ? 'bg-brand-orange text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200'}`}>{a}€</button>
                       ))}
                     </div>
                     <input value={custom} onChange={e => setCustom(e.target.value.replace(/[^\d.]/g, ''))} inputMode="decimal" placeholder="Otra cantidad (mín. 1€)" className="w-full mt-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent px-4 py-3 text-sm text-gray-900 dark:text-white outline-none focus:border-fuchsia-500" />
                     <input value={message} onChange={e => setMessage(e.target.value)} maxLength={140} placeholder="Mensaje (opcional)" className="w-full mt-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-transparent px-4 py-3 text-sm text-gray-900 dark:text-white outline-none focus:border-fuchsia-500" />
-                    <button onClick={() => validAmount ? setStep('method') : addToast({ message: 'La donación mínima es 1€', type: 'error' })} className="w-full mt-4 bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white font-bold rounded-xl py-3.5">Continuar · {validAmount ? value + '€' : '—'}</button>
+                    <button onClick={() => validAmount ? setStep('method') : addToast({ message: 'La donación mínima es 1€', type: 'error' })} className="w-full mt-4 bg-brand-orange text-white font-bold rounded-xl py-3.5">Continuar · {validAmount ? value + '€' : '—'}</button>
                   </>
                 )}
 

@@ -93,7 +93,7 @@ const DanceGuidePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-20">
       {/* Hero */}
-      <div className="bg-gradient-to-br from-brand-orange to-pink-600 text-white">
+      <div className="bg-brand-orange text-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
           <nav className="text-xs text-white/70 mb-3" aria-label="breadcrumb">
             <Link to="/" className="hover:underline">BailaNow</Link> ·{' '}

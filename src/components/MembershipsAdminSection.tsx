@@ -43,7 +43,7 @@ const MembershipsAdminSection: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <div className="rounded-2xl p-5 bg-gradient-to-br from-orange-500 to-fuchsia-600 text-white">
+        <div className="rounded-2xl p-5 bg-brand-orange text-white">
           <p className="text-white/85 text-xs font-bold uppercase">MRR total</p>
           <p className="font-display font-black text-2xl mt-1">{eur(totalMrr)}</p>
         </div>

@@ -160,7 +160,7 @@ const SupportAdminSection: React.FC<{ addToast: (o: { message: string; type: 'er
                   return (
                     <div key={m.id} className={`flex items-end gap-2 ${fromAdmin ? 'flex-row-reverse' : ''}`}>
                       {fromAdmin && (
-                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center flex-shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-brand-orange flex items-center justify-center flex-shrink-0">
                           <Shield className="w-3.5 h-3.5 text-white" />
                         </div>
                       )}
@@ -182,7 +182,7 @@ const SupportAdminSection: React.FC<{ addToast: (o: { message: string; type: 'er
                   className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
                 />
                 <button onClick={sendReply} disabled={sending || !reply.trim()}
-                  className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white rounded-xl p-2.5 disabled:opacity-40">
+                  className="bg-brand-orange text-white rounded-xl p-2.5 disabled:opacity-40">
                   <Send className="w-5 h-5" />
                 </button>
               </div>

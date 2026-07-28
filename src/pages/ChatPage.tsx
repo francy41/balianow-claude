@@ -47,7 +47,7 @@ const ChatPage: React.FC = () => {
                 onClick={() => setActiveConv(support.id)}
                 className={`w-full flex items-center gap-3 p-4 transition-colors text-left border-b border-gray-100 ${activeConvId === support.id ? 'bg-pink-50 border-r-2 border-brand-orange' : 'hover:bg-gray-50'}`}
               >
-                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center flex-shrink-0">
+                <div className="w-11 h-11 rounded-full bg-brand-orange flex items-center justify-center flex-shrink-0">
                   <Shield className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -176,7 +176,7 @@ const ChatWindow: React.FC<{
               <div className={`max-w-xs lg:max-w-sm ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
                 {msg.type === 'offer' && msg.offer ? (
                   <div className="bg-white rounded-2xl border-2 border-brand-orange/40 shadow-sm overflow-hidden w-72">
-                    <div className="bg-gradient-to-r from-brand-orange to-pink-500 px-4 py-2 flex items-center gap-2">
+                    <div className="bg-brand-orange px-4 py-2 flex items-center gap-2">
                       <Briefcase className="w-4 h-4 text-white" />
                       <span className="text-white font-bold text-xs uppercase tracking-wide">Oferta personalizada</span>
                     </div>
@@ -246,7 +246,7 @@ const ChatWindow: React.FC<{
           <button
             onClick={() => setShowOfferModal(true)}
             title="Enviar oferta personalizada"
-            className="w-10 h-10 bg-gradient-to-br from-brand-orange to-pink-500 rounded-xl flex items-center justify-center text-white hover:opacity-90 transition-all flex-shrink-0"
+            className="w-10 h-10 bg-brand-orange rounded-xl flex items-center justify-center text-white hover:opacity-90 transition-all flex-shrink-0"
           >
             <Briefcase className="w-4 h-4" />
           </button>
@@ -403,7 +403,7 @@ export const SupportThread: React.FC<{
     <>
       <div className="bg-white border-b border-gray-100 p-4 flex items-center gap-3 shadow-sm">
         <button onClick={onBack} className="sm:hidden text-gray-400 hover:text-gray-600 p-1">←</button>
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full bg-brand-orange flex items-center justify-center">
           <Shield className="w-5 h-5 text-white" />
         </div>
         <div>
@@ -415,7 +415,7 @@ export const SupportThread: React.FC<{
       <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
         {/* Mensaje de bienvenida fijo */}
         <div className="flex items-end gap-2">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center flex-shrink-0">
+          <div className="w-7 h-7 rounded-full bg-brand-orange flex items-center justify-center flex-shrink-0">
             <Shield className="w-3.5 h-3.5 text-white" />
           </div>
           <div className="max-w-xs lg:max-w-sm bg-white rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm">
@@ -427,7 +427,7 @@ export const SupportThread: React.FC<{
           return (
             <div key={msg.id} className={`flex items-end gap-2 ${isMe ? 'flex-row-reverse' : ''}`}>
               {!isMe && (
-                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center flex-shrink-0">
+                <div className="w-7 h-7 rounded-full bg-brand-orange flex items-center justify-center flex-shrink-0">
                   <Shield className="w-3.5 h-3.5 text-white" />
                 </div>
               )}
@@ -449,7 +449,7 @@ export const SupportThread: React.FC<{
           className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300"
         />
         <button onClick={handleSend} disabled={sending || !input.trim()}
-          className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white rounded-xl p-2.5 disabled:opacity-40">
+          className="bg-brand-orange text-white rounded-xl p-2.5 disabled:opacity-40">
           <Send className="w-5 h-5" />
         </button>
       </div>

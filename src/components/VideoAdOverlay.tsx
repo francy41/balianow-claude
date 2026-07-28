@@ -71,7 +71,7 @@ const VideoAdOverlay: React.FC<{ ad: VideoAd; onClose: () => void }> = ({ ad, on
 
         {/* CTA */}
         {ad.click_url && (
-          <button onClick={click} className="absolute bottom-16 sm:bottom-4 left-3 bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white text-sm font-bold rounded-lg px-4 py-2">
+          <button onClick={click} className="absolute bottom-16 sm:bottom-4 left-3 bg-brand-orange text-white text-sm font-bold rounded-lg px-4 py-2">
             Más información
           </button>
         )}

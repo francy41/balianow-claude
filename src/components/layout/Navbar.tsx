@@ -51,7 +51,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
         ) : (
           <>
             <span className="text-white">Baila</span>
-            <span className="bg-gradient-to-r from-pink-400 to-fuchsia-500 bg-clip-text text-transparent">Now</span>
+            <span className="bg-brand-orange bg-clip-text text-transparent">Now</span>
           </>
         )}
       </Link>
@@ -115,7 +115,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
             >
               <ShoppingCart className="w-4 h-4" />
               {cart.items.length > 0 && (
-                <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-gradient-to-r from-pink-500 to-fuchsia-500 rounded-full text-[9px] flex items-center justify-center font-black text-white shadow-lg shadow-pink-500/40 animate-pulse">
+                <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-brand-orange rounded-full text-[9px] flex items-center justify-center font-black text-white shadow-lg shadow-pink-500/40 animate-pulse">
                   {cart.items.length > 9 ? '9+' : cart.items.length}
                 </span>
               )}
@@ -165,7 +165,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
             {/* Panel link (admin) */}
             {isAdmin && (
               <Link to="/admin"
-                className="hidden sm:flex items-center gap-1.5 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25">
+                className="hidden sm:flex items-center gap-1.5 bg-brand-orange text-white text-xs font-bold px-3 py-1.5 rounded-lg hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25">
                 ⚙️ Panel Admin
               </Link>
             )}
@@ -181,7 +181,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
             <Link to="/auth" className="text-gray-400 text-sm font-semibold hover:text-pink-400 transition-colors px-3 py-1.5 hidden sm:block">
               Entrar
             </Link>
-            <Link to="/auth?tab=register" className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-sm font-bold py-1.5 px-4 rounded-lg hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25">
+            <Link to="/auth?tab=register" className="bg-brand-orange text-white text-sm font-bold py-1.5 px-4 rounded-lg hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25">
               Únete
             </Link>
           </div>

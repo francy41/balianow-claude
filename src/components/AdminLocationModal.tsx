@@ -203,7 +203,7 @@ const AdminLocationModal: React.FC<Props> = ({ open, mode, onClose, onSaved }) =
         {/* HEADER */}
         <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-2">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white text-lg ${mode === 'venue' ? 'bg-gradient-to-br from-pink-500 to-rose-600' : 'bg-gradient-to-br from-orange-500 to-red-500'}`}>
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-white text-lg ${mode === 'venue' ? 'bg-brand-orange' : 'bg-brand-orange'}`}>
               {mode === 'venue' ? '🏛️' : '🎉'}
             </div>
             <div>
@@ -235,7 +235,7 @@ const AdminLocationModal: React.FC<Props> = ({ open, mode, onClose, onSaved }) =
                   className="flex-1 bg-transparent text-sm py-2 px-1 focus:outline-none text-gray-800 dark:text-white"
                 />
                 <button onClick={geocode} disabled={searching}
-                  className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95">
+                  className="bg-brand-orange text-white text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95">
                   {searching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Buscar'}
                 </button>
               </div>
@@ -384,7 +384,7 @@ const AdminLocationModal: React.FC<Props> = ({ open, mode, onClose, onSaved }) =
               Cancelar
             </button>
             <button onClick={handleSave} disabled={saving || !position || !name || !city}
-              className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-sm font-black px-5 py-2 rounded-xl shadow-lg shadow-pink-500/30 flex items-center gap-2 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed">
+              className="bg-brand-orange text-white text-sm font-black px-5 py-2 rounded-xl shadow-lg shadow-pink-500/30 flex items-center gap-2 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed">
               {saving
                 ? <><Loader2 className="w-4 h-4 animate-spin" /> Guardando…</>
                 : <><Save className="w-4 h-4" /> Guardar</>}

@@ -174,7 +174,7 @@ const NewsletterForm: React.FC<Props> = ({
             />
           </div>
           <button type="submit" disabled={submitting}
-            className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold px-4 py-3 rounded-xl flex items-center gap-2 active:scale-95 transition-transform disabled:opacity-50 whitespace-nowrap">
+            className="bg-brand-orange text-white font-bold px-4 py-3 rounded-xl flex items-center gap-2 active:scale-95 transition-transform disabled:opacity-50 whitespace-nowrap">
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             {submitting ? '...' : 'Suscribirme'}
           </button>

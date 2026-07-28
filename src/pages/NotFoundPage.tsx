@@ -11,9 +11,9 @@ const NotFoundPage: React.FC = () => {
         {/* 404 visual */}
         <div className="relative mb-8">
           <div className="text-[120px] font-black leading-none select-none">
-            <span className="bg-gradient-to-r from-pink-500 to-fuchsia-600 bg-clip-text text-transparent">4</span>
+            <span className="bg-brand-orange bg-clip-text text-transparent">4</span>
             <span className="text-6xl mx-2">💃</span>
-            <span className="bg-gradient-to-r from-fuchsia-500 to-purple-600 bg-clip-text text-transparent">4</span>
+            <span className="bg-brand-orange bg-clip-text text-transparent">4</span>
           </div>
         </div>
 
@@ -33,7 +33,7 @@ const NotFoundPage: React.FC = () => {
           </button>
           <button
             onClick={() => navigate('/')}
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white font-bold py-3 px-5 rounded-xl hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25"
+            className="flex items-center justify-center gap-2 bg-brand-orange text-white font-bold py-3 px-5 rounded-xl hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25"
           >
             <Home className="w-4 h-4" /> Ir al inicio
           </button>
