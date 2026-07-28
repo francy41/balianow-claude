@@ -54,6 +54,7 @@ const CityPartnerPage      = lazy(() => import('./pages/CityPartnerPage'));
 const DanceGuidePage       = lazy(() => import('./pages/DanceGuidePage'));
 const MembershipPlansPage  = lazy(() => import('./pages/MembershipPlansPage'));
 const RecruitPage          = lazy(() => import('./pages/RecruitPage'));
+const CreatorModulesPage   = lazy(() => import('./pages/CreatorModulesPage'));
 const PracticeRoomPage     = lazy(() => import('./pages/PracticeRoomPage'));
 const DanceFlowPage     = lazy(() => import('./pages/DanceFlowPage'));
 const DanceCameraPage   = lazy(() => import('./pages/DanceCameraPage'));
@@ -203,6 +204,7 @@ const App: React.FC = () => {
                   <Route path="/donde-bailar/:style/:city" element={<DanceGuidePage />} />
                   <Route path="/membresias"          element={<MembershipPlansPage />} />
                   <Route path="/unete"               element={<RecruitPage />} />
+                  <Route path="/modulos"             element={<ProtectedRoute><CreatorModulesPage /></ProtectedRoute>} />
                   <Route path="/promocionate/unete"  element={<Navigate to="/unete" replace />} />
                   <Route path="/practicar/:room"     element={<ProtectedRoute><PracticeRoomPage /></ProtectedRoute>} />
                   <Route path="/partner"             element={<ProtectedRoute requiredRole="partner"><PartnerDashboardPage /></ProtectedRoute>} />
