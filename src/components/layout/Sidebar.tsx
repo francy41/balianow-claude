@@ -19,6 +19,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
   {
     section: 'CERCA DE MÍ',
     items: [
+      { label: '👤 Mi perfil (público)', icon: <Users className="w-4 h-4" />, to: '/mi-perfil' },
       { label: '🎬 BailaNow TV', icon: <Tv className="w-4 h-4" />,       to: '/tv' },
       { label: 'Cerca de mí',  icon: <MapPin className="w-4 h-4" />,     to: '/cerca' },
       { label: 'Ciudades',      icon: <MapPin className="w-4 h-4" />,     to: '/venues' },
