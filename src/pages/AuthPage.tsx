@@ -184,7 +184,18 @@ const AuthPage: React.FC = () => {
       setView('verify');
       return;
     }
-    // Login falló → registrar intento
+    // Distinguir credenciales incorrectas de errores de conexión/config.
+    // Supabase devuelve "Invalid login credentials" solo cuando email/contraseña
+    // no coinciden. Cualquier otro error (Failed to fetch, config, red...) NO es
+    // un fallo de credenciales: se muestra tal cual y no cuenta para el bloqueo.
+    const errMsg = (supa.error || '').toLowerCase();
+    const isCredentialError =
+      errMsg.includes('invalid login') || errMsg.includes('credentials');
+    if (supa.error && !isCredentialError) {
+      addToast({ message: `No se pudo conectar con el servidor: ${supa.error}`, type: 'error' });
+      return;
+    }
+    // Login falló por credenciales → registrar intento
     const result = recordFailedLogin(email);
     if (result.locked) {
       addToast({ message: `🔒 Cuenta bloqueada ${result.minutesLeft} min. Demasiados intentos fallidos.`, type: 'error' });
