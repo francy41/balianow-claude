@@ -35,6 +35,8 @@ const CookieBanner: React.FC = () => {
   const save = (state: ConsentState, customPrefs?: Prefs) => {
     localStorage.setItem(COOKIE_KEY, JSON.stringify({ state, prefs: customPrefs || prefs, date: new Date().toISOString() }));
     setVisible(false);
+    // Avisa a otros componentes (ej. botón de donación) que el banner ya no ocupa el borde inferior.
+    window.dispatchEvent(new Event('bn:cookie-consent'));
   };
 
   if (!visible) return null;
