@@ -770,10 +770,8 @@ interface HomeSectionProps {
 }
 
 const HomeSectionWithSearch: React.FC<HomeSectionProps> = ({
-  title, subtitle, searchPlaceholder, gradient, actionLabel, onAction, onSearch, className = '', children
+  title, subtitle, gradient, actionLabel, onAction, className = '', children
 }) => {
-  const [q, setQ] = useState('');
-
   return (
     <section className={`mx-4 mt-10 ${className}`}>
       {/* Header */}
@@ -795,30 +793,10 @@ const HomeSectionWithSearch: React.FC<HomeSectionProps> = ({
           </button>
         )}
       </div>
-      {subtitle && <p className="text-gray-400 text-xs sm:text-sm mb-3">{subtitle}</p>}
+      {subtitle && <p className="text-gray-400 text-xs sm:text-sm mb-3 mt-1">{subtitle}</p>}
 
-      {/* Mini search bar */}
-      {searchPlaceholder && (
-        <div className="relative mb-4">
-          <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 focus-within:border-pink-400 focus-within:bg-white dark:focus-within:bg-gray-700 transition-all">
-            <span className="text-gray-400 text-sm">🔍</span>
-            <input
-              type="text"
-              value={q}
-              onChange={e => setQ(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && q.trim() && onSearch) onSearch(q); }}
-              placeholder={searchPlaceholder}
-              className="flex-1 bg-transparent outline-none text-gray-700 dark:text-gray-200 text-xs sm:text-sm placeholder-gray-400"
-            />
-            {q && (
-              <button onClick={() => setQ('')} className="text-gray-400 hover:text-gray-600 text-xs">✕</button>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Content */}
-      {children(q.toLowerCase())}
+      {/* Content — el buscador global (arriba) es el único punto de búsqueda */}
+      {children('')}
     </section>
   );
 };
