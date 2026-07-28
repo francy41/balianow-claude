@@ -9,7 +9,6 @@ import { MapPin, Navigation, Search, Star, Calendar, Music, Users, X, Map, Chevr
 import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
 import { resolveCityCoords } from '../lib/geo';
 import LivePreviewModal, { type LiveSessionLite } from '../components/LivePreviewModal';
-import SearchTriggerBar from '../components/SearchTriggerBar';
 import { usePageMeta } from '../hooks/usePageMeta';
 
 // Geo distance (Haversine in km)
@@ -555,11 +554,6 @@ const NearMePage: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* ── SUPER BUSCADOR (abre GlobalSearch) ── */}
-      <div className="px-4 pt-3">
-        <SearchTriggerBar placeholder="🔍 Súper buscador: locales, artistas, eventos, ciudades…" />
-      </div>
 
       {/* ── TABS ── */}
       <div className="px-4 mb-3">

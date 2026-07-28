@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, ShoppingBag, Loader2 } from 'lucide-react';
 import { Avatar, Badge, StarRating, SearchBar, FilterChips, EmptyState } from '../components/ui';
-import SearchTriggerBar from '../components/SearchTriggerBar';
 import { useAuthStore, useCartStore } from '../store/appStore';
 import { supabase } from '../lib/supabase';
 import PaymentGateway from '../components/payment/PaymentGateway';
@@ -102,7 +101,6 @@ const MarketplacePage: React.FC = () => {
           ))}
         </div>
 
-        <SearchTriggerBar placeholder="🔍 Buscar servicios, artistas, locales en todo BailaNow…" className="mb-3" />
         <SearchBar placeholder="Filtrar servicios..." value={search} onChange={setSearch} />
 
         <div className="mt-4 space-y-3">

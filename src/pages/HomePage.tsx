@@ -1435,9 +1435,6 @@ const HomePage: React.FC = () => {
       {/* ── DANCEFLOW — Academia IA (debajo de Patrocinadores) ── */}
       <DanceFlowPromo />
 
-      {/* ── ULTRAMODERN SMART SEARCH ── */}
-      <UltraModernSearchSection navigate={navigate} categories={DEFAULT_CATEGORIES} />
-
       {/* ── PANEL SUPERADMIN ── */}
       {isAdmin && adminStats && isModuleOn('admin-panel') && (
         <section className="mx-4 mt-4 bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-3xl p-5 sm:p-6 text-white shadow-card relative overflow-hidden">

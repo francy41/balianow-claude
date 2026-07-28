@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapPin, Users, CheckCircle, Radio, Music } from 'lucide-react';
 import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
 import { Badge, StarRating, Avatar, FilterChips, SectionHeader, EmptyState } from '../components/ui';
-import SearchTriggerBar from '../components/SearchTriggerBar';
 import LiveFab from '../components/LiveFab';
 import { usePageMeta } from '../hooks/usePageMeta';
 
@@ -215,8 +214,6 @@ const ArtistsPage: React.FC = () => {
           <h1 className="font-display font-black text-3xl text-gray-900 mb-1">🎧 Artistas</h1>
           <p className="text-gray-400">Los mejores DJs, bailarines y músicos latinos</p>
         </div>
-
-        <SearchTriggerBar placeholder="🔍 Buscar artistas, eventos, locales en todo BailaNow…" className="mb-6" />
 
         <div className="space-y-3">
           <div>

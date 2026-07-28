@@ -5,7 +5,6 @@ import type { PromoService, PromoSeller } from '../data/mockData';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore, useCartStore } from '../store/appStore';
 import { StarRating, Badge } from '../components/ui';
-import SearchTriggerBar from '../components/SearchTriggerBar';
 import BookingModal from '../components/BookingModal';
 import BusinessQRModal from '../components/BusinessQRModal';
 import SplitPaymentModal from '../components/SplitPaymentModal';
@@ -970,10 +969,6 @@ const PromocionatePage: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4">
-        {/* Super buscador global */}
-        <div className="-mt-3 relative z-10 mb-4">
-          <SearchTriggerBar placeholder="🔍 Buscar promociones, artistas, locales, eventos…" />
-        </div>
 
         {/* ── PLAN DE PUBLICIDAD EN BAILANOW (banner principal) ── */}
         <AdPlansBanner navigate={navigate} onOpenQR={() => setQrOpen(true)} />
