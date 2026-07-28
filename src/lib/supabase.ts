@@ -6,13 +6,26 @@ import { createClient } from '@supabase/supabase-js';
 export const PUBLIC_PROFILE_COLUMNS =
   'id,full_name,role,avatar_url,bio,location,verified,created_at,youtube_url,instagram_url,tiktok_url,website_url,is_live,last_active,status,country,lat,lng,genre,cover_photo,facebook_url,soundcloud_url,twitch_url,spotify_url,styles,tags,city,deleted_at';
 
-// Env vars must be set in .env.local (dev) and Vercel/hosting env (prod)
-// Never hardcode these values here — they would be bundled into the public JS
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+// Config del proyecto. Se prefieren las variables de entorno (.env.local en dev,
+// Vercel en prod). Si faltan o son inválidas (p. ej. "placeholder"), se usan los
+// valores públicos del proyecto como fallback para que la app SIEMPRE conecte.
+//
+// Nota de seguridad: la URL y la clave `anon` son PÚBLICAS por diseño (viajan en
+// el bundle del navegador y solo dan el acceso que permite RLS al rol anon). NO
+// es la service_role. Por eso es seguro tenerlas aquí como red de seguridad.
+const FALLBACK_SUPABASE_URL = 'https://lpwwdjujxwxdvyoznehp.supabase.co';
+const FALLBACK_SUPABASE_ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxwd3dkanVqeHd4ZHZ5b3puZWhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU2NzY1MzIsImV4cCI6MjA5MTI1MjUzMn0.fdZHn1V2eBJ6emK67EN7YJ4HW1tNUpe_l7KOFDZVOI0';
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  console.warn('[BailaNow] Missing Supabase env vars — check .env.local');
+const envUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim();
+const envKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim();
+
+// Una anon key válida es un JWT (empieza por "eyJ"); descarta vacío/"placeholder".
+const SUPABASE_URL = envUrl && envUrl.startsWith('http') ? envUrl : FALLBACK_SUPABASE_URL;
+const SUPABASE_ANON_KEY = envKey && envKey.startsWith('eyJ') ? envKey : FALLBACK_SUPABASE_ANON_KEY;
+
+if (SUPABASE_URL === FALLBACK_SUPABASE_URL || SUPABASE_ANON_KEY === FALLBACK_SUPABASE_ANON_KEY) {
+  console.warn('[BailaNow] Usando config pública de Supabase por fallback (define VITE_SUPABASE_* para sobreescribir).');
 }
 
 export const supabase = createClient(
