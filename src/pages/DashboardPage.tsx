@@ -14,6 +14,7 @@ import {
 } from '../store/appStore';
 import { Avatar, Badge, Button } from '../components/ui';
 import PaymentMethodsPanel from '../components/PaymentMethodsPanel';
+import TicketSalesTab from '../components/TicketSalesTab';
 import ProfileEditModal from '../components/ProfileEditModal';
 import { BuyerTable, QRScanner } from '../components/BuyerManagement';
 import { QrCode, Scan } from 'lucide-react';
@@ -21,7 +22,7 @@ import TeacherClassesPanel from '../components/TeacherClassesPanel';
 import ClassReviewModal from '../components/ClassReviewModal';
 import { QRCodeCanvas, downloadTicketQR } from '../components/QRTicket';
 
-type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers' | 'buyers' | 'scanner' | 'events';
+type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers' | 'buyers' | 'scanner' | 'events' | 'ventas';
 
 // Tabs "core" (financieros/operativos) — siempre visibles, no se controlan por módulos.
 // Tabs con `module` se muestran solo si el módulo global está activo (Admin → Categorías).
@@ -36,6 +37,7 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode; module?: string }
   { id: 'calendar', label: 'Calendario',    icon: <CalIcon className="w-4 h-4" />,   module: 'calendar' },
   { id: 'classes',  label: 'Clases Online', icon: <Video className="w-4 h-4" />,     module: 'classes' },
   { id: 'events',   label: 'Eventos',       icon: <CalIcon className="w-4 h-4" />,    module: 'events' },
+  { id: 'ventas',   label: 'Ventas entradas', icon: <DollarSign className="w-4 h-4" /> },
   { id: 'offers',   label: 'Ofertas',       icon: <Briefcase className="w-4 h-4" />, module: 'offers' },
 ];
 
@@ -185,6 +187,7 @@ const DashboardPage: React.FC = () => {
               </div>
             )}
             {tab === 'events'   && <EventsManagerTab performerId={performerId} />}
+            {tab === 'ventas'   && <TicketSalesTab performerId={performerId} />}
           </>
         ) : (
           <FanDashboard userId={user.id} userName={user.name} />
