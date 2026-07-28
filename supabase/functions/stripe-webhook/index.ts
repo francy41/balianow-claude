@@ -114,6 +114,18 @@ serve(async (req) => {
         console.log('✅ Donación registrada');
         break;
       }
+      // Compra de módulo de creador (pago único)
+      if (s.metadata?.type === 'module') {
+        await supabase.from('creator_module_purchases').upsert({
+          creator_id: s.metadata.creator_id,
+          module_id: s.metadata.module_id,
+          price: Number(s.metadata.price ?? 0),
+          status: 'active',
+          stripe_session_id: s.id,
+        }, { onConflict: 'stripe_session_id' });
+        console.log('✅ Módulo de creador comprado');
+        break;
+      }
       if (s.mode !== 'subscription') break;
       const rowId = s.client_reference_id || s.metadata?.subscriptionRowId;
       if (!rowId) break;

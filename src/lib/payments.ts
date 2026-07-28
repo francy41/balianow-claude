@@ -114,6 +114,14 @@ export async function createDonationCheckout(params: {
   return callEdgeFunction<DonationCheckoutResult>('create-donation-checkout', params);
 }
 
+// ─── Módulos de creador (pago único) ────────────────────────
+export interface ModuleCheckoutResult { url?: string; notConfigured?: boolean; error?: string }
+export async function createModuleCheckout(params: {
+  moduleId: string; moduleName: string; price: number;
+}): Promise<ModuleCheckoutResult> {
+  return callEdgeFunction<ModuleCheckoutResult>('create-module-checkout', params);
+}
+
 // ─── PayPal ─────────────────────────────────────────────────
 export async function createPayPalOrder(params: {
   amount: number;

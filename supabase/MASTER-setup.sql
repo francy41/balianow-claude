@@ -14,7 +14,7 @@
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 1/13 · COMUNIDAD + TV + is_admin() + DEMO                            ║
+-- ║ BLOQUE 1/14 · COMUNIDAD + TV + is_admin() + DEMO                            ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · SETUP COMPLETO de módulos nuevos + datos demo.
 -- Ejecutar UNA vez en el SQL Editor de Supabase (o vía Management API).
@@ -346,7 +346,7 @@ on conflict (id) do nothing;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 2/13 · MÓDULO PARTNER POR CIUDADES                                   ║
+-- ║ BLOQUE 2/14 · MÓDULO PARTNER POR CIUDADES                                   ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · MÓDULO PARTNER POR CIUDADES.
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -522,7 +522,7 @@ create policy pc_own on public.partner_content for all
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 3/13 · BANDEJA UNIFICADA + ENLACE DE CIUDAD + REDES                  ║
+-- ║ BLOQUE 3/14 · BANDEJA UNIFICADA + ENLACE DE CIUDAD + REDES                  ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · BANDEJA UNIFICADA del Partner + enlace de ciudad + redes sociales.
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -646,7 +646,7 @@ grant execute on function public.city_partner(text) to anon, authenticated;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 4/13 · EQUIPO RRPP/PROMOTORES + POLÍTICA DE COMISIONES               ║
+-- ║ BLOQUE 4/14 · EQUIPO RRPP/PROMOTORES + POLÍTICA DE COMISIONES               ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · EQUIPO del Partner: RRPP y Promotores por ciudad.
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -745,7 +745,7 @@ create index if not exists partner_tasks_rep_idx on public.partner_tasks (rep_id
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 5/13 · ENRUTADO DE REDES SOCIALES (para las Edge Functions)          ║
+-- ║ BLOQUE 5/14 · ENRUTADO DE REDES SOCIALES (para las Edge Functions)          ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · Enrutado de redes sociales para la bandeja del partner.
 -- Ejecutar UNA vez (después de partner-inbox.sql). 100% idempotente.
@@ -781,7 +781,7 @@ create policy pst_admin on public.partner_social_tokens for all
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 6/13 · CONECTOR GHL (GoHighLevel) — ghl_location_id en partners       ║
+-- ║ BLOQUE 6/14 · CONECTOR GHL (GoHighLevel) — ghl_location_id en partners       ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · Conector GHL (GoHighLevel) para la bandeja del partner.
 -- Ejecutar UNA vez (después de partner-inbox.sql). 100% idempotente.
@@ -795,7 +795,7 @@ create index if not exists partners_ghl_location_idx on public.partners (ghl_loc
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 7/13 · RECURSOS PARA PARTNERS (biblioteca por categorías)             ║
+-- ║ BLOQUE 7/14 · RECURSOS PARA PARTNERS (biblioteca por categorías)             ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · RECURSOS para partners (biblioteca por categorías).
 -- Ejecutar UNA vez (después de partner-module.sql). 100% idempotente.
@@ -835,7 +835,7 @@ create policy pres_admin on public.partner_resources for all
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 8/13 · NOTIFICACIONES EN TIEMPO REAL (ventas, consultas, retiros)     ║
+-- ║ BLOQUE 8/14 · NOTIFICACIONES EN TIEMPO REAL (ventas, consultas, retiros)     ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · Notificaciones en TIEMPO REAL para dashboards (creadores, vendedores, partners).
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -943,7 +943,7 @@ end $$;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 9/13 · ANUNCIOS EN VÍDEO (pre-roll estilo RTVE)                       ║
+-- ║ BLOQUE 9/14 · ANUNCIOS EN VÍDEO (pre-roll estilo RTVE)                       ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · ANUNCIOS EN VÍDEO (pre-roll estilo RTVE).
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -1010,7 +1010,7 @@ on conflict (id) do nothing;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 10/13 · DONACIONES (registro + total recaudado)                      ║
+-- ║ BLOQUE 10/14 · DONACIONES (registro + total recaudado)                      ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · DONACIONES (registro + total recaudado).
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -1053,7 +1053,7 @@ grant execute on function public.get_donations_summary() to authenticated;
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 11/13 · MEMBRESÍAS DE BAILE (Individual/Pareja/Familiar) + asientos  ║
+-- ║ BLOQUE 11/14 · MEMBRESÍAS DE BAILE (Individual/Pareja/Familiar) + asientos  ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · MEMBRESÍAS de baile (Individual / Pareja / Familiar) + asientos.
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -1126,7 +1126,7 @@ grant execute on function public.has_membership_access(uuid) to authenticated, a
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 12/13 · SOLICITUDES DE CREADORES (unirse con aprobación superadmin)  ║
+-- ║ BLOQUE 12/14 · SOLICITUDES DE CREADORES (unirse con aprobación superadmin)  ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow · SOLICITUDES para unirse (artistas, bailarines, músicos, locales,
 -- promotores). Todas pasan por APROBACIÓN del superadmin antes de crear/activar perfil.
@@ -1182,7 +1182,7 @@ grant execute on function public.approve_creator_application(uuid) to authentica
 
 
 -- ╔══════════════════════════════════════════════════════════════════════════╗
--- ║ BLOQUE 13/13 · MONETIZACIÓN DE BAILANOW TV (modelo YouTube 60/40)           ║
+-- ║ BLOQUE 13/14 · MONETIZACIÓN DE BAILANOW TV (modelo YouTube 60/40)           ║
 -- ╚══════════════════════════════════════════════════════════════════════════╝
 -- BailaNow TV · MONETIZACIÓN estilo YouTube.
 -- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
@@ -1296,3 +1296,43 @@ begin
   return result;
 end $$;
 grant execute on function public.tv_monetization_report() to authenticated;
+
+
+-- ╔══════════════════════════════════════════════════════════════════════════╗
+-- ║ BLOQUE 14/14 · MÓDULOS DE CREADOR (pago único 20€ / Pack Full 50€)          ║
+-- ╚══════════════════════════════════════════════════════════════════════════╝
+-- BailaNow · MÓDULOS de creador (pago único: 20€/módulo o 50€ Pack Full).
+-- Ejecutar UNA vez en el SQL Editor de Supabase. 100% idempotente.
+
+create or replace function public.is_admin()
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.profiles where id = auth.uid() and role in ('admin','superadmin'));
+$$;
+
+create table if not exists public.creator_module_purchases (
+  id uuid primary key default gen_random_uuid(),
+  creator_id uuid not null,
+  module_id text not null,               -- reservas | contratacion | pagos | cursos | transmisiones | perfil-pro | full
+  price numeric(10,2) not null default 0,
+  status text not null default 'active', -- active
+  stripe_session_id text unique,
+  created_at timestamptz not null default now()
+);
+create index if not exists creator_module_purchases_creator_idx on public.creator_module_purchases (creator_id);
+
+alter table public.creator_module_purchases enable row level security;
+-- El creador ve sus módulos; el admin todo. Se insertan vía webhook (service_role).
+drop policy if exists cmp_read on public.creator_module_purchases;
+create policy cmp_read on public.creator_module_purchases for select using (auth.uid() = creator_id or public.is_admin());
+drop policy if exists cmp_admin on public.creator_module_purchases;
+create policy cmp_admin on public.creator_module_purchases for all using (public.is_admin()) with check (public.is_admin());
+
+-- ¿Tiene el creador un módulo activo? (el Pack Full desbloquea todos)
+create or replace function public.has_module(p_uid uuid, p_module text)
+returns boolean language sql stable security definer set search_path = public as $$
+  select exists (
+    select 1 from public.creator_module_purchases
+    where creator_id = p_uid and status = 'active' and (module_id = 'full' or module_id = p_module)
+  );
+$$;
+grant execute on function public.has_module(uuid, text) to authenticated;
