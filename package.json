@@ -6,7 +6,7 @@
   "homepage": "https://bailanow.com",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "node scripts/gen-sitemap.mjs && tsc && vite build",
     "preview": "npm run build && wrangler dev",
     "predeploy": "npm run build",
     "deploy": "npm run build && wrangler deploy",
