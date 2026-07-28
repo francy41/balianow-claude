@@ -23,6 +23,8 @@ const CreatorApplicationsAdminSection: React.FC<{ addToast: (t: any) => void }> 
   const approve = async (a: AppRow) => {
     const { error } = await supabase.rpc('approve_creator_application', { p_id: a.id });
     if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    // Correo "aprobado" (best-effort).
+    supabase.functions.invoke('send-email', { body: { to: a.email, type: 'creator_approved', data: { name: a.name } } }).catch(() => {});
     addToast({ message: `${a.name || 'Solicitante'} aprobado ✔️`, type: 'success' }); load();
   };
   const reject = async (a: AppRow) => {

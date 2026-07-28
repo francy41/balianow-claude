@@ -80,6 +80,8 @@ const PartnerAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToas
     }, { onConflict: 'user_id' });
     if (e2) { addToast({ message: e2.message, type: 'error' }); return; }
     await supabase.from('partner_applications').update({ status: 'approved', reviewed_at: nowIso() }).eq('id', app.id);
+    // Correo de bienvenida al partner (best-effort).
+    if (app.email) supabase.functions.invoke('send-email', { body: { to: app.email, type: 'partner_approved', data: { name: app.name } } }).catch(() => {});
     addToast({ message: `${app.name || 'Partner'} aprobado ✔️`, type: 'success' });
     load();
   };
