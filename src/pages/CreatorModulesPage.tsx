@@ -4,25 +4,56 @@ import { Check, Loader2, Plus, Copy, Share2, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
 import { createModuleCheckout } from '../lib/payments';
-import { CREATOR_MODULES, FULL_PACK, MODULE_PRICE, FULL_PACK_PRICE } from '../data/creatorModules';
+import { CREATOR_MODULES, FULL_PACK, MODULE_PRICE, FULL_PACK_PRICE, CreatorModule } from '../data/creatorModules';
 import { useSeo } from '../hooks/useSeo';
+
+interface CatalogRow { module_id: string; name: string; emoji: string | null; description: string | null; price: number; active: boolean; is_full: boolean; sort: number; }
+interface Override { module_id: string; scope_type: string; scope_value: string; price: number | null; active: boolean | null; }
 
 const CreatorModulesPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
-  useSeo({ title: 'Módulos para tu panel — BailaNow', description: 'Añade módulos a tu panel de creador: reservas, contratación, pagos, cursos y directos. 20€ por módulo o 50€ el Pack Full. Pago único.', path: '/modulos' });
+  useSeo({ title: 'Módulos para tu panel — BailaNow', description: 'Añade módulos a tu panel de creador: reservas, contratación, pagos, cursos y directos. Pago único.', path: '/modulos' });
 
+  const [modules, setModules] = useState<CreatorModule[]>(CREATOR_MODULES);
+  const [full, setFull] = useState<CreatorModule>(FULL_PACK);
   const [owned, setOwned] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [buying, setBuying] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!isAuthenticated || !user) { setLoading(false); return; }
-    const { data } = await supabase.from('creator_module_purchases').select('module_id').eq('creator_id', user.id).eq('status', 'active');
-    setOwned(new Set((data || []).map((r: any) => r.module_id)));
+    setLoading(true);
+    const uid = user?.id;
+    const [ownedRes, catRes, ovRes] = await Promise.all([
+      uid ? supabase.from('creator_module_purchases').select('module_id').eq('creator_id', uid).eq('status', 'active') : Promise.resolve({ data: [] }),
+      supabase.from('module_catalog').select('*').order('sort', { ascending: true }),
+      supabase.from('module_overrides').select('*'),
+    ]);
+    setOwned(new Set(((ownedRes.data as any[]) || []).map(r => r.module_id)));
+
+    const catalog = (catRes.data as CatalogRow[]) || [];
+    if (catalog.length) {
+      const overrides = (ovRes.data as Override[]) || [];
+      const effective = (row: CatalogRow): { price: number; active: boolean } => {
+        const uOv = uid ? overrides.find(o => o.module_id === row.module_id && o.scope_type === 'user' && o.scope_value === uid) : undefined;
+        const rOv = user?.role ? overrides.find(o => o.module_id === row.module_id && o.scope_type === 'role' && o.scope_value === user.role) : undefined;
+        const ov = uOv || rOv;
+        return { price: ov?.price ?? row.price, active: ov?.active ?? row.active };
+      };
+      const list: CreatorModule[] = [];
+      let fullPack = FULL_PACK;
+      catalog.forEach(row => {
+        const e = effective(row);
+        const m: CreatorModule = { id: row.module_id, emoji: row.emoji || '🧩', name: row.name, desc: row.description || '', price: e.price };
+        if (row.is_full) { fullPack = m; }
+        else if (e.active) list.push(m);
+      });
+      setModules(list);
+      setFull(fullPack);
+    } // si no hay catálogo en BD, se quedan los valores por defecto (fallback)
     setLoading(false);
-  }, [isAuthenticated, user]);
+  }, [user]);
   useEffect(() => { load().catch(() => setLoading(false)); }, [load]);
 
   const hasFull = owned.has('full');
@@ -55,7 +86,7 @@ const CreatorModulesPage: React.FC = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-10 sm:py-14 text-center">
           <span className="inline-flex items-center gap-2 text-white/85 font-black text-xs tracking-widest uppercase mb-3"><Sparkles className="w-4 h-4" /> Tu panel a tu medida</span>
           <h1 className="font-display font-black text-3xl sm:text-5xl">Añade módulos a tu panel</h1>
-          <p className="text-white/90 mt-3 max-w-xl mx-auto">Activa solo lo que necesitas. <b>{MODULE_PRICE}€ por módulo</b> o el <b>Pack Full por {FULL_PACK_PRICE}€</b> (todo incluido). Pago único, sin cuotas.</p>
+          <p className="text-white/90 mt-3 max-w-xl mx-auto">Activa solo lo que necesitas. Pago único, sin cuotas.</p>
         </div>
       </div>
 
@@ -64,21 +95,21 @@ const CreatorModulesPage: React.FC = () => {
         <div className={`rounded-3xl p-6 mb-6 text-white bg-gradient-to-br from-fuchsia-600 to-purple-700 shadow-lg ${hasFull ? 'ring-4 ring-emerald-400' : ''}`}>
           <div className="flex items-center justify-between gap-4 flex-wrap">
             <div>
-              <div className="flex items-center gap-2"><span className="text-3xl">{FULL_PACK.emoji}</span><h2 className="font-display font-black text-2xl">{FULL_PACK.name}</h2></div>
-              <p className="text-white/85 text-sm mt-1">{FULL_PACK.desc}</p>
+              <div className="flex items-center gap-2"><span className="text-3xl">{full.emoji}</span><h2 className="font-display font-black text-2xl">{full.name}</h2></div>
+              <p className="text-white/85 text-sm mt-1">{full.desc}</p>
             </div>
             <div className="text-right">
-              <p className="font-black text-3xl">{FULL_PACK_PRICE}€</p>
+              <p className="font-black text-3xl">{full.price}€</p>
               {hasFull
                 ? <span className="inline-flex items-center gap-1 text-sm font-bold bg-emerald-500/30 rounded-lg px-3 py-1.5"><Check className="w-4 h-4" /> Activo</span>
-                : <button onClick={() => buy(FULL_PACK.id, FULL_PACK.name, FULL_PACK_PRICE)} disabled={buying === 'full'} className="bg-white text-gray-900 font-bold rounded-xl px-5 py-2.5 text-sm inline-flex items-center gap-2 disabled:opacity-60">{buying === 'full' ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Conseguir todo</button>}
+                : <button onClick={() => buy('full', full.name, full.price)} disabled={buying === 'full'} className="bg-white text-gray-900 font-bold rounded-xl px-5 py-2.5 text-sm inline-flex items-center gap-2 disabled:opacity-60">{buying === 'full' ? <Loader2 className="w-4 h-4 animate-spin" /> : null} Conseguir todo</button>}
             </div>
           </div>
         </div>
 
         {/* Módulos individuales */}
         <div className="grid sm:grid-cols-2 gap-3">
-          {CREATOR_MODULES.map(m => {
+          {modules.map(m => {
             const active = has(m.id);
             return (
               <div key={m.id} className={`rounded-2xl p-5 border bg-white dark:bg-gray-800/50 ${active ? 'border-emerald-400 dark:border-emerald-500' : 'border-gray-200 dark:border-gray-700'}`}>
