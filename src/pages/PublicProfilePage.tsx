@@ -43,14 +43,14 @@ interface PublicProfile {
 }
 
 const ROLE_LABELS: Record<string, { label: string; color: string; emoji: string }> = {
-  artist:     { label: 'Artista',      color: 'from-purple-500 to-fuchsia-600', emoji: '🎤' },
-  dancer:     { label: 'Bailarín/a',   color: 'from-green-500 to-emerald-600',  emoji: '💃' },
-  dj:         { label: 'DJ',           color: 'from-cyan-500 to-blue-600',      emoji: '🎧' },
-  instructor: { label: 'Profesor/a',   color: 'from-pink-500 to-rose-600',      emoji: '🎓' },
-  venue:      { label: 'Local',        color: 'from-orange-500 to-red-500',     emoji: '🏛️' },
-  business:   { label: 'Vendedor',     color: 'from-blue-600 to-indigo-700',    emoji: '🏪' },
-  promoter:   { label: 'Promotor',     color: 'from-yellow-500 to-orange-600',  emoji: '📢' },
-  user:       { label: 'Bailador/a',   color: 'from-gray-500 to-gray-700',      emoji: '🕺' },
+  artist:     { label: 'Artista',      color: 'bg-purple-500', emoji: '🎤' },
+  dancer:     { label: 'Bailarín/a',   color: 'bg-green-500',  emoji: '💃' },
+  dj:         { label: 'DJ',           color: 'bg-cyan-500',      emoji: '🎧' },
+  instructor: { label: 'Profesor/a',   color: 'bg-pink-500',      emoji: '🎓' },
+  venue:      { label: 'Local',        color: 'bg-orange-500',     emoji: '🏛️' },
+  business:   { label: 'Vendedor',     color: 'bg-blue-600',    emoji: '🏪' },
+  promoter:   { label: 'Promotor',     color: 'bg-yellow-500',  emoji: '📢' },
+  user:       { label: 'Bailador/a',   color: 'bg-gray-500',      emoji: '🕺' },
 };
 
 const PublicProfilePage: React.FC = () => {
@@ -163,13 +163,13 @@ const PublicProfilePage: React.FC = () => {
   const role = ROLE_LABELS[profile.role] || ROLE_LABELS.user;
   const socials = [
     { key: 'instagram',  url: profile.instagram_url,  icon: <Instagram className="w-5 h-5" />, color: 'from-purple-500 via-pink-500 to-orange-400', label: 'Instagram' },
-    { key: 'tiktok',     url: profile.tiktok_url,     icon: <Music className="w-5 h-5" />,      color: 'from-gray-900 to-black', label: 'TikTok' },
-    { key: 'youtube',    url: profile.youtube_url,    icon: <Youtube className="w-5 h-5" />,    color: 'from-red-500 to-red-700', label: 'YouTube' },
-    { key: 'facebook',   url: profile.facebook_url,   icon: <Facebook className="w-5 h-5" />,   color: 'from-blue-600 to-blue-800', label: 'Facebook' },
-    { key: 'twitch',     url: profile.twitch_url,     icon: <Twitch className="w-5 h-5" />,     color: 'from-purple-600 to-violet-800', label: 'Twitch' },
-    { key: 'spotify',    url: profile.spotify_url,    icon: <Music className="w-5 h-5" />,      color: 'from-green-500 to-green-700', label: 'Spotify' },
-    { key: 'soundcloud', url: profile.soundcloud_url, icon: <Music className="w-5 h-5" />,      color: 'from-orange-500 to-red-500', label: 'SoundCloud' },
-    { key: 'website',    url: profile.website_url,    icon: <Globe className="w-5 h-5" />,      color: 'from-gray-500 to-gray-700', label: 'Sitio web' },
+    { key: 'tiktok',     url: profile.tiktok_url,     icon: <Music className="w-5 h-5" />,      color: 'bg-gray-900', label: 'TikTok' },
+    { key: 'youtube',    url: profile.youtube_url,    icon: <Youtube className="w-5 h-5" />,    color: 'bg-red-500', label: 'YouTube' },
+    { key: 'facebook',   url: profile.facebook_url,   icon: <Facebook className="w-5 h-5" />,   color: 'bg-blue-600', label: 'Facebook' },
+    { key: 'twitch',     url: profile.twitch_url,     icon: <Twitch className="w-5 h-5" />,     color: 'bg-purple-600', label: 'Twitch' },
+    { key: 'spotify',    url: profile.spotify_url,    icon: <Music className="w-5 h-5" />,      color: 'bg-green-500', label: 'Spotify' },
+    { key: 'soundcloud', url: profile.soundcloud_url, icon: <Music className="w-5 h-5" />,      color: 'bg-orange-500', label: 'SoundCloud' },
+    { key: 'website',    url: profile.website_url,    icon: <Globe className="w-5 h-5" />,      color: 'bg-gray-500', label: 'Sitio web' },
   ].filter(s => s.url);
 
   return (
@@ -318,10 +318,10 @@ const PublicProfilePage: React.FC = () => {
 
             <div className="grid grid-cols-4 gap-2">
               {[
-                { name: 'WhatsApp', color: 'from-green-500 to-emerald-600', url: `https://wa.me/?text=${encodeURIComponent(publicUrl)}` },
-                { name: 'Telegram', color: 'from-blue-500 to-cyan-500',     url: `https://t.me/share/url?url=${encodeURIComponent(publicUrl)}` },
-                { name: 'Twitter',  color: 'from-gray-700 to-black',        url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(publicUrl)}` },
-                { name: 'Facebook', color: 'from-blue-600 to-blue-800',     url: `https://facebook.com/sharer/sharer.php?u=${encodeURIComponent(publicUrl)}` },
+                { name: 'WhatsApp', color: 'bg-green-500', url: `https://wa.me/?text=${encodeURIComponent(publicUrl)}` },
+                { name: 'Telegram', color: 'bg-blue-500',     url: `https://t.me/share/url?url=${encodeURIComponent(publicUrl)}` },
+                { name: 'Twitter',  color: 'bg-gray-700',        url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(publicUrl)}` },
+                { name: 'Facebook', color: 'bg-blue-600',     url: `https://facebook.com/sharer/sharer.php?u=${encodeURIComponent(publicUrl)}` },
               ].map(s => (
                 <a key={s.name} href={s.url} target="_blank" rel="noopener noreferrer"
                   className={`bg-gradient-to-br ${s.color} text-white text-xs font-bold py-3 rounded-xl text-center active:scale-95`}>

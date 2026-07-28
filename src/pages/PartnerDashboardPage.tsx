@@ -195,10 +195,10 @@ const DirectLink: React.FC<{ city: string; addToast: (t: any) => void }> = ({ ci
 const Resumen: React.FC<{ earned: number; available: number; pendingComm: number; openCount: number; doneCount: number; newInquiries: number; onGo: (t: Tab) => void }> = ({ earned, available, pendingComm, openCount, doneCount, newInquiries, onGo }) => (
   <div>
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-      <Stat label="Disponible" value={eur(available)} sub="Listo para retirar" grad="from-emerald-500 to-green-600" />
-      <Stat label="Ganado total" value={eur(earned)} sub="Comisiones completadas" grad="from-orange-500 to-fuchsia-600" />
-      <Stat label="Por cobrar" value={eur(pendingComm)} sub="Gestiones en curso" grad="from-fuchsia-500 to-purple-600" />
-      <Stat label="Gestiones" value={`${openCount + doneCount}`} sub={`${openCount} pendientes · ${doneCount} hechas`} grad="from-sky-500 to-blue-600" />
+      <Stat label="Disponible" value={eur(available)} sub="Listo para retirar" grad="bg-emerald-500" />
+      <Stat label="Ganado total" value={eur(earned)} sub="Comisiones completadas" grad="bg-orange-500" />
+      <Stat label="Por cobrar" value={eur(pendingComm)} sub="Gestiones en curso" grad="bg-fuchsia-500" />
+      <Stat label="Gestiones" value={`${openCount + doneCount}`} sub={`${openCount} pendientes · ${doneCount} hechas`} grad="bg-sky-500" />
     </div>
     <div className="grid sm:grid-cols-3 gap-3 mt-4">
       <button onClick={() => onGo('bandeja')} className="text-left rounded-2xl bg-white/5 ring-1 ring-white/10 p-4 hover:bg-white/10 transition relative">
@@ -226,10 +226,10 @@ const Ganancias: React.FC<{ earned: number; available: number; pendingComm: numb
   return (
     <div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        <Stat label="Disponible" value={eur(available)} grad="from-emerald-500 to-green-600" />
-        <Stat label="Ganado total" value={eur(earned)} grad="from-orange-500 to-fuchsia-600" />
-        <Stat label="Por cobrar" value={eur(pendingComm)} grad="from-fuchsia-500 to-purple-600" />
-        <Stat label="Retirado" value={eur(withdrawn)} grad="from-gray-600 to-gray-700" />
+        <Stat label="Disponible" value={eur(available)} grad="bg-emerald-500" />
+        <Stat label="Ganado total" value={eur(earned)} grad="bg-orange-500" />
+        <Stat label="Por cobrar" value={eur(pendingComm)} grad="bg-fuchsia-500" />
+        <Stat label="Retirado" value={eur(withdrawn)} grad="bg-gray-600" />
       </div>
       <h3 className="font-bold mb-2">Detalle de comisiones</h3>
       {commissioned.length === 0 ? (

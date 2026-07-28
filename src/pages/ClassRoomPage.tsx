@@ -178,7 +178,7 @@ const ClassRoomPage: React.FC = () => {
             level={offering?.level && offering.level !== 'all' ? offering.level : 'principiante'}
             teacherName={offering?.title ? `Clase: ${offering.title}` : 'Tu profe'}
             teacherEmoji="🕺"
-            gradient="from-pink-500 to-fuchsia-600"
+            gradient="bg-pink-500"
             personality={offering?.description || 'Profe motivador de baile latino'}
             userId={user?.id}
             userName={user?.name}

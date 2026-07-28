@@ -280,11 +280,11 @@ const RADIO_STATIONS = [
 ];
 
 const PLAYLISTS = [
-  { id: 'p1', name: 'Bachata Sensual', tracks: 24, duration: '1h 32m', img: 'https://picsum.photos/seed/playlist-bachata/120/120', color: 'from-pink-500 to-rose-600' },
-  { id: 'p2', name: 'Salsa Pa Bailar', tracks: 30, duration: '2h 05m', img: 'https://picsum.photos/seed/playlist-salsa/120/120', color: 'from-orange-500 to-red-500' },
-  { id: 'p3', name: 'Latin Club Hits', tracks: 18, duration: '1h 10m', img: 'https://picsum.photos/seed/playlist-club/120/120', color: 'from-purple-500 to-fuchsia-600' },
-  { id: 'p4', name: 'Kizomba Chill', tracks: 20, duration: '1h 25m', img: 'https://picsum.photos/seed/playlist-kizomba/120/120', color: 'from-indigo-500 to-purple-600' },
-  { id: 'p5', name: 'Reggaeton Party', tracks: 22, duration: '1h 18m', img: 'https://picsum.photos/seed/playlist-reggaeton/120/120', color: 'from-yellow-500 to-orange-500' },
+  { id: 'p1', name: 'Bachata Sensual', tracks: 24, duration: '1h 32m', img: 'https://picsum.photos/seed/playlist-bachata/120/120', color: 'bg-pink-500' },
+  { id: 'p2', name: 'Salsa Pa Bailar', tracks: 30, duration: '2h 05m', img: 'https://picsum.photos/seed/playlist-salsa/120/120', color: 'bg-orange-500' },
+  { id: 'p3', name: 'Latin Club Hits', tracks: 18, duration: '1h 10m', img: 'https://picsum.photos/seed/playlist-club/120/120', color: 'bg-purple-500' },
+  { id: 'p4', name: 'Kizomba Chill', tracks: 20, duration: '1h 25m', img: 'https://picsum.photos/seed/playlist-kizomba/120/120', color: 'bg-indigo-500' },
+  { id: 'p5', name: 'Reggaeton Party', tracks: 22, duration: '1h 18m', img: 'https://picsum.photos/seed/playlist-reggaeton/120/120', color: 'bg-yellow-500' },
 ];
 
 // ── HERO SLIDER (Small) ──────────────────────────────────────────────────────────
@@ -1393,7 +1393,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* ── HERO BANNER — clean slider, no text overlay ── */}
-      <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-pink-900 to-gray-900 relative h-[200px] sm:h-[260px] lg:h-[380px]">
+      <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br bg-pink-900 relative h-[200px] sm:h-[260px] lg:h-[380px]">
         <div className="absolute inset-0">
           <HeroSliderFullHeight images={
             heroSliderImages.length > 0 ? heroSliderImages : [
@@ -1412,10 +1412,10 @@ const HomePage: React.FC = () => {
         <h2 className="font-display font-black text-base sm:text-lg text-gray-900 dark:text-white mb-2 px-1">✨ Explora la comunidad</h2>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
           {[
-            { to: '/tv',      emoji: '🎬', title: 'BailaNow TV', sub: 'Clases en vídeo',      grad: 'from-orange-500 to-fuchsia-600' },
-            { to: '/rutas',   emoji: '🗺️', title: 'Ruta de Hoy', sub: 'Salir en grupo',       grad: 'from-pink-500 to-rose-600' },
-            { to: '/parejas', emoji: '💃', title: 'Pareja de baile', sub: 'Haz match',        grad: 'from-fuchsia-500 to-purple-600' },
-            { to: '/retos',   emoji: '🏆', title: 'Retos de baile', sub: 'Compite y vota',    grad: 'from-amber-500 to-orange-600' },
+            { to: '/tv',      emoji: '🎬', title: 'BailaNow TV', sub: 'Clases en vídeo',      grad: 'bg-orange-500' },
+            { to: '/rutas',   emoji: '🗺️', title: 'Ruta de Hoy', sub: 'Salir en grupo',       grad: 'bg-pink-500' },
+            { to: '/parejas', emoji: '💃', title: 'Pareja de baile', sub: 'Haz match',        grad: 'bg-fuchsia-500' },
+            { to: '/retos',   emoji: '🏆', title: 'Retos de baile', sub: 'Compite y vota',    grad: 'bg-amber-500' },
           ].map(c => (
             <button key={c.to} onClick={() => navigate(c.to)}
               className={`relative overflow-hidden rounded-2xl p-3.5 text-left text-white bg-gradient-to-br ${c.grad} active:scale-95 transition-transform`}>

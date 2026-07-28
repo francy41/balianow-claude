@@ -286,21 +286,21 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
                       emoji: '💳',
                       label: 'Tarjeta',
                       sub: 'Stripe · Visa · MC',
-                      gradient: 'from-blue-500 to-indigo-600',
+                      gradient: 'bg-blue-500',
                     },
                     {
                       id: 'paypal' as PayMethod,
                       emoji: '🅿️',
                       label: 'PayPal',
                       sub: 'Cuenta PayPal',
-                      gradient: 'from-yellow-400 to-amber-500',
+                      gradient: 'bg-yellow-400',
                     },
                     {
                       id: 'wallet' as PayMethod,
                       emoji: '👛',
                       label: 'Wallet',
                       sub: fmtEur(walletBalance),
-                      gradient: 'from-pink-500 to-fuchsia-600',
+                      gradient: 'bg-pink-500',
                     },
                   ].map(pm => (
                     <button

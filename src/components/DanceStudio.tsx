@@ -70,7 +70,7 @@ type Msg = { role: 'user' | 'assistant'; content: string };
 
 const DanceStudio: React.FC<Props> = ({
   genre, level = 'principiante', teacherName, teacherAvatarUrl, teacherEmoji = '🕺',
-  gradient = 'from-pink-500 to-fuchsia-600', personality = 'Profe motivador',
+  gradient = 'bg-pink-500', personality = 'Profe motivador',
   lessons: lessonsProp, choreographerId, liveStreamNode,
   userId, userName = 'crack', country = 'ES', onPoints, onClose,
   fullscreen = true, enableAI = true,

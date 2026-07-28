@@ -187,10 +187,10 @@ const TeacherClassesPanel: React.FC = () => {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         {[
-          { label: 'Mis clases', val: stats.activeOfferings, icon: '🎓', color: 'from-pink-500 to-fuchsia-600' },
-          { label: 'Horarios libres', val: stats.availableSlots, icon: '📅', color: 'from-purple-500 to-violet-600' },
-          { label: 'Reservas', val: stats.totalBookings, icon: '👥', color: 'from-blue-500 to-indigo-600' },
-          { label: 'Ganado (85%)', val: `€${stats.totalEarnings.toFixed(0)}`, icon: '💰', color: 'from-green-500 to-emerald-600' },
+          { label: 'Mis clases', val: stats.activeOfferings, icon: '🎓', color: 'bg-pink-500' },
+          { label: 'Horarios libres', val: stats.availableSlots, icon: '📅', color: 'bg-purple-500' },
+          { label: 'Reservas', val: stats.totalBookings, icon: '👥', color: 'bg-blue-500' },
+          { label: 'Ganado (85%)', val: `€${stats.totalEarnings.toFixed(0)}`, icon: '💰', color: 'bg-green-500' },
         ].map(s => (
           <div key={s.label} className={`bg-gradient-to-br ${s.color} text-white rounded-2xl p-3`}>
             <span className="text-xl">{s.icon}</span>

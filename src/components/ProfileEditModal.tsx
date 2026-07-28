@@ -17,14 +17,14 @@ interface Props {
 }
 
 const SOCIAL_FIELDS: { key: keyof UserSocials; label: string; icon: React.ReactNode; placeholder: string; color: string; dbCol: string }[] = [
-  { key: 'instagram',  label: 'Instagram',  icon: <Instagram className="w-4 h-4" />, placeholder: '@usuario o URL',      color: 'from-purple-500 to-pink-500', dbCol: 'instagram_url' },
-  { key: 'tiktok',     label: 'TikTok',     icon: <Music2 className="w-4 h-4" />,    placeholder: '@usuario',             color: 'from-gray-900 to-pink-500',   dbCol: 'tiktok_url' },
-  { key: 'youtube',    label: 'YouTube',    icon: <Youtube className="w-4 h-4" />,   placeholder: 'URL del canal',        color: 'from-red-500 to-red-600',     dbCol: 'youtube_url' },
-  { key: 'spotify',    label: 'Spotify',    icon: <Music2 className="w-4 h-4" />,    placeholder: 'URL artista Spotify',  color: 'from-green-500 to-green-600', dbCol: 'spotify_url' },
-  { key: 'facebook',   label: 'Facebook',   icon: <Facebook className="w-4 h-4" />,  placeholder: 'URL página/perfil',    color: 'from-blue-500 to-blue-700',   dbCol: 'facebook_url' },
-  { key: 'soundcloud', label: 'SoundCloud', icon: <Music2 className="w-4 h-4" />,    placeholder: 'URL SoundCloud',       color: 'from-pink-500 to-pink-600',   dbCol: 'soundcloud_url' },
-  { key: 'twitch',     label: 'Twitch',     icon: <Twitch className="w-4 h-4" />,    placeholder: 'URL Twitch',           color: 'from-purple-600 to-purple-800', dbCol: 'twitch_url' },
-  { key: 'website',    label: 'Web',        icon: <Globe className="w-4 h-4" />,     placeholder: 'https://...',          color: 'from-gray-700 to-gray-900',   dbCol: 'website_url' },
+  { key: 'instagram',  label: 'Instagram',  icon: <Instagram className="w-4 h-4" />, placeholder: '@usuario o URL',      color: 'bg-purple-500', dbCol: 'instagram_url' },
+  { key: 'tiktok',     label: 'TikTok',     icon: <Music2 className="w-4 h-4" />,    placeholder: '@usuario',             color: 'bg-gray-900',   dbCol: 'tiktok_url' },
+  { key: 'youtube',    label: 'YouTube',    icon: <Youtube className="w-4 h-4" />,   placeholder: 'URL del canal',        color: 'bg-red-500',     dbCol: 'youtube_url' },
+  { key: 'spotify',    label: 'Spotify',    icon: <Music2 className="w-4 h-4" />,    placeholder: 'URL artista Spotify',  color: 'bg-green-500', dbCol: 'spotify_url' },
+  { key: 'facebook',   label: 'Facebook',   icon: <Facebook className="w-4 h-4" />,  placeholder: 'URL página/perfil',    color: 'bg-blue-500',   dbCol: 'facebook_url' },
+  { key: 'soundcloud', label: 'SoundCloud', icon: <Music2 className="w-4 h-4" />,    placeholder: 'URL SoundCloud',       color: 'bg-pink-500',   dbCol: 'soundcloud_url' },
+  { key: 'twitch',     label: 'Twitch',     icon: <Twitch className="w-4 h-4" />,    placeholder: 'URL Twitch',           color: 'bg-purple-600', dbCol: 'twitch_url' },
+  { key: 'website',    label: 'Web',        icon: <Globe className="w-4 h-4" />,     placeholder: 'https://...',          color: 'bg-gray-700',   dbCol: 'website_url' },
 ];
 
 const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {

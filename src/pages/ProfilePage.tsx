@@ -21,14 +21,14 @@ const SOCIAL_ICONS: Record<string, React.ReactNode> = {
 };
 
 const SOCIAL_COLORS: Record<string, string> = {
-  instagram:  'from-purple-500 to-pink-500',
-  youtube:    'from-red-500 to-red-600',
-  facebook:   'from-blue-500 to-blue-700',
-  spotify:    'from-green-500 to-green-600',
-  soundcloud: 'from-pink-500 to-pink-600',
-  tiktok:     'from-gray-900 to-pink-500',
-  twitch:     'from-purple-600 to-purple-800',
-  website:    'from-gray-700 to-gray-900',
+  instagram:  'bg-purple-500',
+  youtube:    'bg-red-500',
+  facebook:   'bg-blue-500',
+  spotify:    'bg-green-500',
+  soundcloud: 'bg-pink-500',
+  tiktok:     'bg-gray-900',
+  twitch:     'bg-purple-600',
+  website:    'bg-gray-700',
 };
 
 const ProfilePage: React.FC = () => {

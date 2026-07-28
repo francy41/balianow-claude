@@ -349,12 +349,12 @@ const NearMePage: React.FC = () => {
   // ── Card COMPACTA (para grids de 2/3/4 columnas) ─────────────────────────
   const renderCardCompact = (it: Item) => {
     const typeMeta = {
-      venue:  { label: 'Local',     emoji: '🏛️', color: 'from-pink-500 to-rose-600' },
-      event:  { label: 'Evento',    emoji: '🎉', color: 'from-orange-500 to-red-500' },
-      artist: { label: 'Artista',   emoji: '🎤', color: 'from-purple-500 to-fuchsia-600' },
-      dancer: { label: 'Bailarín',  emoji: '💃', color: 'from-green-500 to-emerald-600' },
-      dj:     { label: 'DJ',        emoji: '🎧', color: 'from-cyan-500 to-blue-600' },
-      live:   { label: 'LIVE',      emoji: '🔴', color: 'from-red-500 to-pink-600' },
+      venue:  { label: 'Local',     emoji: '🏛️', color: 'bg-pink-500' },
+      event:  { label: 'Evento',    emoji: '🎉', color: 'bg-orange-500' },
+      artist: { label: 'Artista',   emoji: '🎤', color: 'bg-purple-500' },
+      dancer: { label: 'Bailarín',  emoji: '💃', color: 'bg-green-500' },
+      dj:     { label: 'DJ',        emoji: '🎧', color: 'bg-cyan-500' },
+      live:   { label: 'LIVE',      emoji: '🔴', color: 'bg-red-500' },
     }[it.type];
     return (
       <article key={`c-${it.type}-${it.id}`} onClick={() => goTo(it)}
@@ -412,12 +412,12 @@ const NearMePage: React.FC = () => {
   // ── Renderiza una card individual (compartido por vistas agrupada y flat) ──
   const renderCard = (it: Item) => {
     const typeMeta = {
-      venue:  { label: 'Local',     emoji: '🏛️', color: 'from-pink-500 to-rose-600' },
-      event:  { label: 'Evento',    emoji: '🎉', color: 'from-orange-500 to-red-500' },
-      artist: { label: 'Artista',   emoji: '🎤', color: 'from-purple-500 to-fuchsia-600' },
-      dancer: { label: 'Bailarín',  emoji: '💃', color: 'from-green-500 to-emerald-600' },
-      dj:     { label: 'DJ',        emoji: '🎧', color: 'from-cyan-500 to-blue-600' },
-      live:   { label: 'LIVE',      emoji: '🔴', color: 'from-red-500 to-pink-600' },
+      venue:  { label: 'Local',     emoji: '🏛️', color: 'bg-pink-500' },
+      event:  { label: 'Evento',    emoji: '🎉', color: 'bg-orange-500' },
+      artist: { label: 'Artista',   emoji: '🎤', color: 'bg-purple-500' },
+      dancer: { label: 'Bailarín',  emoji: '💃', color: 'bg-green-500' },
+      dj:     { label: 'DJ',        emoji: '🎧', color: 'bg-cyan-500' },
+      live:   { label: 'LIVE',      emoji: '🔴', color: 'bg-red-500' },
     }[it.type];
     return (
       <article key={`${it.type}-${it.id}`} onClick={() => goTo(it)}
