@@ -104,3 +104,6 @@ test-results/
 .dev.vars*
 !.dev.vars.example
 !.env.example
+
+# Sitemap generado en build (no versionar)
+public/sitemap.xml
