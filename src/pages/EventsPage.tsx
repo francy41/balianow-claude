@@ -12,7 +12,6 @@ import { isClaimed, UNCLAIMED_TOAST } from '../lib/ownership';
 import { EVENTS, ARTISTS, VENUES } from '../data/mockData';
 import type { Artist, Event as EventType } from '../data/mockData';
 import { Badge, StarRating, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
-import SearchTriggerBar from '../components/SearchTriggerBar';
 import { useAuthStore, useUIStore, getYouTubeId, useSiteConfigStore } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
 import EventTicketModal from '../components/EventTicketModal';
@@ -157,8 +156,6 @@ const EventsList: React.FC = () => {
           <h1 className="font-display font-black text-3xl text-gray-900 mb-1">🎉 Eventos</h1>
           <p className="text-gray-400">Los mejores eventos latinos cerca de ti</p>
         </div>
-
-        <SearchTriggerBar placeholder="🔍 Buscar eventos, locales, artistas en todo BailaNow…" className="mb-3" />
 
         <div className="mt-4 space-y-3">
           <FilterChips options={CATEGORIES} selected={selectedCat} onChange={setSelectedCat} />

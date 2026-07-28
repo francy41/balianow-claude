@@ -7,7 +7,6 @@ import {
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
 import { Avatar } from '../components/ui';
-import SearchTriggerBar from '../components/SearchTriggerBar';
 import LiveFab from '../components/LiveFab';
 
 type CategoryFilter = 'all' | 'dj' | 'dancer' | 'instructor' | 'band';
@@ -139,7 +138,6 @@ const LiveNowPage: React.FC = () => {
       </section>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <SearchTriggerBar placeholder="🔍 Buscar streams, artistas, eventos en BailaNow…" className="mb-4" />
         {/* ── FEATURED PLAYER + CHAT ── */}
         {loading ? (
           <div className="card-white rounded-2xl p-16 mb-8 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-orange" /></div>

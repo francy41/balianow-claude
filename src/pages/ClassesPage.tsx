@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, Users, Video, Star, Filter, ChevronRight, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/appStore';
-import SearchTriggerBar from '../components/SearchTriggerBar';
 import ClassBookingModal from '../components/ClassBookingModal';
 import ClassPackageBookingModal from '../components/ClassPackageBookingModal';
 import LiveFab from '../components/LiveFab';
@@ -154,10 +153,6 @@ const ClassesPage: React.FC = () => {
             ))}
           </div>
         </div>
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 -mt-3 relative z-10">
-        <SearchTriggerBar placeholder="🔍 Buscar clases, profesores, estilos…" />
       </div>
 
       {/* Filters */}

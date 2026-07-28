@@ -7,7 +7,6 @@ import { isClaimed, UNCLAIMED_TOAST } from '../lib/ownership';
 import { VENUES } from '../data/mockData';
 import type { Venue } from '../data/mockData';
 import { Badge, StarRating, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
-import SearchTriggerBar from '../components/SearchTriggerBar';
 import { useAuthStore, useUIStore, getYouTubeId, useSiteConfigStore } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
 import { supabase } from '../lib/supabase';
@@ -129,8 +128,6 @@ const VenuesList: React.FC = () => {
           <h1 className="font-display font-black text-3xl text-gray-900 mb-1">🏛️ Venues</h1>
           <p className="text-gray-400">Clubs, estudios y espacios de entretenimiento latino</p>
         </div>
-
-        <SearchTriggerBar placeholder="🔍 Buscar locales, artistas, eventos en todo BailaNow…" className="mb-6" />
 
         <div className="space-y-3">
           <FilterChips options={TYPES} selected={selectedType} onChange={setSelectedType} />
