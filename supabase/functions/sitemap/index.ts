@@ -11,7 +11,7 @@ const BASE = 'https://bailanow.com';
 const STATIC_URLS = [
   '', '/cerca', '/clases', '/eventos', '/artistas', '/venues',
   '/marketplace', '/live', '/mapa', '/promocionate', '/vendedores',
-  '/tv', '/rutas', '/comunidad', '/partner/aplicar',
+  '/tv', '/rutas', '/comunidad', '/partner/aplicar', '/unete', '/membresias',
   '/legal/terminos', '/legal/privacidad', '/legal/cookies',
 ];
 
