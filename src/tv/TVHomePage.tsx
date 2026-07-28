@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Play, Star, Loader2, Tv, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/appStore';
+import { TV_GENRES, genreLabel } from './tvGenres';
 
 export interface TVTitle {
   id: string;
@@ -75,6 +76,7 @@ const TVHomePage: React.FC = () => {
   const [titles, setTitles] = useState<TVTitle[]>([]);
   const [continueTitles, setContinueTitles] = useState<TVTitle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [genre, setGenre] = useState('all');
 
   useEffect(() => {
     let cancelled = false;
@@ -166,12 +168,41 @@ const TVHomePage: React.FC = () => {
           </div>
         ) : (
           <>
-            <Row label="Continuar viendo" items={continueTitles} onOpen={open} />
-            <Row label="Nuevos lanzamientos" items={titles.slice(0, 12)} onOpen={open} />
-            <Row label="Destacados" items={titles.filter(t => t.featured)} onOpen={open} />
-            {Object.entries(byStyle).map(([style, items]) => (
-              <Row key={style} label={style.charAt(0).toUpperCase() + style.slice(1)} items={items} onOpen={open} />
-            ))}
+            {/* Nota: en TV solo hay vídeos sueltos; el curso completo o la contratación es en el perfil */}
+            <div className="mx-4 sm:mx-6 mb-4 rounded-2xl bg-white/5 ring-1 ring-white/10 p-3 text-center text-white/60 text-xs">
+              🎬 En BailaNow TV hay <b className="text-white">vídeos sueltos</b> por categoría. ¿Quieres el <b className="text-white">curso completo</b> o <b className="text-white">contratar</b> al bailarín?
+              <button onClick={() => navigate('/artistas')} className="ml-1 underline text-fuchsia-300 font-bold">Hazlo en su perfil</button>.
+            </div>
+
+            {/* Chips de categorías (20 géneros) */}
+            <div className="flex gap-2 overflow-x-auto px-4 sm:px-6 pb-4" style={{ scrollbarWidth: 'none' }}>
+              <button onClick={() => setGenre('all')} className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${genre === 'all' ? 'bg-white text-gray-900' : 'bg-white/10 text-white/70'}`}>Todas</button>
+              {TV_GENRES.map(g => (
+                <button key={g.slug} onClick={() => setGenre(g.slug)} className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap ${genre === g.slug ? 'bg-white text-gray-900' : 'bg-white/10 text-white/70'}`}>{g.emoji} {g.label}</button>
+              ))}
+            </div>
+
+            {genre === 'all' ? (
+              <>
+                <Row label="Continuar viendo" items={continueTitles} onOpen={open} />
+                <Row label="Nuevos lanzamientos" items={titles.slice(0, 12)} onOpen={open} />
+                <Row label="Destacados" items={titles.filter(t => t.featured)} onOpen={open} />
+                {Object.entries(byStyle).map(([style, items]) => (
+                  <Row key={style} label={style.charAt(0).toUpperCase() + style.slice(1)} items={items} onOpen={open} />
+                ))}
+              </>
+            ) : (
+              <section className="mb-8 px-4 sm:px-6">
+                <h2 className="font-display font-black text-lg text-white mb-3">{genreLabel(genre)}</h2>
+                {(() => {
+                  const g = genre.toLowerCase();
+                  const list = titles.filter(t => { const s = (t.style || '').toLowerCase(); return s === g || s.includes(g) || g.includes(s); });
+                  return list.length === 0
+                    ? <p className="text-white/50 text-sm">Aún no hay vídeos en esta categoría. Vuelve pronto.</p>
+                    : <div className="flex flex-wrap gap-3">{list.map(t => <TitleCard key={t.id} t={t} onOpen={() => open(t)} />)}</div>;
+                })()}
+              </section>
+            )}
           </>
         )}
       </div>

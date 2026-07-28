@@ -3,8 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Tv, Loader2, Eye, EyeOff, ChevronLeft, Film, Trash2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
-
-const STYLES = ['salsa', 'bachata', 'merengue', 'kizomba', 'cha-cha-cha', 'reggaeton', 'cumbia', 'otros'];
+import { TV_GENRES } from './tvGenres';
 const LEVELS = ['principiante', 'intermedio', 'avanzado', 'profesional'];
 const TYPES = ['clase', 'curso', 'programa', 'masterclass'];
 const ACCESS = ['free', 'basico', 'premium'];
@@ -176,7 +175,7 @@ const TVCreatorPage: React.FC = () => {
               <input className="input-field" placeholder="URL de la portada (imagen)" value={form.cover_url} onChange={e => setForm({ ...form, cover_url: e.target.value })} />
               <div className="grid grid-cols-2 gap-3">
                 <select className="input-field" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}>{TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select>
-                <select className="input-field" value={form.style} onChange={e => setForm({ ...form, style: e.target.value })}>{STYLES.map(s => <option key={s} value={s}>{s}</option>)}</select>
+                <select className="input-field" value={form.style} onChange={e => setForm({ ...form, style: e.target.value })}>{TV_GENRES.map(g => <option key={g.slug} value={g.slug}>{g.emoji} {g.label}</option>)}</select>
                 <select className="input-field" value={form.level} onChange={e => setForm({ ...form, level: e.target.value })}>{LEVELS.map(l => <option key={l} value={l}>{l}</option>)}</select>
                 <select className="input-field" value={form.access} onChange={e => setForm({ ...form, access: e.target.value })}>{ACCESS.map(a => <option key={a} value={a}>{a}</option>)}</select>
               </div>
