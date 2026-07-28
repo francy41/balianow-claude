@@ -969,7 +969,6 @@ const PromocionatePage: React.FC = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4">
-
         {/* ── PLAN DE PUBLICIDAD EN BAILANOW (banner principal) ── */}
         <AdPlansBanner navigate={navigate} onOpenQR={() => setQrOpen(true)} />
 
