@@ -4,6 +4,7 @@ import { Plus, Tv, Loader2, Eye, EyeOff, ChevronLeft, Film, Trash2 } from 'lucid
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
 import { TV_GENRES } from './tvGenres';
+import TvMonetizationCard from '../components/TvMonetizationCard';
 const LEVELS = ['principiante', 'intermedio', 'avanzado', 'profesional'];
 const TYPES = ['clase', 'curso', 'programa', 'masterclass'];
 const ACCESS = ['free', 'basico', 'premium'];
@@ -165,6 +166,8 @@ const TVCreatorPage: React.FC = () => {
           </div>
           <button onClick={() => setShowForm(v => !v)} className="btn-orange"><Plus className="w-4 h-4 inline mr-1" /> Nuevo título</button>
         </div>
+
+        {uid && <TvMonetizationCard uid={uid} addToast={addToast} />}
 
         {showForm && (
           <div className="card-white rounded-2xl p-5 mb-6">

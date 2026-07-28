@@ -6,7 +6,8 @@ import VideoAdOverlay, { VideoAd } from './VideoAdOverlay';
 import VastAdPlayer from './VastAdPlayer';
 
 // Categorías donde puede saltar el pre-roll (primer segmento de la ruta)
-const CATEGORY_SEGMENTS = new Set(['eventos', 'artistas', 'bailarinas', 'venues', 'tv', 'clases', 'marketplace', 'comunidad', 'live', 'cerca']);
+// 'tv' NO va aquí: BailaNow TV tiene su propio pre-roll por vídeo (con atribución al creador).
+const CATEGORY_SEGMENTS = new Set(['eventos', 'artistas', 'bailarinas', 'venues', 'clases', 'marketplace', 'comunidad', 'live', 'cerca']);
 const MIN_GAP_MS = 6 * 60 * 1000; // no más de 1 anuncio cada 6 min
 const LS_KEY = 'bn_ad_last';
 

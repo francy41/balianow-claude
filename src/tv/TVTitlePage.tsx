@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, Lock, Loader2, Star, Heart, Check } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import TvPreroll from '../components/TvPreroll';
 import { useAuthStore, useUIStore } from '../store/appStore';
 import type { TVTitle } from './TVHomePage';
 
@@ -81,15 +82,19 @@ const TVTitlePage: React.FC = () => {
 
   // Acceso por membresía de BailaNow TV (titular o invitado de Pareja/Familiar)
   const [memberAccess, setMemberAccess] = useState(false);
+  const [accessChecked, setAccessChecked] = useState(false);
+  const [prerollDone, setPrerollDone] = useState(false);
   useEffect(() => {
-    if (!isAuthenticated || !user) { setMemberAccess(false); return; }
+    if (!isAuthenticated || !user) { setMemberAccess(false); setAccessChecked(true); return; }
     let cancelled = false;
     supabase.rpc('has_membership_access', { p_uid: user.id })
-      .then(({ data }) => { if (!cancelled) setMemberAccess(!!data); }, () => {});
+      .then(({ data }) => { if (!cancelled) { setMemberAccess(!!data); setAccessChecked(true); } }, () => { if (!cancelled) setAccessChecked(true); });
     return () => { cancelled = true; };
   }, [isAuthenticated, user]);
 
   const hasSub = memberAccess || (!!user && (user.isPremium || !!user.subscriptionPlan));
+  // Cuentas gratis ven un anuncio pre-roll antes del vídeo (una vez por título).
+  const showPreroll = accessChecked && !hasSub && !prerollDone && !!title;
   const canWatch = (access: string) => access === 'free' || hasSub;
 
   // Cargar la posición guardada de la clase actual (continuar viendo)
@@ -157,6 +162,7 @@ const TVTitlePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white pb-20">
+      {showPreroll && <TvPreroll titleId={title.id} onDone={() => setPrerollDone(true)} />}
       {/* Player / gate */}
       <div className="relative bg-black aspect-video max-h-[70vh] w-full flex items-center justify-center">
         {playable && current?.video_url ? (
