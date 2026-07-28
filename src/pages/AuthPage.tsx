@@ -4,6 +4,7 @@ import { Eye, EyeOff, Mail, Lock, User, MapPin, ArrowLeft, CheckCircle, RefreshC
 import { useAuthStore, useUIStore } from '../store/appStore';
 import type { UserRole } from '../store/appStore';
 import { Button, Input } from '../components/ui';
+import { supabase } from '../lib/supabase';
 import {
   supabaseLogin,
   supabaseLoginWithGoogle,
@@ -225,6 +226,8 @@ const AuthPage: React.FC = () => {
 
     const supa = await supabaseRegister(email, regPassword, { name, role: registerRole, city: regCity.trim() || 'Madrid' });
     if (supa.success) {
+      // Correo de bienvenida (best-effort; no-op si el email no está configurado).
+      supabase.functions.invoke('send-email', { body: { to: email, type: 'welcome', data: { name } } }).catch(() => {});
       if (supa.hasSession) {
         // Autoconfirm ON: el usuario ya tiene sesión → entrar directo
         addToast({ message: `¡Bienvenido/a ${name}! Cuenta creada 🎉`, type: 'success' });
