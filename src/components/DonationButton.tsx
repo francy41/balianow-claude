@@ -42,8 +42,13 @@ const DonationButton: React.FC = () => {
       const res = await createDonationCheckout({ amount: value, message: message.trim() || undefined });
       if (res.notConfigured) { addToast({ message: 'Los pagos con tarjeta estarán disponibles muy pronto 🙌', type: 'info' }); setLoading(false); return; }
       if (res.url) { window.location.href = res.url; return; }
-      throw new Error(res.error || 'No se pudo iniciar el pago');
-    } catch (e) { addToast({ message: (e as Error).message, type: 'error' }); setLoading(false); }
+      throw new Error(res.error || 'sin url');
+    } catch (e) {
+      // Mensaje amable para el donante; el detalle técnico va a la consola.
+      console.error('[donación stripe]', e);
+      addToast({ message: 'Ahora mismo no podemos procesar el pago. Inténtalo en unos minutos 🙏', type: 'info' });
+      setLoading(false);
+    }
   };
 
   return (
