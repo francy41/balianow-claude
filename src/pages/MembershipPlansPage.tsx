@@ -139,6 +139,34 @@ const MembershipPlansPage: React.FC = () => {
           </div>
         )}
 
+        {/* Beneficios: qué desbloquea suscribirse (la versión gratis no los tiene) */}
+        <div className="mt-10">
+          <h2 className="font-display font-black text-xl text-gray-900 dark:text-white text-center mb-1">Lo que te llevas al suscribirte</h2>
+          <p className="text-center text-gray-500 text-sm mb-5">En la versión gratuita estos beneficios no están disponibles.</p>
+          <div className="max-w-2xl mx-auto rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-800/50">
+            <div className="grid grid-cols-[1fr_70px_70px] text-sm">
+              <div className="px-4 py-3 font-bold text-gray-500 bg-gray-50 dark:bg-gray-800">Beneficio</div>
+              <div className="px-2 py-3 font-bold text-center text-gray-400 bg-gray-50 dark:bg-gray-800">Gratis</div>
+              <div className="px-2 py-3 font-black text-center text-white bg-gradient-to-r from-orange-500 to-fuchsia-600">Premium</div>
+              {[
+                ['🎬 Todo el catálogo de vídeos', false],
+                ['👫 Bailes en grupo por cámara (pareja/familia)', false],
+                ['🚫 Sin anuncios', false],
+                ['⏯️ Continuar viendo y progreso guardado', false],
+                ['⬇️ Acceso multi-dispositivo', false],
+                ['🎁 Contenido y estrenos exclusivos', false],
+              ].map(([label], i) => (
+                <React.Fragment key={i}>
+                  <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700 text-gray-700 dark:text-gray-200">{label as string}</div>
+                  <div className="px-2 py-3 border-t border-gray-100 dark:border-gray-700 text-center text-gray-300">—</div>
+                  <div className="px-2 py-3 border-t border-gray-100 dark:border-gray-700 text-center text-emerald-500 font-black">✓</div>
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+          <p className="text-center text-gray-400 text-xs mt-3">💡 Los <b>bailes en grupo por cámara</b> (practicar juntos en directo) solo están en los planes <b>Pareja</b> y <b>Familiar</b>.</p>
+        </div>
+
         <p className="text-center text-gray-400 text-xs mt-6">Pago seguro con Stripe · cancela cuando quieras</p>
       </div>
     </div>
