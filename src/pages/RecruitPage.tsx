@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Handshake, CreditCard, GraduationCap, Radio, Sparkles, ArrowRight } from 'lucide-react';
+import { Calendar, Handshake, CreditCard, GraduationCap, Radio, Sparkles, ArrowRight, Send, Loader2, CheckCircle2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useAuthStore, useUIStore } from '../store/appStore';
 import { useSeo } from '../hooks/useSeo';
 
-const ROLES = [
-  { emoji: '🎺', label: 'Artista / Banda', to: '/auth?role=artist' },
-  { emoji: '💃', label: 'Bailarín/a', to: '/auth?role=dancer' },
-  { emoji: '🎧', label: 'DJ / Músico', to: '/auth?role=dj' },
-  { emoji: '🏛️', label: 'Dueño de local', to: '/auth?role=venue' },
-  { emoji: '📣', label: 'Promotor', to: '/auth?role=promoter' },
-  { emoji: '🌎', label: 'Partner de ciudad', to: '/partner/aplicar' },
+const ROLE_OPTS = [
+  { v: 'artist', emoji: '🎺', label: 'Artista / Banda' },
+  { v: 'dancer', emoji: '💃', label: 'Bailarín/a' },
+  { v: 'dj', emoji: '🎧', label: 'DJ / Músico' },
+  { v: 'venue', emoji: '🏛️', label: 'Dueño de local' },
+  { v: 'promoter', emoji: '📣', label: 'Promotor' },
 ];
 
 const FEATURES = [
@@ -23,11 +24,32 @@ const FEATURES = [
 
 const RecruitPage: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const { addToast } = useUIStore();
   useSeo({
     title: 'Únete a BailaNow — tu panel de control para artistas, bailarines y locales',
     description: '¿Artista, bailarín, músico, dueño de local, promotor o partner de ciudad? BailaNow te crea tu panel: reservas, contratación, pagos, cursos y directos. Todo en uno.',
     path: '/unete',
   });
+
+  const [form, setForm] = useState({ name: user?.name || '', email: user?.email || '', phone: '', role: 'dancer', city: user?.city || '', portfolio: '', message: '' });
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
+  const pickRole = (v: string) => { set('role', v); document.getElementById('solicitud')?.scrollIntoView({ behavior: 'smooth' }); };
+
+  const submit = async () => {
+    if (!form.name.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) { addToast({ message: 'Pon tu nombre y un email válido', type: 'error' }); return; }
+    setSending(true);
+    const { error } = await supabase.from('creator_applications').insert({
+      user_id: user?.id ?? null, name: form.name.trim(), email: form.email.trim().toLowerCase(), phone: form.phone.trim() || null,
+      role: form.role, city: form.city.trim() || null, portfolio_url: form.portfolio.trim() || null, message: form.message.trim() || null, status: 'pending',
+    });
+    setSending(false);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    setSent(true);
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white pb-24">
@@ -46,25 +68,25 @@ const RecruitPage: React.FC = () => {
             pasarelas de pago, tus cursos y transmisiones online, y todo lo que necesitas para conseguir eventos. <b className="text-white">Todo en uno.</b>
           </p>
           <div className="flex flex-wrap justify-center gap-3 mt-7">
-            <button onClick={() => navigate('/auth?mode=register')} className="bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white font-bold rounded-xl px-6 py-3.5 inline-flex items-center gap-2">Crear mi panel gratis <ArrowRight className="w-4 h-4" /></button>
+            <button onClick={() => document.getElementById('solicitud')?.scrollIntoView({ behavior: 'smooth' })} className="bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white font-bold rounded-xl px-6 py-3.5 inline-flex items-center gap-2">Solicitar unirme <ArrowRight className="w-4 h-4" /></button>
             <button onClick={() => navigate('/partner/aplicar')} className="bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl px-6 py-3.5">Ser partner de mi ciudad 🌎</button>
           </div>
         </div>
       </div>
 
-      {/* Roles */}
       <div className="max-w-4xl mx-auto px-5">
+        {/* Roles */}
         <h2 className="font-display font-black text-xl mb-3 text-center">¿Quién eres?</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {ROLES.map(r => (
-            <button key={r.label} onClick={() => navigate(r.to)} className="rounded-2xl bg-white/5 ring-1 ring-white/10 hover:bg-white/10 p-4 text-left transition">
+          {ROLE_OPTS.map(r => (
+            <button key={r.v} onClick={() => pickRole(r.v)} className={`rounded-2xl ring-1 p-4 text-left transition ${form.role === r.v ? 'bg-fuchsia-500/15 ring-fuchsia-500' : 'bg-white/5 ring-white/10 hover:bg-white/10'}`}>
               <div className="text-3xl">{r.emoji}</div>
               <p className="font-bold mt-2 flex items-center gap-1">{r.label} <ArrowRight className="w-3.5 h-3.5 text-white/40" /></p>
             </button>
           ))}
         </div>
 
-        {/* Lo que incluye tu panel */}
+        {/* Panel */}
         <h2 className="font-display font-black text-xl mt-10 mb-3 text-center">Tu panel de control, todo en uno</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {FEATURES.map(f => (
@@ -76,8 +98,39 @@ const RecruitPage: React.FC = () => {
           ))}
         </div>
 
-        <div className="text-center mt-10">
-          <button onClick={() => navigate('/auth?mode=register')} className="bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white font-bold rounded-xl px-8 py-4 text-lg inline-flex items-center gap-2">Vuela con BailaNow <ArrowRight className="w-5 h-5" /></button>
+        {/* Formulario de solicitud (con aprobación) */}
+        <div id="solicitud" className="mt-12 max-w-lg mx-auto">
+          {sent ? (
+            <div className="rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-500/30 p-8 text-center">
+              <CheckCircle2 className="w-12 h-12 mx-auto text-emerald-400 mb-2" />
+              <p className="font-display font-black text-xl">¡Solicitud enviada! 🎉</p>
+              <p className="text-white/60 text-sm mt-2">Nuestro equipo la revisará y, tras la aprobación, te ayudamos a crear tu panel y tu perfil en BailaNow.</p>
+              <button onClick={() => navigate('/')} className="mt-5 bg-white/10 hover:bg-white/20 font-bold rounded-xl px-6 py-2.5">Volver al inicio</button>
+            </div>
+          ) : (
+            <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-6">
+              <h2 className="font-display font-black text-xl mb-1">Solicita ser parte de BailaNow</h2>
+              <p className="text-white/50 text-sm mb-4">Tu perfil se crea <b className="text-white">tras la aprobación</b> de nuestro equipo. Cuéntanos de ti:</p>
+              <div className="space-y-2.5">
+                <div className="grid sm:grid-cols-2 gap-2.5">
+                  <input value={form.name} onChange={e => set('name', e.target.value)} placeholder="Nombre / nombre artístico *" className="rounded-xl bg-black/30 ring-1 ring-white/15 px-4 py-3 outline-none focus:ring-fuchsia-500" />
+                  <select value={form.role} onChange={e => set('role', e.target.value)} className="rounded-xl bg-black/30 ring-1 ring-white/15 px-4 py-3 outline-none">
+                    {ROLE_OPTS.map(r => <option key={r.v} value={r.v} className="bg-gray-900">{r.emoji} {r.label}</option>)}
+                  </select>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-2.5">
+                  <input value={form.email} onChange={e => set('email', e.target.value)} placeholder="Email *" className="rounded-xl bg-black/30 ring-1 ring-white/15 px-4 py-3 outline-none focus:ring-fuchsia-500" />
+                  <input value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="WhatsApp / teléfono" className="rounded-xl bg-black/30 ring-1 ring-white/15 px-4 py-3 outline-none focus:ring-fuchsia-500" />
+                </div>
+                <input value={form.city} onChange={e => set('city', e.target.value)} placeholder="Ciudad" className="w-full rounded-xl bg-black/30 ring-1 ring-white/15 px-4 py-3 outline-none focus:ring-fuchsia-500" />
+                <input value={form.portfolio} onChange={e => set('portfolio', e.target.value)} placeholder="Enlace a tu trabajo (Instagram, YouTube, web…)" className="w-full rounded-xl bg-black/30 ring-1 ring-white/15 px-4 py-3 outline-none focus:ring-fuchsia-500" />
+                <textarea value={form.message} onChange={e => set('message', e.target.value)} rows={3} placeholder="Cuéntanos sobre ti y qué ofreces" className="w-full rounded-xl bg-black/30 ring-1 ring-white/15 px-4 py-3 outline-none focus:ring-fuchsia-500 resize-none" />
+                <button onClick={submit} disabled={sending} className="w-full inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-fuchsia-600 text-white font-bold rounded-xl py-3.5 disabled:opacity-60">
+                  {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />} Enviar solicitud
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
