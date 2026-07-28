@@ -54,7 +54,8 @@ function template(type: string, d: Record<string, any>): { subject: string; html
       return { subject: '💸 ¡Nueva venta en BailaNow!', html: shell('¡Has recibido un pago! 💸',
         `<p>${d.detail || 'Se ha registrado una nueva venta en tu cuenta.'}</p>${btn(`${APP}/dashboard`, 'Ver mis ganancias')}`) };
     default:
-      return { subject: d.subject || 'BailaNow', html: shell(d.subject || 'BailaNow', `<p>${d.body || ''}</p>`) };
+      // Sin contenido libre del usuario: evita usar esta función como relay de phishing.
+      return { subject: 'BailaNow', html: shell('BailaNow', '<p>Tienes una novedad en BailaNow.</p>' + btn(APP, 'Abrir BailaNow')) };
   }
 }
 
