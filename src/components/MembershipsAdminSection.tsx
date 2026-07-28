@@ -16,7 +16,7 @@ const MembershipsAdminSection: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     const [s, m] = await Promise.all([
-      supabase.from('subscriptions').select('plan,price,user_id,created_at').in('plan', MEMBERSHIP_PLAN_IDS).eq('status', 'active'),
+      supabase.from('subscriptions').select('plan,price,user_id').in('plan', MEMBERSHIP_PLAN_IDS).eq('status', 'active'),
       supabase.from('plan_members').select('id,owner_id,plan,email,status').neq('status', 'removed').order('created_at', { ascending: false }).limit(100),
     ]);
     setSubs((s.data as SubRow[]) || []);

@@ -98,12 +98,12 @@ begin
     'creators', coalesce((
        select json_agg(row_to_json(x)) from (
          select i.creator_id,
-                coalesce(p.full_name, left(i.creator_id::text, 8)) as name,
+                coalesce(p.name, left(i.creator_id::text, 8)) as name,
                 count(*) as impressions
          from public.tv_ad_impressions i
          join public.creator_monetization m on m.user_id = i.creator_id and m.status = 'approved'
          left join public.profiles p on p.id = i.creator_id
-         group by i.creator_id, p.full_name
+         group by i.creator_id, p.name
          order by count(*) desc
        ) x), '[]'::json)
   ) into result;

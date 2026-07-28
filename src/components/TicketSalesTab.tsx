@@ -16,7 +16,7 @@ const TicketSalesTab: React.FC<{ performerId: string }> = ({ performerId }) => {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data: ev } = await supabase.from('events').select('id,title,date,cover').or(`user_id.eq.${performerId},owner_id.eq.${performerId}`);
+    const { data: ev } = await supabase.from('events').select('id,title,date,cover').eq('created_by', performerId);
     const list = (ev as Ev[]) || [];
     setEvents(list);
     const ids = list.map(e => e.id);

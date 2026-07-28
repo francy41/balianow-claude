@@ -328,7 +328,7 @@ on conflict (id) do nothing;
 -- 5.4) Una ruta de hoy (usa un admin/superadmin real como creador)
 insert into public.rutas (id, creator_id, creator_name, title, city, description, date, time, stops)
 select
-  'a0000000-0000-4000-a000-000000000001', p.id, coalesce(p.full_name, 'BailaNow'),
+  'a0000000-0000-4000-a000-000000000001', p.id, coalesce(p.name, 'BailaNow'),
   'Ruta salsera del sábado', coalesce(p.city, p.location, 'Madrid'),
   'Empezamos con una clase gratis y seguimos de social por los mejores locales de la ciudad.',
   current_date, '21:00',
@@ -1284,12 +1284,12 @@ begin
     'creators', coalesce((
        select json_agg(row_to_json(x)) from (
          select i.creator_id,
-                coalesce(p.full_name, left(i.creator_id::text, 8)) as name,
+                coalesce(p.name, left(i.creator_id::text, 8)) as name,
                 count(*) as impressions
          from public.tv_ad_impressions i
          join public.creator_monetization m on m.user_id = i.creator_id and m.status = 'approved'
          left join public.profiles p on p.id = i.creator_id
-         group by i.creator_id, p.full_name
+         group by i.creator_id, p.name
          order by count(*) desc
        ) x), '[]'::json)
   ) into result;
