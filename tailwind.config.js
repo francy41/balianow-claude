@@ -29,9 +29,9 @@ export default {
         sidebar: '#0A0A0A',
       },
       backgroundImage: {
-        'gradient-orange': 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
-        'gradient-pink': 'linear-gradient(135deg, #EC4899 0%, #DB2777 100%)',
-        'gradient-nightlife': 'linear-gradient(135deg, #EC4899 0%, #9333EA 100%)',
+        'gradient-orange': 'linear-gradient(#EC4899, #EC4899)',
+        'gradient-pink': 'linear-gradient(#EC4899, #EC4899)',
+        'gradient-nightlife': 'linear-gradient(#EC4899, #EC4899)',
       },
       animation: {
         'slide-in': 'slideIn 0.2s ease-out',
