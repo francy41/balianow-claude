@@ -23,7 +23,6 @@ export const LANGUAGES: { code: LangCode; name: string; flag: string; rtl?: bool
   { code: 'ja', name: '日本語',       flag: '🇯🇵' },
   { code: 'ko', name: '한국어',       flag: '🇰🇷' },
   { code: 'hi', name: 'हिन्दी',       flag: '🇮🇳' },
-  { code: 'ar', name: 'العربية',     flag: '🇸🇦', rtl: true },
   { code: 'ru', name: 'Русский',    flag: '🇷🇺' },
 ];
 
