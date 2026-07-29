@@ -11,7 +11,7 @@ const { ARTISTS, EVENTS, VENUES } = await import(pathToFileURL(tmp).href)
 
 const s = (v) => (v === null || v === undefined) ? 'NULL' : `'${String(v).replace(/'/g, "''")}'`
 const n = (v) => (v === null || v === undefined || isNaN(Number(v))) ? '0' : String(Number(v))
-const b = (v) => (v ? 't' : 'f')
+const b = (v) => (v ? 'true' : 'false')
 const arr = (a) => (Array.isArray(a) && a.length) ? `'{${a.map(x => `"${String(x).replace(/"/g, '\\"')}"`).join(',')}}'` : `'{}'`
 const venueIds = new Set(VENUES.map(v => v.id))
 const AT = new Set(['dj', 'dancer', 'singer', 'band', 'instructor'])
