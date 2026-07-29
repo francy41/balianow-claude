@@ -11,6 +11,8 @@ interface Props {
   targetName: string;
   /** Si ya tiene dueño, no mostramos el botón */
   hasOwner?: boolean;
+  /** Ocupa todo el ancho (para tarjetas del listado) */
+  fullWidth?: boolean;
 }
 
 const TABLE_LABEL: Record<TargetTable, string> = {
@@ -20,7 +22,7 @@ const TABLE_LABEL: Record<TargetTable, string> = {
   services: 'servicio',
 };
 
-const ClaimProfileButton: React.FC<Props> = ({ targetTable, targetId, targetName, hasOwner }) => {
+const ClaimProfileButton: React.FC<Props> = ({ targetTable, targetId, targetName, hasOwner, fullWidth }) => {
   const { addToast } = useUIStore();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
@@ -66,7 +68,7 @@ const ClaimProfileButton: React.FC<Props> = ({ targetTable, targetId, targetName
     <>
       <button
         onClick={() => { setOpen(true); setSubmitted(false); }}
-        className="relative inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-lg shadow-fuchsia-500/40 hover:shadow-fuchsia-500/60 hover:scale-[1.03] active:scale-95 transition-all"
+        className={`relative inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-lg shadow-fuchsia-500/40 hover:shadow-fuchsia-500/60 hover:scale-[1.03] active:scale-95 transition-all ${fullWidth ? 'w-full justify-center' : ''}`}
       >
         <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5">
           <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75 animate-ping" />
