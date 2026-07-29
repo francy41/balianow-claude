@@ -7,6 +7,7 @@ import {
   Award, Radio,
 } from 'lucide-react';
 import EventAdminPanel from '../components/EventAdminPanel';
+import DemoBadge from '../components/DemoBadge';
 import ClaimProfileButton from '../components/ClaimProfileButton';
 import { isClaimed, UNCLAIMED_TOAST } from '../lib/ownership';
 import { EVENTS, ARTISTS, VENUES } from '../data/mockData';
@@ -207,6 +208,7 @@ const EventCard: React.FC<{
       <div className="relative h-44 overflow-hidden">
         <img src={event.cover} alt={event.title} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <DemoBadge ownerId={(event as any).userId} className="absolute top-2 left-2 z-10" />
         <div className="absolute top-2 right-2 bg-brand-orange rounded-xl px-2.5 py-1.5 flex flex-col items-center">
           <span className="text-white font-black text-lg leading-none">{day}</span>
           <span className="text-white/80 text-[10px] font-bold">{month}</span>
