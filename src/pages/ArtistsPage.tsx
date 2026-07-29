@@ -4,6 +4,7 @@ import { MapPin, Users, CheckCircle, Radio, Music } from 'lucide-react';
 import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
 import { Badge, StarRating, Avatar, SectionHeader, EmptyState } from '../components/ui';
 import DemoBadge from '../components/DemoBadge';
+import ClaimProfileButton from '../components/ClaimProfileButton';
 import { FilterFacet, ActiveFilterBar, FilterPanel } from '../components/SmartFilters';
 import LiveFab from '../components/LiveFab';
 import { usePageMeta } from '../hooks/usePageMeta';
@@ -394,6 +395,12 @@ const ArtistCard: React.FC<{ artist: DbArtist; onClick: () => void }> = ({ artis
       >
         Ver Perfil
       </button>
+
+      {!artist.userId && (
+        <div className="mt-2" onClick={e => e.stopPropagation()}>
+          <ClaimProfileButton targetTable="artists" targetId={artist.id} targetName={artist.name} fullWidth />
+        </div>
+      )}
     </div>
   </div>
 );
