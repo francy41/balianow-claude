@@ -217,6 +217,11 @@ const VenueCard: React.FC<{ venue: Venue; onClick: () => void }> = ({ venue, onC
       <p className="text-gray-400 text-xs mt-2 flex items-center gap-1">
         <Clock className="w-3 h-3" /> {venue.openHours}
       </p>
+      {!venue.userId && (
+        <div className="mt-3" onClick={e => e.stopPropagation()}>
+          <ClaimProfileButton targetTable="venues" targetId={String(venue.id)} targetName={venue.name} fullWidth />
+        </div>
+      )}
     </div>
   </div>
 );

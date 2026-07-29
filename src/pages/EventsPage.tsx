@@ -281,6 +281,11 @@ const EventCard: React.FC<{
             {pct >= 100 ? 'Agotado' : '🎫 Comprar'}
           </button>
         </div>
+        {!(event as any).userId && (
+          <div className="mt-2" onClick={e => e.stopPropagation()}>
+            <ClaimProfileButton targetTable="events" targetId={String(event.id)} targetName={event.title} fullWidth />
+          </div>
+        )}
       </div>
     </div>
   );
