@@ -92,15 +92,32 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       .map(c => ({ label: c.name, icon: c.icon, to: c.route || '/' })),
   })).filter(g => g.items.length > 0);
 
-  // isActive que compara pathname + query params para evitar dobles activos
-  const isNavItemActive = (to: string) => {
-    if (to === '/') return location.pathname === '/';
+  // Puntúa cuánto coincide un link con la URL actual (path + query). -1 = no coincide.
+  // Query específica puntúa más que ruta pelada, para elegir el match más concreto.
+  const scoreOf = (to: string): number => {
+    if (to === '/') return location.pathname === '/' ? 1 : -1;
     const [toPath, toQuery] = to.split('?');
-    if (location.pathname !== toPath) return false;
-    if (!toQuery) return !location.search; // si el link no tiene query, solo activo si URL tampoco
+    if (location.pathname !== toPath) return -1;
+    if (!toQuery) return location.search ? -1 : 1; // ruta sin query: solo activa si la URL tampoco tiene query
     const toParams = new URLSearchParams(toQuery);
-    return Array.from(toParams.entries()).every(([k, v]) => searchParams.get(k) === v);
+    for (const [k, v] of toParams.entries()) if (searchParams.get(k) !== v) return -1;
+    return 10 + Array.from(toParams.keys()).length;
   };
+
+  // Un ÚNICO ganador: el primer item (en orden de render) con la mejor puntuación.
+  // Evita que varias categorías con la misma ruta (/artistas) se marquen todas a la vez.
+  const orderedItems: { id: string; to: string }[] = [
+    { id: 'inicio', to: '/' },
+    ...categoryGroups.flatMap(g => g.items.map(i => ({ id: i.label + i.to, to: i.to }))),
+    ...NAV.filter(g => g.section === 'MI CUENTA').flatMap(g => g.items.map(i => ({ id: i.label, to: i.to || '/' }))),
+  ];
+  let bestScore = -1;
+  let activeId = '';
+  for (const it of orderedItems) {
+    const s = scoreOf(it.to);
+    if (s > bestScore) { bestScore = s; activeId = it.id; }
+  }
+  const isNavItemActive = (id: string) => bestScore >= 1 && id === activeId;
 
   return (
     <>
@@ -128,7 +145,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         <nav className="flex-1 overflow-y-auto py-3 px-3" style={{ scrollbarWidth: 'none' }}>
           {/* Inicio — acceso fijo (no es categoría) */}
           <NavLink to="/" onClick={onClose}
-            className={`nav-link mb-0.5 ${isNavItemActive('/') ? 'active' : ''}`}>
+            className={`nav-link mb-0.5 ${isNavItemActive('inicio') ? 'active' : ''}`}>
             <Home className="w-4 h-4" />
             <span className="truncate">Inicio</span>
           </NavLink>
@@ -142,7 +159,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                   key={item.label + item.to}
                   to={item.to}
                   onClick={onClose}
-                  className={`nav-link mb-0.5 ${isNavItemActive(item.to) ? 'active' : ''}`}
+                  className={`nav-link mb-0.5 ${isNavItemActive(item.label + item.to) ? 'active' : ''}`}
                 >
                   <span className="w-4 h-4 flex items-center justify-center text-sm">{item.icon}</span>
                   <span className="truncate">{item.label}</span>
@@ -160,7 +177,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                   key={item.label}
                   to={item.to || '/'}
                   onClick={onClose}
-                  className={`nav-link mb-0.5 ${isNavItemActive(item.to || '/') ? 'active' : ''}`}
+                  className={`nav-link mb-0.5 ${isNavItemActive(item.label) ? 'active' : ''}`}
                 >
                   {item.icon}
                   <span className="truncate">{item.label}</span>
