@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { MapPin, Users, Clock, CheckCircle, Star, MessageSquare, Bell, Heart, Share2, Calendar, Music2, Instagram, Youtube, Facebook, Globe, Headphones, Video, Loader2 } from 'lucide-react';
 import EntityAdminPanel from '../components/EntityAdminPanel';
+import DemoBadge from '../components/DemoBadge';
 import ClaimProfileButton from '../components/ClaimProfileButton';
 import { isClaimed, UNCLAIMED_TOAST } from '../lib/ownership';
 import { VENUES } from '../data/mockData';
@@ -178,6 +179,7 @@ const VenueCard: React.FC<{ venue: Venue; onClick: () => void }> = ({ venue, onC
     <div className="relative h-44 overflow-hidden">
       <img src={venue.cover} alt={venue.name} className="w-full h-full object-cover" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+      <DemoBadge ownerId={venue.userId as string} className="absolute top-2 left-2 z-10" />
       <Badge variant={venue.isOpen ? 'green' : 'gray'} className="absolute top-2 right-2">
         {venue.isOpen ? '🟢 Abierto' : '🔴 Cerrado'}
       </Badge>

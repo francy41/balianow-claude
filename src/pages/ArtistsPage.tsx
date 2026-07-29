@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapPin, Users, CheckCircle, Radio, Music } from 'lucide-react';
 import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
 import { Badge, StarRating, Avatar, FilterChips, SectionHeader, EmptyState } from '../components/ui';
+import DemoBadge from '../components/DemoBadge';
 import LiveFab from '../components/LiveFab';
 import { usePageMeta } from '../hooks/usePageMeta';
 
@@ -24,6 +25,7 @@ interface DbArtist {
   isLive?: boolean;
   bio?: string;
   source: 'artist' | 'profile';
+  userId?: string;
 }
 
 const TYPES = ['Todos', 'DJ', 'Bailarín/a', 'Banda', 'Instructor/a', 'Cantante'];
@@ -124,6 +126,7 @@ const ArtistsPage: React.FC = () => {
             isPremium:  !!a.is_premium,
             isLive:     !!a.is_live,
             bio:        a.bio,
+            userId:     a.user_id || '',
             source:     'artist',
           });
         });
@@ -153,6 +156,7 @@ const ArtistsPage: React.FC = () => {
             isPremium:  false,
             isLive:     !!p.is_live,
             bio:        p.bio,
+            userId:     p.id,
             source:     'profile',
           });
         });
@@ -329,6 +333,7 @@ const ArtistCard: React.FC<{ artist: DbArtist; onClick: () => void }> = ({ artis
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
       {artist.isLive && <Badge variant="live" className="absolute top-2 left-2">🔴 LIVE</Badge>}
       {artist.isPremium && <Badge variant="orange" className="absolute top-2 right-2">👑 PRO</Badge>}
+      <DemoBadge ownerId={artist.userId} className={`absolute z-10 ${artist.isLive ? 'top-9 left-2' : 'top-2 left-2'}`} />
       <div className="absolute bottom-3 left-3 flex items-center gap-2">
         <Avatar src={artist.avatar || ''} name={artist.name} size="md" isLive={artist.isLive} />
         <div>
