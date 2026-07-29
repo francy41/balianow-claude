@@ -7,7 +7,7 @@ Disallow: /chat
 Disallow: /wallet
 Disallow: /auth
 Disallow: /auth/*
-Disallow: /redes
+Disallow: /social
 Disallow: /perfil
 Disallow: /partner
 Allow: /partner/aplicar

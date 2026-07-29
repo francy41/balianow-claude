@@ -205,7 +205,7 @@ export const Spinner: React.FC<{ size?: 'sm'|'md'|'lg'; className?: string }> = 
 };
 
 export const FullPageLoader: React.FC = () => (
-  <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
+  <div className="fixed inset-0 bg-white dark:bg-[#0a0a0a] flex items-center justify-center z-50">
     <div className="flex flex-col items-center gap-4">
       <span className="text-5xl">💃</span>
       <Spinner size="lg" />

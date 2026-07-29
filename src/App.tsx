@@ -10,6 +10,7 @@ import DarkModeToggle from './components/DarkModeToggle';
 import GhlChatWidget from './components/GhlChatWidget';
 import RouteErrorBoundary from './components/RouteErrorBoundary';
 import RouteAnalytics from './components/RouteAnalytics';
+import { captureError } from './lib/sentry';
 import StreamingAds from './components/StreamingAds';
 import DonationButton from './components/DonationButton';
 import { ToastContainer, FullPageLoader } from './components/ui';
@@ -88,6 +89,9 @@ class ErrorBoundary extends React.Component<
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error };
   }
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    captureError(error, { componentStack: info.componentStack, boundary: 'app-root' });
+  }
   render() {
     if (this.state.hasError) {
       return (
@@ -95,7 +99,7 @@ class ErrorBoundary extends React.Component<
           <div className="text-center max-w-md">
             <div className="text-6xl mb-4">⚠️</div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Algo salió mal</h2>
-            <p className="text-gray-400 mb-6">{this.state.error?.message || 'Error inesperado'}</p>
+            <p className="text-gray-400 mb-6">Ha ocurrido un error inesperado. Ya estamos al tanto. Vuelve al inicio e inténtalo de nuevo.</p>
             <button
               onClick={() => { this.setState({ hasError: false, error: null }); window.location.href = '/'; }}
               className="bg-brand-orange text-white font-bold px-6 py-3 rounded-xl"
