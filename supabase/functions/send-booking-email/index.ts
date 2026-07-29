@@ -1,29 +1,51 @@
 // Supabase Edge Function: send-booking-email
-// Envía email transaccional via Resend cuando se confirma una reserva
+// Envía email transaccional via Resend cuando se confirma una reserva.
 // POST { booking_id, student_email, student_name, class_title, class_date, jitsi_url, price }
+//
+// SEGURIDAD: requiere usuario autenticado (evita relay de phishing abierto) y
+// escapa todas las interpolaciones en el HTML (evita inyección en el email).
 
 import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { getCorsHeaders } from '../_shared/cors.ts';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') || '';
 const FROM_EMAIL = 'BailaNow <onboarding@resend.dev>';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+// Escapa caracteres peligrosos para no permitir inyección de HTML en el email.
+const esc = (s: unknown): string =>
+  String(s ?? '').replace(/[<>&"']/g, (c) =>
+    ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[c] || c));
+
+// Solo permite URLs http(s) para el botón CTA (evita javascript: y similares).
+const safeUrl = (u: unknown): string => {
+  const s = String(u ?? '').trim();
+  return /^https?:\/\//i.test(s) ? s : '#';
 };
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
-  }
+  const cors = getCorsHeaders(req);
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
 
   try {
+    // ── Autorización: solo usuarios autenticados ──
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    );
+    const callerToken = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
+    const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(callerToken);
+    if (authErr || !user) {
+      return new Response(JSON.stringify({ error: 'No autenticado' }), {
+        status: 401, headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { student_email, student_name, class_title, class_date, jitsi_url, price, vendor_name } = await req.json();
 
     if (!student_email || !class_title || !jitsi_url) {
       return new Response(JSON.stringify({ error: 'Faltan campos requeridos' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400, headers: { ...cors, 'Content-Type': 'application/json' },
       });
     }
 
@@ -37,23 +59,23 @@ serve(async (req) => {
       <p style="margin:8px 0 0;color:rgba(255,255,255,0.9);font-size:14px">Tu reserva está confirmada</p>
     </div>
     <div style="padding:32px">
-      <h2 style="color:#fff;margin:0 0 12px;font-size:24px">¡Hola ${student_name || 'estudiante'}! 👋</h2>
+      <h2 style="color:#fff;margin:0 0 12px;font-size:24px">¡Hola ${esc(student_name) || 'estudiante'}! 👋</h2>
       <p style="color:#d4d4d4;line-height:1.6;margin:0 0 24px">Tu reserva para la clase está confirmada. Aquí los detalles:</p>
 
       <div style="background:#0a0a0a;border:1px solid #2a2a4a;border-radius:16px;padding:20px;margin-bottom:24px">
         <p style="color:#ec4899;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin:0 0 4px">Clase</p>
-        <p style="color:#fff;font-size:18px;font-weight:900;margin:0 0 16px">${class_title}</p>
+        <p style="color:#fff;font-size:18px;font-weight:900;margin:0 0 16px">${esc(class_title)}</p>
 
-        ${vendor_name ? `<p style="color:#a3a3a3;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin:0 0 4px">Profesor</p><p style="color:#fff;font-size:14px;margin:0 0 16px">${vendor_name}</p>` : ''}
+        ${vendor_name ? `<p style="color:#a3a3a3;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin:0 0 4px">Profesor</p><p style="color:#fff;font-size:14px;margin:0 0 16px">${esc(vendor_name)}</p>` : ''}
 
         <p style="color:#a3a3a3;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin:0 0 4px">Fecha</p>
-        <p style="color:#fff;font-size:14px;margin:0 0 16px">📅 ${class_date || 'Por confirmar'}</p>
+        <p style="color:#fff;font-size:14px;margin:0 0 16px">📅 ${esc(class_date) || 'Por confirmar'}</p>
 
         <p style="color:#a3a3a3;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin:0 0 4px">Importe pagado</p>
-        <p style="color:#10b981;font-size:20px;font-weight:900;margin:0">€${price}</p>
+        <p style="color:#10b981;font-size:20px;font-weight:900;margin:0">€${esc(price)}</p>
       </div>
 
-      <a href="${jitsi_url}" style="display:block;background:linear-gradient(135deg,#ec4899,#a855f7);color:white;text-align:center;padding:16px;border-radius:16px;text-decoration:none;font-weight:900;font-size:16px;margin-bottom:16px">
+      <a href="${safeUrl(jitsi_url)}" style="display:block;background:linear-gradient(135deg,#ec4899,#a855f7);color:white;text-align:center;padding:16px;border-radius:16px;text-decoration:none;font-weight:900;font-size:16px;margin-bottom:16px">
         🎥 Entrar a la sala en vivo
       </a>
 
@@ -85,7 +107,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: FROM_EMAIL,
         to: [student_email],
-        subject: `✅ Reserva confirmada: ${class_title}`,
+        subject: `✅ Reserva confirmada: ${esc(class_title)}`,
         html,
       }),
     });
@@ -93,11 +115,11 @@ serve(async (req) => {
     const result = await resendRes.json();
     return new Response(JSON.stringify(result), {
       status: resendRes.ok ? 200 : 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...cors, 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    return new Response(JSON.stringify({ error: 'Error procesando la solicitud' }), {
+      status: 500, headers: { ...cors, 'Content-Type': 'application/json' },
     });
   }
 });

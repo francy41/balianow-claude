@@ -23,6 +23,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { getCorsHeaders } from '../_shared/cors.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const GHL_API_BASE = 'https://services.leadconnectorhq.com';
 const GHL_API_VERSION = '2021-07-28';
@@ -64,6 +65,30 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405, headers: { ...cors, 'Content-Type': 'application/json' },
     });
+  }
+
+  // ─── AUTORIZACIÓN: solo admin/superadmin autenticado ──────────
+  // Sin esto, cualquiera con la anon key (pública) podría publicar en
+  // TODAS las redes conectadas. Se exige un JWT de usuario con rol admin.
+  {
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    );
+    const callerToken = (req.headers.get('Authorization') ?? '').replace('Bearer ', '');
+    const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(callerToken);
+    if (authErr || !user) {
+      return new Response(JSON.stringify({ error: 'No autenticado' }), {
+        status: 401, headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
+    const { data: caller } = await supabaseAdmin
+      .from('profiles').select('role').eq('id', user.id).single();
+    if (!caller || !['admin', 'superadmin'].includes(caller.role)) {
+      return new Response(JSON.stringify({ error: 'Acceso denegado' }), {
+        status: 403, headers: { ...cors, 'Content-Type': 'application/json' },
+      });
+    }
   }
 
   const token = Deno.env.get('GHL_API_TOKEN');
