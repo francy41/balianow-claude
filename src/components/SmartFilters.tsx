@@ -36,7 +36,7 @@ export const FilterFacet: React.FC<{
           {icon}{label}
         </span>
         {activeCount > 0 && (
-          <span className="text-[10px] font-black bg-brand-orange text-white rounded-full px-1.5 py-[1px] min-w-[18px] text-center">
+          <span className="text-[10px] font-black bg-gradient-to-r from-brand-orange to-pink-500 text-white rounded-full px-1.5 py-[1px] min-w-[18px] text-center shadow-sm shadow-pink-500/40">
             {activeCount}
           </span>
         )}
@@ -51,8 +51,8 @@ export const FilterFacet: React.FC<{
               aria-pressed={active}
               className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-semibold border transition-all duration-200 active:scale-95 ${
                 active
-                  ? 'bg-brand-orange text-white border-brand-orange shadow-md shadow-brand-orange/30'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-brand-orange/60 hover:text-brand-orange'
+                  ? 'bg-gradient-to-r from-brand-orange to-pink-500 text-white border-transparent shadow-lg shadow-pink-500/30 scale-[1.03]'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-pink-400/60 hover:text-pink-500 hover:shadow-sm'
               }`}
             >
               {active && opt !== allLabel && <Check className="w-3.5 h-3.5" />}
@@ -82,17 +82,17 @@ export const ActiveFilterBar: React.FC<{
   noun?: string;
   onClearAll?: () => void;
 }> = ({ chips, count, total, noun = 'resultados', onClearAll }) => (
-  <div className="flex items-center gap-2 flex-wrap py-1">
-    <span className="text-sm font-bold text-gray-900">
+  <div className={`flex items-center gap-2 flex-wrap ${chips.length > 0 ? 'p-2.5 rounded-2xl bg-gradient-to-r from-pink-50 to-orange-50 border border-pink-100' : 'py-1'}`}>
+    <span className="text-sm font-black bg-gradient-to-r from-brand-orange to-pink-500 bg-clip-text text-transparent">
       {count}
       <span className="text-gray-400 font-normal"> / {total} {noun}</span>
     </span>
-    {chips.length > 0 && <span className="w-px h-4 bg-gray-200 mx-1" />}
+    {chips.length > 0 && <span className="w-px h-4 bg-pink-200 mx-1" />}
     {chips.map((c, i) => (
       <button
         key={i}
         onClick={c.onRemove}
-        className="inline-flex items-center gap-1 pl-3 pr-2 py-1 rounded-full text-xs font-semibold bg-brand-orange/10 text-brand-orange border border-brand-orange/20 hover:bg-brand-orange/20 transition"
+        className="inline-flex items-center gap-1 pl-3 pr-2 py-1 rounded-full text-xs font-bold bg-white text-pink-600 border border-pink-200 shadow-sm hover:bg-pink-50 hover:border-pink-300 transition"
       >
         {c.label}
         <X className="w-3 h-3" />
