@@ -2,8 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapPin, Users, CheckCircle, Radio, Music } from 'lucide-react';
 import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
-import { Badge, StarRating, Avatar, FilterChips, SectionHeader, EmptyState } from '../components/ui';
+import { Badge, StarRating, Avatar, SectionHeader, EmptyState } from '../components/ui';
 import DemoBadge from '../components/DemoBadge';
+import { FilterFacet, ActiveFilterBar } from '../components/SmartFilters';
 import LiveFab from '../components/LiveFab';
 import { usePageMeta } from '../hooks/usePageMeta';
 
@@ -211,6 +212,18 @@ const ArtistsPage: React.FC = () => {
     else navigate(`/artistas/${a.id}`);
   };
 
+  // ── Filtros activos (para la barra de pills quitables) ──
+  const removeFrom = (setter: React.Dispatch<React.SetStateAction<string[]>>, val: string, allLabel: string) =>
+    setter(prev => { const n = prev.filter(x => x !== val && x !== allLabel); return n.length ? n : [allLabel]; });
+  const activeChips: { label: string; onRemove: () => void }[] = [
+    ...selectedType.filter(t => t !== 'Todos').map(t => ({ label: t, onRemove: () => removeFrom(setSelectedType, t, 'Todos') })),
+    ...selectedGenre.filter(g => g !== 'Todos').map(g => ({ label: g, onRemove: () => removeFrom(setSelectedGenre, g, 'Todos') })),
+    ...selectedCity.filter(c => c !== 'Todas').map(c => ({ label: `📍 ${c}`, onRemove: () => removeFrom(setSelectedCity, c, 'Todas') })),
+  ];
+  if (onlyLive) activeChips.push({ label: '🔴 En vivo', onRemove: () => setOnlyLive(false) });
+  if (onlyVerified) activeChips.push({ label: '✓ Verificados', onRemove: () => setOnlyVerified(false) });
+  const clearAll = () => { setSelectedType(['Todos']); setSelectedGenre(['Todos']); setSelectedCity(['Todas']); setOnlyLive(false); setOnlyVerified(false); };
+
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-7xl mx-auto px-4">
@@ -220,18 +233,9 @@ const ArtistsPage: React.FC = () => {
         </div>
 
         <div className="space-y-3">
-          <div>
-            <p className="text-gray-400 text-xs mb-2 font-semibold uppercase tracking-wide">Tipo</p>
-            <FilterChips options={TYPES} selected={selectedType} onChange={setSelectedType} />
-          </div>
-          <div>
-            <p className="text-gray-400 text-xs mb-2 font-semibold uppercase tracking-wide">Género</p>
-            <FilterChips options={GENRES} selected={selectedGenre} onChange={setSelectedGenre} />
-          </div>
-          <div>
-            <p className="text-gray-400 text-xs mb-2 font-semibold uppercase tracking-wide">Ciudad</p>
-            <FilterChips options={cities} selected={selectedCity} onChange={setSelectedCity} />
-          </div>
+          <FilterFacet label="Tipo" options={TYPES} selected={selectedType} onChange={setSelectedType} />
+          <FilterFacet label="Género" options={GENRES} selected={selectedGenre} onChange={setSelectedGenre} collapsible limit={8} />
+          <FilterFacet label="Ciudad" options={cities} selected={selectedCity} onChange={setSelectedCity} collapsible limit={8} />
 
           <div className="flex items-center gap-3 flex-wrap">
             <button
@@ -261,16 +265,19 @@ const ArtistsPage: React.FC = () => {
         </div>
 
         <div className="mt-6">
-          <p className="text-gray-400 text-sm mb-4">
-            {loading
-              ? 'Cargando…'
-              : `${filtered.length} de ${items.length} artistas`}
-            {!loading && items.length > 0 && (
-              <span className="text-[10px] text-gray-300 ml-2">
-                (BD: {loadStats.artists} artistas + {loadStats.profiles} perfiles)
-              </span>
+          <div className="mb-4">
+            {loading ? (
+              <p className="text-gray-400 text-sm">Cargando…</p>
+            ) : (
+              <ActiveFilterBar
+                chips={activeChips}
+                count={filtered.length}
+                total={items.length}
+                noun="artistas"
+                onClearAll={clearAll}
+              />
             )}
-          </p>
+          </div>
           {loadError && (
             <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-700 rounded-lg p-3 mb-4 text-xs text-red-700 dark:text-red-300">
               <strong>⚠ Error cargando datos:</strong> {loadError}
