@@ -1,13 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, ShoppingBag, Loader2 } from 'lucide-react';
-import { Avatar, Badge, StarRating, SearchBar, FilterChips, EmptyState } from '../components/ui';
+import { Avatar, Badge, StarRating, SearchBar, EmptyState } from '../components/ui';
+import { FilterFacet, ActiveFilterBar, FilterPanel, PriceRange } from '../components/SmartFilters';
 import { useAuthStore, useCartStore } from '../store/appStore';
 import { supabase } from '../lib/supabase';
 import PaymentGateway from '../components/payment/PaymentGateway';
 
 const CATEGORIES = ['Todos', 'DJ Set', 'Clases', 'Clases Online', 'Música en Vivo', 'Show Baile', 'Producción', 'Fotografía'];
-const PRICE_RANGES = ['Todos', '< €100', '€100–€500', '€500–€1000', '> €1000'];
 
 type SvcRow = {
   id: string; title: string; cover: string; category: string;
@@ -36,7 +36,7 @@ const MarketplacePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState(['Todos']);
-  const [selectedPrice, setSelectedPrice] = useState(['Todos']);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 0]);
   const [sortBy, setSortBy] = useState<'rating' | 'price_asc' | 'price_desc' | 'orders'>('rating');
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
@@ -44,6 +44,15 @@ const MarketplacePage: React.FC = () => {
     supabase.from('services').select('*').eq('admin_status', 'approved').order('rating', { ascending: false }).limit(200)
       .then(({ data }) => { setServices((data || []).map(normalize)); setLoading(false); });
   }, []);
+
+  const priceMax = useMemo(() => {
+    const m = services.reduce((mx, s) => Math.max(mx, s.price), 0);
+    return Math.max(100, Math.ceil(m / 50) * 50);
+  }, [services]);
+
+  useEffect(() => {
+    if (services.length && priceRange[1] === 0) setPriceRange([0, priceMax]);
+  }, [services, priceMax, priceRange]);
 
   const handleQuickBuy = (service: SvcRow, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -62,11 +71,8 @@ const MarketplacePage: React.FC = () => {
       const matchSearch = !search || s.title.toLowerCase().includes(search.toLowerCase()) ||
         s.artistName.toLowerCase().includes(search.toLowerCase());
       const matchCat = selectedCat.includes('Todos') || selectedCat.includes(s.category);
-      const matchPrice = selectedPrice.includes('Todos') ||
-        (selectedPrice.includes('< €100') && s.price < 100) ||
-        (selectedPrice.includes('€100–€500') && s.price >= 100 && s.price <= 500) ||
-        (selectedPrice.includes('€500–€1000') && s.price > 500 && s.price <= 1000) ||
-        (selectedPrice.includes('> €1000') && s.price > 1000);
+      const [plo, phi] = priceRange;
+      const matchPrice = phi === 0 || (s.price >= plo && (phi >= priceMax || s.price <= phi));
       return matchSearch && matchCat && matchPrice;
     }).sort((a, b) => {
       if (sortBy === 'rating') return b.rating - a.rating;
@@ -74,7 +80,15 @@ const MarketplacePage: React.FC = () => {
       if (sortBy === 'price_desc') return b.price - a.price;
       return b.orders - a.orders;
     });
-  }, [services, search, selectedCat, selectedPrice, sortBy]);
+  }, [services, search, selectedCat, priceRange, priceMax, sortBy]);
+
+  const priceNarrowed = priceRange[1] !== 0 && (priceRange[0] > 0 || priceRange[1] < priceMax);
+  const activeChips: { label: string; onRemove: () => void }[] = [
+    ...selectedCat.filter(c => c !== 'Todos').map(c => ({ label: c, onRemove: () => setSelectedCat(prev => { const n = prev.filter(x => x !== c && x !== 'Todos'); return n.length ? n : ['Todos']; }) })),
+  ];
+  if (priceNarrowed) activeChips.push({ label: `💰 ${priceRange[0]}€–${priceRange[1]}€`, onRemove: () => setPriceRange([0, priceMax]) });
+  const activeCount = activeChips.length;
+  const clearAll = () => { setSelectedCat(['Todos']); setPriceRange([0, priceMax]); setSearch(''); };
 
   return (
     <div className="min-h-screen bg-gray-50 py-6">
@@ -103,24 +117,33 @@ const MarketplacePage: React.FC = () => {
 
         <SearchBar placeholder="Filtrar servicios..." value={search} onChange={setSearch} />
 
-        <div className="mt-4 space-y-3">
-          <FilterChips options={CATEGORIES} selected={selectedCat} onChange={setSelectedCat} />
-          <FilterChips options={PRICE_RANGES} selected={selectedPrice} onChange={setSelectedPrice} />
-
-          <div className="flex gap-1 overflow-x-auto">
-            {[
-              { id: 'rating',     label: '⭐ Mejor valorados' },
-              { id: 'price_asc',  label: '💰 Precio ↑' },
-              { id: 'price_desc', label: '💰 Precio ↓' },
-              { id: 'orders',     label: '🔥 Más vendidos' },
-            ].map(s => (
-              <button key={s.id} onClick={() => setSortBy(s.id as typeof sortBy)}
-                className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${
-                  sortBy === s.id ? 'bg-brand-orange text-white border-brand-orange' : 'bg-white text-gray-500 border-gray-200 hover:border-brand-orange hover:text-brand-orange'
-                }`}>
-                {s.label}
-              </button>
-            ))}
+        <div className="flex items-center gap-3 mt-4 mb-2">
+          <FilterPanel activeCount={activeCount} resultCount={filtered.length} onClear={clearAll}>
+            <FilterFacet label="Categoría" icon={<span>🎬</span>} options={CATEGORIES} selected={selectedCat} onChange={setSelectedCat} collapsible limit={8} />
+            <PriceRange min={0} max={priceMax} value={priceRange[1] === 0 ? [0, priceMax] : priceRange} onChange={setPriceRange} currency="€" step={10} />
+            <div>
+              <span className="text-gray-400 text-xs font-semibold uppercase tracking-wide">Ordenar por</span>
+              <div className="flex gap-2 flex-wrap mt-2">
+                {[
+                  { id: 'rating',     label: '⭐ Mejor valorados' },
+                  { id: 'price_asc',  label: '💰 Precio ↑' },
+                  { id: 'price_desc', label: '💰 Precio ↓' },
+                  { id: 'orders',     label: '🔥 Más vendidos' },
+                ].map(s => (
+                  <button key={s.id} onClick={() => setSortBy(s.id as typeof sortBy)}
+                    className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${
+                      sortBy === s.id ? 'bg-brand-orange text-white border-brand-orange' : 'bg-white text-gray-500 border-gray-200 hover:border-brand-orange hover:text-brand-orange'
+                    }`}>
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </FilterPanel>
+          <div className="flex-1 min-w-0 overflow-x-auto">
+            {!loading && (
+              <ActiveFilterBar chips={activeChips} count={filtered.length} total={services.length} noun="servicios" onClearAll={clearAll} />
+            )}
           </div>
         </div>
 
