@@ -232,10 +232,10 @@ const ArtistsPage: React.FC = () => {
           <p className="text-gray-400">Los mejores DJs, bailarines y músicos latinos</p>
         </div>
 
-        <div className="space-y-3">
-          <FilterFacet label="Tipo" options={TYPES} selected={selectedType} onChange={setSelectedType} />
-          <FilterFacet label="Género" options={GENRES} selected={selectedGenre} onChange={setSelectedGenre} collapsible limit={8} />
-          <FilterFacet label="Ciudad" options={cities} selected={selectedCity} onChange={setSelectedCity} collapsible limit={8} />
+        <div className="space-y-4 bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100">
+          <FilterFacet label="Tipo" icon={<span>🎭</span>} options={TYPES} selected={selectedType} onChange={setSelectedType} />
+          <FilterFacet label="Género" icon={<span>🎵</span>} options={GENRES} selected={selectedGenre} onChange={setSelectedGenre} collapsible limit={8} />
+          <FilterFacet label="Ciudad" icon={<span>📍</span>} options={cities} selected={selectedCity} onChange={setSelectedCity} collapsible limit={8} />
 
           <div className="flex items-center gap-3 flex-wrap">
             <button
