@@ -66,8 +66,12 @@ const ClaimProfileButton: React.FC<Props> = ({ targetTable, targetId, targetName
     <>
       <button
         onClick={() => { setOpen(true); setSubmitted(false); }}
-        className="flex items-center gap-2 text-gray-500 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50 transition-all"
+        className="relative inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-lg shadow-fuchsia-500/40 hover:shadow-fuchsia-500/60 hover:scale-[1.03] active:scale-95 transition-all"
       >
+        <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5">
+          <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75 animate-ping" />
+          <span className="relative inline-flex h-3.5 w-3.5 rounded-full bg-amber-400 ring-2 ring-white" />
+        </span>
         <Flag className="w-3.5 h-3.5" /> ¿Es tu perfil? Reclamarlo
       </button>
 
