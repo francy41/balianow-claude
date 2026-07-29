@@ -7,7 +7,8 @@ import ClaimProfileButton from '../components/ClaimProfileButton';
 import { isClaimed, UNCLAIMED_TOAST } from '../lib/ownership';
 import { VENUES } from '../data/mockData';
 import type { Venue } from '../data/mockData';
-import { Badge, StarRating, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
+import { Badge, StarRating, EmptyState, Button, Avatar } from '../components/ui';
+import { FilterFacet, ActiveFilterBar, FilterPanel } from '../components/SmartFilters';
 import { useAuthStore, useUIStore, getYouTubeId, useSiteConfigStore } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
 import { supabase } from '../lib/supabase';
@@ -122,6 +123,13 @@ const VenuesList: React.FC = () => {
     });
   }, [allVenues, selectedType, selectedCity, onlyOpen]);
 
+  const activeChips: { label: string; onRemove: () => void }[] = [
+    ...selectedType.filter(t => t !== 'Todos').map(t => ({ label: t, onRemove: () => setSelectedType(prev => { const n = prev.filter(x => x !== t && x !== 'Todos'); return n.length ? n : ['Todos']; }) })),
+    ...selectedCity.filter(c => c !== 'Todas').map(c => ({ label: `📍 ${c}`, onRemove: () => setSelectedCity(prev => { const n = prev.filter(x => x !== c && x !== 'Todas'); return n.length ? n : ['Todas']; }) })),
+  ];
+  if (onlyOpen) activeChips.push({ label: '🟢 Abiertos', onRemove: () => setOnlyOpen(false) });
+  const clearAll = () => { setSelectedType(['Todos']); setSelectedCity(['Todas']); setOnlyOpen(false); };
+
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-7xl mx-auto px-4">
@@ -130,24 +138,34 @@ const VenuesList: React.FC = () => {
           <p className="text-gray-400">Clubs, estudios y espacios de entretenimiento latino</p>
         </div>
 
-        <div className="space-y-3">
-          <FilterChips options={TYPES} selected={selectedType} onChange={setSelectedType} />
-          <FilterChips options={CITIES} selected={selectedCity} onChange={setSelectedCity} />
-          <button
-            onClick={() => setOnlyOpen(!onlyOpen)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${onlyOpen ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-500 hover:text-emerald-600'}`}
-          >
-            🟢 Solo abiertos ahora
-          </button>
+        <div className="flex items-center gap-3 mb-2">
+          <FilterPanel activeCount={activeChips.length} resultCount={filtered.length} onClear={clearAll}>
+            <FilterFacet label="Tipo" icon={<span>🏛️</span>} options={TYPES} selected={selectedType} onChange={setSelectedType} />
+            <FilterFacet label="Ciudad" icon={<span>📍</span>} options={CITIES} selected={selectedCity} onChange={setSelectedCity} collapsible limit={8} />
+            <div>
+              <span className="text-gray-400 text-xs font-semibold uppercase tracking-wide">Opciones</span>
+              <div className="flex gap-2 flex-wrap mt-2">
+                <button
+                  onClick={() => setOnlyOpen(!onlyOpen)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${onlyOpen ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-500 hover:text-emerald-600'}`}
+                >
+                  🟢 Solo abiertos ahora
+                </button>
+              </div>
+            </div>
+          </FilterPanel>
+          <div className="flex-1 min-w-0 overflow-x-auto">
+            {!loading && (
+              <ActiveFilterBar chips={activeChips} count={filtered.length} total={allVenues.length} noun="venues" onClearAll={clearAll} />
+            )}
+          </div>
         </div>
 
         <div className="mt-6">
           <p className="text-gray-400 text-sm mb-4">
-            {loading
-              ? 'Cargando…'
-              : `${filtered.length} de ${allVenues.length} venues`}
+            {loading && 'Cargando…'}
             {!loading && dbVenues.length > 0 && (
-              <span className="text-[10px] text-gray-300 ml-2">(BD: {dbVenues.length})</span>
+              <span className="text-[10px] text-gray-300">(BD: {dbVenues.length})</span>
             )}
           </p>
           {loading && filtered.length === 0 ? (

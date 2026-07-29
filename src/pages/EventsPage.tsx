@@ -12,7 +12,8 @@ import ClaimProfileButton from '../components/ClaimProfileButton';
 import { isClaimed, UNCLAIMED_TOAST } from '../lib/ownership';
 import { EVENTS, ARTISTS, VENUES } from '../data/mockData';
 import type { Artist, Event as EventType } from '../data/mockData';
-import { Badge, StarRating, FilterChips, EmptyState, Button, Avatar } from '../components/ui';
+import { Badge, StarRating, EmptyState, Button, Avatar } from '../components/ui';
+import { FilterFacet, ActiveFilterBar, FilterPanel } from '../components/SmartFilters';
 import { useAuthStore, useUIStore, getYouTubeId, useSiteConfigStore } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
 import EventTicketModal from '../components/EventTicketModal';
@@ -144,6 +145,13 @@ const EventsList: React.FC = () => {
     });
   }, [allEvents, search, selectedCat, selectedCity, onlyOnline]);
 
+  const activeChips: { label: string; onRemove: () => void }[] = [
+    ...selectedCat.filter(c => c !== 'Todos').map(c => ({ label: c, onRemove: () => setSelectedCat(prev => { const n = prev.filter(x => x !== c && x !== 'Todos'); return n.length ? n : ['Todos']; }) })),
+    ...selectedCity.filter(c => c !== 'Todas').map(c => ({ label: `📍 ${c}`, onRemove: () => setSelectedCity(prev => { const n = prev.filter(x => x !== c && x !== 'Todas'); return n.length ? n : ['Todas']; }) })),
+  ];
+  if (onlyOnline) activeChips.push({ label: '🌐 Online', onRemove: () => setOnlyOnline(false) });
+  const clearAll = () => { setSelectedCat(['Todos']); setSelectedCity(['Todas']); setOnlyOnline(false); setSearch(''); };
+
   const handleBuyTicket = (event: typeof EVENTS[0], e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isAuthenticated) { navigate('/auth'); return; }
@@ -158,19 +166,30 @@ const EventsList: React.FC = () => {
           <p className="text-gray-400">Los mejores eventos latinos cerca de ti</p>
         </div>
 
-        <div className="mt-4 space-y-3">
-          <FilterChips options={CATEGORIES} selected={selectedCat} onChange={setSelectedCat} />
-          <FilterChips options={CITIES} selected={selectedCity} onChange={setSelectedCity} />
-          <button
-            onClick={() => setOnlyOnline(!onlyOnline)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${onlyOnline ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-500 hover:text-blue-600'}`}
-          >
-            🌐 Solo Online
-          </button>
+        <div className="flex items-center gap-3 mt-4 mb-2">
+          <FilterPanel activeCount={activeChips.length} resultCount={filtered.length} onClear={clearAll}>
+            <FilterFacet label="Categoría" icon={<span>🎵</span>} options={CATEGORIES} selected={selectedCat} onChange={setSelectedCat} collapsible limit={8} />
+            <FilterFacet label="Ciudad" icon={<span>📍</span>} options={CITIES} selected={selectedCity} onChange={setSelectedCity} collapsible limit={8} />
+            <div>
+              <span className="text-gray-400 text-xs font-semibold uppercase tracking-wide">Opciones</span>
+              <div className="flex gap-2 flex-wrap mt-2">
+                <button
+                  onClick={() => setOnlyOnline(!onlyOnline)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${onlyOnline ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-500 hover:text-blue-600'}`}
+                >
+                  🌐 Solo Online
+                </button>
+              </div>
+            </div>
+          </FilterPanel>
+          <div className="flex-1 min-w-0 overflow-x-auto">
+            {!loading && (
+              <ActiveFilterBar chips={activeChips} count={filtered.length} total={allEvents.length} noun="eventos" onClearAll={clearAll} />
+            )}
+          </div>
         </div>
 
         <div className="mt-6">
-          <p className="text-gray-400 text-sm mb-4">{filtered.length} eventos</p>
           {filtered.length === 0 ? (
             <EmptyState icon="🎉" title="No hay eventos" description="Prueba con otros filtros o ciudades"
               action={<button onClick={() => { setSearch(''); setSelectedCat(['Todos']); setSelectedCity(['Todas']); }} className="btn-outline text-sm">Limpiar filtros</button>} />

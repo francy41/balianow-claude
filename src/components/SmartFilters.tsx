@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Check, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Check, X, SlidersHorizontal } from 'lucide-react';
 
 // ── FilterFacet ────────────────────────────────────────────────────────────
 // Facet de filtro con MULTI-SELECCIÓN independiente + opción "todos" inteligente.
@@ -108,3 +108,134 @@ export const ActiveFilterBar: React.FC<{
     )}
   </div>
 );
+
+// ── FilterPanel ──────────────────────────────────────────────────────────────
+// Botón "Filtros" (con contador) que abre un panel deslizante estilo app.
+// Los facets/sliders se pasan como children. Footer con Limpiar / Ver resultados.
+export const FilterPanel: React.FC<{
+  activeCount: number;
+  resultCount?: number;
+  onClear?: () => void;
+  children: React.ReactNode;
+  triggerClassName?: string;
+}> = ({ activeCount, resultCount, onClear, children, triggerClassName = '' }) => {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey); };
+  }, [open]);
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-bold text-gray-700 bg-white border border-gray-200 shadow-sm hover:border-pink-400/60 hover:text-pink-500 hover:shadow transition ${triggerClassName}`}
+      >
+        <SlidersHorizontal className="w-4 h-4" />
+        Filtros
+        {activeCount > 0 && (
+          <span className="text-[10px] font-black bg-gradient-to-r from-brand-orange to-pink-500 text-white rounded-full px-1.5 py-[1px] min-w-[18px] text-center shadow-sm shadow-pink-500/40">
+            {activeCount}
+          </span>
+        )}
+      </button>
+
+      {/* Overlay */}
+      <div
+        onClick={() => setOpen(false)}
+        aria-hidden
+        className={`fixed inset-0 bg-black/40 backdrop-blur-sm z-[60] transition-opacity duration-300 ${open ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+      />
+
+      {/* Drawer */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        className={`fixed right-0 top-0 h-full w-full max-w-md bg-gray-50 z-[70] shadow-2xl flex flex-col transition-transform duration-300 ease-out ${open ? 'translate-x-0' : 'translate-x-full'}`}
+      >
+        <div className="flex items-center justify-between px-5 py-4 bg-white border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="w-5 h-5 text-brand-orange" />
+            <h3 className="font-display font-black text-lg text-gray-900">Filtros</h3>
+            {activeCount > 0 && (
+              <span className="text-[11px] font-black bg-gradient-to-r from-brand-orange to-pink-500 text-white rounded-full px-2 py-[2px]">
+                {activeCount}
+              </span>
+            )}
+          </div>
+          <button onClick={() => setOpen(false)} aria-label="Cerrar" className="p-2 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto px-5 py-5 space-y-7">
+          {children}
+        </div>
+
+        <div className="bg-white border-t border-gray-100 p-4 flex items-center gap-3">
+          <button
+            onClick={() => onClear?.()}
+            className="flex-1 py-3 rounded-xl font-bold text-gray-600 border border-gray-200 hover:bg-gray-50 transition"
+          >
+            Limpiar
+          </button>
+          <button
+            onClick={() => setOpen(false)}
+            className="flex-[2] py-3 rounded-xl font-bold text-white bg-gradient-to-r from-brand-orange to-pink-500 shadow-lg shadow-pink-500/30 hover:opacity-95 transition"
+          >
+            {typeof resultCount === 'number' ? `Ver ${resultCount} resultados` : 'Ver resultados'}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+};
+
+// ── PriceRange ───────────────────────────────────────────────────────────────
+// Deslizador de precio de doble mango (min/max) con relleno degradado.
+export const PriceRange: React.FC<{
+  min: number;
+  max: number;
+  value: [number, number];
+  onChange: (v: [number, number]) => void;
+  currency?: string;
+  step?: number;
+}> = ({ min, max, value, onChange, currency = '€', step = 1 }) => {
+  const [lo, hi] = value;
+  const span = Math.max(1, max - min);
+  const pct = (v: number) => ((v - min) / span) * 100;
+  const thumb =
+    'pointer-events-none absolute top-1/2 -translate-y-1/2 w-full h-1.5 bg-transparent appearance-none ' +
+    '[&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-pink-500 [&::-webkit-slider-thumb]:shadow-md [&::-webkit-slider-thumb]:cursor-pointer ' +
+    '[&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-pink-500 [&::-moz-range-thumb]:shadow-md [&::-moz-range-thumb]:cursor-pointer';
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-gray-400 text-xs font-semibold uppercase tracking-wide">Precio</span>
+        <span className="text-sm font-bold text-gray-900">{lo}{currency} – {hi}{currency}{hi >= max ? '+' : ''}</span>
+      </div>
+      <div className="relative h-5">
+        <div className="absolute top-1/2 -translate-y-1/2 h-1.5 w-full rounded-full bg-gray-200" />
+        <div
+          className="absolute top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-gradient-to-r from-brand-orange to-pink-500"
+          style={{ left: `${pct(lo)}%`, right: `${100 - pct(hi)}%` }}
+        />
+        <input
+          type="range" min={min} max={max} step={step} value={lo}
+          onChange={e => onChange([Math.min(Number(e.target.value), hi), hi])}
+          className={thumb} aria-label="Precio mínimo"
+        />
+        <input
+          type="range" min={min} max={max} step={step} value={hi}
+          onChange={e => onChange([lo, Math.max(Number(e.target.value), lo)])}
+          className={thumb} aria-label="Precio máximo"
+        />
+      </div>
+    </div>
+  );
+};
