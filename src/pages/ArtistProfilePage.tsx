@@ -11,7 +11,7 @@ import {
   Star, Sparkles, Send, Video, Bell, Headphones, Award, Image as ImageIcon,
   ChevronRight, Lock, Crown
 } from 'lucide-react';
-import { SOCIAL_NETWORK_URLS } from '../data/mockData';
+import { SOCIAL_NETWORK_URLS, EVENTS } from '../data/mockData';
 import type { Artist, MediaItem, OfferPackage } from '../data/mockData';
 import { useAuthStore, useUIStore, useCartStore, getYouTubeId, useSiteConfigStore } from '../store/appStore';
 import { Avatar, Modal, Button } from '../components/ui';
@@ -494,6 +494,7 @@ const ArtistProfilePage: React.FC = () => {
 
 // ── ABOUT TAB ───────────────────────────────────────────────────────────────
 const AboutTab: React.FC<{ artist: Artist }> = ({ artist }) => (
+  <div className="space-y-4">
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
     <div className="lg:col-span-2 space-y-4">
       <div className="card-white rounded-2xl p-5">
@@ -533,7 +534,6 @@ const AboutTab: React.FC<{ artist: Artist }> = ({ artist }) => (
         </div>
       )}
 
-      <FeaturedVideoCard artist={artist} />
     </div>
 
     {/* Sidebar */}
@@ -542,7 +542,108 @@ const AboutTab: React.FC<{ artist: Artist }> = ({ artist }) => (
       <StatsCard artist={artist} />
     </div>
   </div>
+
+  {/* Perfil tipo web: Vídeo · Próximos eventos · Cursos + Ubicación */}
+  <ProfileShowcase artist={artist} />
+  </div>
 );
+
+// ── PROFILE SHOWCASE (Vídeo · Próximos eventos · Cursos + Ubicación) ──────────
+const ProfileShowcase: React.FC<{ artist: Artist }> = ({ artist }) => {
+  const MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+  const day = (d: string) => (d || '').split('-')[2] || '--';
+  const month = (d: string) => MONTHS[(Number((d || '').split('-')[1]) || 1) - 1] || '';
+  const ytId = artist.featuredVideo ? getYouTubeId(artist.featuredVideo) : '';
+  const events = EVENTS
+    .filter(e => Array.isArray((e as any).artists) && (e as any).artists.includes(artist.id))
+    .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
+    .slice(0, 3);
+  const courses = (((artist as any).classPackages || []).length
+    ? (artist as any).classPackages
+    : ((artist as any).packages || [])).slice(0, 3);
+  const place = [artist.city, artist.country].filter(Boolean).join(', ');
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place || 'España')}`;
+
+  return (
+    <>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* 1) Vídeo */}
+        <div className="card-white rounded-2xl overflow-hidden flex flex-col">
+          <div className="p-4 pb-2 flex items-center justify-between">
+            <h3 className="font-display font-bold text-gray-900 flex items-center gap-2">🎬 Vídeo</h3>
+            {ytId && <a href={artist.featuredVideo} target="_blank" rel="noreferrer" className="text-[10px] text-red-500 font-bold hover:underline">YouTube ↗</a>}
+          </div>
+          <div className="bg-black aspect-video">
+            {ytId ? (
+              <iframe src={`https://www.youtube.com/embed/${ytId}?modestbranding=1&rel=0`} title={artist.featuredVideoTitle || artist.name} className="w-full h-full" allow="encrypted-media; picture-in-picture" allowFullScreen />
+            ) : artist.featuredVideo ? (
+              <video src={artist.featuredVideo} controls className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex flex-col items-center justify-center text-white/40 text-xs gap-1"><Video className="w-6 h-6" /> Sin vídeo aún</div>
+            )}
+          </div>
+        </div>
+
+        {/* 2) Próximos eventos */}
+        <div className="card-white rounded-2xl p-4 flex flex-col">
+          <h3 className="font-display font-bold text-gray-900 flex items-center gap-2 mb-3">📅 Próximos eventos</h3>
+          {events.length > 0 ? (
+            <div className="space-y-2.5">
+              {events.map(e => (
+                <div key={e.id} className="flex items-center gap-3">
+                  <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gray-900 text-white flex flex-col items-center justify-center leading-none">
+                    <span className="font-black text-sm">{day(e.date)}</span>
+                    <span className="text-[8px] font-bold text-pink-400">{month(e.date)}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-gray-900 text-xs truncate">{e.title}</p>
+                    <p className="text-gray-400 text-[10px] truncate flex items-center gap-1"><MapPin className="w-3 h-3" />{e.venueName || e.city}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-xs gap-1 py-6"><Calendar className="w-6 h-6" /> Sin eventos próximos</div>
+          )}
+        </div>
+
+        {/* 3) Cursos */}
+        <div className="card-white rounded-2xl p-4 flex flex-col">
+          <h3 className="font-display font-bold text-gray-900 flex items-center gap-2 mb-3">🎓 Cursos</h3>
+          {courses.length > 0 ? (
+            <div className="space-y-2.5">
+              {courses.map((c: any) => (
+                <div key={c.id} className="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-gray-100">
+                  <div className="min-w-0">
+                    <p className="font-bold text-gray-900 text-xs truncate">{c.name}</p>
+                    <p className="text-gray-400 text-[10px]">{c.duration_minutes ? `${c.duration_minutes} min` : 'Curso'}{c.capacity ? ` · hasta ${c.capacity} pers.` : ''}</p>
+                  </div>
+                  {c.price != null && <span className="flex-shrink-0 text-pink-600 font-black text-sm">€{c.price}</span>}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-xs gap-1 py-6"><Award className="w-6 h-6" /> Sin cursos publicados</div>
+          )}
+        </div>
+      </div>
+
+      {/* Ubicación */}
+      <a href={mapsUrl} target="_blank" rel="noreferrer"
+        className="mt-4 relative block overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-purple-950 to-black text-white p-5 hover:shadow-xl hover:shadow-pink-500/20 transition-all group">
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-500/25 rounded-full blur-3xl pointer-events-none" />
+        <div className="relative flex items-center gap-4">
+          <span className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center flex-shrink-0"><MapPin className="w-6 h-6 text-pink-300" /></span>
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-pink-300">Ubicación</p>
+            <p className="font-display font-black text-lg leading-tight truncate">{place || 'España'}</p>
+          </div>
+          <span className="ml-auto inline-flex items-center gap-1 bg-white text-gray-900 font-bold text-xs rounded-xl px-3 py-2 flex-shrink-0 group-hover:scale-105 transition">Ver en el mapa →</span>
+        </div>
+      </a>
+    </>
+  );
+};
 
 // ── SOCIAL LINKS (icon grid) ────────────────────────────────────────────────
 const SocialIcon: React.FC<{ kind: string }> = ({ kind }) => {
