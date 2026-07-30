@@ -884,26 +884,25 @@ const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
       <HScroll>
         {openVenues.slice(0, 6).map(v => (
           <button key={v.id} onClick={() => navigate(`/venues/${v.id}`)}
-            className="flex-shrink-0 w-40 sm:w-44 bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:shadow-emerald-500/10 transition-all hover:-translate-y-1 border border-gray-100 dark:border-gray-800 group">
-            <div className="relative">
-              <AppImage src={v.cover} alt={v.name} fallback="landscape" className="w-full h-24 object-cover group-hover:scale-105 transition-transform duration-500" />
-              <div className="absolute top-2 right-2 bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full flex items-center gap-1 shadow-lg">
-                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                ABIERTO
+            className="flex-shrink-0 w-56 sm:w-60 bg-gray-900 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 transition-all hover:-translate-y-1.5 group text-left">
+            <div className="relative h-32">
+              <AppImage src={v.cover} alt={v.name} fallback="landscape" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/20 to-transparent" />
+              <div className="absolute top-2.5 left-2.5 bg-emerald-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full flex items-center gap-1 shadow">
+                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> Abierto
               </div>
+              <span className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm border border-white/20 grid place-items-center text-white text-base leading-none group-hover:bg-pink-500 transition">♡</span>
               {v.isPremium && (
-                <div className="absolute top-2 left-2 bg-yellow-400 text-yellow-900 text-[8px] font-black px-1.5 py-0.5 rounded">PRO</div>
+                <div className="absolute bottom-2.5 right-2.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">👑 PRO</div>
               )}
             </div>
-            <div className="p-3">
-              <p className="text-gray-900 font-bold text-xs truncate">{v.name}</p>
-              <p className="text-gray-400 text-[10px] flex items-center gap-1 mt-0.5">
-                <MapPin className="w-3 h-3" />{v.city}
-              </p>
-              <p className="text-emerald-600 text-[10px] font-semibold mt-1">{v.openHours}</p>
-              <div className="flex items-center gap-1 mt-1">
-                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                <span className="text-xs text-gray-600 font-medium">{v.rating}</span>
+            <div className="p-3.5">
+              <p className="text-white font-black text-sm truncate">{v.name}</p>
+              <p className="text-white/50 text-[11px] mt-0.5 capitalize truncate">{v.type || 'Local'}</p>
+              <div className="flex items-center gap-2 mt-2 text-[11px]">
+                <span className="inline-flex items-center gap-1 text-amber-400 font-bold"><Star className="w-3.5 h-3.5 fill-amber-400" />{v.rating}</span>
+                <span className="text-white/30">·</span>
+                <span className="text-white/60 flex items-center gap-1"><MapPin className="w-3 h-3" />{v.city}</span>
               </div>
             </div>
           </button>
