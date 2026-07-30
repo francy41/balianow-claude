@@ -15,7 +15,7 @@ import { SupportThread } from './ChatPage';
 
 type Tab = 'resumen' | 'bandeja' | 'ganancias' | 'gestiones' | 'equipo' | 'contenido' | 'recursos' | 'redes' | 'pagos' | 'planes' | 'soporte';
 
-interface PartnerRow { user_id: string; display_name: string | null; cities: string[]; commission_percent: number; status: string; bio: string | null; }
+interface PartnerRow { user_id: string; display_name: string | null; cities: string[]; commission_percent: number; status: string; bio: string | null; slug: string | null; }
 interface TaskRow { id: string; city: string | null; title: string; type: string; status: string; amount: number; commission: number; notes: string | null; due_date: string | null; created_at: string; completed_at: string | null; rep_id: string | null; }
 interface PayoutRow { id: string; type: string; label: string | null; details: string | null; is_default: boolean; }
 interface WithdrawalRow { id: string; method: string | null; amount: number; status: string; requested_at: string; }
@@ -125,7 +125,7 @@ const PartnerDashboardPage: React.FC = () => {
             <span>Comisión: <b className="text-white">{partner?.commission_percent ?? 10}%</b></span>
             {partner?.status === 'suspended' && <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-300 text-xs font-bold">Suspendido</span>}
           </div>
-          {partner?.cities?.[0] && <DirectLink city={partner.cities[0]} addToast={addToast} />}
+          {partner && (partner.slug || partner.cities?.[0]) && <DirectLink slug={partner.slug} city={partner.cities?.[0] || ''} addToast={addToast} />}
         </div>
       </div>
 
@@ -173,10 +173,11 @@ const Stat: React.FC<{ label: string; value: string; sub?: string; grad: string 
   </div>
 );
 
-const DirectLink: React.FC<{ city: string; addToast: (t: any) => void }> = ({ city, addToast }) => {
+const DirectLink: React.FC<{ slug: string | null; city: string; addToast: (t: any) => void }> = ({ slug, city, addToast }) => {
   const origin = typeof window !== 'undefined' ? window.location.origin : 'https://bailanow.com';
-  const url = `${origin}/${encodeURIComponent(city)}`;
+  const url = slug ? `${origin}/partner/${encodeURIComponent(slug)}` : `${origin}/${encodeURIComponent(city)}`;
   const pretty = url.replace(/^https?:\/\//, '');
+  const shareText = `💃🔥 Sigue mi perfil en BailaNow${city ? ' · ' + city : ''} — eventos, locales y artistas`;
   const copy = () => {
     navigator.clipboard?.writeText(url).then(
       () => addToast({ message: 'Enlace copiado ✔️', type: 'success' }),
@@ -184,10 +185,15 @@ const DirectLink: React.FC<{ city: string; addToast: (t: any) => void }> = ({ ci
     );
   };
   return (
-    <div className="mt-3 inline-flex items-center gap-2 rounded-xl bg-white/10 ring-1 ring-white/15 pl-3 pr-1.5 py-1.5">
-      <span className="text-xs text-white/50">Tu enlace:</span>
-      <a href={url} target="_blank" rel="noreferrer" className="text-sm font-bold text-fuchsia-300">{pretty}</a>
-      <button onClick={copy} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20"><Copy className="w-3.5 h-3.5" /></button>
+    <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className="inline-flex items-center gap-2 rounded-xl bg-white/10 ring-1 ring-white/15 pl-3 pr-1.5 py-1.5">
+        <span className="text-xs text-white/50">Tu perfil público:</span>
+        <a href={url} target="_blank" rel="noreferrer" className="text-sm font-bold text-fuchsia-300 truncate max-w-[220px]">{pretty}</a>
+        <button onClick={copy} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20"><Copy className="w-3.5 h-3.5" /></button>
+      </div>
+      <a href={`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + url)}`} target="_blank" rel="noreferrer" aria-label="Compartir por WhatsApp" className="w-9 h-9 inline-flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20"><MessageCircle className="w-4 h-4" /></a>
+      <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} target="_blank" rel="noreferrer" aria-label="Compartir en Facebook" className="w-9 h-9 inline-flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20"><Facebook className="w-4 h-4" /></a>
+      <a href={`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(shareText)}`} target="_blank" rel="noreferrer" aria-label="Compartir en Telegram" className="w-9 h-9 inline-flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20"><Send className="w-4 h-4" /></a>
     </div>
   );
 };
