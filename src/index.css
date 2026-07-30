@@ -136,17 +136,19 @@ body {
   /* ── GLASS / CARD ── */
   .card-white {
     background: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border-radius: 18px;
+    border: 1px solid rgba(23,17,28,0.05);
+    box-shadow: 0 2px 8px rgba(23,17,28,0.06), 0 1px 3px rgba(23,17,28,0.05);
   }
   html.dark .card-white {
     background: #1a1a2e;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    border-color: rgba(255,255,255,0.06);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.35);
   }
 
   /* ── PREMIUM BUTTONS ── */
   .btn-orange {
-    @apply bg-brand-orange text-white font-bold rounded-lg px-5 py-2.5 transition-all duration-150 hover:bg-brand-orange-dark active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed select-none;
+    @apply bg-brand-orange text-white font-bold rounded-xl px-5 py-2.5 shadow-md shadow-pink-500/30 transition-all duration-150 hover:bg-brand-orange-dark hover:shadow-lg hover:shadow-pink-500/40 hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed select-none;
   }
   .btn-outline {
     @apply border-2 border-pink-500 text-pink-500 font-bold rounded-lg px-5 py-2.5 transition-all duration-150 hover:bg-pink-500 hover:text-white active:scale-95 select-none;
