@@ -129,7 +129,7 @@ const EventsList: React.FC = () => {
     });
     const fromData = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).map(([c]) => c);
     const merged = [...BASE_CITIES.filter(c => counts.has(c)), ...fromData.filter(c => !BASE_CITIES.includes(c))];
-    return ['Todas', ...Array.from(new Set(merged)), 'Online'];
+    return ['Todas', ...Array.from(new Set(merged)).filter(c => c !== 'Online'), 'Online'];
   }, [allEvents]);
 
   const filtered = useMemo(() => {
