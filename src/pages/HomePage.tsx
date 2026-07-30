@@ -694,16 +694,22 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     return bySection !== 0 ? bySection : a.display_order - b.display_order;
   });
 
+  // 12 por fila; se muestran 2 filas (24) y el resto tras "Ver más categorías".
+  const [showAll, setShowAll] = React.useState(false);
+  const LIMIT = 12;
+  const shown = showAll ? visibleCats : visibleCats.slice(0, LIMIT);
+  const rest = visibleCats.length - LIMIT;
+
   const CategoryButton: React.FC<{ cat: HomeCategory; index: number }> = ({ cat }) => {
     return (
       <button
         onClick={() => navigate(cat.route)}
-        className="group bg-white dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-3 sm:p-4 flex flex-col items-center justify-center gap-2 h-[100px] sm:h-28 border border-pink-200/60 dark:border-pink-500/20 shadow-sm hover:shadow-xl hover:shadow-pink-500/15 hover:border-pink-400 hover:-translate-y-1 active:scale-95 transition-all duration-300"
+        className="group bg-white dark:bg-gray-800/80 rounded-xl px-1 py-2.5 flex flex-col items-center justify-center gap-1.5 border border-gray-100 dark:border-pink-500/20 shadow-sm hover:shadow-md hover:shadow-pink-500/15 hover:border-pink-300 hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
       >
-        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-pink-100 to-fuchsia-50 dark:from-pink-500/15 dark:to-fuchsia-500/10 flex items-center justify-center group-hover:scale-110 transition-all duration-300 shadow-inner">
-          <span className="text-2xl sm:text-3xl">{cat.icon}</span>
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-100 to-fuchsia-50 dark:from-pink-500/15 dark:to-fuchsia-500/10 flex items-center justify-center group-hover:scale-110 transition-all duration-200">
+          <span className="text-lg">{cat.icon}</span>
         </div>
-        <span className="text-gray-700 dark:text-gray-200 text-[11px] sm:text-xs font-bold leading-tight text-center line-clamp-2 group-hover:text-pink-600 transition-colors">{cat.name}</span>
+        <span className="text-gray-700 dark:text-gray-200 text-[10px] font-bold leading-tight text-center line-clamp-2 group-hover:text-pink-600 transition-colors">{cat.name}</span>
       </button>
     );
   };
@@ -738,17 +744,19 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
                 Ver todas →
               </button>
             </div>
-            <div className="grid grid-cols-4 gap-2.5 sm:gap-3">
-              {visibleCats.map((cat, idx) => (
+            <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-2 sm:gap-2.5">
+              {shown.map((cat, idx) => (
                 <CategoryButton key={cat.id} cat={cat} index={idx} />
               ))}
             </div>
-            <button
-              onClick={() => navigate('/explorar')}
-              className="w-full mt-4 py-2.5 rounded-xl border border-pink-200 text-pink-500 hover:bg-pink-50 text-sm font-bold transition-all flex items-center justify-center gap-2"
-            >
-              🔍 Ver todas las categorías
-            </button>
+            {rest > 0 && (
+              <button
+                onClick={() => setShowAll(v => !v)}
+                className="w-full mt-4 py-2.5 rounded-xl border border-pink-200 text-pink-500 hover:bg-pink-50 text-sm font-bold transition-all flex items-center justify-center gap-2"
+              >
+                {showAll ? '▲ Ver menos categorías' : `🔍 Ver más categorías (${rest})`}
+              </button>
+            )}
           </div>
         )}
       </div>
