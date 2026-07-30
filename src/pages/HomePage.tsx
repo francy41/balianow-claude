@@ -801,6 +801,23 @@ const HomeSectionWithSearch: React.FC<HomeSectionProps> = ({
   );
 };
 
+// ── HScroll: fila horizontal con flechas estilo Netflix (desktop) ──
+const HScroll: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const ref = React.useRef<HTMLDivElement>(null);
+  const go = (d: number) => ref.current?.scrollBy({ left: d * Math.min(600, (ref.current.clientWidth || 400) * 0.85), behavior: 'smooth' });
+  return (
+    <div className="relative group/hs">
+      <div ref={ref} className="flex gap-3 overflow-x-auto pb-3 px-0.5" style={{ scrollbarWidth: 'none' }}>
+        {children}
+      </div>
+      <button onClick={() => go(-1)} aria-label="Anterior"
+        className="hidden lg:grid place-items-center absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 dark:bg-gray-900/95 shadow-xl border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white text-xl leading-none opacity-0 group-hover/hs:opacity-100 hover:bg-pink-500 hover:text-white transition z-10">‹</button>
+      <button onClick={() => go(1)} aria-label="Siguiente"
+        className="hidden lg:grid place-items-center absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 dark:bg-gray-900/95 shadow-xl border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white text-xl leading-none opacity-0 group-hover/hs:opacity-100 hover:bg-pink-500 hover:text-white transition z-10">›</button>
+    </div>
+  );
+};
+
 // ── OPEN VENUES NOW SECTION (Supabase + fallback mock) ──────────────
 const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
   const [dbVenues, setDbVenues] = React.useState<any[]>([]);
@@ -864,7 +881,7 @@ const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
           <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">Ver Todos</span>
         </button>
       </div>
-      <div className="flex gap-3 overflow-x-auto pb-3 px-0.5" style={{ scrollbarWidth: 'none' }}>
+      <HScroll>
         {openVenues.slice(0, 6).map(v => (
           <button key={v.id} onClick={() => navigate(`/venues/${v.id}`)}
             className="flex-shrink-0 w-40 sm:w-44 bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-md hover:shadow-xl hover:shadow-emerald-500/10 transition-all hover:-translate-y-1 border border-gray-100 dark:border-gray-800 group">
@@ -891,7 +908,7 @@ const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
             </div>
           </button>
         ))}
-      </div>
+      </HScroll>
     </section>
   );
 };
@@ -942,7 +959,7 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
           <span className="text-[9px] font-black uppercase tracking-widest text-red-500">Ver Todos</span>
         </button>
       </div>
-      <div className="flex gap-3 overflow-x-auto pb-3 px-0.5" style={{ scrollbarWidth: 'none' }}>
+      <HScroll>
         {lives.map(s => (
           <button key={s.id} onClick={() => navigate(`/live/session/${s.id}`)}
             className="flex-shrink-0 w-32 sm:w-36 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 group relative border-2 border-red-500/30 hover:border-red-500">
@@ -964,7 +981,7 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
             <div className="absolute inset-0 rounded-2xl ring-1 ring-red-500/50 group-hover:ring-2 group-hover:ring-red-500 transition-all" />
           </button>
         ))}
-      </div>
+      </HScroll>
     </section>
   );
 };
