@@ -124,18 +124,18 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       {/* Mobile overlay */}
       {open && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={onClose} />}
 
-      <aside className={`fixed top-0 left-0 h-full w-60 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-950 border-r border-pink-500/10 z-40 flex flex-col transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed top-0 left-0 h-full w-60 bg-white border-r border-gray-200 z-40 flex flex-col transition-transform duration-300 shadow-sm ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Logo — enlaza a Inicio */}
         <NavLink to="/" onClick={onClose}
-          className="flex items-center gap-2 px-5 h-14 border-b border-pink-500/10 flex-shrink-0 hover:opacity-90 transition-opacity">
+          className="flex items-center gap-2 px-5 h-14 border-b border-gray-100 flex-shrink-0 hover:opacity-90 transition-opacity">
           {siteLogo ? (
             <img src={siteLogo} alt="BailaNow" className="h-10 max-w-[180px] object-contain" />
           ) : (
             <>
               <span className="text-2xl">💃</span>
               <span className="font-display font-black text-lg">
-                <span className="text-white">Baila</span>
-                <span className="bg-brand-orange bg-clip-text text-transparent">Now</span>
+                <span className="text-gray-900">Baila</span>
+                <span className="bg-gradient-to-r from-pink-500 to-fuchsia-600 bg-clip-text text-transparent">Now</span>
               </span>
             </>
           )}
@@ -187,11 +187,23 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           ))}
         </nav>
 
+        {/* Premium CTA */}
+        <div className="px-3 pb-3">
+          <NavLink to="/promocionate" onClick={onClose}
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white shadow-lg shadow-pink-500/25 hover:shadow-xl hover:shadow-pink-500/30 transition-all">
+            <span className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">👑</span>
+            <div className="min-w-0">
+              <p className="font-black text-xs leading-tight">Baila sin límites</p>
+              <p className="text-white/80 text-[10px] leading-tight">Hazte Premium</p>
+            </div>
+          </NavLink>
+        </div>
+
         {/* Radio live indicator */}
         <div className="px-3 pb-4">
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-pink-500/10 border border-pink-500/20 text-gray-400 text-xs">
-            <Radio className="w-4 h-4 text-pink-400 flex-shrink-0" />
-            <span className="truncate text-gray-300">Radio Latino — En directo</span>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-pink-50 border border-pink-100 text-gray-500 text-xs">
+            <Radio className="w-4 h-4 text-pink-500 flex-shrink-0" />
+            <span className="truncate text-gray-600">Radio Latino — En directo</span>
             <span className="w-2 h-2 bg-pink-500 rounded-full animate-pulse flex-shrink-0 shadow-lg shadow-pink-500/50" />
           </div>
         </div>
