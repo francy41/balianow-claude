@@ -495,61 +495,92 @@ const ArtistProfilePage: React.FC = () => {
 // ── ABOUT TAB ───────────────────────────────────────────────────────────────
 const AboutTab: React.FC<{ artist: Artist }> = ({ artist }) => (
   <div className="space-y-4">
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    <div className="lg:col-span-2 space-y-4">
-      <div className="card-white rounded-2xl p-5">
-        <h3 className="font-display font-bold text-gray-900 mb-3">Biografía</h3>
-        <p className="text-gray-600 leading-relaxed">{artist.bio}</p>
-      </div>
+    {/* Métricas pro (sustituye la vieja tarjeta de Estadísticas) */}
+    <HighlightsBar artist={artist} />
 
-      {artist.performanceStyle && (
+    {/* Módulo principal (subido y prominente): Vídeo · Próximos eventos · Cursos */}
+    <ServiceCards artist={artist} />
+
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="lg:col-span-2 space-y-4">
         <div className="card-white rounded-2xl p-5">
-          <h3 className="font-display font-bold text-gray-900 mb-3">🎭 Estilo</h3>
-          <p className="text-gray-600">{artist.performanceStyle}</p>
+          <h3 className="font-display font-bold text-gray-900 mb-3">Biografía</h3>
+          <p className="text-gray-600 leading-relaxed">{artist.bio}</p>
         </div>
-      )}
 
-      <div className="card-white rounded-2xl p-5">
-        <h3 className="font-display font-bold text-gray-900 mb-3">Géneros y especialidades</h3>
-        <div className="flex flex-wrap gap-2">
-          {artist.genre.map(g => (
-            <span key={g} className="bg-pink-50 text-brand-orange border border-pink-100 text-sm font-semibold px-3 py-1 rounded-full">{g}</span>
-          ))}
-          {artist.tags.map(t => (
-            <span key={t} className="bg-gray-50 text-gray-600 border border-gray-100 text-sm px-3 py-1 rounded-full">{t}</span>
-          ))}
-        </div>
-      </div>
+        {artist.performanceStyle && (
+          <div className="card-white rounded-2xl p-5">
+            <h3 className="font-display font-bold text-gray-900 mb-3">🎭 Estilo</h3>
+            <p className="text-gray-600">{artist.performanceStyle}</p>
+          </div>
+        )}
 
-      {artist.languages && artist.languages.length > 0 && (
         <div className="card-white rounded-2xl p-5">
-          <h3 className="font-display font-bold text-gray-900 mb-3 flex items-center gap-2">
-            <Globe className="w-4 h-4 text-brand-orange" /> Idiomas
-          </h3>
+          <h3 className="font-display font-bold text-gray-900 mb-3">Géneros y especialidades</h3>
           <div className="flex flex-wrap gap-2">
-            {artist.languages.map(l => (
-              <span key={l} className="bg-gray-50 text-gray-700 text-sm font-medium px-3 py-1 rounded-lg">{l}</span>
+            {artist.genre.map(g => (
+              <span key={g} className="bg-pink-50 text-brand-orange border border-pink-100 text-sm font-semibold px-3 py-1 rounded-full">{g}</span>
+            ))}
+            {artist.tags.map(t => (
+              <span key={t} className="bg-gray-50 text-gray-600 border border-gray-100 text-sm px-3 py-1 rounded-full">{t}</span>
             ))}
           </div>
         </div>
-      )}
 
+        {artist.languages && artist.languages.length > 0 && (
+          <div className="card-white rounded-2xl p-5">
+            <h3 className="font-display font-bold text-gray-900 mb-3 flex items-center gap-2">
+              <Globe className="w-4 h-4 text-brand-orange" /> Idiomas
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {artist.languages.map(l => (
+                <span key={l} className="bg-gray-50 text-gray-700 text-sm font-medium px-3 py-1 rounded-lg">{l}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Sidebar */}
+      <div className="space-y-4">
+        <SocialLinksCard artist={artist} />
+      </div>
     </div>
 
-    {/* Sidebar */}
-    <div className="space-y-4">
-      <SocialLinksCard artist={artist} />
-      <StatsCard artist={artist} />
-    </div>
-  </div>
+    {/* Ubicación tipo mapa */}
+    <LocationCard artist={artist} />
 
-  {/* Perfil tipo web: Vídeo · Próximos eventos · Cursos + Ubicación */}
-  <ProfileShowcase artist={artist} />
+    {/* Llamada a la acción */}
+    <ContactCTA artist={artist} />
   </div>
 );
 
-// ── PROFILE SHOWCASE (Vídeo · Próximos eventos · Cursos + Ubicación) ──────────
-const ProfileShowcase: React.FC<{ artist: Artist }> = ({ artist }) => {
+// ── HIGHLIGHTS BAR (métricas pro, sustituye Estadísticas) ─────────────────────
+const HighlightsBar: React.FC<{ artist: Artist }> = ({ artist }) => {
+  const langs = (artist.languages && artist.languages.length ? artist.languages : ['Español']);
+  const items = [
+    { icon: <Star className="w-5 h-5 fill-amber-400 text-amber-400" />, value: `${artist.rating || 0}`, sub: `${(artist.reviews || 0).toLocaleString()} reseñas` },
+    { icon: <CheckCircle className="w-5 h-5 text-emerald-500" />, value: `${(artist.completedBookings || 0).toLocaleString()}`, sub: 'reservas completadas' },
+    { icon: <Globe className="w-5 h-5 text-blue-500" />, value: `${langs.length}`, sub: langs.slice(0, 2).join(', ') },
+    { icon: <Clock className="w-5 h-5 text-pink-500" />, value: 'Rápida', sub: 'suele responder pronto' },
+  ];
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      {items.map((it, i) => (
+        <div key={i} className="card-white rounded-2xl p-4 flex items-center gap-3">
+          <span className="w-11 h-11 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0">{it.icon}</span>
+          <div className="min-w-0">
+            <p className="font-display font-black text-gray-900 text-lg leading-none">{it.value}</p>
+            <p className="text-gray-400 text-[11px] truncate mt-0.5">{it.sub}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ── SERVICE CARDS (Vídeo · Próximos eventos · Cursos) ─────────────────────────
+const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
   const MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
   const day = (d: string) => (d || '').split('-')[2] || '--';
   const month = (d: string) => MONTHS[(Number((d || '').split('-')[1]) || 1) - 1] || '';
@@ -561,89 +592,110 @@ const ProfileShowcase: React.FC<{ artist: Artist }> = ({ artist }) => {
   const courses = (((artist as any).classPackages || []).length
     ? (artist as any).classPackages
     : ((artist as any).packages || [])).slice(0, 3);
-  const place = [artist.city, artist.country].filter(Boolean).join(', ');
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place || 'España')}`;
-
   return (
-    <>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* 1) Vídeo */}
-        <div className="card-white rounded-2xl overflow-hidden flex flex-col">
-          <div className="p-4 pb-2 flex items-center justify-between">
-            <h3 className="font-display font-bold text-gray-900 flex items-center gap-2">🎬 Vídeo</h3>
-            {ytId && <a href={artist.featuredVideo} target="_blank" rel="noreferrer" className="text-[10px] text-red-500 font-bold hover:underline">YouTube ↗</a>}
-          </div>
-          <div className="bg-black aspect-video">
-            {ytId ? (
-              <iframe src={`https://www.youtube.com/embed/${ytId}?modestbranding=1&rel=0`} title={artist.featuredVideoTitle || artist.name} className="w-full h-full" allow="encrypted-media; picture-in-picture" allowFullScreen />
-            ) : artist.featuredVideo ? (
-              <video src={artist.featuredVideo} controls className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex flex-col items-center justify-center text-white/40 text-xs gap-1"><Video className="w-6 h-6" /> Sin vídeo aún</div>
-            )}
-          </div>
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* 1) Vídeo */}
+      <div className="card-white rounded-2xl overflow-hidden flex flex-col">
+        <div className="p-4 pb-2 flex items-center justify-between">
+          <h3 className="font-display font-bold text-gray-900 flex items-center gap-2">🎬 Vídeo</h3>
+          {ytId && <a href={artist.featuredVideo} target="_blank" rel="noreferrer" className="text-[10px] text-red-500 font-bold hover:underline">YouTube ↗</a>}
         </div>
-
-        {/* 2) Próximos eventos */}
-        <div className="card-white rounded-2xl p-4 flex flex-col">
-          <h3 className="font-display font-bold text-gray-900 flex items-center gap-2 mb-3">📅 Próximos eventos</h3>
-          {events.length > 0 ? (
-            <div className="space-y-2.5">
-              {events.map(e => (
-                <div key={e.id} className="flex items-center gap-3">
-                  <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gray-900 text-white flex flex-col items-center justify-center leading-none">
-                    <span className="font-black text-sm">{day(e.date)}</span>
-                    <span className="text-[8px] font-bold text-pink-400">{month(e.date)}</span>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-bold text-gray-900 text-xs truncate">{e.title}</p>
-                    <p className="text-gray-400 text-[10px] truncate flex items-center gap-1"><MapPin className="w-3 h-3" />{e.venueName || e.city}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div className="bg-black aspect-video">
+          {ytId ? (
+            <iframe src={`https://www.youtube.com/embed/${ytId}?modestbranding=1&rel=0`} title={artist.featuredVideoTitle || artist.name} className="w-full h-full" allow="encrypted-media; picture-in-picture" allowFullScreen />
+          ) : artist.featuredVideo ? (
+            <video src={artist.featuredVideo} controls className="w-full h-full object-cover" />
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-xs gap-1 py-6"><Calendar className="w-6 h-6" /> Sin eventos próximos</div>
-          )}
-        </div>
-
-        {/* 3) Cursos */}
-        <div className="card-white rounded-2xl p-4 flex flex-col">
-          <h3 className="font-display font-bold text-gray-900 flex items-center gap-2 mb-3">🎓 Cursos</h3>
-          {courses.length > 0 ? (
-            <div className="space-y-2.5">
-              {courses.map((c: any) => (
-                <div key={c.id} className="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-gray-100">
-                  <div className="min-w-0">
-                    <p className="font-bold text-gray-900 text-xs truncate">{c.name}</p>
-                    <p className="text-gray-400 text-[10px]">{c.duration_minutes ? `${c.duration_minutes} min` : 'Curso'}{c.capacity ? ` · hasta ${c.capacity} pers.` : ''}</p>
-                  </div>
-                  {c.price != null && <span className="flex-shrink-0 text-pink-600 font-black text-sm">€{c.price}</span>}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-xs gap-1 py-6"><Award className="w-6 h-6" /> Sin cursos publicados</div>
+            <div className="w-full h-full flex flex-col items-center justify-center text-white/40 text-xs gap-1"><Video className="w-6 h-6" /> Sin vídeo aún</div>
           )}
         </div>
       </div>
 
-      {/* Ubicación */}
-      <a href={mapsUrl} target="_blank" rel="noreferrer"
-        className="mt-4 relative block overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-purple-950 to-black text-white p-5 hover:shadow-xl hover:shadow-pink-500/20 transition-all group">
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-500/25 rounded-full blur-3xl pointer-events-none" />
-        <div className="relative flex items-center gap-4">
-          <span className="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center flex-shrink-0"><MapPin className="w-6 h-6 text-pink-300" /></span>
-          <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-widest text-pink-300">Ubicación</p>
-            <p className="font-display font-black text-lg leading-tight truncate">{place || 'España'}</p>
+      {/* 2) Próximos eventos */}
+      <div className="card-white rounded-2xl p-4 flex flex-col">
+        <h3 className="font-display font-bold text-gray-900 flex items-center gap-2 mb-3">📅 Próximos eventos</h3>
+        {events.length > 0 ? (
+          <div className="space-y-2.5">
+            {events.map(e => (
+              <div key={e.id} className="flex items-center gap-3">
+                <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gray-900 text-white flex flex-col items-center justify-center leading-none">
+                  <span className="font-black text-sm">{day(e.date)}</span>
+                  <span className="text-[8px] font-bold text-pink-400">{month(e.date)}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="font-bold text-gray-900 text-xs truncate">{e.title}</p>
+                  <p className="text-gray-400 text-[10px] truncate flex items-center gap-1"><MapPin className="w-3 h-3" />{e.venueName || e.city}</p>
+                </div>
+              </div>
+            ))}
           </div>
-          <span className="ml-auto inline-flex items-center gap-1 bg-white text-gray-900 font-bold text-xs rounded-xl px-3 py-2 flex-shrink-0 group-hover:scale-105 transition">Ver en el mapa →</span>
-        </div>
-      </a>
-    </>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-xs gap-1 py-6"><Calendar className="w-6 h-6" /> Sin eventos próximos</div>
+        )}
+      </div>
+
+      {/* 3) Cursos */}
+      <div className="card-white rounded-2xl p-4 flex flex-col">
+        <h3 className="font-display font-bold text-gray-900 flex items-center gap-2 mb-3">🎓 Cursos</h3>
+        {courses.length > 0 ? (
+          <div className="space-y-2.5">
+            {courses.map((c: any) => (
+              <div key={c.id} className="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-gray-100">
+                <div className="min-w-0">
+                  <p className="font-bold text-gray-900 text-xs truncate">{c.name}</p>
+                  <p className="text-gray-400 text-[10px]">{c.duration_minutes ? `${c.duration_minutes} min` : 'Curso'}{c.capacity ? ` · hasta ${c.capacity} pers.` : ''}</p>
+                </div>
+                {c.price != null && <span className="flex-shrink-0 text-pink-600 font-black text-sm">€{c.price}</span>}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-xs gap-1 py-6"><Award className="w-6 h-6" /> Sin cursos publicados</div>
+        )}
+      </div>
+    </div>
   );
 };
+
+// ── LOCATION CARD (tipo mapa) ─────────────────────────────────────────────────
+const LocationCard: React.FC<{ artist: Artist }> = ({ artist }) => {
+  const place = [artist.city, artist.country].filter(Boolean).join(', ');
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place || 'España')}`;
+  return (
+    <div className="card-white rounded-2xl overflow-hidden">
+      <div className="relative h-40 bg-gradient-to-br from-gray-900 via-purple-950 to-black">
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.3) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-500/25 rounded-full blur-3xl" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+          <span className="w-12 h-12 rounded-full bg-pink-500 flex items-center justify-center shadow-lg shadow-pink-500/40"><MapPin className="w-6 h-6" /></span>
+          <p className="font-display font-black text-xl mt-2 drop-shadow">{place || 'España'}</p>
+        </div>
+      </div>
+      <div className="p-4 flex items-center justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Ubicación</p>
+          <p className="font-bold text-gray-900 text-sm flex items-center gap-1"><MapPin className="w-4 h-4 text-pink-500" />{place || 'España'}</p>
+        </div>
+        <a href={mapsUrl} target="_blank" rel="noreferrer" className="btn-orange text-sm py-2 px-4 flex items-center gap-1.5 flex-shrink-0">Ver en el mapa →</a>
+      </div>
+    </div>
+  );
+};
+
+// ── CONTACT CTA ───────────────────────────────────────────────────────────────
+const ContactCTA: React.FC<{ artist: Artist }> = ({ artist }) => (
+  <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white p-5 sm:p-6 flex items-center justify-between gap-4 flex-wrap">
+    <div className="absolute -top-8 -right-8 w-40 h-40 bg-white/15 rounded-full blur-3xl pointer-events-none" />
+    <div className="relative">
+      <h3 className="font-display font-black text-lg sm:text-2xl leading-tight">¿Quieres trabajar con {artist.name}?</h3>
+      <p className="text-white/85 text-sm mt-1">Reserva o escríbele por chat interno. Pago protegido con escrow.</p>
+    </div>
+    <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      className="relative bg-white text-pink-600 font-black rounded-full px-6 py-3 hover:scale-105 transition flex-shrink-0">
+      Reservar ahora ↑
+    </button>
+  </div>
+);
 
 // ── SOCIAL LINKS (icon grid) ────────────────────────────────────────────────
 const SocialIcon: React.FC<{ kind: string }> = ({ kind }) => {
