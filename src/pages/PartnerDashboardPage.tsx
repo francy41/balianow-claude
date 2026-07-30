@@ -12,10 +12,11 @@ import { useRealtime } from '../hooks/useRealtime';
 import { SUBSCRIPTION_PLANS } from '../data/mockData';
 import { AD_PLANS } from '../data/adPlans';
 import { SupportThread } from './ChatPage';
+import { uploadImage } from '../lib/uploadHelper';
 
-type Tab = 'resumen' | 'bandeja' | 'ganancias' | 'gestiones' | 'equipo' | 'contenido' | 'recursos' | 'redes' | 'pagos' | 'planes' | 'soporte';
+type Tab = 'resumen' | 'perfil' | 'bandeja' | 'ganancias' | 'gestiones' | 'equipo' | 'contenido' | 'recursos' | 'redes' | 'pagos' | 'planes' | 'soporte';
 
-interface PartnerRow { user_id: string; display_name: string | null; cities: string[]; commission_percent: number; status: string; bio: string | null; slug: string | null; }
+interface PartnerRow { user_id: string; display_name: string | null; cities: string[]; commission_percent: number; status: string; bio: string | null; slug: string | null; logo_url: string | null; cover_url: string | null; }
 interface TaskRow { id: string; city: string | null; title: string; type: string; status: string; amount: number; commission: number; notes: string | null; due_date: string | null; created_at: string; completed_at: string | null; rep_id: string | null; }
 interface PayoutRow { id: string; type: string; label: string | null; details: string | null; is_default: boolean; }
 interface WithdrawalRow { id: string; method: string | null; amount: number; status: string; requested_at: string; }
@@ -31,6 +32,7 @@ const STATUS_LABEL: Record<string, string> = { pending: 'Pendiente', in_progress
 
 const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'resumen',   label: 'Resumen',        icon: <LayoutDashboard className="w-4 h-4" /> },
+  { id: 'perfil',    label: 'Mi perfil público', icon: <Link2 className="w-4 h-4" /> },
   { id: 'bandeja',   label: 'Bandeja',        icon: <Inbox className="w-4 h-4" /> },
   { id: 'ganancias', label: 'Ganancias',      icon: <Wallet className="w-4 h-4" /> },
   { id: 'gestiones', label: 'Gestiones',      icon: <ListChecks className="w-4 h-4" /> },
@@ -149,6 +151,7 @@ const PartnerDashboardPage: React.FC = () => {
         )}
 
         {tab === 'resumen'   && <Resumen earned={earned} available={available} pendingComm={pendingComm} openCount={openTasks.length} doneCount={doneTasks.length} newInquiries={inquiries.filter(i => i.status === 'new').length} onGo={setTab} />}
+        {tab === 'perfil'    && <PerfilPublico uid={uid!} partner={partner} reload={load} addToast={addToast} />}
         {tab === 'bandeja'   && <Bandeja uid={uid!} partner={partner} inquiries={inquiries} reload={load} addToast={addToast} />}
         {tab === 'ganancias' && <Ganancias earned={earned} available={available} pendingComm={pendingComm} withdrawn={withdrawn} tasks={tasks} />}
         {tab === 'gestiones' && <Gestiones uid={uid!} partner={partner} tasks={tasks} openTasks={openTasks} doneTasks={doneTasks} reps={reps} reload={load} addToast={addToast} />}
@@ -194,6 +197,95 @@ const DirectLink: React.FC<{ slug: string | null; city: string; addToast: (t: an
       <a href={`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + url)}`} target="_blank" rel="noreferrer" aria-label="Compartir por WhatsApp" className="w-9 h-9 inline-flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20"><MessageCircle className="w-4 h-4" /></a>
       <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} target="_blank" rel="noreferrer" aria-label="Compartir en Facebook" className="w-9 h-9 inline-flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20"><Facebook className="w-4 h-4" /></a>
       <a href={`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(shareText)}`} target="_blank" rel="noreferrer" aria-label="Compartir en Telegram" className="w-9 h-9 inline-flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20"><Send className="w-4 h-4" /></a>
+    </div>
+  );
+};
+
+const slugify = (s: string) => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+const PerfilPublico: React.FC<{ uid: string; partner: PartnerRow | null; reload: () => Promise<void>; addToast: (t: any) => void }> = ({ uid, partner, reload, addToast }) => {
+  const [slug, setSlug] = useState(partner?.slug || '');
+  const [bio, setBio] = useState(partner?.bio || '');
+  const [logo, setLogo] = useState<string | null>(partner?.logo_url || null);
+  const [cover, setCover] = useState<string | null>(partner?.cover_url || null);
+  const [uploading, setUploading] = useState<'logo' | 'cover' | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://bailanow.com';
+  const cleanSlug = slugify(slug);
+  const publicUrl = `${origin}/partner/${cleanSlug || '…'}`;
+
+  const pick = async (e: React.ChangeEvent<HTMLInputElement>, which: 'logo' | 'cover') => {
+    const f = e.target.files?.[0]; e.target.value = '';
+    if (!f) return;
+    setUploading(which);
+    const { url, error } = await uploadImage(f, which === 'logo' ? 'partner-logos' : 'partner-covers');
+    setUploading(null);
+    if (url) { if (which === 'logo') setLogo(url); else setCover(url); }
+    else addToast({ message: error || 'No se pudo subir', type: 'error' });
+  };
+
+  const save = async () => {
+    if (!cleanSlug) { addToast({ message: 'Pon un enlace (slug) válido', type: 'error' }); return; }
+    setSaving(true);
+    const { error } = await supabase.from('partners').update({
+      slug: cleanSlug, bio: bio.trim() || null, logo_url: logo, cover_url: cover,
+    }).eq('user_id', uid);
+    setSaving(false);
+    if (error) {
+      addToast({ message: error.code === '23505' ? 'Ese enlace ya está en uso, elige otro' : error.message, type: 'error' });
+      return;
+    }
+    addToast({ message: 'Perfil público actualizado ✔', type: 'success' });
+    reload();
+  };
+
+  if (!partner) return <div className="rounded-2xl bg-white/5 ring-1 ring-white/10 p-6 text-white/60 text-sm">Aún no tienes ficha de partner cargada.</div>;
+
+  return (
+    <div className="max-w-2xl space-y-5">
+      <p className="text-white/60 text-sm">Personaliza tu página pública para compartir en redes: <span className="text-fuchsia-300 font-bold break-all">{publicUrl}</span></p>
+
+      {/* Portada + logo */}
+      <div className="rounded-2xl overflow-hidden ring-1 ring-white/10 bg-white/5">
+        <div className="relative h-36 bg-gradient-to-br from-fuchsia-700/40 to-orange-600/30">
+          {cover && <img src={cover} alt="portada" className="w-full h-full object-cover" />}
+          <label className="absolute top-2 right-2 cursor-pointer text-xs font-bold bg-black/50 hover:bg-black/70 rounded-lg px-3 py-1.5 inline-flex items-center gap-1.5">
+            {uploading === 'cover' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImageIcon className="w-3.5 h-3.5" />} Portada
+            <input type="file" accept="image/*" className="hidden" onChange={e => pick(e, 'cover')} />
+          </label>
+          <div className="absolute -bottom-8 left-4 w-20 h-20 rounded-2xl ring-4 ring-[#0a0a0f] bg-gray-800 overflow-hidden">
+            {logo ? <img src={logo} alt="logo" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl font-black text-fuchsia-300">{(partner.display_name || 'P').charAt(0)}</div>}
+            <label className="absolute inset-0 cursor-pointer flex items-center justify-center bg-black/0 hover:bg-black/40 transition">
+              {uploading === 'logo' ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImageIcon className="w-5 h-5 opacity-0 hover:opacity-100" />}
+              <input type="file" accept="image/*" className="hidden" onChange={e => pick(e, 'logo')} />
+            </label>
+          </div>
+        </div>
+        <div className="h-10" />
+      </div>
+
+      {/* Slug */}
+      <div>
+        <label className="text-xs font-bold text-white/50">Tu enlace (slug)</label>
+        <div className="mt-1 flex items-center rounded-xl bg-black/30 ring-1 ring-white/15 overflow-hidden">
+          <span className="pl-3 pr-1 text-white/40 text-sm whitespace-nowrap">/partner/</span>
+          <input value={slug} onChange={e => setSlug(e.target.value)} placeholder="madridbachata" className="flex-1 bg-transparent px-1 py-3 outline-none text-sm" />
+        </div>
+      </div>
+
+      {/* Bio */}
+      <div>
+        <label className="text-xs font-bold text-white/50">Bio</label>
+        <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} placeholder="Cuenta quién eres y qué mueves en tu ciudad…" className="w-full mt-1 rounded-xl bg-black/30 ring-1 ring-white/15 px-4 py-3 outline-none text-sm resize-none" />
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button onClick={save} disabled={saving || !!uploading} className="inline-flex items-center gap-2 bg-brand-orange font-bold rounded-xl px-5 py-2.5 disabled:opacity-60">
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Guardar
+        </button>
+        {cleanSlug && <a href={publicUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-bold text-fuchsia-300"><ExternalLink className="w-4 h-4" /> Ver mi perfil</a>}
+      </div>
     </div>
   );
 };
