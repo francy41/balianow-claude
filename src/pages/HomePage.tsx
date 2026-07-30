@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv } from 'lucide-react';
+import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket } from 'lucide-react';
 import { ARTISTS, EVENTS, VENUES } from '../data/mockData';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, type HeroSliderImage, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
@@ -1261,19 +1261,45 @@ const HomePage: React.FC = () => {
         <div className="relative h-full flex items-center">
           <div className="w-full px-5 sm:px-8 lg:px-10 grid lg:grid-cols-[1.1fr_0.9fr] gap-6 items-center">
             <div className="text-white max-w-xl">
-              <span className="text-[11px] font-black uppercase tracking-[0.18em] text-pink-300">El ecosistema de la danza latina</span>
+              <span className="text-[11px] font-black uppercase tracking-[0.18em] text-pink-300">Bienvenido a BailaNow</span>
               <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl leading-[0.98] tracking-tight mt-3">
                 Todo lo que amas del <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-pink-200">baile</span>, en un solo lugar.
               </h1>
-              <p className="text-white/80 text-sm sm:text-lg mt-3 max-w-md">
-                Locales, eventos, artistas, clases y mucho más — cerca de ti, esta misma noche.
-              </p>
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-3 text-white/80 text-sm sm:text-base font-semibold">
+                {['Locales', 'Eventos', 'Artistas', 'Clases', 'Cursos', 'BailaNow TV'].map((w, i) => (
+                  <React.Fragment key={w}>
+                    {i > 0 && <span className="text-pink-400/60">·</span>}
+                    <span>{w}</span>
+                  </React.Fragment>
+                ))}
+              </div>
               <div className="flex flex-wrap gap-3 mt-5">
                 <button onClick={() => navigate('/explorar')} className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-black rounded-full px-6 py-3.5 shadow-lg shadow-pink-500/40 hover:scale-[1.03] active:scale-95 transition">
                   Explorar ahora →
                 </button>
                 <button onClick={() => navigate('/tv')} className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white font-bold rounded-full px-6 py-3.5 hover:bg-white/20 transition">
                   <Play className="w-4 h-4" fill="currentColor" /> Ver vídeo
+                </button>
+              </div>
+
+              {/* Buscador hero estilo Airbnb (Ciudad · Cuándo · Categoría · Buscar) */}
+              <div className="mt-6 hidden sm:flex items-center gap-1 bg-white rounded-full p-1.5 shadow-2xl max-w-xl">
+                <button onClick={() => navigate('/venues')} className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-gray-100 transition text-left flex-1 min-w-0">
+                  <MapPin className="w-4 h-4 text-pink-500 flex-shrink-0" />
+                  <span className="min-w-0"><span className="block text-[9px] font-black text-gray-400 uppercase leading-none">Ciudad</span><span className="block text-xs font-bold text-gray-800 truncate mt-0.5">Madrid</span></span>
+                </button>
+                <span className="w-px h-8 bg-gray-200 flex-shrink-0" />
+                <button onClick={() => navigate('/eventos')} className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-gray-100 transition text-left flex-1 min-w-0">
+                  <Calendar className="w-4 h-4 text-pink-500 flex-shrink-0" />
+                  <span className="min-w-0"><span className="block text-[9px] font-black text-gray-400 uppercase leading-none">Cuándo</span><span className="block text-xs font-bold text-gray-800 truncate mt-0.5">Hoy</span></span>
+                </button>
+                <span className="w-px h-8 bg-gray-200 flex-shrink-0" />
+                <button onClick={() => navigate('/explorar')} className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-gray-100 transition text-left flex-1 min-w-0">
+                  <Ticket className="w-4 h-4 text-pink-500 flex-shrink-0" />
+                  <span className="min-w-0"><span className="block text-[9px] font-black text-gray-400 uppercase leading-none">Categoría</span><span className="block text-xs font-bold text-gray-800 truncate mt-0.5">Todo</span></span>
+                </button>
+                <button onClick={() => window.dispatchEvent(new Event('bn:open-search'))} className="w-11 h-11 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white flex items-center justify-center flex-shrink-0 hover:shadow-lg hover:shadow-pink-500/40 transition">
+                  <Search className="w-4 h-4" />
                 </button>
               </div>
             </div>
