@@ -1103,6 +1103,41 @@ const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
   );
 };
 
+// ── BAILANOW TV (estilo Netflix: scroll horizontal + etiquetas) ──
+const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
+  const shows = [
+    { title: 'Bachata desde cero',    meta: 'Curso · Principiante', tag: 'Nuevo',            tagColor: 'bg-pink-500',    img: ARTISTS[0]?.cover },
+    { title: 'Salsa en pareja',       meta: 'Curso · Intermedio',   tag: 'Más visto',        tagColor: 'bg-amber-500',   img: ARTISTS[1]?.cover },
+    { title: 'Kizomba fusión',        meta: 'Curso · Avanzado',     tag: 'Recomendado',      tagColor: 'bg-emerald-500', img: ARTISTS[2]?.cover },
+    { title: 'Estilo y musicalidad',  meta: 'Masterclass',          tag: 'Continuar viendo', tagColor: 'bg-blue-500',    img: ARTISTS[3]?.cover },
+    { title: 'Merengue clásico',      meta: 'Curso · Principiante', tag: 'Nuevo',            tagColor: 'bg-pink-500',    img: ARTISTS[4]?.cover },
+    { title: 'Reggaetón flow',        meta: 'Curso · Intermedio',   tag: 'Más visto',        tagColor: 'bg-amber-500',   img: EVENTS[0]?.cover },
+  ];
+  return (
+    <section className="mx-3 sm:mx-4 mt-8">
+      <div className="flex items-center justify-between mb-3 px-1">
+        <h2 className="font-display font-black text-lg text-gray-900 dark:text-white flex items-center gap-2">📺 BailaNow TV</h2>
+        <button onClick={() => navigate('/tv')} className="text-pink-600 dark:text-pink-400 text-xs font-bold hover:underline">Ver todo →</button>
+      </div>
+      <HScroll>
+        {shows.map((s, i) => (
+          <button key={i} onClick={() => navigate('/tv')}
+            className="flex-shrink-0 w-64 relative rounded-2xl overflow-hidden h-40 group text-left bg-gray-900 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
+            {s.img && <img src={s.img} alt={s.title} className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" />}
+            <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
+            <span className={`absolute top-2.5 left-2.5 ${s.tagColor} text-white text-[9px] font-black px-2 py-0.5 rounded-full`}>{s.tag}</span>
+            <span className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm grid place-items-center text-white opacity-0 group-hover:opacity-100 transition"><Play className="w-4 h-4" fill="currentColor" /></span>
+            <div className="absolute bottom-3 left-3 right-3">
+              <p className="text-white font-black text-sm leading-tight">{s.title}</p>
+              <p className="text-white/60 text-[10px] mt-0.5">{s.meta}</p>
+            </div>
+          </button>
+        ))}
+      </HScroll>
+    </section>
+  );
+};
+
 const HomePage: React.FC = () => {
   usePageMeta({
     title: 'Inicio',
@@ -1495,6 +1530,9 @@ const HomePage: React.FC = () => {
       {/* ── FILA 3 COLUMNAS: Eventos destacados · Artistas recomendados · BailaNow TV ── */}
       <FeaturedTripleRow navigate={navigate} />
 
+      {/* ── BAILANOW TV estilo Netflix (scroll horizontal + etiquetas) ── */}
+      <BailaNowTVRow navigate={navigate} />
+
       {/* ── EN DIRECTO AHORA ── */}
       <LiveNowHomeSection navigate={navigate} />
 
@@ -1506,8 +1544,8 @@ const HomePage: React.FC = () => {
       {/* ── DONDE BAILAR EN LA CIUDAD ── */}
       {isModuleOn('cities') && (
       <HomeSectionWithSearch
-        title="💃 Donde Bailar en la Ciudad"
-        subtitle="Encuentra los mejores locales y eventos en tu ciudad"
+        title="🌍 Explorar por ciudad"
+        subtitle="Descubre la escena latina en cada ciudad del mundo"
         searchPlaceholder="Buscar ciudad, local, zona..."
         gradient
         actionLabel="Ver Todas"
@@ -1519,29 +1557,26 @@ const HomePage: React.FC = () => {
             ? CITIES.filter(c => c.name.toLowerCase().includes(searchQ.toLowerCase()))
             : CITIES.slice(0, 9);
           return (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
               {filtered.map(city => (
                 <button
                   key={city.name}
                   onClick={() => navigate(`/venues?city=${city.name}`)}
-                  className="relative rounded-2xl overflow-hidden group shadow-lg hover:shadow-xl hover:shadow-pink-500/20 transition-all duration-500"
-                  style={{ height: 180 }}
+                  className="relative rounded-3xl overflow-hidden group shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all duration-500 h-52 sm:h-56"
                 >
                   <img src={city.img} alt={city.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                  <div className="absolute inset-0 rounded-2xl border-2 border-transparent group-hover:border-pink-500/50 transition-all duration-300" />
-                  <div className="absolute top-3 left-3 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl shadow-lg">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+                  <div className="absolute inset-0 rounded-3xl border-2 border-transparent group-hover:border-pink-500/40 transition-all duration-300" />
+                  <div className="absolute top-3 left-3 w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl shadow-lg">
                     {city.monument}
                   </div>
-                  <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                    📍 Explorar
-                  </div>
-                  <div className="absolute bottom-3 left-3 right-3 text-left">
-                    <p className="text-white font-display font-bold text-base sm:text-lg leading-tight drop-shadow-lg">{city.name}</p>
-                    <p className="text-white/70 text-[10px] font-medium mt-0.5">{city.landmark}</p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      <span className="bg-pink-500/80 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">{city.monument} Descubre</span>
+                  <div className="absolute bottom-4 left-4 right-4 text-left">
+                    <p className="text-white font-display font-black text-xl sm:text-2xl leading-tight drop-shadow-lg">{city.name}</p>
+                    <p className="text-white/70 text-[11px] font-medium">{city.landmark}</p>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                      <span className="bg-white/15 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">🏠 {city.venues} locales</span>
+                      <span className="bg-white/15 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">🎟 {city.events} eventos</span>
                     </div>
                   </div>
                 </button>
