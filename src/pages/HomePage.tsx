@@ -700,7 +700,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
         onClick={() => navigate(cat.route)}
         className="group bg-white dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl p-3 sm:p-4 flex flex-col items-center justify-center gap-2 h-[100px] sm:h-28 border border-pink-200/60 dark:border-pink-500/20 shadow-sm hover:shadow-xl hover:shadow-pink-500/15 hover:border-pink-400 hover:-translate-y-1 active:scale-95 transition-all duration-300"
       >
-        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full bg-pink-50 dark:bg-pink-500/10 flex items-center justify-center group-hover:bg-pink-100 group-hover:scale-110 transition-all duration-300">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-pink-100 to-fuchsia-50 dark:from-pink-500/15 dark:to-fuchsia-500/10 flex items-center justify-center group-hover:scale-110 transition-all duration-300 shadow-inner">
           <span className="text-2xl sm:text-3xl">{cat.icon}</span>
         </div>
         <span className="text-gray-700 dark:text-gray-200 text-[11px] sm:text-xs font-bold leading-tight text-center line-clamp-2 group-hover:text-pink-600 transition-colors">{cat.name}</span>
@@ -776,7 +776,7 @@ const HomeSectionWithSearch: React.FC<HomeSectionProps> = ({
     <section className={`mx-4 mt-10 ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
-        <h2 className={`font-display font-black text-lg uppercase tracking-wide ${
+        <h2 className={`font-display font-black text-xl sm:text-2xl tracking-tight ${
           gradient ? 'bg-brand-orange bg-clip-text text-transparent' : 'text-gray-900 dark:text-white'
         }`}>
           {title}
