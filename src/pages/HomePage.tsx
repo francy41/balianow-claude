@@ -1419,17 +1419,17 @@ const HomePage: React.FC = () => {
 
               {/* Buscador hero estilo Airbnb (Ciudad · Cuándo · Categoría · Buscar) */}
               <div className="mt-6 hidden sm:flex items-center gap-1 bg-white rounded-full p-1.5 shadow-2xl max-w-xl">
-                <button onClick={() => navigate('/venues')} className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-gray-100 transition text-left flex-1 min-w-0">
+                <button onClick={() => window.dispatchEvent(new Event('bn:open-search'))} className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-gray-100 transition text-left flex-1 min-w-0">
                   <MapPin className="w-4 h-4 text-pink-500 flex-shrink-0" />
                   <span className="min-w-0"><span className="block text-[9px] font-black text-gray-400 uppercase leading-none">Ciudad</span><span className="block text-xs font-bold text-gray-800 truncate mt-0.5">Madrid</span></span>
                 </button>
                 <span className="w-px h-8 bg-gray-200 flex-shrink-0" />
-                <button onClick={() => navigate('/eventos')} className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-gray-100 transition text-left flex-1 min-w-0">
+                <button onClick={() => window.dispatchEvent(new Event('bn:open-search'))} className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-gray-100 transition text-left flex-1 min-w-0">
                   <Calendar className="w-4 h-4 text-pink-500 flex-shrink-0" />
                   <span className="min-w-0"><span className="block text-[9px] font-black text-gray-400 uppercase leading-none">Cuándo</span><span className="block text-xs font-bold text-gray-800 truncate mt-0.5">Hoy</span></span>
                 </button>
                 <span className="w-px h-8 bg-gray-200 flex-shrink-0" />
-                <button onClick={() => navigate('/explorar')} className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-gray-100 transition text-left flex-1 min-w-0">
+                <button onClick={() => window.dispatchEvent(new Event('bn:open-search'))} className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-gray-100 transition text-left flex-1 min-w-0">
                   <Ticket className="w-4 h-4 text-pink-500 flex-shrink-0" />
                   <span className="min-w-0"><span className="block text-[9px] font-black text-gray-400 uppercase leading-none">Categoría</span><span className="block text-xs font-bold text-gray-800 truncate mt-0.5">Todo</span></span>
                 </button>
