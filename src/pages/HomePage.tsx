@@ -985,6 +985,97 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
   );
 };
 
+// ── FEATURED TRIPLE ROW (Eventos destacados · Artistas recomendados · BailaNow TV) ──
+const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
+  const MONTHS = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+  const day = (d: string) => (d || '').split('-')[2] || '--';
+  const month = (d: string) => MONTHS[(Number((d || '').split('-')[1]) || 1) - 1] || '';
+
+  const events = EVENTS.slice(0, 4);
+  const artists = ARTISTS.slice(0, 4);
+  const tv = [
+    { title: 'Kizomba desde cero', level: 'Principiante', genre: 'Kizomba', img: ARTISTS[2]?.cover },
+    { title: 'Merengue en pareja', level: 'Intermedio', genre: 'Merengue', img: ARTISTS[3]?.cover },
+  ];
+
+  const ColHeader = ({ title, onAll }: { title: string; onAll: () => void }) => (
+    <div className="flex items-center justify-between mb-3 px-1">
+      <h3 className="font-display font-black text-base text-gray-900 dark:text-white">{title}</h3>
+      <button onClick={onAll} className="text-pink-600 dark:text-pink-400 text-[11px] font-bold hover:underline">Ver todos →</button>
+    </div>
+  );
+
+  return (
+    <section className="mx-3 sm:mx-4 mt-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        {/* Col 1: Eventos destacados */}
+        <div>
+          <ColHeader title="🎫 Eventos destacados" onAll={() => navigate('/eventos')} />
+          <div className="space-y-2.5">
+            {events.map(e => (
+              <button key={e.id} onClick={() => navigate(`/eventos/${e.id}`)}
+                className="w-full flex items-center gap-3 bg-white dark:bg-gray-900 rounded-2xl p-2.5 shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-md hover:-translate-y-0.5 transition-all text-left">
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gray-900 text-white flex flex-col items-center justify-center leading-none">
+                  <span className="font-black text-base">{day(e.date)}</span>
+                  <span className="text-[8px] font-bold text-pink-400 mt-0.5">{month(e.date)}</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-gray-900 dark:text-white text-xs truncate">{e.title}</p>
+                  <p className="text-gray-400 text-[10px] truncate flex items-center gap-1"><MapPin className="w-3 h-3" />{e.venueName || e.city}</p>
+                </div>
+                <span className="flex-shrink-0 bg-pink-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full">Entradas</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Col 2: Artistas recomendados */}
+        <div>
+          <ColHeader title="🎧 Artistas recomendados" onAll={() => navigate('/artistas')} />
+          <div className="flex -space-x-3 mb-3 px-1">
+            {artists.map(a => (
+              <img key={a.id} src={a.avatar} alt={a.name} className="w-12 h-12 rounded-full border-2 border-white dark:border-gray-900 object-cover" loading="lazy" />
+            ))}
+          </div>
+          <div className="space-y-1.5">
+            {artists.map(a => (
+              <button key={a.id} onClick={() => navigate(`/artistas/${a.id}`)}
+                className="w-full flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-xl p-1.5 transition text-left">
+                <img src={a.avatar} alt={a.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0" loading="lazy" />
+                <div className="min-w-0">
+                  <p className="font-bold text-gray-900 dark:text-white text-xs truncate">{a.name}</p>
+                  <p className="text-gray-400 text-[10px] truncate">{a.genre.slice(0, 2).join(' · ')}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Col 3: BailaNow TV */}
+        <div>
+          <ColHeader title="📺 BailaNow TV" onAll={() => navigate('/tv')} />
+          <div className="grid grid-cols-2 gap-3">
+            {tv.map((c, i) => (
+              <button key={i} onClick={() => navigate('/tv')}
+                className="relative rounded-2xl overflow-hidden h-40 group text-left bg-gray-900">
+                {c.img && <img src={c.img} alt={c.title} className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" loading="lazy" />}
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/40 to-transparent" />
+                <span className="absolute top-2.5 left-2.5 bg-pink-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">NUEVO</span>
+                <div className="absolute bottom-3 left-3 right-3">
+                  <p className="text-white font-black text-sm leading-tight">{c.title}</p>
+                  <p className="text-white/60 text-[10px] mt-0.5">{c.genre} · {c.level}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+      </div>
+    </section>
+  );
+};
+
 const HomePage: React.FC = () => {
   usePageMeta({
     title: 'Inicio',
@@ -1344,6 +1435,9 @@ const HomePage: React.FC = () => {
 
       {/* ── LOCALES ABIERTOS AHORA ── */}
       <OpenVenuesNowSection navigate={navigate} />
+
+      {/* ── FILA 3 COLUMNAS: Eventos destacados · Artistas recomendados · BailaNow TV ── */}
+      <FeaturedTripleRow navigate={navigate} />
 
       {/* ── EN DIRECTO AHORA ── */}
       <LiveNowHomeSection navigate={navigate} />
