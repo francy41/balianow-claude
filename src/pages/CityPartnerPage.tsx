@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Send, Loader2, Instagram, Facebook, Music2, MessageCircle, Calendar, Sparkles, CheckCircle2 } from 'lucide-react';
+import { MapPin, Send, Loader2, Instagram, Facebook, Music2, MessageCircle, Calendar, Sparkles, CheckCircle2, Share2, Copy, Check, Users, Store, Send as Telegram } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useUIStore } from '../store/appStore';
 import { useSeo } from '../hooks/useSeo';
 
 interface CityPartner { partner_id: string; display_name: string | null; socials: { provider: string; handle: string | null }[]; }
 interface CityEvent { id: string; title: string; date: string | null; cover: string | null; }
+interface CityVenue { id: string; name: string; cover: string | null; type: string | null; }
+interface CityArtist { id: string; name: string; avatar: string | null; cover: string | null; type: string | null; }
 
 const PROVIDER_ICON: Record<string, React.ReactNode> = {
   instagram: <Instagram className="w-4 h-4" />, facebook: <Facebook className="w-4 h-4" />,
@@ -31,15 +33,13 @@ const CityPartnerPage: React.FC = () => {
   const { addToast } = useUIStore();
   const city = useMemo(() => titleCase(decodeURIComponent(cityParam || '')), [cityParam]);
 
-  useSeo({
-    title: `Baila en ${city} — clases, eventos y comunidad latina | BailaNow`,
-    description: `Descubre la escena de danza latina en ${city}: eventos, clases, artistas y tu partner local de BailaNow. Salsa, bachata, kizomba y más.`,
-    path: `/${cityParam || ''}`,
-  });
-
   const [loading, setLoading] = useState(true);
   const [partner, setPartner] = useState<CityPartner | null>(null);
   const [events, setEvents] = useState<CityEvent[]>([]);
+  const [venues, setVenues] = useState<CityVenue[]>([]);
+  const [artists, setArtists] = useState<CityArtist[]>([]);
+  const [ogImage, setOgImage] = useState<string | undefined>(undefined);
+  const [copied, setCopied] = useState(false);
 
   const [name, setName] = useState('');
   const [handle, setHandle] = useState('');
@@ -47,18 +47,47 @@ const CityPartnerPage: React.FC = () => {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
 
+  const brand = partner?.display_name?.trim() || `BailaNow ${city}`;
+  const shareUrl = `https://bailanow.com/${encodeURIComponent((cityParam || city).toLowerCase())}`;
+  const shareText = `💃🔥 La escena de danza latina de ${city} en BailaNow — eventos, locales y artistas${partner?.display_name ? ' · ' + partner.display_name : ''}`;
+
+  useSeo({
+    title: `${brand} — danza latina en ${city}: eventos, locales y artistas | BailaNow`,
+    description: `Todo lo latino de ${city} en un sitio: eventos, locales, artistas y tu partner local ${partner?.display_name || 'de BailaNow'}. Salsa, bachata, kizomba y más.`,
+    path: `/${cityParam || ''}`,
+    image: ogImage,
+  });
+
+  const copyLink = async () => {
+    try { await navigator.clipboard.writeText(shareUrl); setCopied(true); setTimeout(() => setCopied(false), 2000); addToast({ message: 'Enlace copiado ✔', type: 'success' }); }
+    catch { addToast({ message: shareUrl, type: 'info' }); }
+  };
+  const nativeShare = async () => {
+    if (typeof navigator !== 'undefined' && (navigator as any).share) {
+      try { await (navigator as any).share({ title: brand, text: shareText, url: shareUrl }); } catch { /* cancelado */ }
+    } else { copyLink(); }
+  };
+
   useEffect(() => {
     let cancelled = false;
     const safety = setTimeout(() => { if (!cancelled) setLoading(false); }, 8000);
     (async () => {
-      const [{ data: cp }, { data: ev }] = await Promise.all([
+      const [{ data: cp }, { data: ev }, { data: vn }, { data: ar }] = await Promise.all([
         supabase.rpc('city_partner', { p_city: city }),
         supabase.from('events').select('id,title,date,cover').ilike('city', city).order('date', { ascending: true }).limit(6),
+        supabase.from('venues').select('id,name,cover,type').ilike('city', city).limit(6),
+        supabase.from('artists').select('id,name,avatar,cover,type').ilike('city', city).limit(8),
       ]);
       if (cancelled) return;
       const row = Array.isArray(cp) ? cp[0] : cp;
       setPartner(row ? { partner_id: row.partner_id, display_name: row.display_name, socials: row.socials || [] } : null);
-      setEvents((ev as CityEvent[]) || []);
+      const evs = (ev as CityEvent[]) || [];
+      const vns = (vn as CityVenue[]) || [];
+      const ars = (ar as CityArtist[]) || [];
+      setEvents(evs);
+      setVenues(vns);
+      setArtists(ars);
+      setOgImage(evs[0]?.cover || vns[0]?.cover || ars.find(a => a.cover)?.cover || undefined);
       setLoading(false);
     })().catch(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; clearTimeout(safety); };
@@ -92,7 +121,7 @@ const CityPartnerPage: React.FC = () => {
         <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-orange-500/20 rounded-full blur-3xl" />
         <div className="relative max-w-3xl mx-auto px-5 pt-14 pb-8 text-center">
           <span className="inline-flex items-center gap-2 text-fuchsia-300 font-black text-xs tracking-widest uppercase mb-3">
-            <MapPin className="w-4 h-4" /> BailaNow · {city}
+            <MapPin className="w-4 h-4" /> {partner?.display_name ? `${partner.display_name} · ${city}` : `BailaNow · ${city}`}
           </span>
           <h1 className="font-display font-black text-3xl sm:text-5xl leading-tight">
             La danza latina de <span className="bg-brand-orange bg-clip-text text-transparent">{city}</span>
@@ -107,6 +136,17 @@ const CityPartnerPage: React.FC = () => {
               Aún no tenemos partner en {city}. ¿Conoces la escena? Podrías representarla tú.
             </p>
           )}
+
+          {/* Compartir en redes */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+            <button onClick={nativeShare} className="inline-flex items-center gap-2 bg-brand-orange text-white font-black rounded-xl px-5 py-2.5 hover:scale-[1.03] transition">
+              <Share2 className="w-4 h-4" /> Compartir
+            </button>
+            <a href={`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`} target="_blank" rel="noreferrer" aria-label="Compartir por WhatsApp" className="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition"><MessageCircle className="w-4 h-4" /></a>
+            <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noreferrer" aria-label="Compartir en Facebook" className="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition"><Facebook className="w-4 h-4" /></a>
+            <a href={`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`} target="_blank" rel="noreferrer" aria-label="Compartir en Telegram" className="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition"><Telegram className="w-4 h-4" /></a>
+            <button onClick={copyLink} aria-label="Copiar enlace" className="w-10 h-10 inline-flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition">{copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}</button>
+          </div>
         </div>
       </div>
 
@@ -149,6 +189,44 @@ const CityPartnerPage: React.FC = () => {
                       <p className="font-bold text-sm line-clamp-1">{e.title}</p>
                       {e.date && <p className="text-white/50 text-xs">{new Date(e.date).toLocaleDateString('es')}</p>}
                     </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Locales de la ciudad */}
+          {venues.length > 0 && (
+            <div>
+              <h2 className="font-display font-black text-lg mb-3 flex items-center gap-2"><Store className="w-5 h-5 text-fuchsia-400" /> Locales en {city}</h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {venues.map(v => (
+                  <button key={v.id} onClick={() => navigate(`/venues/${v.id}`)} className="text-left rounded-2xl overflow-hidden bg-white/5 ring-1 ring-white/10">
+                    <div className="aspect-video bg-gray-800">
+                      {v.cover ? <img src={v.cover} alt={v.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl">🪩</div>}
+                    </div>
+                    <div className="p-2.5">
+                      <p className="font-bold text-sm line-clamp-1">{v.name}</p>
+                      {v.type && <p className="text-white/50 text-xs capitalize">{v.type}</p>}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Artistas de la ciudad */}
+          {artists.length > 0 && (
+            <div>
+              <h2 className="font-display font-black text-lg mb-3 flex items-center gap-2"><Users className="w-5 h-5 text-fuchsia-400" /> Artistas de {city}</h2>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {artists.map(a => (
+                  <button key={a.id} onClick={() => navigate(`/artistas/${a.id}`)} className="text-center group">
+                    <div className="aspect-square rounded-2xl overflow-hidden bg-gray-800 ring-1 ring-white/10 mb-1.5">
+                      {(a.avatar || a.cover) ? <img src={(a.avatar || a.cover)!} alt={a.name} className="w-full h-full object-cover group-hover:scale-105 transition" /> : <div className="w-full h-full flex items-center justify-center text-2xl">🎧</div>}
+                    </div>
+                    <p className="font-bold text-xs line-clamp-1">{a.name}</p>
+                    {a.type && <p className="text-white/40 text-[10px] capitalize">{a.type}</p>}
                   </button>
                 ))}
               </div>
