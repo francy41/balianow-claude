@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import {
-  Loader2, Check, X, Globe, Users, Video, DollarSign, MapPin, Save, Ban, RotateCcw, Shield, FolderOpen, Plus, Trash2, ExternalLink,
+  Loader2, Check, X, Globe, Users, Video, DollarSign, MapPin, Save, Ban, RotateCcw, Shield, FolderOpen, Plus, Trash2, ExternalLink, Image as ImageIcon, Link2,
 } from 'lucide-react';
+import { uploadImage } from '../lib/uploadHelper';
 
 type Tab = 'solicitudes' | 'partners' | 'contenido' | 'retiros' | 'politicas' | 'recursos';
 
@@ -17,7 +18,9 @@ const RESOURCE_CATS = [
 const KINDS = [{ id: 'link', label: 'Enlace' }, { id: 'doc', label: 'Documento' }, { id: 'video', label: 'Vídeo' }, { id: 'image', label: 'Imagen' }];
 
 interface AppRow { id: string; user_id: string; name: string | null; email: string | null; phone: string | null; city: string; is_content_creator: boolean; can_edit_video: boolean; portfolio_url: string | null; motivation: string | null; status: string; created_at: string; }
-interface PartnerRow { user_id: string; display_name: string | null; cities: string[]; commission_percent: number; status: string; ghl_location_id?: string | null; }
+interface PartnerRow { user_id: string; display_name: string | null; cities: string[]; commission_percent: number; status: string; ghl_location_id?: string | null; slug?: string | null; bio?: string | null; logo_url?: string | null; cover_url?: string | null; }
+
+const slugify = (s: string) => s.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 interface TaskRow { partner_id: string; status: string; commission: number; }
 interface WithdrawalRow { id: string; partner_id: string; method: string | null; amount: number; status: string; requested_at: string; }
 interface ContentRow { id: string; partner_id: string; city: string | null; title: string; video_url: string | null; needs_editing: boolean; status: string; created_at: string; }
@@ -260,6 +263,33 @@ const PartnerCard: React.FC<{ p: PartnerRow; earned: number; onSave: (p: Partner
   const [commission, setCommission] = useState(String(p.commission_percent));
   const [cities, setCities] = useState((p.cities || []).join(', '));
   const [ghl, setGhl] = useState(p.ghl_location_id || '');
+  const [slug, setSlug] = useState(p.slug || '');
+  const [bio, setBio] = useState(p.bio || '');
+  const [logo, setLogo] = useState<string | null>(p.logo_url || null);
+  const [cover, setCover] = useState<string | null>(p.cover_url || null);
+  const [uploading, setUploading] = useState<'logo' | 'cover' | null>(null);
+
+  const cleanSlug = slugify(slug);
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://bailanow.com';
+
+  const pick = async (e: React.ChangeEvent<HTMLInputElement>, which: 'logo' | 'cover') => {
+    const f = e.target.files?.[0]; e.target.value = '';
+    if (!f) return;
+    setUploading(which);
+    const { url } = await uploadImage(f, which === 'logo' ? 'partner-logos' : 'partner-covers');
+    setUploading(null);
+    if (url) { if (which === 'logo') setLogo(url); else setCover(url); }
+  };
+
+  const saveAll = () => onSave(p, {
+    commission_percent: parseFloat(commission) || 0,
+    cities: cities.split(',').map(c => c.trim()).filter(Boolean),
+    ghl_location_id: ghl.trim() || null,
+    slug: cleanSlug || null,
+    bio: bio.trim() || null,
+    logo_url: logo,
+    cover_url: cover,
+  });
 
   return (
     <div className="rounded-2xl border border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-800/50">
@@ -272,7 +302,7 @@ const PartnerCard: React.FC<{ p: PartnerRow; earned: number; onSave: (p: Partner
           ? <button onClick={() => onSave(p, { status: 'active' })} className="inline-flex items-center gap-1 text-xs font-bold bg-emerald-500 text-white rounded-lg px-3 py-1.5"><RotateCcw className="w-3.5 h-3.5" /> Reactivar</button>
           : <button onClick={() => onSave(p, { status: 'suspended' })} className="inline-flex items-center gap-1 text-xs font-bold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg px-3 py-1.5"><Ban className="w-3.5 h-3.5" /> Suspender</button>}
       </div>
-      <div className="grid sm:grid-cols-[1fr_120px_auto] gap-2.5 items-end">
+      <div className="grid sm:grid-cols-2 gap-2.5">
         <div>
           <label className="text-xs font-bold text-gray-500">Ciudades (separadas por coma)</label>
           <input value={cities} onChange={e => setCities(e.target.value)} className="w-full mt-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm" />
@@ -281,13 +311,43 @@ const PartnerCard: React.FC<{ p: PartnerRow; earned: number; onSave: (p: Partner
           <label className="text-xs font-bold text-gray-500">Comisión %</label>
           <input value={commission} onChange={e => setCommission(e.target.value)} type="number" className="w-full mt-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm" />
         </div>
-        <button
-          onClick={() => onSave(p, { commission_percent: parseFloat(commission) || 0, cities: cities.split(',').map(c => c.trim()).filter(Boolean), ghl_location_id: ghl.trim() || null })}
-          className="inline-flex items-center gap-1 text-sm font-bold bg-brand-orange text-white rounded-lg px-4 py-2"><Save className="w-4 h-4" /> Guardar</button>
       </div>
       <div className="mt-2.5">
         <label className="text-xs font-bold text-gray-500">GHL Location ID (para la bandeja de redes)</label>
         <input value={ghl} onChange={e => setGhl(e.target.value)} placeholder="p. ej. abc123XYZ..." className="w-full mt-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm" />
+      </div>
+
+      {/* ── Perfil público ── */}
+      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <p className="text-xs font-black text-brand-orange uppercase tracking-wide mb-2 flex items-center gap-1.5"><Link2 className="w-3.5 h-3.5" /> Perfil público</p>
+        <div className="grid sm:grid-cols-2 gap-2.5">
+          <div>
+            <label className="text-xs font-bold text-gray-500">Enlace (slug)</label>
+            <div className="mt-1 flex items-center rounded-lg border border-gray-200 dark:border-gray-600 overflow-hidden">
+              <span className="pl-2.5 pr-1 text-gray-400 text-xs whitespace-nowrap">/partner/</span>
+              <input value={slug} onChange={e => setSlug(e.target.value)} placeholder="madridbachata" className="flex-1 bg-transparent px-1 py-2 text-sm outline-none" />
+            </div>
+          </div>
+          <div className="flex items-end gap-2">
+            <label className="flex-1 cursor-pointer text-center text-xs font-bold rounded-lg border border-dashed border-gray-300 dark:border-gray-600 px-2 py-2.5 inline-flex items-center justify-center gap-1.5 text-gray-600 dark:text-gray-300">
+              {uploading === 'logo' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImageIcon className="w-3.5 h-3.5" />} {logo ? 'Logo ✔' : 'Subir logo'}
+              <input type="file" accept="image/*" className="hidden" onChange={e => pick(e, 'logo')} />
+            </label>
+            <label className="flex-1 cursor-pointer text-center text-xs font-bold rounded-lg border border-dashed border-gray-300 dark:border-gray-600 px-2 py-2.5 inline-flex items-center justify-center gap-1.5 text-gray-600 dark:text-gray-300">
+              {uploading === 'cover' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ImageIcon className="w-3.5 h-3.5" />} {cover ? 'Portada ✔' : 'Subir portada'}
+              <input type="file" accept="image/*" className="hidden" onChange={e => pick(e, 'cover')} />
+            </label>
+          </div>
+        </div>
+        <div className="mt-2.5">
+          <label className="text-xs font-bold text-gray-500">Bio</label>
+          <textarea value={bio} onChange={e => setBio(e.target.value)} rows={2} placeholder="Descripción del partner para su página pública…" className="w-full mt-1 rounded-lg border border-gray-200 dark:border-gray-600 bg-transparent px-3 py-2 text-sm resize-none" />
+        </div>
+      </div>
+
+      <div className="mt-3 flex items-center gap-3">
+        <button onClick={saveAll} disabled={!!uploading} className="inline-flex items-center gap-1 text-sm font-bold bg-brand-orange text-white rounded-lg px-4 py-2 disabled:opacity-60"><Save className="w-4 h-4" /> Guardar</button>
+        {cleanSlug && <a href={`${origin}/partner/${cleanSlug}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-sm font-bold text-brand-orange"><ExternalLink className="w-4 h-4" /> Ver perfil</a>}
       </div>
     </div>
   );
