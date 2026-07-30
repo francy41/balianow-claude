@@ -1076,6 +1076,33 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
   );
 };
 
+// ── MÁS PARA TI (6 accesos destacados, estilo premium) ──
+const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
+  const items = [
+    { to: '/rutas',        icon: '❤️', title: 'Planes',                sub: 'Encuentra personas para salir a bailar',  grad: 'from-rose-500 to-pink-600' },
+    { to: '/parejas',      icon: '💑', title: 'Pareja de baile',       sub: 'Busca compañero/a de baile',              grad: 'from-fuchsia-500 to-purple-600' },
+    { to: '/danceflow',    icon: '🤖', title: 'DanceFlow IA',          sub: 'Entrena con inteligencia artificial',     grad: 'from-cyan-500 to-blue-600' },
+    { to: '/clases',       icon: '🎓', title: 'Clases Online',         sub: 'Aprende desde cualquier lugar',           grad: 'from-amber-500 to-orange-600' },
+    { to: '/artistas',     icon: '🕺', title: 'Bailarines',            sub: 'Contrata bailarines · reserva clases',    grad: 'from-emerald-500 to-teal-600' },
+    { to: '/promocionate', icon: '🎤', title: 'Promociona tu negocio', sub: 'Publicidad, flyers, vídeos y marketing',  grad: 'from-pink-500 to-rose-600' },
+  ];
+  return (
+    <section className="mx-3 sm:mx-4 mt-8">
+      <h2 className="font-display font-black text-xl text-gray-900 dark:text-white mb-4 px-1 flex items-center gap-2">✨ Más para ti</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        {items.map(it => (
+          <button key={it.title} onClick={() => navigate(it.to)}
+            className="group relative bg-white dark:bg-gray-900 rounded-3xl p-4 sm:p-5 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:shadow-pink-500/10 hover:-translate-y-1 transition-all duration-300 text-center flex flex-col items-center">
+            <span className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${it.grad} flex items-center justify-center text-3xl mb-3 shadow-lg group-hover:scale-105 transition-transform`}>{it.icon}</span>
+            <p className="font-black text-gray-900 dark:text-white text-sm leading-tight">{it.title}</p>
+            <p className="text-gray-400 text-[11px] mt-1.5 leading-snug">{it.sub}</p>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+};
+
 const HomePage: React.FC = () => {
   usePageMeta({
     title: 'Inicio',
@@ -1277,6 +1304,9 @@ const HomePage: React.FC = () => {
 
       {/* ── CATEGORÍAS (subidas justo bajo el hero, como el diseño objetivo) ── */}
       <DynamicCategoriesSection navigate={navigate} />
+
+      {/* ── MÁS PARA TI (justo bajo el escaparate, segun brief) ── */}
+      <MoreForYou navigate={navigate} />
 
       {/* Elemento de audio real para la radio en vivo */}
       <audio ref={audioRef} className="hidden" preload="none" />
