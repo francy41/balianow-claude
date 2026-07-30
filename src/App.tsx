@@ -52,6 +52,7 @@ const RetosPage         = lazy(() => import('./pages/RetosPage'));
 const PartnerApplyPage     = lazy(() => import('./pages/PartnerApplyPage'));
 const PartnerDashboardPage = lazy(() => import('./pages/PartnerDashboardPage'));
 const CityPartnerPage      = lazy(() => import('./pages/CityPartnerPage'));
+const PartnerProfilePage   = lazy(() => import('./pages/PartnerProfilePage'));
 const DanceGuidePage       = lazy(() => import('./pages/DanceGuidePage'));
 const MembershipPlansPage  = lazy(() => import('./pages/MembershipPlansPage'));
 const RecruitPage          = lazy(() => import('./pages/RecruitPage'));
@@ -205,6 +206,7 @@ const App: React.FC = () => {
                   <Route path="/parejas"             element={<ParejasPage />} />
                   <Route path="/retos"               element={<RetosPage />} />
                   <Route path="/partner/aplicar"     element={<PartnerApplyPage />} />
+                  <Route path="/partner/:slug"       element={<PartnerProfilePage />} />
                   {/* SEO local: "dónde bailar bachata en Madrid" */}
                   <Route path="/donde-bailar/:style/:city" element={<DanceGuidePage />} />
                   <Route path="/membresias"          element={<MembershipPlansPage />} />
