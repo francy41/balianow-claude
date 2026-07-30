@@ -1138,6 +1138,98 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
   );
 };
 
+// ── SECCIONES DE DESCUBRIMIENTO (Fase 4) ──
+const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
+  const trends = ['Salsa', 'Bachata', 'Kizomba', 'Reggaetón', 'Merengue', 'Cumbia', 'Timba', 'Afrobeat'];
+  const clases = [
+    { title: 'Bachata sensual',      meta: 'Nivel medio · 45 min', img: ARTISTS[1]?.cover },
+    { title: 'Salsa on2',            meta: 'Avanzado · 60 min',    img: ARTISTS[0]?.cover },
+    { title: 'Kizomba básica',       meta: 'Principiante · 30 min', img: ARTISTS[2]?.cover },
+    { title: 'Estilo femenino',      meta: 'Todos · 40 min',       img: ARTISTS[3]?.cover },
+    { title: 'Ritmo y musicalidad',  meta: 'Intermedio · 50 min',  img: ARTISTS[4]?.cover },
+  ];
+  const teachers = ARTISTS.slice(0, 8);
+
+  const Header = ({ icon, title, onAll }: { icon: string; title: string; onAll: () => void }) => (
+    <div className="flex items-center justify-between mb-3 px-1">
+      <h2 className="font-display font-black text-lg text-gray-900 dark:text-white flex items-center gap-2">{icon} {title}</h2>
+      <button onClick={onAll} className="text-pink-600 dark:text-pink-400 text-xs font-bold hover:underline">Ver todo →</button>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Tendencias */}
+      <section className="mx-3 sm:mx-4 mt-8">
+        <Header icon="📈" title="Tendencias" onAll={() => navigate('/explorar')} />
+        <div className="flex flex-wrap gap-2">
+          {trends.map((t, i) => (
+            <button key={t} onClick={() => navigate(`/artistas?q=${encodeURIComponent(t)}`)}
+              className="inline-flex items-center gap-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full px-3.5 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 shadow-sm hover:shadow-md hover:border-pink-300 hover:text-pink-600 transition-all">
+              <span className="text-pink-500 font-black">#{i + 1}</span> {t}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Clases Populares */}
+      <section className="mx-3 sm:mx-4 mt-8">
+        <Header icon="🎓" title="Clases Populares" onAll={() => navigate('/clases')} />
+        <HScroll>
+          {clases.map((c, i) => (
+            <button key={i} onClick={() => navigate('/clases')}
+              className="flex-shrink-0 w-52 relative rounded-2xl overflow-hidden h-32 group text-left bg-gray-900 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
+              {c.img && <img src={c.img} alt={c.title} className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" />}
+              <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
+              <span className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm grid place-items-center text-white opacity-0 group-hover:opacity-100 transition"><Play className="w-4 h-4" fill="currentColor" /></span>
+              <div className="absolute bottom-3 left-3 right-3">
+                <p className="text-white font-black text-sm leading-tight">{c.title}</p>
+                <p className="text-white/60 text-[10px] mt-0.5">{c.meta}</p>
+              </div>
+            </button>
+          ))}
+        </HScroll>
+      </section>
+
+      {/* Profesores Destacados */}
+      <section className="mx-3 sm:mx-4 mt-8">
+        <Header icon="⭐" title="Profesores Destacados" onAll={() => navigate('/artistas')} />
+        <HScroll>
+          {teachers.map(t => (
+            <button key={t.id} onClick={() => navigate(`/artistas/${t.id}`)}
+              className="flex-shrink-0 w-40 bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all text-center flex flex-col items-center">
+              <div className="relative">
+                <img src={t.avatar} alt={t.name} className="w-16 h-16 rounded-full object-cover" loading="lazy" />
+                <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-gray-900" title="Disponible" />
+              </div>
+              <p className="font-black text-gray-900 dark:text-white text-sm mt-2 truncate max-w-full">{t.name}</p>
+              <p className="text-gray-400 text-[11px] truncate max-w-full">{t.genre.slice(0, 2).join(' · ')}</p>
+              <div className="flex items-center gap-1 mt-1 text-amber-500 text-xs font-bold"><Star className="w-3.5 h-3.5 fill-amber-500" />{t.rating}</div>
+              <span className="mt-2 text-[11px] font-bold text-pink-600 dark:text-pink-400">Ver perfil →</span>
+            </button>
+          ))}
+        </HScroll>
+      </section>
+
+      {/* Trabajos para Bailarines (CTA) */}
+      <section className="mx-3 sm:mx-4 mt-8">
+        <button onClick={() => navigate('/promocionate')}
+          className="relative w-full overflow-hidden rounded-3xl p-6 sm:p-8 text-left text-white bg-gradient-to-br from-gray-900 via-purple-950 to-black hover:shadow-2xl hover:shadow-pink-500/20 transition-all">
+          <div className="absolute -top-10 -right-10 w-48 h-48 bg-pink-500/30 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative flex items-center justify-between gap-4 flex-wrap">
+            <div>
+              <span className="inline-block text-[10px] font-black uppercase tracking-widest bg-white/15 rounded-full px-2.5 py-1">🎤 Trabajos para bailarines</span>
+              <h2 className="font-display font-black text-xl sm:text-3xl mt-2 leading-tight max-w-lg">¿Buscas trabajo como bailarín/a o profesor/a?</h2>
+              <p className="text-white/70 text-sm mt-1.5 max-w-md">Encuentra shows, clases, castings y colaboraciones. Publica tu perfil y recibe ofertas.</p>
+            </div>
+            <span className="inline-flex items-center gap-1.5 bg-white text-gray-900 font-bold rounded-xl px-5 py-3 text-sm flex-shrink-0">Ver oportunidades →</span>
+          </div>
+        </button>
+      </section>
+    </>
+  );
+};
+
 const HomePage: React.FC = () => {
   usePageMeta({
     title: 'Inicio',
@@ -1535,6 +1627,9 @@ const HomePage: React.FC = () => {
 
       {/* ── EN DIRECTO AHORA ── */}
       <LiveNowHomeSection navigate={navigate} />
+
+      {/* ── SECCIONES DE DESCUBRIMIENTO (Tendencias, Clases, Profesores, Trabajos) ── */}
+      <DiscoverySections navigate={navigate} />
 
       {/* ── NEWSLETTER ── */}
       <section className="mx-3 sm:mx-4 mt-6">
