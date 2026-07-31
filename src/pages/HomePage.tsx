@@ -999,11 +999,31 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
   const day = (d: string) => (d || '').split('-')[2] || '--';
   const month = (d: string) => MONTHS[(Number((d || '').split('-')[1]) || 1) - 1] || '';
 
-  const events = EVENTS.slice(0, 4);
-  const artists = ARTISTS.slice(0, 4);
+  // Datos reales de la BD (con fallback a ejemplos si está vacía)
+  const [dbEvents, setDbEvents] = React.useState<any[]>([]);
+  const [dbArtists, setDbArtists] = React.useState<any[]>([]);
+  React.useEffect(() => {
+    let cancelled = false;
+    supabase.from('events').select('*').limit(8).then(({ data }) => { if (!cancelled && Array.isArray(data)) setDbEvents(data); });
+    supabase.from('artists').select('*').limit(8).then(({ data }) => { if (!cancelled && Array.isArray(data)) setDbArtists(data); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const events = (dbEvents.length
+    ? dbEvents.map((e: any) => ({ id: e.id, title: e.title || e.name || 'Evento', date: e.date || e.event_date || '', venueName: e.venue_name || '', city: e.city || '', cover: e.cover || e.image_url || '' }))
+    : EVENTS
+  ).slice(0, 4);
+
+  const artists = (dbArtists.length
+    ? dbArtists.map((a: any) => ({ id: a.id, name: a.name || 'Artista', avatar: a.avatar || a.cover || '', genre: Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : []) }))
+    : ARTISTS
+  ).slice(0, 4);
+
   const tv = [
     { title: 'Kizomba desde cero', level: 'Principiante', genre: 'Kizomba', img: ARTISTS[2]?.cover },
     { title: 'Merengue en pareja', level: 'Intermedio', genre: 'Merengue', img: ARTISTS[3]?.cover },
+    { title: 'Salsa en línea',     level: 'Principiante', genre: 'Salsa',   img: ARTISTS[0]?.cover },
+    { title: 'Bachata sensual',    level: 'Intermedio',   genre: 'Bachata', img: ARTISTS[1]?.cover },
   ];
 
   const ColHeader = ({ title, onAll }: { title: string; onAll: () => void }) => (
@@ -1024,9 +1044,12 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
             {events.map(e => (
               <button key={e.id} onClick={() => navigate(`/eventos/${e.id}`)}
                 className="w-full flex items-center gap-3 bg-white dark:bg-gray-900 rounded-2xl p-2.5 shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-md hover:-translate-y-0.5 transition-all text-left">
-                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-gray-900 text-white flex flex-col items-center justify-center leading-none">
-                  <span className="font-black text-base">{day(e.date)}</span>
-                  <span className="text-[8px] font-bold text-pink-400 mt-0.5">{month(e.date)}</span>
+                <div className="relative flex-shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-gray-900 text-white">
+                  {(e as any).cover && <img src={(e as any).cover} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />}
+                  <div className="absolute inset-0 bg-black/45 flex flex-col items-center justify-center leading-none">
+                    <span className="font-black text-base">{day(e.date)}</span>
+                    <span className="text-[8px] font-bold text-pink-300 mt-0.5">{month(e.date)}</span>
+                  </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-gray-900 dark:text-white text-xs truncate">{e.title}</p>
