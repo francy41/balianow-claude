@@ -145,7 +145,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
         <nav className="flex-1 overflow-y-auto py-3 px-3" style={{ scrollbarWidth: 'none' }}>
           {/* Inicio — acceso fijo (no es categoría) */}
           <NavLink to="/" onClick={onClose}
-            className={`nav-link mb-0.5 ${isNavItemActive('inicio') ? 'active' : ''}`}>
+            className={() => `nav-link mb-0.5 ${isNavItemActive('inicio') ? 'active' : ''}`}>
             <Home className="w-4 h-4" />
             <span className="truncate">Inicio</span>
           </NavLink>
@@ -159,7 +159,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                   key={item.label + item.to}
                   to={item.to}
                   onClick={onClose}
-                  className={`nav-link mb-0.5 ${isNavItemActive(item.label + item.to) ? 'active' : ''}`}
+                  className={() => `nav-link mb-0.5 ${isNavItemActive(item.label + item.to) ? 'active' : ''}`}
                 >
                   <span className="w-4 h-4 flex items-center justify-center text-sm">{item.icon}</span>
                   <span className="truncate">{item.label}</span>
@@ -177,7 +177,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                   key={item.label}
                   to={item.to || '/'}
                   onClick={onClose}
-                  className={`nav-link mb-0.5 ${isNavItemActive(item.label) ? 'active' : ''}`}
+                  className={() => `nav-link mb-0.5 ${isNavItemActive(item.label) ? 'active' : ''}`}
                 >
                   {item.icon}
                   <span className="truncate">{item.label}</span>
