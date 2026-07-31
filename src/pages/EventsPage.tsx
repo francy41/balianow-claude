@@ -161,9 +161,14 @@ const EventsList: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-6">
-          <h1 className="font-display font-black text-3xl text-gray-900 mb-1">🎉 Eventos</h1>
-          <p className="text-gray-400">Los mejores eventos latinos cerca de ti</p>
+        <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-purple-950 to-black p-6 sm:p-8 text-white">
+          <div className="absolute -top-10 -right-10 w-48 h-48 bg-pink-500/25 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-12 -left-12 w-52 h-52 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative">
+            <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-pink-300">🎉 Eventos</span>
+            <h1 className="font-display font-black text-3xl sm:text-4xl mt-1.5 leading-tight">Eventos latinos</h1>
+            <p className="text-white/70 mt-1.5 text-sm sm:text-base max-w-xl">Conciertos, festivales, sociales y fiestas cerca de ti</p>
+          </div>
         </div>
 
         <div className="flex items-center gap-3 mt-4 mb-2">
@@ -223,17 +228,19 @@ const EventCard: React.FC<{
   const linkedArtists = ARTISTS.filter(a => event.artists.includes(a.id));
 
   return (
-    <div onClick={onClick} className="group card-white overflow-hidden cursor-pointer hover:shadow-card-hover hover:scale-[1.02] transition-all duration-300">
-      <div className="relative h-44 overflow-hidden">
+    <div onClick={onClick} className="group bg-white rounded-3xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-pink-500/10 hover:-translate-y-1 transition-all duration-300 border border-gray-100">
+      <div className="relative h-44 overflow-hidden bg-gray-100">
         <img src={event.cover} alt={event.title} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        <DemoBadge ownerId={(event as any).userId} className="absolute top-2 left-2 z-10" />
-        <div className="absolute top-2 right-2 bg-brand-orange rounded-xl px-2.5 py-1.5 flex flex-col items-center">
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <DemoBadge ownerId={(event as any).userId} className="absolute top-3 left-3 z-10" />
+        <div className="absolute top-3 right-3 bg-gray-900 rounded-xl px-2.5 py-1.5 flex flex-col items-center shadow-lg">
           <span className="text-white font-black text-lg leading-none">{day}</span>
-          <span className="text-white/80 text-[10px] font-bold">{month}</span>
+          <span className="text-pink-400 text-[10px] font-bold">{month}</span>
         </div>
-        {event.isFeatured && <Badge variant="orange" className="absolute top-2 left-2">⭐ Destacado</Badge>}
-        {event.isOnline && <Badge variant="blue" className="absolute bottom-2 left-2">🌐 Online</Badge>}
+        <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+          {event.isFeatured && <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[9px] font-black px-2 py-1 rounded-full shadow">⭐ Destacado</span>}
+          {event.isOnline && <span className="bg-blue-500 text-white text-[9px] font-black px-2 py-1 rounded-full">🌐 Online</span>}
+        </div>
         <div className="absolute bottom-2 right-2 flex items-center gap-1">
           <div className="w-16 h-1.5 bg-white/30 rounded-full overflow-hidden">
             <div className={`h-full rounded-full ${pct > 80 ? 'bg-red-400' : 'bg-emerald-400'}`} style={{ width: `${pct}%` }} />
@@ -242,7 +249,7 @@ const EventCard: React.FC<{
         </div>
       </div>
       <div className="p-4">
-        <h3 className="text-gray-900 font-semibold line-clamp-2 text-sm">{event.title}</h3>
+        <h3 className="text-gray-900 font-black line-clamp-2 text-sm">{event.title}</h3>
         <div className="flex items-center gap-1 text-gray-400 text-xs mt-1">
           <MapPin className="w-3 h-3" /> {event.isOnline ? 'Online' : event.city}
           <span className="mx-1">·</span>
