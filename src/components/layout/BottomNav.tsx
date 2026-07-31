@@ -1,71 +1,72 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, Calendar, Megaphone, MapPin, User } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Home, Search, Calendar, ShoppingBag, User, Plus } from 'lucide-react';
 import { useAuthStore } from '../../store/appStore';
 import { Avatar } from '../ui';
 
 const BottomNav: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, isAuthenticated } = useAuthStore();
 
   const tabs = [
-    { to: '/',             icon: <Home className="w-4 h-4" />,     label: 'Inicio' },
-    { to: '/cerca',        icon: <MapPin className="w-4 h-4" />,   label: 'Cerca' },
-    { to: '/eventos',      icon: <Calendar className="w-4 h-4" />, label: 'Eventos' },
-    { to: '/mapa',         icon: <MapPin className="w-4 h-4" />,   label: 'Ciudades' },
-    { to: '/promocionate', icon: <Megaphone className="w-4 h-4" />,label: 'Promo', dot: true },
+    { to: '/',            icon: <Home className="w-5 h-5" />,        label: 'Inicio' },
+    { to: '/explorar',    icon: <Search className="w-5 h-5" />,      label: 'Explorar' },
+    { to: '/eventos',     icon: <Calendar className="w-5 h-5" />,    label: 'Eventos' },
+    { to: '/marketplace', icon: <ShoppingBag className="w-5 h-5" />, label: 'Mercado' },
     {
       to: isAuthenticated ? '/dashboard' : '/auth',
       icon: isAuthenticated && user
         ? <Avatar src={user.avatar} name={user.name} size="xs" />
-        : <User className="w-4 h-4" />,
-      label: isAuthenticated ? 'Perfil' : 'Entrar'
+        : <User className="w-5 h-5" />,
+      label: isAuthenticated ? 'Perfil' : 'Entrar',
     },
   ];
 
-  // En el Home el FAB rosa (HomeFabStack) ya incluye "Buscar" — evitar dos botones superpuestos
   const isHome = location.pathname === '/';
 
   return (
     <>
-    {/* Floating search button — solo móvil, fuera del Home */}
-    {!isHome && (
-    <button
-      onClick={() => window.dispatchEvent(new Event('bn:open-search'))}
-      className="lg:hidden fixed bottom-20 right-4 z-30 w-12 h-12 rounded-full bg-brand-orange text-white shadow-2xl shadow-pink-500/40 flex items-center justify-center active:scale-95"
-      style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
-      title="Buscar"
-    >
-      <Search className="w-5 h-5" />
-    </button>
-    )}
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-gray-950 via-gray-900 to-gray-900/95 border-t border-pink-500/20 backdrop-blur-xl"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-      <div className="flex items-center h-14">
-        {tabs.map(tab => {
-          const isActive = location.pathname === tab.to ||
-            (tab.to !== '/' && location.pathname.startsWith(tab.to));
-          return (
-            <Link key={tab.to} to={tab.to}
-              className={`flex-1 flex flex-col items-center justify-center h-full gap-0.5 relative transition-all active:scale-95 ${
-                isActive ? 'text-pink-400' : 'text-gray-500'
-              }`}
-            >
-              <div className={`relative p-1 rounded-xl transition-all ${isActive ? 'bg-pink-500/15' : ''}`}>
-                {tab.icon}
-                {tab.dot && (
-                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-pink-500 rounded-full animate-pulse shadow-lg shadow-pink-500/50" />
-                )}
-              </div>
-              <span className="text-[8px] sm:text-[9px] font-semibold">{tab.label}</span>
-              {isActive && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-brand-orange rounded-full shadow-lg shadow-pink-500/50" />
-              )}
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+      {/* FAB "+" — crear/promocionar (móvil, fuera del Home que ya tiene su propio FAB) */}
+      {!isHome && (
+        <button
+          onClick={() => navigate('/promocionate')}
+          className="lg:hidden fixed bottom-20 right-4 z-30 w-14 h-14 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white shadow-2xl shadow-pink-500/40 flex items-center justify-center active:scale-95 transition"
+          style={{ marginBottom: 'env(safe-area-inset-bottom, 0px)' }}
+          title="Crear / Promocionar"
+        >
+          <Plus className="w-6 h-6" />
+        </button>
+      )}
+
+      <nav
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 border-t border-gray-200 backdrop-blur-xl shadow-[0_-4px_24px_rgba(0,0,0,0.06)]"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      >
+        <div className="flex items-center h-16">
+          {tabs.map(tab => {
+            const isActive = tab.to === '/'
+              ? location.pathname === '/'
+              : location.pathname.startsWith(tab.to);
+            return (
+              <Link
+                key={tab.to}
+                to={tab.to}
+                className={`flex-1 flex flex-col items-center justify-center h-full gap-1 relative active:scale-95 transition-all ${
+                  isActive ? 'text-pink-600' : 'text-gray-400'
+                }`}
+              >
+                <div className={`p-1.5 rounded-2xl transition-all ${
+                  isActive ? 'bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white shadow-lg shadow-pink-500/30 -translate-y-0.5' : ''
+                }`}>
+                  {tab.icon}
+                </div>
+                <span className="text-[10px] font-bold">{tab.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </>
   );
 };
