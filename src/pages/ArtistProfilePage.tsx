@@ -23,7 +23,7 @@ type TabId = 'about' | 'live' | 'exclusive' | 'gallery' | 'offers' | 'reviews' |
 
 const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
   { id: 'about',        label: 'Sobre mí',      icon: <Sparkles className="w-4 h-4" /> },
-  { id: 'live',         label: 'Live',          icon: <Video className="w-4 h-4" /> },
+  { id: 'live',         label: 'Clases online', icon: <Video className="w-4 h-4" /> },
   { id: 'exclusive',    label: 'Exclusivo',     icon: <Crown className="w-4 h-4" /> },
   { id: 'gallery',      label: 'Galería',       icon: <ImageIcon className="w-4 h-4" /> },
   { id: 'offers',       label: 'Servicios',     icon: <Award className="w-4 h-4" /> },
