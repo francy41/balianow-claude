@@ -26,6 +26,8 @@ interface Props {
   onSaved?: () => void;
   /** user_id del dueño del perfil — permite que el propio instructor lo gestione sin ser admin */
   ownerUserId?: string;
+  /** Abre el editor automáticamente al montar (p. ej. desde ?edit=1) */
+  autoOpen?: boolean;
 }
 
 type Tab = 'general' | 'gallery' | 'packages' | 'classes' | 'live' | 'availability' | 'courses';
@@ -80,7 +82,7 @@ const SaveBtn: React.FC<{ onClick: () => void; saving: boolean; label: string }>
   </button>
 );
 
-const ArtistAdminPanel: React.FC<Props> = ({ id, onSaved, ownerUserId }) => {
+const ArtistAdminPanel: React.FC<Props> = ({ id, onSaved, ownerUserId, autoOpen }) => {
   const { user } = useAuthStore();
   const { addToast } = useUIStore();
   const isAdmin = !!user && ['admin', 'superadmin'].includes(String(user.role));
@@ -88,6 +90,7 @@ const ArtistAdminPanel: React.FC<Props> = ({ id, onSaved, ownerUserId }) => {
   const canManage = isAdmin || isOwner;
 
   const [open, setOpen] = useState(false);
+  useEffect(() => { if (autoOpen && canManage) setOpen(true); }, [autoOpen, canManage]);
   const [tab, setTab] = useState<Tab>('general');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);

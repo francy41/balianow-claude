@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
 import ArtistAdminPanel from '../components/ArtistAdminPanel';
 import ClassPackageBookingModal from '../components/ClassPackageBookingModal';
@@ -125,6 +125,8 @@ function mapProfileToArtist(p: any): Artist {
 const ArtistProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const wantEdit = searchParams.get('edit') === '1';
   const { isAuthenticated, user } = useAuthStore();
   const { addToast } = useUIStore();
 
@@ -137,6 +139,7 @@ const ArtistProfilePage: React.FC = () => {
     if (!id) { setLoadingDb(false); setNotFound(true); return; }
     let cancelled = false;
     setLoadingDb(true);
+    const safety = setTimeout(() => { if (!cancelled) { setLoadingDb(false); } }, 8000);
     (async () => {
       try {
         const { data: art } = await supabase.from('artists').select('*').eq('id', id).maybeSingle();
@@ -157,7 +160,7 @@ const ArtistProfilePage: React.FC = () => {
         }
       }
     })();
-    return () => { cancelled = true; };
+    return () => { cancelled = true; clearTimeout(safety); };
   }, [id]);
 
   // ⚠ TODOS los hooks DEBEN ir antes de cualquier return condicional (rules of hooks)
@@ -203,6 +206,7 @@ const ArtistProfilePage: React.FC = () => {
         <button onClick={() => navigate('/artistas')} className="bg-brand-orange text-white font-bold px-6 py-3 rounded-xl">
           Ver todos los artistas
         </button>
+        {wantEdit && id && <ArtistAdminPanel id={id} autoOpen onSaved={() => window.location.reload()} />}
       </div>
     );
   }
@@ -483,7 +487,7 @@ const ArtistProfilePage: React.FC = () => {
         />
       )}
 
-      <ArtistAdminPanel id={id} ownerUserId={(artist as any).userId} onSaved={() => window.location.reload()} />
+      <ArtistAdminPanel id={id} ownerUserId={(artist as any).userId} autoOpen={wantEdit} onSaved={() => window.location.reload()} />
 
       {/* Reclamar perfil — solo visible si no tiene dueño */}
       <div className="fixed z-[60] bottom-24 right-4 sm:bottom-8 sm:right-8">
