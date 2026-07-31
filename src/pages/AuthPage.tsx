@@ -77,6 +77,7 @@ const AuthPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [selectedRole, setSelectedRole] = useState<UserRole>(initialRole);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);  // feedback local del botón Entrar/Crear
   const [resendLoading, setResendLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
@@ -165,7 +166,19 @@ const AuthPage: React.FC = () => {
       return;
     }
 
-    const supa = await supabaseLogin(email, loginPassword);
+    // Feedback visual: el botón gira mientras se procesa. `finally` lo libera
+    // SIEMPRE (éxito, error o excepción) para que nunca se quede "pensando".
+    setSubmitting(true);
+    let supa: Awaited<ReturnType<typeof supabaseLogin>>;
+    try {
+      supa = await supabaseLogin(email, loginPassword);
+    } catch (e: any) {
+      addToast({ message: `No se pudo conectar: ${e?.message || 'error de red'}`, type: 'error' });
+      return;
+    } finally {
+      setSubmitting(false);
+    }
+
     if (supa.success) {
       clearLoginAttempts(email);  // reset lockout en login exitoso
       addToast({ message: '¡Bienvenido de vuelta!', type: 'success' });
@@ -421,7 +434,7 @@ const AuthPage: React.FC = () => {
                   </button>
                 </div>
 
-                <Button variant="orange" className="w-full" loading={isLoading} onClick={handleLogin}>
+                <Button variant="orange" className="w-full" loading={submitting || isLoading} disabled={submitting} onClick={handleLogin}>
                   Entrar
                 </Button>
 
