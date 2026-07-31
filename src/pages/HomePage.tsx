@@ -1100,6 +1100,10 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
               </button>
             ))}
           </div>
+          <button onClick={() => navigate('/tv')}
+            className="w-full mt-3 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-sm font-black flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-pink-500/30 transition-all">
+            <Play className="w-4 h-4" fill="currentColor" /> Ver TV
+          </button>
         </div>
 
       </div>
@@ -1652,9 +1656,6 @@ const HomePage: React.FC = () => {
 
       {/* ── FILA 3 COLUMNAS: Eventos destacados · Artistas recomendados · BailaNow TV ── */}
       <FeaturedTripleRow navigate={navigate} />
-
-      {/* ── BAILANOW TV estilo Netflix (scroll horizontal + etiquetas) ── */}
-      <BailaNowTVRow navigate={navigate} />
 
       {/* ── EN DIRECTO AHORA ── */}
       <LiveNowHomeSection navigate={navigate} />
