@@ -347,7 +347,11 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
 
   const loadEvent = () => {
     supabase.from('events').select('*').eq('id', eventId).maybeSingle().then(({ data }) => {
-      setEvent(data ? normalizeEvent(data) : null);
+      if (data) { setEvent(normalizeEvent(data)); }
+      else {
+        const mock = EVENTS.find(e => String(e.id) === String(eventId));
+        setEvent(mock ? ({ ...mock, userId: '' } as any) : null);
+      }
       setLoadingEvent(false);
     });
   };
