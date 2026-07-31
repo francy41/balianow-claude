@@ -10,7 +10,7 @@ import { useSiteConfigStore, type HomeCategory, type ProfileModule } from '../st
 
 // ── Load config from Supabase on mount ────────────────────────────────────
 export function useSiteConfigLoader() {
-  const { setHeroSliderImages, setHeroMedia, setSiteLogo, setHomeCategories, setProfileModules } = useSiteConfigStore();
+  const { setHeroSliderImages, setHeroMedia, setSiteLogo, setHomeCategories, setProfileModules, setHomeTvCards } = useSiteConfigStore();
 
   useEffect(() => {
     const load = async () => {
@@ -29,6 +29,9 @@ export function useSiteConfigLoader() {
           }
           if (row.key === 'profile_modules' && Array.isArray(row.value) && row.value.length > 0) {
             setProfileModules(row.value as ProfileModule[]);
+          }
+          if (row.key === 'home_tv_cards' && Array.isArray(row.value) && row.value.length > 0) {
+            setHomeTvCards(row.value);
           }
         }
       } catch (e) { console.warn('[siteConfig] load', e); }
