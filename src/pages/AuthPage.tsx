@@ -389,21 +389,10 @@ const AuthPage: React.FC = () => {
               ))}
             </div>
 
-            {/* ── Google button — always visible ── */}
-            <button
-              onClick={handleGoogle}
-              disabled={googleLoading}
-              className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750 hover:border-gray-300 transition-all font-semibold text-gray-700 dark:text-gray-200 text-sm disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
-            >
-              {googleLoading ? (
-                <RefreshCw className="w-5 h-5 animate-spin text-gray-400" />
-              ) : (
-                <GoogleIcon />
-              )}
-              {view === 'login' ? 'Continuar con Google' : 'Registrarse con Google'}
-            </button>
-
-            <OrDivider />
+            {/* Login con Google OCULTO temporalmente: en la pantalla de Google mostraba la URL
+                de Supabase (lpwwdjujxwxdvyoznehp.supabase.co) en vez de bailanow.com.
+                Para reactivarlo con marca propia hay que configurar un DOMINIO PERSONALIZADO
+                de Supabase Auth (auth.bailanow.com). Mientras tanto: login por email/contraseña. */}
 
             {/* ── HONEYPOT (invisible para humanos, visible para bots) ── */}
             <div style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }} aria-hidden="true">
