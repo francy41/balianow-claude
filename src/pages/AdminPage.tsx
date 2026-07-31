@@ -8,9 +8,9 @@ import {
   Edit, Trash2, Plus, Search, Filter, RefreshCw,
   ChevronRight, ArrowUpRight, ArrowDownRight, Clock,
   Wifi, Globe, Bell, Database, Server, FileText, Save, Loader2,
-  Share2, Flag, ExternalLink, MessageSquare, Tv, Heart, Trophy, Film
+  Share2, Flag, ExternalLink, MessageSquare, Tv, Heart, Trophy, Film, Upload
 } from 'lucide-react';
-import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, useAdminOverridesStore, useSponsorsStore, DEFAULT_HOME_CATEGORIES, type HeroMediaType, type CommissionSource, type HeroSliderImage, type HomeCategory, type Sponsor } from '../store/appStore';
+import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, useAdminOverridesStore, useSponsorsStore, DEFAULT_HOME_CATEGORIES, DEFAULT_HOME_TV, type HeroMediaType, type CommissionSource, type HeroSliderImage, type HomeCategory, type HomeTvCard, type Sponsor } from '../store/appStore';
 import { supabase } from '../lib/supabase';
 import { saveSiteConfigKey, saveCategoriesToDb } from '../hooks/useSiteConfig';
 import AdminCMS from '../components/AdminCMS';
@@ -39,7 +39,7 @@ type AdminSection =
   | 'overview' | 'categorias' | 'media' | 'radio' | 'usuarios' | 'localidades'
   | 'suscripciones' | 'artistas' | 'bailarinas' | 'eventos' | 'mercado'
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
-  | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms'
+  | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms' | 'home-destacados'
   | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter' | 'danceavatares' | 'afiliados' | 'promocionate'
   | 'reclamaciones' | 'planificador' | 'soporte'
   | 'tv' | 'rutas' | 'parejas' | 'retos' | 'partner' | 'publicidad' | 'donaciones' | 'membresias' | 'solicitudes-creador' | 'tv-monetizacion' | 'modulos';
@@ -48,6 +48,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
   { id: 'cms',            label: 'CMS · Constructor',       icon: <Palette className="w-4 h-4" />, badge: 'NEW' },
   { id: 'patrocinadores', label: 'Lo más destacado',        icon: <Star className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'home-destacados', label: 'Home · BailaNow TV',      icon: <Tv className="w-4 h-4" />, badge: 'NEW' },
   { id: 'categorias',     label: 'Categorías',              icon: <Tag className="w-4 h-4" /> },
   { id: 'media',          label: 'Media Manager',           icon: <Palette className="w-4 h-4" />, badge: 'NEW' },
   { id: 'radio',          label: 'Radio Online',            icon: <Radio className="w-4 h-4" /> },
@@ -307,6 +308,7 @@ const AdminPage: React.FC = () => {
         {active === 'tv-monetizacion' && <TvMonetizationAdminSection addToast={addToast} />}
         {active === 'modulos'        && <ModulesAdminSection addToast={addToast} />}
         {active === 'cms'            && <AdminCMS />}
+        {active === 'home-destacados' && <HomeFeaturedSection addToast={addToast} />}
         {active === 'diseno'         && <DisenoSection addToast={addToast} />}
         {active === 'configuracion'  && <ConfiguracionSection addToast={addToast} />}
         {active === 'roles'          && <RolesSection addToast={addToast} />}
@@ -5128,6 +5130,69 @@ const PlanificadorSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+// ── HOME · BAILANOW TV (edita las 4 tarjetas del home, guardado global en site_config) ──
+const HomeFeaturedSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const { homeTvCards, setHomeTvCards } = useSiteConfigStore();
+  const [cards, setCards] = useState<HomeTvCard[]>(homeTvCards && homeTvCards.length ? homeTvCards : DEFAULT_HOME_TV);
+  const [saving, setSaving] = useState(false);
+  const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
+
+  const update = (i: number, patch: Partial<HomeTvCard>) =>
+    setCards(cs => cs.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
+
+  const upload = async (i: number, file?: File) => {
+    if (!file) return;
+    setUploadingIdx(i);
+    const { url, error } = await uploadImage(file, 'home-tv');
+    setUploadingIdx(null);
+    if (url) update(i, { image: url });
+    else addToast({ type: 'error', message: `Error al subir: ${error}` });
+  };
+
+  const save = async () => {
+    setSaving(true);
+    const { error } = await saveSiteConfigKey('home_tv_cards', cards);
+    setSaving(false);
+    if (error) { addToast({ type: 'error', message: `Error al guardar: ${error}` }); return; }
+    setHomeTvCards(cards);
+    addToast({ type: 'success', message: '✅ Guardado. Recarga el home para verlo (Ctrl+Shift+R).' });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="font-black text-2xl text-gray-900 flex items-center gap-2"><Tv className="w-6 h-6 text-pink-500" /> Home · BailaNow TV</h2>
+        <p className="text-gray-400 text-sm mt-1">Edita las <b>4 tarjetas de BailaNow TV</b> del home (título, subtítulo, imagen, etiqueta y enlace). Los bloques de <b>Eventos</b> y <b>Artistas</b> del home se llenan solos con lo que tengas en sus secciones del admin.</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {cards.map((c, i) => (
+          <div key={i} className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="w-24 h-16 rounded-lg bg-gray-900 overflow-hidden flex-shrink-0 grid place-items-center">
+                {c.image ? <img src={c.image} alt="" className="w-full h-full object-cover" /> : <span className="text-white/40 text-[10px]">Sin imagen</span>}
+              </div>
+              <label className="text-xs font-bold bg-gray-100 hover:bg-gray-200 rounded-lg px-3 py-2 cursor-pointer flex items-center gap-1.5">
+                {uploadingIdx === i ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                {uploadingIdx === i ? 'Subiendo…' : 'Subir imagen'}
+                <input type="file" accept="image/*" hidden onChange={e => upload(i, e.target.files?.[0])} />
+              </label>
+            </div>
+            <input value={c.title} onChange={e => update(i, { title: e.target.value })} placeholder="Título" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+            <input value={c.subtitle} onChange={e => update(i, { subtitle: e.target.value })} placeholder="Subtítulo (ej: Salsa · Principiante)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+            <div className="grid grid-cols-2 gap-2">
+              <input value={c.tag} onChange={e => update(i, { tag: e.target.value })} placeholder="Etiqueta (NUEVO)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+              <input value={c.link} onChange={e => update(i, { link: e.target.value })} placeholder="Enlace (/tv)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+            </div>
+          </div>
+        ))}
+      </div>
+      <button onClick={save} disabled={saving} className="bg-brand-orange text-white font-bold px-6 py-3 rounded-xl flex items-center gap-2 disabled:opacity-50">
+        {saving && <Loader2 className="w-4 h-4 animate-spin" />} Guardar tarjetas de TV
+      </button>
     </div>
   );
 };

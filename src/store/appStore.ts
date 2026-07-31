@@ -286,6 +286,7 @@ interface SiteConfigState {
   siteLogo: string;
   homeCategories: HomeCategory[];
   profileModules: ProfileModule[];
+  homeTvCards: HomeTvCard[];
   setHeroMedia: (media: Partial<HeroMedia>) => void;
   setHeroSliderImages: (images: HeroSliderImage[]) => void;
   setCommission: (source: CommissionSource, rate: number) => void;
@@ -295,7 +296,16 @@ interface SiteConfigState {
   setSiteLogo: (logo: string) => void;
   setHomeCategories: (cats: HomeCategory[]) => void;
   setProfileModules: (mods: ProfileModule[]) => void;
+  setHomeTvCards: (cards: HomeTvCard[]) => void;
 }
+
+export interface HomeTvCard { title: string; subtitle: string; tag: string; image: string; link: string; }
+export const DEFAULT_HOME_TV: HomeTvCard[] = [
+  { title: 'Kizomba desde cero', subtitle: 'Kizomba · Principiante', tag: 'NUEVO', image: '', link: '/tv' },
+  { title: 'Merengue en pareja', subtitle: 'Merengue · Intermedio', tag: 'NUEVO', image: '', link: '/tv' },
+  { title: 'Salsa en línea',     subtitle: 'Salsa · Principiante',   tag: 'NUEVO', image: '', link: '/tv' },
+  { title: 'Bachata sensual',    subtitle: 'Bachata · Intermedio',   tag: 'NUEVO', image: '', link: '/tv' },
+];
 
 export const useSiteConfigStore = create<SiteConfigState>()(
   persist(
@@ -315,12 +325,14 @@ export const useSiteConfigStore = create<SiteConfigState>()(
       siteLogo: '',
       homeCategories: DEFAULT_HOME_CATEGORIES,
       profileModules: DEFAULT_PROFILE_MODULES,
+      homeTvCards: DEFAULT_HOME_TV,
       setHeroMedia: (media) =>
         set((state) => ({ heroMedia: { ...state.heroMedia, ...media } })),
       setHeroSliderImages: (images) => set({ heroSliderImages: images }),
       setSiteLogo: (logo) => set({ siteLogo: logo }),
       setHomeCategories: (cats) => set({ homeCategories: cats }),
       setProfileModules: (mods) => set({ profileModules: mods }),
+      setHomeTvCards: (cards) => set({ homeTvCards: cards }),
       setCommission: (source, rate) =>
         set((state) => ({
           commissions: {

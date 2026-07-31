@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket } from 'lucide-react';
 import { ARTISTS, EVENTS, VENUES } from '../data/mockData';
-import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, type HeroSliderImage, type HomeCategory } from '../store/appStore';
+import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_TV, type HeroSliderImage, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
 import { Avatar, StarRating, SearchBar, AppImage } from '../components/ui';
 import { supabase } from '../lib/supabase';
@@ -1019,12 +1019,10 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
     : ARTISTS
   ).slice(0, 4);
 
-  const tv = [
-    { title: 'Kizomba desde cero', level: 'Principiante', genre: 'Kizomba', img: ARTISTS[2]?.cover },
-    { title: 'Merengue en pareja', level: 'Intermedio', genre: 'Merengue', img: ARTISTS[3]?.cover },
-    { title: 'Salsa en línea',     level: 'Principiante', genre: 'Salsa',   img: ARTISTS[0]?.cover },
-    { title: 'Bachata sensual',    level: 'Intermedio',   genre: 'Bachata', img: ARTISTS[1]?.cover },
-  ];
+  // Tarjetas de BailaNow TV — editables desde Admin → Home destacados (site_config global)
+  const tvCards = useSiteConfigStore(s => s.homeTvCards);
+  const PLACEHOLDER = [ARTISTS[2]?.cover, ARTISTS[3]?.cover, ARTISTS[0]?.cover, ARTISTS[1]?.cover];
+  const tv = (tvCards && tvCards.length ? tvCards : DEFAULT_HOME_TV).slice(0, 4);
 
   const ColHeader = ({ title, onAll }: { title: string; onAll: () => void }) => (
     <div className="flex items-center justify-between mb-3 px-1">
@@ -1087,18 +1085,20 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
         <div>
           <ColHeader title="📺 BailaNow TV" onAll={() => navigate('/tv')} />
           <div className="grid grid-cols-2 gap-3">
-            {tv.map((c, i) => (
-              <button key={i} onClick={() => navigate('/tv')}
+            {tv.map((c, i) => {
+              const img = c.image || PLACEHOLDER[i];
+              return (
+              <button key={i} onClick={() => navigate(c.link || '/tv')}
                 className="relative rounded-2xl overflow-hidden h-40 group text-left bg-gray-900">
-                {c.img && <img src={c.img} alt={c.title} className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" loading="lazy" />}
+                {img && <img src={img} alt={c.title} className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" loading="lazy" />}
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/40 to-transparent" />
-                <span className="absolute top-2.5 left-2.5 bg-pink-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">NUEVO</span>
+                {c.tag && <span className="absolute top-2.5 left-2.5 bg-pink-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">{c.tag}</span>}
                 <div className="absolute bottom-3 left-3 right-3">
                   <p className="text-white font-black text-sm leading-tight">{c.title}</p>
-                  <p className="text-white/60 text-[10px] mt-0.5">{c.genre} · {c.level}</p>
+                  <p className="text-white/60 text-[10px] mt-0.5">{c.subtitle}</p>
                 </div>
               </button>
-            ))}
+            );})}
           </div>
           <button onClick={() => navigate('/tv')}
             className="w-full mt-3 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-sm font-black flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-pink-500/30 transition-all">
