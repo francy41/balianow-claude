@@ -32,7 +32,7 @@ interface DbArtist {
 }
 
 // Ejemplos de fallback (sin dueño = "Ejemplo") cuando la BD no devuelve artistas.
-const FALLBACK_ARTISTS: DbArtist[] = ARTISTS.map((a: any) => ({
+const FALLBACK_ARTISTS: DbArtist[] = ARTISTS.slice(0, 10).map((a: any) => ({
   id: a.id, name: a.name, type: (a.type || 'artist'),
   city: a.city || '', country: a.country, cover: a.cover, avatar: a.avatar,
   genre: Array.isArray(a.genre) ? a.genre : [], rating: Number(a.rating) || 4.5,
