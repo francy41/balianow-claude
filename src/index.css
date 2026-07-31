@@ -33,6 +33,9 @@
 .animate-float-up   { animation: floatUp 1.6s ease-out forwards; }
 .animate-shake      { animation: shake 0.5s ease-in-out; }
 
+@keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.animate-fade-up { animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
 /* ── Marquee animations (auto-scroll left) ──────────────────────── */
 @keyframes marquee-left {
   0%   { transform: translateX(0); }

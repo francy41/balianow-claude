@@ -199,7 +199,7 @@ const EventsList: React.FC = () => {
             <EmptyState icon="🎉" title="No hay eventos" description="Prueba con otros filtros o ciudades"
               action={<button onClick={() => { setSearch(''); setSelectedCat(['Todos']); setSelectedCity(['Todas']); }} className="btn-outline text-sm">Limpiar filtros</button>} />
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 animate-fade-up">
               {filtered.map(event => (
                 <EventCard key={event.id} event={event}
                   onClick={() => navigate(`/eventos/${event.id}`)}
