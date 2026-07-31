@@ -133,9 +133,14 @@ const VenuesList: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-6">
-          <h1 className="font-display font-black text-3xl text-gray-900 mb-1">🏛️ Venues</h1>
-          <p className="text-gray-400">Clubs, estudios y espacios de entretenimiento latino</p>
+        <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-purple-950 to-black p-6 sm:p-8 text-white">
+          <div className="absolute -top-10 -right-10 w-48 h-48 bg-pink-500/25 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-12 -left-12 w-52 h-52 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative">
+            <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-pink-300">🏛️ Locales</span>
+            <h1 className="font-display font-black text-3xl sm:text-4xl mt-1.5 leading-tight">Locales y clubs latinos</h1>
+            <p className="text-white/70 mt-1.5 text-sm sm:text-base max-w-xl">Clubs, estudios y espacios de entretenimiento latino cerca de ti</p>
+          </div>
         </div>
 
         <div className="flex items-center gap-3 mb-2">
@@ -162,11 +167,8 @@ const VenuesList: React.FC = () => {
         </div>
 
         <div className="mt-6">
-          <p className="text-gray-400 text-sm mb-4">
-            {loading && 'Cargando…'}
-            {!loading && dbVenues.length > 0 && (
-              <span className="text-[10px] text-gray-300">(BD: {dbVenues.length})</span>
-            )}
+          <p className="text-gray-500 text-sm font-semibold mb-4">
+            {loading ? 'Cargando locales…' : `${filtered.length} ${filtered.length === 1 ? 'local' : 'locales'}`}
           </p>
           {loading && filtered.length === 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
@@ -193,30 +195,44 @@ const VenuesList: React.FC = () => {
 };
 
 const VenueCard: React.FC<{ venue: Venue; onClick: () => void }> = ({ venue, onClick }) => (
-  <div onClick={onClick} className="card-white overflow-hidden cursor-pointer hover:shadow-card-hover hover:scale-[1.02] transition-all duration-300">
-    <div className="relative h-44 overflow-hidden">
-      <img src={venue.cover} alt={venue.name} className="w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-      <DemoBadge ownerId={venue.userId as string} className="absolute top-2 left-2 z-10" />
-      <Badge variant={venue.isOpen ? 'green' : 'gray'} className="absolute top-2 right-2">
-        {venue.isOpen ? '🟢 Abierto' : '🔴 Cerrado'}
-      </Badge>
-      {venue.isPremium && <Badge variant="orange" className="absolute top-2 left-2">👑 Premium</Badge>}
-      <div className="absolute bottom-2 left-2">
-        <span className="bg-white/90 text-gray-700 text-xs px-2 py-1 rounded-lg capitalize font-medium">{venue.type}</span>
+  <div onClick={onClick} className="group bg-white rounded-3xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-pink-500/10 hover:-translate-y-1 transition-all duration-300 border border-gray-100">
+    <div className="relative h-44 overflow-hidden bg-gray-100">
+      <img src={venue.cover} alt={venue.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+
+      {/* Estado en tiempo real */}
+      <span className={`absolute top-3 left-3 inline-flex items-center gap-1.5 text-[10px] font-black px-2.5 py-1 rounded-full shadow ${venue.isOpen ? 'bg-emerald-500 text-white' : 'bg-gray-900/85 text-white'}`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${venue.isOpen ? 'bg-white animate-pulse' : 'bg-red-400'}`} /> {venue.isOpen ? 'Abierto' : 'Cerrado'}
+      </span>
+
+      {/* Favorito */}
+      <button onClick={e => e.stopPropagation()} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm border border-white/20 grid place-items-center text-white group-hover:bg-pink-500 transition">
+        <Heart className="w-4 h-4" />
+      </button>
+
+      {/* Tipo + Premium */}
+      <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+        <span className="bg-white/90 text-gray-700 text-[10px] px-2 py-1 rounded-lg capitalize font-bold">{venue.type}</span>
+        {venue.isPremium && <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[9px] font-black px-2 py-1 rounded-lg">👑 PRO</span>}
       </div>
+
+      {/* Ejemplo / demo */}
+      <DemoBadge ownerId={venue.userId as string} className="absolute bottom-3 right-3 z-10" />
     </div>
     <div className="p-4">
-      <h3 className="text-gray-900 font-semibold line-clamp-1">{venue.name}</h3>
-      <div className="flex items-center gap-1 text-gray-400 text-xs mt-1">
-        <MapPin className="w-3 h-3" /> {venue.city}
-        <span className="mx-1">·</span>
-        {'€'.repeat(venue.priceRange)}
+      <h3 className="text-gray-900 font-black text-base line-clamp-1">{venue.name}</h3>
+      <div className="flex items-center gap-1.5 text-gray-400 text-xs mt-1">
+        <MapPin className="w-3.5 h-3.5 text-pink-500 flex-shrink-0" /> {venue.city}
+        <span className="text-gray-300">·</span>
+        <span className="font-bold text-gray-500">{'€'.repeat(venue.priceRange)}</span>
       </div>
-      <StarRating rating={venue.rating} count={venue.reviews} className="mt-2" />
-      <p className="text-gray-400 text-xs mt-2 flex items-center gap-1">
-        <Clock className="w-3 h-3" /> {venue.openHours}
-      </p>
+      <div className="flex items-center justify-between gap-2 mt-2.5">
+        <span className="inline-flex items-center gap-1 text-amber-500 font-bold text-sm">
+          <Star className="w-4 h-4 fill-amber-400" />{venue.rating}
+          <span className="text-gray-400 font-normal text-xs">({venue.reviews})</span>
+        </span>
+        <span className="text-gray-400 text-[11px] flex items-center gap-1 truncate"><Clock className="w-3 h-3 flex-shrink-0" /> {venue.openHours}</span>
+      </div>
       {!venue.userId && (
         <div className="mt-3" onClick={e => e.stopPropagation()}>
           <ClaimProfileButton targetTable="venues" targetId={String(venue.id)} targetName={venue.name} fullWidth />
