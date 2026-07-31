@@ -11,7 +11,7 @@ import {
   Star, Sparkles, Send, Video, Bell, Headphones, Award, Image as ImageIcon,
   ChevronRight, Lock, Crown
 } from 'lucide-react';
-import { SOCIAL_NETWORK_URLS, EVENTS } from '../data/mockData';
+import { SOCIAL_NETWORK_URLS, EVENTS, ARTISTS } from '../data/mockData';
 import type { Artist, MediaItem, OfferPackage } from '../data/mockData';
 import { useAuthStore, useUIStore, useCartStore, getYouTubeId, useSiteConfigStore } from '../store/appStore';
 import { Avatar, Modal, Button } from '../components/ui';
@@ -145,10 +145,16 @@ const ArtistProfilePage: React.FC = () => {
         const { data: prof } = await supabase.from('profiles').select(PUBLIC_PROFILE_COLUMNS).eq('id', id).maybeSingle();
         if (cancelled) return;
         if (prof) { setDbArtist(mapProfileToArtist(prof)); setLoadingDb(false); return; }
+        const mock = ARTISTS.find(a => a.id === id);
+        if (mock) { setDbArtist({ ...mock, userId: '' } as any); setLoadingDb(false); return; }
         setNotFound(true); setLoadingDb(false);
       } catch (e) {
         console.warn('[artist-profile] load', e);
-        if (!cancelled) { setNotFound(true); setLoadingDb(false); }
+        if (!cancelled) {
+          const mock = ARTISTS.find(a => a.id === id);
+          if (mock) { setDbArtist({ ...mock, userId: '' } as any); } else { setNotFound(true); }
+          setLoadingDb(false);
+        }
       }
     })();
     return () => { cancelled = true; };
