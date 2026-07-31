@@ -314,7 +314,11 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
     let cancelled = false;
     supabase.from('venues').select('*').eq('id', venueId).maybeSingle().then(({ data }) => {
       if (cancelled) return;
-      setVenue(data ? mapDbVenue(data) : null);
+      if (data) { setVenue(mapDbVenue(data)); }
+      else {
+        const mock = VENUES.find(v => String(v.id) === String(venueId));
+        setVenue(mock ? ({ ...mock, userId: '' } as any) : null);
+      }
       setLoadingVenue(false);
     });
     return () => { cancelled = true; };
