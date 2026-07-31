@@ -933,7 +933,7 @@ const RadioSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); const t = setTimeout(() => setLoading(false), 8000); return () => clearTimeout(t); }, []);
 
   const openNew = () => {
     setEditTarget(null);
@@ -1101,7 +1101,7 @@ const UsuariosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     }
   };
 
-  useEffect(() => { loadUsers(); }, []);
+  useEffect(() => { loadUsers(); const t = setTimeout(() => setLoading(false), 8000); return () => clearTimeout(t); }, []);
 
   const filtered = users.filter(u => {
     if (search && !u.name.toLowerCase().includes(search.toLowerCase()) && !u.email.toLowerCase().includes(search.toLowerCase())) return false;
@@ -1581,7 +1581,11 @@ const ArtistasSection: React.FC<{ addToast: Function; navigate: Function }> = ({
     setItems(combined);
     setLoading(false);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    const t = setTimeout(() => setLoading(false), 8000); // no quedarse colgado en "Cargando…"
+    return () => clearTimeout(t);
+  }, []);
 
   const handleDelete = async (item: any) => {
     if (!confirm(`¿Eliminar "${item.name}" de la BD?`)) return;
@@ -1654,7 +1658,11 @@ const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     setItems(combined);
     setLoading(false);
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    const t = setTimeout(() => setLoading(false), 8000); // no quedarse colgado en "Cargando…"
+    return () => clearTimeout(t);
+  }, []);
 
   const handleDelete = async (item: any) => {
     if (!confirm(`¿Eliminar "${item.name}" de la BD?`)) return;
@@ -2407,7 +2415,7 @@ const RetirosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); const t = setTimeout(() => setLoading(false), 8000); return () => clearTimeout(t); }, []);
 
   const handle = async (id: string, status: 'paid' | 'rejected') => {
     setProcessing(id);
@@ -4247,7 +4255,7 @@ const AdministradoresSection: React.FC<{ addToast: Function; isSuperAdmin: boole
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); const t = setTimeout(() => setLoading(false), 8000); return () => clearTimeout(t); }, []);
 
   const handleSendInvite = async () => {
     const email = inviteEmail.trim().toLowerCase();
@@ -4469,7 +4477,7 @@ const IntegracionesSection: React.FC<{ addToast: Function }> = ({ addToast }) =>
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); const t = setTimeout(() => setLoading(false), 8000); return () => clearTimeout(t); }, []);
 
   const saveKey = async (key: string, raw: string, isUrl = false) => {
     setSaving(true);
@@ -4654,7 +4662,7 @@ const ReclamacionesSection: React.FC<{ addToast: Function; onCountChange?: (n: n
     setLoading(false);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); const t = setTimeout(() => setLoading(false), 8000); return () => clearTimeout(t); }, []);
 
   const resolve = async (claim: any, approved: boolean) => {
     setProcessing(claim.id);
