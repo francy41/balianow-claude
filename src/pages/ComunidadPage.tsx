@@ -139,15 +139,20 @@ const ComunidadPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] py-6">
       <div className="max-w-3xl mx-auto px-4">
         {/* Header */}
-        <div className="mb-5">
-          <div className="flex items-center justify-between gap-3 mb-1">
-            <h1 className="font-display font-black text-3xl text-gray-900 dark:text-white">🔥 Comunidad</h1>
-            <Button variant="orange" icon={<Plus className="w-4 h-4" />}
-              onClick={() => isAuthenticated ? setComposerOpen(true) : navigate('/auth')}>
-              Publicar
-            </Button>
+        <div className="mb-5 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-purple-950 to-black p-6 sm:p-8 text-white">
+          <div className="absolute -top-10 -right-10 w-48 h-48 bg-pink-500/25 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-12 -left-12 w-52 h-52 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative flex items-start justify-between gap-3 flex-wrap">
+            <div>
+              <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-pink-300">🔥 Comunidad</span>
+              <h1 className="font-display font-black text-3xl sm:text-4xl mt-1.5 leading-tight">Comunidad latina</h1>
+              <p className="text-white/70 mt-1.5 text-sm sm:text-base max-w-lg">Ofertas y demandas: busca pareja, grupo, entradas, clases y más</p>
+            </div>
+            <button onClick={() => isAuthenticated ? setComposerOpen(true) : navigate('/auth')}
+              className="inline-flex items-center gap-1.5 bg-white text-gray-900 font-bold rounded-full px-5 py-2.5 hover:scale-105 transition flex-shrink-0">
+              <Plus className="w-4 h-4" /> Publicar
+            </button>
           </div>
-          <p className="text-gray-400">Ofertas y demandas de la comunidad latina — busca pareja, grupo, entradas, clases y más</p>
         </div>
 
         {/* Buscador */}
