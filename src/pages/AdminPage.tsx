@@ -1564,22 +1564,25 @@ const ArtistasSection: React.FC<{ addToast: Function; navigate: Function }> = ({
 
   const load = async () => {
     setLoading(true);
-    const combined: any[] = [];
+    // 1) Artistas de la tabla artists — se muestran YA (no bloqueado por profiles)
+    let base: any[] = [];
     try {
       const { data } = await supabase.from('artists').select('*');
-      data?.forEach((a: any) => combined.push({ ...a, source: 'artist' }));
+      base = (data || []).map((a: any) => ({ ...a, source: 'artist' }));
     } catch (e) { console.warn('artists', e); }
+    setItems(base);
+    setLoading(false);
+    // 2) Profiles en segundo plano (si la consulta tarda/cuelga, no bloquea la lista)
     try {
       const { data } = await supabase.from('profiles').select('*').in('role', ['artist','dj','singer','band','musician','promoter']);
-      data?.forEach((p: any) => combined.push({
+      const profs = (data || []).map((p: any) => ({
         id: p.id, name: p.full_name || p.email, type: p.role,
         city: p.city || p.location, avatar: p.avatar_url,
         rating: 0, completedBookings: 0, isVerified: p.verified, isPremium: false,
         source: 'profile',
       }));
+      if (profs.length) setItems(prev => [...prev, ...profs]);
     } catch (e) { console.warn('profiles', e); }
-    setItems(combined);
-    setLoading(false);
   };
   useEffect(() => {
     load();
@@ -1642,21 +1645,24 @@ const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 
   const load = async () => {
     setLoading(true);
-    const combined: any[] = [];
+    // 1) Bailarines/instructores de artists — se muestran YA (no bloqueado por profiles)
+    let base: any[] = [];
     try {
       const { data } = await supabase.from('artists').select('*').in('type', ['dancer','instructor']);
-      data?.forEach((a: any) => combined.push({ ...a, source: 'artist' }));
+      base = (data || []).map((a: any) => ({ ...a, source: 'artist' }));
     } catch (e) { console.warn('artists', e); }
+    setItems(base);
+    setLoading(false);
+    // 2) Profiles en segundo plano (si tarda/cuelga, no bloquea la lista)
     try {
       const { data } = await supabase.from('profiles').select('*').in('role', ['dancer','instructor']);
-      data?.forEach((p: any) => combined.push({
+      const profs = (data || []).map((p: any) => ({
         id: p.id, name: p.full_name || p.email, type: p.role,
         city: p.city || p.location, avatar: p.avatar_url,
         rating: 0, source: 'profile',
       }));
+      if (profs.length) setItems(prev => [...prev, ...profs]);
     } catch (e) { console.warn('profiles', e); }
-    setItems(combined);
-    setLoading(false);
   };
   useEffect(() => {
     load();
