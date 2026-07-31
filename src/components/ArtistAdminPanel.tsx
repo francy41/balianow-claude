@@ -30,7 +30,7 @@ interface Props {
 
 type Tab = 'general' | 'gallery' | 'packages' | 'classes' | 'live' | 'availability' | 'courses';
 
-interface ClassPkg { id: string; name: string; capacity: number; price: number; currency: string; duration_minutes: number; description: string; includes: string[]; }
+interface ClassPkg { id: string; name: string; capacity: number; price: number; currency: string; duration_minutes: number; description: string; includes: string[]; image?: string; }
 
 interface MediaItem { id: string; type: 'photo' | 'video' | 'mix'; url: string; thumbnail: string; title?: string; duration?: string; }
 interface Pkg { id: string; tier: 'basic' | 'standard' | 'premium'; name: string; price: number; currency: string; deliveryDays: number; description: string; includes: string[]; revisions: number; }
@@ -489,7 +489,7 @@ const ClassPackagesEditor: React.FC<{ items: ClassPkg[]; onChange: (v: ClassPkg[
     const pkg: ClassPkg = {
       id: uid(), name: d.name, capacity: Math.max(1, capValue), price: Number(d.price) || 0,
       currency: d.currency || 'EUR', duration_minutes: Number(d.duration_minutes) || 60,
-      description: d.description || '', includes: d.includes || [],
+      description: d.description || '', includes: d.includes || [], image: d.image || '',
     };
     onChange([...items, pkg]); setD({ capacity: 1, currency: 'EUR', duration_minutes: 60, includes: [] }); setPreset(1);
   };
@@ -521,6 +521,7 @@ const ClassPackagesEditor: React.FC<{ items: ClassPkg[]; onChange: (v: ClassPkg[
           <input type="number" value={d.duration_minutes ?? ''} onChange={e => setD(s => ({ ...s, duration_minutes: Number(e.target.value) }))} placeholder="Duración (min)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
         </div>
         <textarea value={d.description || ''} onChange={e => setD(s => ({ ...s, description: e.target.value }))} rows={2} placeholder="Qué incluye la clase…" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+        <ImageInput label="Imagen de la clase" value={d.image || ''} folder="class-images" onChange={v => setD(s => ({ ...s, image: v }))} />
         {Number(d.price) > 0 && (
           <p className="text-xs text-gray-500">Por €{Number(d.price).toFixed(0)}: tú recibes <b className="text-green-600">€{(Number(d.price) * (100 - commission) / 100).toFixed(2)}</b>, plataforma €{(Number(d.price) * commission / 100).toFixed(2)} · cupo {capValue} persona{capValue > 1 ? 's' : ''}</p>
         )}
@@ -535,7 +536,9 @@ const ClassPackagesEditor: React.FC<{ items: ClassPkg[]; onChange: (v: ClassPkg[
           <div className="space-y-2">
             {items.map(p => (
               <div key={p.id} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 group">
-                <span className="text-[10px] font-black uppercase bg-purple-100 text-purple-700 px-2 py-1 rounded">{capLabel(p.capacity)}</span>
+                {p.image
+                  ? <img src={p.image} alt={p.name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
+                  : <span className="text-[10px] font-black uppercase bg-purple-100 text-purple-700 px-2 py-1 rounded flex-shrink-0">{capLabel(p.capacity)}</span>}
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-gray-900 text-sm truncate">{p.name}</p>
                   <p className="text-xs text-gray-400">€{p.price} · {p.duration_minutes}min · hasta {p.capacity} persona{p.capacity > 1 ? 's' : ''}</p>

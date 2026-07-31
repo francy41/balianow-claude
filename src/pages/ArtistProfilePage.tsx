@@ -640,8 +640,9 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
         {courses.length > 0 ? (
           <div className="space-y-2.5">
             {courses.map((c: any) => (
-              <div key={c.id} className="flex items-center justify-between gap-2 p-2.5 rounded-xl border border-gray-100">
-                <div className="min-w-0">
+              <div key={c.id} className="flex items-center gap-2.5 p-2.5 rounded-xl border border-gray-100">
+                {c.image && <img src={c.image} alt={c.name} className="w-11 h-11 rounded-lg object-cover flex-shrink-0" loading="lazy" />}
+                <div className="min-w-0 flex-1">
                   <p className="font-bold text-gray-900 text-xs truncate">{c.name}</p>
                   <p className="text-gray-400 text-[10px]">{c.duration_minutes ? `${c.duration_minutes} min` : 'Curso'}{c.capacity ? ` · hasta ${c.capacity} pers.` : ''}</p>
                 </div>
