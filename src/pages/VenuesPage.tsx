@@ -99,7 +99,7 @@ const VenuesList: React.FC = () => {
 
   // Solo usar mock si no hay datos reales en BD
   const allVenues = useMemo(() => {
-    return dbVenues.length > 0 ? dbVenues : VENUES;
+    return dbVenues.length > 0 ? dbVenues : VENUES.slice(0, 10);
   }, [dbVenues]);
 
   // Ciudades dinámicas: base + las que realmente tienen locales (por nº de locales)

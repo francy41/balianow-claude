@@ -30,7 +30,7 @@ function normalize(r: any): SvcRow {
 }
 
 // Fallback: ejemplos cuando no hay servicios reales en BD
-const FALLBACK_SERVICES: SvcRow[] = SERVICES.map((s: any) => ({
+const FALLBACK_SERVICES: SvcRow[] = SERVICES.slice(0, 10).map((s: any) => ({
   id: s.id, title: s.title, cover: s.cover, category: s.category,
   artistId: s.artistId, artistName: s.artistName, artistAvatar: s.artistAvatar,
   price: Number(s.price) || 0, rating: Number(s.rating) || 0, reviews: Number(s.reviews) || 0,

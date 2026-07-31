@@ -117,7 +117,7 @@ const EventsList: React.FC = () => {
 
   // Solo usar mock si no hay datos reales en BD
   const allEvents = useMemo(() => {
-    return dbEvents.length > 0 ? dbEvents : EVENTS;
+    return dbEvents.length > 0 ? dbEvents : EVENTS.slice(0, 10);
   }, [dbEvents]);
 
   // Ciudades dinámicas: base + las que realmente tienen eventos (ordenadas por nº de eventos)
