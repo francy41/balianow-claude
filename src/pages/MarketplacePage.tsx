@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Clock, ShoppingBag, Loader2 } from 'lucide-react';
+import { Clock, ShoppingBag, Loader2, Star } from 'lucide-react';
 import { Avatar, Badge, StarRating, SearchBar, EmptyState } from '../components/ui';
 import { FilterFacet, ActiveFilterBar, FilterPanel, PriceRange } from '../components/SmartFilters';
 import { useAuthStore, useCartStore } from '../store/appStore';
 import { supabase } from '../lib/supabase';
 import PaymentGateway from '../components/payment/PaymentGateway';
+import { SERVICES } from '../data/mockData';
 
 const CATEGORIES = ['Todos', 'DJ Set', 'Clases', 'Clases Online', 'Música en Vivo', 'Show Baile', 'Producción', 'Fotografía'];
 
@@ -28,6 +29,15 @@ function normalize(r: any): SvcRow {
   };
 }
 
+// Fallback: ejemplos cuando no hay servicios reales en BD
+const FALLBACK_SERVICES: SvcRow[] = SERVICES.map((s: any) => ({
+  id: s.id, title: s.title, cover: s.cover, category: s.category,
+  artistId: s.artistId, artistName: s.artistName, artistAvatar: s.artistAvatar,
+  price: Number(s.price) || 0, rating: Number(s.rating) || 0, reviews: Number(s.reviews) || 0,
+  orders: Number(s.orders) || 0, tags: Array.isArray(s.tags) ? s.tags : [],
+  deliveryDays: Number(s.deliveryDays) || 1,
+}));
+
 const MarketplacePage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
@@ -42,7 +52,11 @@ const MarketplacePage: React.FC = () => {
 
   useEffect(() => {
     supabase.from('services').select('*').eq('admin_status', 'approved').order('rating', { ascending: false }).limit(200)
-      .then(({ data }) => { setServices((data || []).map(normalize)); setLoading(false); });
+      .then(({ data }) => {
+        const rows = (data || []).map(normalize);
+        setServices(rows.length ? rows : FALLBACK_SERVICES);
+        setLoading(false);
+      });
   }, []);
 
   const priceMax = useMemo(() => {
@@ -93,12 +107,14 @@ const MarketplacePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="font-display font-black text-3xl text-gray-900">💼 Marketplace</h1>
-            <Badge variant="orange">Fiverr/Upwork Latino</Badge>
+        <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-purple-950 to-black p-6 sm:p-8 text-white">
+          <div className="absolute -top-10 -right-10 w-48 h-48 bg-pink-500/25 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-12 -left-12 w-52 h-52 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative">
+            <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-pink-300">💼 Marketplace</span>
+            <h1 className="font-display font-black text-3xl sm:text-4xl mt-1.5 leading-tight">Servicios de artistas latinos</h1>
+            <p className="text-white/70 mt-1.5 text-sm sm:text-base max-w-xl">Contrata DJs, clases, shows y producción — pago protegido con escrow</p>
           </div>
-          <p className="text-gray-400">Contrata servicios de artistas latinos profesionales</p>
         </div>
 
         <div className="grid grid-cols-3 gap-3 mb-6">
@@ -182,24 +198,27 @@ const MarketplacePage: React.FC = () => {
 };
 
 const ServiceCard: React.FC<{ service: SvcRow; onClick: () => void; onQuickBuy: (e: React.MouseEvent) => void }> = ({ service, onClick, onQuickBuy }) => (
-  <div onClick={onClick} className="card-white overflow-hidden cursor-pointer hover:shadow-card-hover hover:scale-[1.02] transition-all duration-300">
-    <div className="relative h-44 overflow-hidden">
-      <img src={service.cover} alt={service.title} loading="lazy" className="w-full h-full object-cover" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-      <span className="absolute top-2 left-2 bg-white/90 text-gray-700 text-xs px-2 py-0.5 rounded-full font-medium">{service.category}</span>
+  <div onClick={onClick} className="group bg-white rounded-3xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-pink-500/10 hover:-translate-y-1 transition-all duration-300 border border-gray-100">
+    <div className="relative h-44 overflow-hidden bg-gray-100">
+      <img src={service.cover} alt={service.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+      <span className="absolute top-3 left-3 bg-white/90 text-gray-700 text-[10px] px-2.5 py-1 rounded-full font-bold">{service.category}</span>
     </div>
 
     <div className="p-4">
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-2.5">
         <Avatar src={service.artistAvatar} name={service.artistName} size="xs" />
-        <span className="text-gray-400 text-xs">{service.artistName}</span>
+        <span className="text-gray-500 text-xs font-semibold">{service.artistName}</span>
       </div>
 
-      <h3 className="text-gray-900 font-semibold text-sm line-clamp-2 mb-2">{service.title}</h3>
+      <h3 className="text-gray-900 font-black text-sm line-clamp-2 mb-2">{service.title}</h3>
 
       <div className="flex items-center gap-3 mb-3">
-        <StarRating rating={service.rating} count={service.reviews} />
-        <span className="text-gray-300 text-xs flex items-center gap-1">
+        <span className="inline-flex items-center gap-1 text-amber-500 font-bold text-sm">
+          <Star className="w-4 h-4 fill-amber-400" />{service.rating}
+          <span className="text-gray-400 font-normal text-xs">({service.reviews})</span>
+        </span>
+        <span className="text-gray-400 text-xs flex items-center gap-1">
           <ShoppingBag className="w-3 h-3" />{service.orders}
         </span>
       </div>
