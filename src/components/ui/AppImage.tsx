@@ -36,6 +36,7 @@ const AppImage: React.FC<AppImageProps> = ({
       alt={alt}
       className={className}
       loading="lazy"
+      decoding="async"
       onError={() => {
         if (!failed) setFailed(true);
       }}

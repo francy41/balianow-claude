@@ -340,7 +340,7 @@ const ArtistsPage: React.FC = () => {
               action={<button onClick={() => { setSelectedType(['Todos']); setSelectedGenre(['Todos']); setSelectedCity(['Todas']); }} className="btn-outline text-sm">Limpiar filtros</button>}
             />
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 animate-fade-up">
               {filtered.map(artist => (
                 <ArtistCard key={`${artist.source}-${artist.id}`} artist={artist} onClick={() => goToProfile(artist)} />
               ))}
