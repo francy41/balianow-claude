@@ -187,12 +187,22 @@ export async function supabaseLogin(
   }
   if (data.user) {
     const meta = data.user.user_metadata;
-    const user = await resolveUser(
-      data.user.id,
-      data.user.email ?? '',
-      { name: meta?.full_name || meta?.name, avatar: meta?.avatar_url }
-    );
-    if (user) useAuthStore.setState({ user, isAuthenticated: true, isLoading: false });
+    // Resiliencia: si cargar el perfil se cuelga/tarda >5s, entrar igual con los datos de la sesión.
+    let user = await Promise.race([
+      resolveUser(data.user.id, data.user.email ?? '', { name: meta?.full_name || meta?.name, avatar: meta?.avatar_url }),
+      new Promise<User | null>(res => setTimeout(() => res(null), 5000)),
+    ]);
+    if (!user) {
+      user = {
+        id: data.user.id,
+        name: meta?.full_name || meta?.name || (data.user.email || 'Usuario').split('@')[0],
+        email: data.user.email || '', avatar: meta?.avatar_url || '', coverPhoto: '', bio: '', phone: '',
+        role: 'user', city: 'Madrid', country: '', isVerified: true, isPremium: false,
+        wallet: 0, notifications: 0,
+        socials: { instagram: '', tiktok: '', youtube: '', website: '', facebook: '', soundcloud: '', twitch: '', spotify: '' },
+      } as any;
+    }
+    useAuthStore.setState({ user, isAuthenticated: true, isLoading: false });
   }
   return { success: true };
 }
