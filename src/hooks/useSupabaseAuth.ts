@@ -177,7 +177,15 @@ export async function supabaseLogin(
   email: string,
   password: string
 ): Promise<{ success: boolean; error?: string; needsVerification?: boolean }> {
-  const { data, error } = await authService.signIn(email, password);
+  // Timeout duro sobre la propia autenticación: si la red/Supabase se cuelga,
+  // devolvemos error en 12s en vez de dejar el login "pensando" para siempre.
+  const signInResult = await Promise.race([
+    authService.signIn(email, password),
+    new Promise<{ data: any; error: any }>(res =>
+      setTimeout(() => res({ data: { user: null }, error: { message: 'Tiempo de espera agotado. Revisa tu conexión e inténtalo de nuevo.' } }), 12000)
+    ),
+  ]);
+  const { data, error } = signInResult;
   if (error) {
     // Supabase returns this when email_confirm is required
     if (error.message?.toLowerCase().includes('email not confirmed')) {
