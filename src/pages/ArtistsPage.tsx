@@ -8,6 +8,7 @@ import ClaimProfileButton from '../components/ClaimProfileButton';
 import { FilterFacet, ActiveFilterBar, FilterPanel } from '../components/SmartFilters';
 import LiveFab from '../components/LiveFab';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { ARTISTS } from '../data/mockData';
 
 interface DbArtist {
   id: string;
@@ -29,6 +30,17 @@ interface DbArtist {
   source: 'artist' | 'profile';
   userId?: string;
 }
+
+// Ejemplos de fallback (sin dueño = "Ejemplo") cuando la BD no devuelve artistas.
+const FALLBACK_ARTISTS: DbArtist[] = ARTISTS.map((a: any) => ({
+  id: a.id, name: a.name, type: (a.type || 'artist'),
+  city: a.city || '', country: a.country, cover: a.cover, avatar: a.avatar,
+  genre: Array.isArray(a.genre) ? a.genre : [], rating: Number(a.rating) || 4.5,
+  reviews: Number(a.reviews) || 0, followers: Number(a.followers) || 0,
+  priceFrom: Number(a.priceFrom) || 0, isVerified: !!a.isVerified,
+  isPremium: !!a.isPremium, isLive: !!a.isLive, bio: a.bio,
+  userId: '', source: 'artist',
+}));
 
 const TYPES = ['Todos', 'DJ', 'Bailarín/a', 'Banda', 'Instructor/a', 'Cantante'];
 const GENRES = ['Todos', 'Salsa', 'Salsa Cubana', 'Salsa Colombiana (Caleña)', 'Bachata', 'Bachata Dominicana', 'Bachata Moderna', 'Bachata Sensual', 'Bachata Urbana', 'Cha-cha-chá', 'Cumbia', 'Reparto Cubano', 'Merengue', 'Reggaeton', 'Timba', 'Afrobeats', 'Kizomba'];
@@ -98,7 +110,7 @@ const ArtistsPage: React.FC = () => {
   // ── Load from Supabase ────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
-    const safety = setTimeout(() => { if (!cancelled) setLoading(false); }, 8000);
+    const safety = setTimeout(() => { if (!cancelled) { setItems(prev => prev.length ? prev : FALLBACK_ARTISTS); setLoading(false); } }, 8000);
 
     (async () => {
       const combined: DbArtist[] = [];
@@ -164,6 +176,9 @@ const ArtistsPage: React.FC = () => {
         });
       } catch (e: any) { errors.push(`profiles fetch: ${e?.message}`); console.warn('[artists] profiles', e); }
       profileCount = combined.length - artistCount;
+
+      // Fallback: si no hay datos reales en BD, mostrar ejemplos (sin dueño = "Ejemplo")
+      if (combined.length === 0) combined.push(...FALLBACK_ARTISTS);
 
       if (!cancelled) {
         setItems(combined);
