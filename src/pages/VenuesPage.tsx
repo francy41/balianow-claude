@@ -472,6 +472,25 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                 </div>
               </div>
 
+              {/* Ubicación tipo mapa */}
+              <div className="card-white rounded-2xl overflow-hidden">
+                <div className="relative h-44 bg-gradient-to-br from-gray-900 via-purple-950 to-black">
+                  <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.3) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
+                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-500/25 rounded-full blur-3xl pointer-events-none" />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+                    <span className="w-12 h-12 rounded-full bg-pink-500 flex items-center justify-center shadow-lg shadow-pink-500/40"><MapPin className="w-6 h-6" /></span>
+                    <p className="font-display font-black text-xl mt-2 drop-shadow">{venue.city}</p>
+                  </div>
+                </div>
+                <div className="p-4 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Ubicación</p>
+                    <p className="font-bold text-gray-900 text-sm flex items-center gap-1 truncate"><MapPin className="w-4 h-4 text-pink-500 flex-shrink-0" />{(venue as any).address || venue.city}</p>
+                  </div>
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(((venue as any).address ? (venue as any).address + ', ' : '') + venue.city)}`} target="_blank" rel="noreferrer" className="btn-orange text-sm py-2 px-4 flex-shrink-0">Ver en el mapa →</a>
+                </div>
+              </div>
+
               {/* Featured YouTube Video */}
               {(() => {
                 const vid = VENUE_VIDEOS[venue.id];
