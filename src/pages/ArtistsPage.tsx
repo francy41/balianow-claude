@@ -243,9 +243,14 @@ const ArtistsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-6">
-          <h1 className="font-display font-black text-3xl text-gray-900 mb-1">🎧 Artistas</h1>
-          <p className="text-gray-400">Los mejores DJs, bailarines y músicos latinos</p>
+        <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-purple-950 to-black p-6 sm:p-8 text-white">
+          <div className="absolute -top-10 -right-10 w-48 h-48 bg-pink-500/25 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-12 -left-12 w-52 h-52 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="relative">
+            <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-pink-300">🎧 Artistas</span>
+            <h1 className="font-display font-black text-3xl sm:text-4xl mt-1.5 leading-tight">Artistas y talento latino</h1>
+            <p className="text-white/70 mt-1.5 text-sm sm:text-base max-w-xl">Los mejores DJs, bailarines, cantantes y músicos latinos</p>
+          </div>
         </div>
 
         <div className="flex items-center gap-3 mb-4">
