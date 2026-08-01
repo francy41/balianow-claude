@@ -36,7 +36,7 @@ import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS, PROMO_SERVICES }
 
 // ── ADMIN SECTIONS ─────────────────────────────────────────────────────────
 type AdminSection =
-  | 'overview' | 'categorias' | 'media' | 'radio' | 'usuarios' | 'localidades'
+  | 'overview' | 'analitica' | 'categorias' | 'media' | 'radio' | 'usuarios' | 'localidades'
   | 'suscripciones' | 'artistas' | 'bailarinas' | 'eventos' | 'mercado'
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms' | 'home-destacados'
@@ -46,6 +46,7 @@ type AdminSection =
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
+  { id: 'analitica',      label: 'Analíticas · Visitas',    icon: <Eye className="w-4 h-4" />, badge: 'LIVE' },
   { id: 'cms',            label: 'CMS · Constructor',       icon: <Palette className="w-4 h-4" />, badge: 'NEW' },
   { id: 'patrocinadores', label: 'Lo más destacado',        icon: <Star className="w-4 h-4" />, badge: 'NEW' },
   { id: 'home-destacados', label: 'Home · BailaNow TV',      icon: <Tv className="w-4 h-4" />, badge: 'NEW' },
@@ -279,6 +280,7 @@ const AdminPage: React.FC = () => {
       {/* ── MAIN CONTENT ── */}
       <main className="flex-1 lg:ml-60 p-3 sm:p-6 mt-0 min-w-0 overflow-x-hidden">
         {active === 'overview'       && <OverviewSection addToast={addToast} />}
+        {active === 'analitica'      && <AnaliticasSection addToast={addToast} />}
         {active === 'categorias'     && <CategoriasSection addToast={addToast} />}
         {active === 'media'          && <MediaSection />}
         {active === 'radio'          && <RadioSection addToast={addToast} />}
@@ -1638,6 +1640,184 @@ const ArtistasSection: React.FC<{ addToast: Function; navigate: Function }> = ({
 };
 
 // ── 8. BAILARINAS ─────────────────────────────────────────────────────────
+// ── ANALÍTICAS · VISITAS (first-party, datos reales de la tabla page_views) ──
+const PAGE_VIEWS_SQL = `create table if not exists public.page_views (
+  id bigint generated always as identity primary key,
+  path text not null,
+  referrer text,
+  session_id text,
+  user_id uuid,
+  created_at timestamptz not null default now()
+);
+alter table public.page_views enable row level security;
+-- Cualquiera puede registrar una visita (insertar)
+drop policy if exists "page_views insert anon" on public.page_views;
+create policy "page_views insert anon" on public.page_views
+  for insert to anon, authenticated with check (true);
+-- Solo admins pueden leer las visitas
+drop policy if exists "page_views select admin" on public.page_views;
+create policy "page_views select admin" on public.page_views
+  for select to authenticated using (public.is_admin());
+create index if not exists idx_page_views_created on public.page_views (created_at desc);`;
+
+const AnaliticasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const [loading, setLoading] = useState(true);
+  const [rows, setRows] = useState<{ path: string; session_id: string | null; created_at: string }[]>([]);
+  const [tableMissing, setTableMissing] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    setTableMissing(false);
+    try {
+      const { data, error } = await supabase
+        .from('page_views')
+        .select('path, session_id, created_at')
+        .order('created_at', { ascending: false })
+        .limit(5000);
+      if (error) {
+        if ((error as any).code === '42P01' || /page_views/i.test(error.message || '')) setTableMissing(true);
+        setRows([]);
+      } else {
+        setRows(data || []);
+      }
+    } catch {
+      setRows([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => { load(); }, []);
+
+  const copySql = () => {
+    try {
+      navigator.clipboard.writeText(PAGE_VIEWS_SQL);
+      addToast({ message: '✅ SQL copiado. Pégalo en Supabase → SQL Editor y ejecuta.', type: 'success' });
+    } catch {
+      addToast({ message: 'Copia el SQL manualmente del recuadro.', type: 'error' });
+    }
+  };
+
+  const now = Date.now();
+  const DAY = 86400000;
+  const startToday = new Date(); startToday.setHours(0, 0, 0, 0);
+  const todayMs = startToday.getTime();
+  const ms = (s: string) => new Date(s).getTime();
+
+  const viewsToday = rows.filter(r => ms(r.created_at) >= todayMs).length;
+  const views7 = rows.filter(r => now - ms(r.created_at) < 7 * DAY).length;
+  const uniques7 = new Set(rows.filter(r => now - ms(r.created_at) < 7 * DAY).map(r => r.session_id || 'anon')).size;
+  const totalWindow = rows.length;
+
+  const days: { label: string; count: number }[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const dStart = todayMs - i * DAY;
+    const dEnd = dStart + DAY;
+    const count = rows.filter(r => { const t = ms(r.created_at); return t >= dStart && t < dEnd; }).length;
+    days.push({ label: new Date(dStart).toLocaleDateString('es-ES', { weekday: 'short' }), count });
+  }
+  const maxDay = Math.max(1, ...days.map(d => d.count));
+
+  const pathCounts = new Map<string, number>();
+  rows.filter(r => now - ms(r.created_at) < 7 * DAY).forEach(r => {
+    pathCounts.set(r.path, (pathCounts.get(r.path) || 0) + 1);
+  });
+  const topPaths = Array.from(pathCounts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const maxPath = Math.max(1, ...topPaths.map(p => p[1]));
+
+  const cards = [
+    { label: 'Visitas hoy',          value: viewsToday,  icon: <Eye className="w-6 h-6 text-blue-500" />,        color: 'bg-blue-50' },
+    { label: 'Visitas (7 días)',     value: views7,      icon: <TrendingUp className="w-6 h-6 text-green-500" />, color: 'bg-green-50' },
+    { label: 'Visitantes únicos 7d', value: uniques7,    icon: <Users className="w-6 h-6 text-purple-500" />,    color: 'bg-purple-50' },
+    { label: 'Visitas registradas',  value: totalWindow, icon: <Eye className="w-6 h-6 text-brand-orange" />,    color: 'bg-pink-50' },
+  ];
+
+  return (
+    <div>
+      <PageHeader
+        title="Analíticas · Visitas"
+        subtitle={loading ? 'Cargando…' : tableMissing ? 'Falta crear la tabla (1 paso)' : `${totalWindow} visitas registradas · en directo`}
+        action={<Button variant="dark" icon={<RefreshCw className="w-4 h-4" />} onClick={load}>Recargar</Button>}
+      />
+
+      {loading ? (
+        <div className="text-center py-12 text-gray-400"><RefreshCw className="w-6 h-6 animate-spin mx-auto" /></div>
+      ) : tableMissing ? (
+        <div className="card-white p-6 max-w-2xl">
+          <h3 className="font-display font-black text-lg mb-2">Activa las analíticas (1 paso)</h3>
+          <p className="text-sm text-gray-600 mb-4">
+            Para guardar las visitas hace falta crear la tabla <code>page_views</code> una sola vez.
+            Copia este SQL, pégalo en <b>Supabase → SQL Editor</b> y pulsa <b>Run</b>. Después, recarga esta sección.
+          </p>
+          <pre className="bg-gray-900 text-gray-100 text-[11px] p-4 rounded-xl overflow-auto max-h-72 whitespace-pre-wrap">{PAGE_VIEWS_SQL}</pre>
+          <div className="flex gap-2 mt-3">
+            <Button variant="orange" onClick={copySql}>Copiar SQL</Button>
+            <Button variant="dark" icon={<RefreshCw className="w-4 h-4" />} onClick={load}>Ya lo ejecuté · Recargar</Button>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Tarjetas de resumen */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {cards.map(c => (
+              <div key={c.label} className="card-white p-5">
+                <div className={`w-11 h-11 rounded-xl ${c.color} flex items-center justify-center mb-3`}>{c.icon}</div>
+                <div className="text-2xl font-display font-black">{c.value.toLocaleString('es-ES')}</div>
+                <div className="text-xs text-gray-500 mt-1">{c.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Gráfica últimos 7 días */}
+          <div className="card-white p-5">
+            <h3 className="font-display font-black mb-4">Visitas — últimos 7 días</h3>
+            <div className="flex items-end gap-2 h-40">
+              {days.map((d, i) => (
+                <div key={i} className="flex-1 flex flex-col items-center justify-end gap-2">
+                  <span className="text-[11px] font-semibold text-gray-600">{d.count}</span>
+                  <div className="w-full rounded-t-lg bg-gradient-to-t from-brand-orange to-pink-400" style={{ height: `${(d.count / maxDay) * 100}%`, minHeight: d.count ? 4 : 0 }} />
+                  <span className="text-[10px] text-gray-400 capitalize">{d.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Páginas más visitadas */}
+          <div className="card-white p-5">
+            <h3 className="font-display font-black mb-4">Páginas más visitadas (7 días)</h3>
+            {topPaths.length === 0 ? (
+              <p className="text-sm text-gray-400">Aún no hay visitas registradas. En cuanto entre gente, aparecerán aquí.</p>
+            ) : (
+              <div className="space-y-2">
+                {topPaths.map(([path, count]) => (
+                  <div key={path} className="flex items-center gap-3">
+                    <span className="text-xs font-mono text-gray-700 w-48 truncate" title={path}>{path}</span>
+                    <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                      <div className="h-full bg-brand-orange rounded-full" style={{ width: `${(count / maxPath) * 100}%` }} />
+                    </div>
+                    <span className="text-xs font-semibold text-gray-600 w-10 text-right">{count}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Nota + enlace a Cloudflare para la visión global */}
+          <div className="card-white p-5 bg-gradient-to-br from-gray-50 to-white">
+            <p className="text-sm text-gray-600">
+              Estos son datos <b>propios</b> (visitas dentro de la app). Para la visión global de tráfico (países, bots, ancho de banda)
+              tienes el panel de Cloudflare.
+            </p>
+            <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 mt-3 text-sm font-semibold text-brand-orange hover:underline">
+              <TrendingUp className="w-4 h-4" /> Abrir analíticas de Cloudflare
+            </a>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const { openEdit } = useAdminEdit();
   const [items, setItems] = useState<any[]>([]);
