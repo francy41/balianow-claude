@@ -312,16 +312,29 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
 
   useEffect(() => {
     let cancelled = false;
-    supabase.from('venues').select('*').eq('id', venueId).maybeSingle().then(({ data }) => {
-      if (cancelled) return;
-      if (data) { setVenue(mapDbVenue(data)); }
-      else {
-        const mock = VENUES.find(v => String(v.id) === String(venueId));
-        setVenue(mock ? ({ ...mock, userId: '' } as any) : null);
-      }
+    let done = false;
+    const fallbackMock = () => {
+      if (cancelled || done) return; done = true;
+      const mock = VENUES.find(v => String(v.id) === String(venueId));
+      setVenue(mock ? ({ ...mock, userId: '' } as any) : null);
       setLoadingVenue(false);
-    });
-    return () => { cancelled = true; };
+    };
+    // Safety-timeout: si la consulta se cuelga/rechaza, cae al ejemplo en vez de spinner infinito.
+    const timer = setTimeout(fallbackMock, 8000);
+    supabase.from('venues').select('*').eq('id', venueId).maybeSingle().then(
+      ({ data }) => {
+        clearTimeout(timer);
+        if (cancelled || done) return; done = true;
+        if (data) setVenue(mapDbVenue(data));
+        else {
+          const mock = VENUES.find(v => String(v.id) === String(venueId));
+          setVenue(mock ? ({ ...mock, userId: '' } as any) : null);
+        }
+        setLoadingVenue(false);
+      },
+      () => { clearTimeout(timer); fallbackMock(); }
+    );
+    return () => { cancelled = true; clearTimeout(timer); };
   }, [venueId]);
 
   const handleReserve = () => {

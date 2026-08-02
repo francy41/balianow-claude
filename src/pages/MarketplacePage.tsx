@@ -51,12 +51,16 @@ const MarketplacePage: React.FC = () => {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   useEffect(() => {
+    let done = false;
+    const finish = (rows: SvcRow[]) => { if (done) return; done = true; setServices(rows.length ? rows : FALLBACK_SERVICES); setLoading(false); };
+    // Safety-timeout: si la consulta se cuelga/rechaza, mostramos ejemplos en vez de spinner infinito.
+    const timer = setTimeout(() => finish([]), 8000);
     supabase.from('services').select('*').eq('admin_status', 'approved').order('rating', { ascending: false }).limit(200)
-      .then(({ data }) => {
-        const rows = (data || []).map(normalize);
-        setServices(rows.length ? rows : FALLBACK_SERVICES);
-        setLoading(false);
-      });
+      .then(
+        ({ data }) => { clearTimeout(timer); finish((data || []).map(normalize)); },
+        () => { clearTimeout(timer); finish([]); }
+      );
+    return () => clearTimeout(timer);
   }, []);
 
   const priceMax = useMemo(() => {

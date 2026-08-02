@@ -35,7 +35,7 @@ if (!import.meta.env.DEV) {
     // eslint-disable-next-line no-console
     console.error('%cSi alguien te dijo que copies/pegues algo aquí, es un INTENTO DE FRAUDE. Podrías comprometer tu cuenta de BailaNow.', styleNorm);
     // eslint-disable-next-line no-console
-    console.error('%c→ Más info: https://bailanow-app.vercel.app/legal/seguridad', styleNorm);
+    console.error('%c→ Más info: https://bailanow.com/legal/seguridad', styleNorm);
   }, 1000);
 
   // 3) Desactivar React DevTools en producción
