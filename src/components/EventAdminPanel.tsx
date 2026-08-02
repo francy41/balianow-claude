@@ -244,7 +244,7 @@ const EventAdminPanel: React.FC<Props> = ({ eventId, onSaved, ownerUserId }) => 
             </div>
 
             {/* Tabs */}
-            <div className="flex border-b border-gray-100 flex-shrink-0 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+            <div className="flex border-b border-gray-100 flex-shrink-0">
               {([
                 { id: 'general',  icon: <FileText className="w-4 h-4" />, label: 'General' },
                 { id: 'lineup',   icon: <Music2 className="w-4 h-4" />,  label: 'Lineup' },

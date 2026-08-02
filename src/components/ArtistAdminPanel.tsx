@@ -218,10 +218,10 @@ const ArtistAdminPanel: React.FC<Props> = ({ id, onSaved, ownerUserId, autoOpen 
             </div>
 
             {/* Tabs */}
-            <div className="flex border-b border-gray-100 flex-shrink-0 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+            <div className="flex flex-wrap border-b border-gray-100 flex-shrink-0">
               {tabs.map(t => (
                 <button key={t.id} onClick={() => setTab(t.id)}
-                  className={`flex items-center gap-1.5 px-4 py-3 text-sm font-bold border-b-2 transition-colors flex-shrink-0 whitespace-nowrap ${tab === t.id ? 'border-purple-600 text-purple-700' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
+                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${tab === t.id ? 'border-purple-600 text-purple-700' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
                   {t.icon} {t.label}
                 </button>
               ))}
