@@ -346,7 +346,7 @@ const EntityAdminPanel: React.FC<Props> = ({ kind, id, onSaved, ownerUserId }) =
             {/* Body */}
             <div className="flex-1 overflow-y-auto p-5">
               {activeTab === 'general' && (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {resolved.fields.map(renderField)}
                 </div>
               )}
