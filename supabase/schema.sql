@@ -275,37 +275,37 @@ CREATE POLICY "Users can update own profile" ON public.profiles FOR UPDATE USING
 -- Artists: public read, admin/own write
 CREATE POLICY "Artists are viewable by everyone" ON public.artists FOR SELECT USING (true);
 CREATE POLICY "Artists can be created by auth users" ON public.artists FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
-CREATE POLICY "Artists can update own record" ON public.artists FOR UPDATE USING (auth.uid() = user_id OR EXISTS(SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
-CREATE POLICY "Admin can delete artists" ON public.artists FOR DELETE USING (EXISTS(SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Artists can update own record" ON public.artists FOR UPDATE USING (auth.uid() = user_id OR public.is_admin());
+CREATE POLICY "Admin can delete artists" ON public.artists FOR DELETE USING (public.is_admin());
 
 -- Venues: public read, admin/own write
 CREATE POLICY "Venues are viewable by everyone" ON public.venues FOR SELECT USING (true);
 CREATE POLICY "Venues can be created by auth users" ON public.venues FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
-CREATE POLICY "Venues can update own record" ON public.venues FOR UPDATE USING (auth.uid() = user_id OR EXISTS(SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Venues can update own record" ON public.venues FOR UPDATE USING (auth.uid() = user_id OR public.is_admin());
 
 -- Events: public read, admin write
 CREATE POLICY "Events are viewable by everyone" ON public.events FOR SELECT USING (true);
 CREATE POLICY "Events can be created by auth users" ON public.events FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
-CREATE POLICY "Events can be updated by creator or admin" ON public.events FOR UPDATE USING (auth.uid() = created_by OR EXISTS(SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Events can be updated by creator or admin" ON public.events FOR UPDATE USING (auth.uid() = created_by OR public.is_admin());
 
 -- Services: public read
 CREATE POLICY "Services are viewable by everyone" ON public.services FOR SELECT USING (true);
 CREATE POLICY "Services can be created by auth users" ON public.services FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
-CREATE POLICY "Services can be updated by artist owner" ON public.services FOR UPDATE USING (EXISTS(SELECT 1 FROM public.artists WHERE id = artist_id AND user_id = auth.uid()) OR EXISTS(SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Services can be updated by artist owner" ON public.services FOR UPDATE USING (EXISTS(SELECT 1 FROM public.artists WHERE id = artist_id AND user_id = auth.uid()) OR public.is_admin());
 
 -- Bookings: own read/write
-CREATE POLICY "Users can view own bookings" ON public.bookings FOR SELECT USING (auth.uid() = user_id OR EXISTS(SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Users can view own bookings" ON public.bookings FOR SELECT USING (auth.uid() = user_id OR public.is_admin());
 CREATE POLICY "Users can create bookings" ON public.bookings FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can update own bookings" ON public.bookings FOR UPDATE USING (auth.uid() = user_id OR EXISTS(SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Users can update own bookings" ON public.bookings FOR UPDATE USING (auth.uid() = user_id OR public.is_admin());
 
 -- Reviews: public read, own write
 CREATE POLICY "Reviews are viewable by everyone" ON public.reviews FOR SELECT USING (true);
 CREATE POLICY "Auth users can create reviews" ON public.reviews FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Tickets: own read, admin all
-CREATE POLICY "Users can view own tickets" ON public.tickets FOR SELECT USING (auth.uid() = user_id OR EXISTS(SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Users can view own tickets" ON public.tickets FOR SELECT USING (auth.uid() = user_id OR public.is_admin());
 CREATE POLICY "Users can create tickets" ON public.tickets FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
-CREATE POLICY "Tickets can be updated" ON public.tickets FOR UPDATE USING (auth.uid() = user_id OR EXISTS(SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Tickets can be updated" ON public.tickets FOR UPDATE USING (auth.uid() = user_id OR public.is_admin());
 
 -- Messages: participants only
 CREATE POLICY "Users can view own messages" ON public.messages FOR SELECT USING (auth.uid() = sender_id OR auth.uid() = receiver_id);
@@ -318,8 +318,8 @@ CREATE POLICY "Users can remove favorites" ON public.favorites FOR DELETE USING 
 
 -- Site config: public read, admin write
 CREATE POLICY "Site config is viewable by everyone" ON public.site_config FOR SELECT USING (true);
-CREATE POLICY "Admin can update site config" ON public.site_config FOR UPDATE USING (EXISTS(SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
-CREATE POLICY "Admin can insert site config" ON public.site_config FOR INSERT WITH CHECK (EXISTS(SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+CREATE POLICY "Admin can update site config" ON public.site_config FOR UPDATE USING (public.is_admin());
+CREATE POLICY "Admin can insert site config" ON public.site_config FOR INSERT WITH CHECK (public.is_admin());
 
 -- ── UPDATED_AT TRIGGER ──────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.set_updated_at()
