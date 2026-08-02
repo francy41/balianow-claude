@@ -595,8 +595,23 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
   const day = (d: string) => (d || '').split('-')[2] || '--';
   const month = (d: string) => MONTHS[(Number((d || '').split('-')[1]) || 1) - 1] || '';
   const ytId = artist.featuredVideo ? getYouTubeId(artist.featuredVideo) : '';
-  const events = EVENTS
+
+  // Próximos eventos: eventos REALES de la BD donde el artista está en el lineup;
+  // si no hay ninguno, cae a los ejemplos (mock) que lo referencien.
+  const [dbEvents, setDbEvents] = useState<any[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    supabase.from('events').select('id,title,date,event_date,venue_name,city,artists')
+      .then(({ data }) => { if (!cancelled) setDbEvents(data || []); }, () => {});
+    return () => { cancelled = true; };
+  }, [artist.id]);
+  const realEv = dbEvents
+    .filter(e => Array.isArray(e.artists) && e.artists.includes(artist.id))
+    .map(e => ({ id: e.id, title: e.title || 'Evento', date: e.date || e.event_date || '', venueName: e.venue_name || '', city: e.city || '' }));
+  const mockEv = EVENTS
     .filter(e => Array.isArray((e as any).artists) && (e as any).artists.includes(artist.id))
+    .map(e => ({ id: e.id, title: e.title, date: e.date, venueName: (e as any).venueName || '', city: e.city }));
+  const events = (realEv.length ? realEv : mockEv)
     .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
     .slice(0, 3);
   const courses = (((artist as any).classPackages || []).length
