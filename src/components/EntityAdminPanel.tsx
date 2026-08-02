@@ -328,7 +328,7 @@ const EntityAdminPanel: React.FC<Props> = ({ kind, id, onSaved, ownerUserId }) =
 
             {/* Tabs — solo para venue y service */}
             {hasSchedule && (
-              <div className="flex border-b border-gray-100 px-5 gap-1 flex-shrink-0 bg-white">
+              <div className="flex flex-wrap border-b border-gray-100 px-5 gap-1 flex-shrink-0 bg-white">
                 {([
                   { id: 'general', label: 'Datos generales', icon: <Save className="w-3.5 h-3.5" /> },
                   { id: 'schedule', label: 'Horario', icon: <Calendar className="w-3.5 h-3.5" /> },
