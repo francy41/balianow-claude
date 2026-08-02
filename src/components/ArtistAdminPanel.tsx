@@ -229,11 +229,11 @@ const ArtistAdminPanel: React.FC<Props> = ({ id, onSaved, ownerUserId, autoOpen 
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto">
-              {tab === 'general' && <GeneralTab fields={fields} form={form} setVal={setVal} table={table} onSave={() => saveRow()} saving={saving} />}
+              {tab === 'general' && <GeneralTab fields={fields} form={form} setVal={setVal} table={table} onSave={() => saveRow(['social'])} saving={saving} />}
               {tab === 'gallery' && <GalleryEditor items={form.gallery || []} onChange={v => setVal('gallery', v)} onSave={() => saveRow(['gallery'])} saving={saving} />}
               {tab === 'packages' && <PackagesEditor items={form.packages || []} onChange={v => setVal('packages', v)} onSave={() => saveRow(['packages'])} saving={saving} />}
               {tab === 'classes' && <ClassPackagesEditor items={form.class_packages || []} onChange={v => setVal('class_packages', v)} onSave={() => saveRow(['class_packages'])} saving={saving} />}
-              {tab === 'live' && <LiveEditor form={form} setVal={setVal} onSave={() => saveRow(['is_live','stream_url','featured_video','featured_video_title','twitch_url','youtube_url','facebook_url','instagram_url','tiktok_url','soundcloud_url'])} saving={saving} />}
+              {tab === 'live' && <LiveEditor form={form} setVal={setVal} onSave={() => saveRow(['is_live','stream_url','featured_video','featured_video_title','social'])} saving={saving} />}
               {tab === 'availability' && <AvailabilityEditor days={form.availability || []} onChange={v => setVal('availability', v)} onSave={() => saveRow(['availability'])} saving={saving} />}
               {tab === 'courses' && <CoursesEditor courses={courses} ownerId={original.user_id || original.id} instructor={original.name || original.full_name || ''} onReload={loadCourses} />}
             </div>
@@ -281,7 +281,39 @@ const GeneralTab: React.FC<{ fields: EditField[]; form: any; setVal: (k: string,
         );
       })}
     </div>
+    {/* Redes sociales — tabla artists usa un objeto JSONB `social` (usuario, no URL completa) */}
+    {table === 'artists' && <SocialLinksEditor social={form.social || {}} onChange={s => setVal('social', s)} />}
     <div className="mt-5"><SaveBtn onClick={onSave} saving={saving} label="Guardar datos generales" /></div>
+  </div>
+);
+
+// ─── Social links editor (objeto JSONB `social` de la tabla artists) ─────────
+const SOCIAL_FIELDS = [
+  { key: 'instagram', icon: '🌸', label: 'Instagram', ph: 'usuario (sin @)' },
+  { key: 'tiktok',    icon: '⬛', label: 'TikTok',    ph: 'usuario (sin @)' },
+  { key: 'youtube',   icon: '🔴', label: 'YouTube',   ph: 'canal o @usuario' },
+  { key: 'facebook',  icon: '🔵', label: 'Facebook',  ph: 'nombre de página' },
+  { key: 'spotify',   icon: '🟢', label: 'Spotify',   ph: 'usuario / id' },
+  { key: 'soundcloud',icon: '🟠', label: 'SoundCloud',ph: 'usuario' },
+] as const;
+
+const SocialLinksEditor: React.FC<{ social: Record<string, string>; onChange: (s: Record<string, string>) => void }> =
+({ social, onChange }) => (
+  <div className="mt-6 border-t border-gray-100 pt-4">
+    <p className="text-sm font-bold text-gray-800 mb-1">🌐 Redes sociales</p>
+    <p className="text-[11px] text-gray-400 mb-3">Escribe solo el <b>usuario</b> (no la URL completa). Ej: <code>djmamboking</code></p>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {SOCIAL_FIELDS.map(({ key, icon, label, ph }) => (
+        <div key={key} className="flex items-center gap-2">
+          <span className="text-lg w-6 text-center flex-shrink-0">{icon}</span>
+          <div className="flex-1">
+            <label className="block text-[11px] font-semibold text-gray-500 mb-0.5">{label}</label>
+            <input value={social[key] || ''} onChange={e => onChange({ ...social, [key]: e.target.value.trim() })}
+              placeholder={ph} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+          </div>
+        </div>
+      ))}
+    </div>
   </div>
 );
 
@@ -391,13 +423,14 @@ const PackagesEditor: React.FC<{ items: Pkg[]; onChange: (v: Pkg[]) => void; onS
 };
 
 // ─── Live Editor ────────────────────────────────────────────────────────────
+// Claves del objeto JSONB `social` (mismas que usa el perfil público para construir el enlace).
 const STREAM_PLATFORMS = [
-  { key: 'twitch_url',    icon: '🟣', label: 'Twitch',          placeholder: 'https://twitch.tv/tu_canal' },
-  { key: 'youtube_url',   icon: '🔴', label: 'YouTube',         placeholder: 'https://youtube.com/@tu_canal' },
-  { key: 'facebook_url',  icon: '🔵', label: 'Facebook Live',   placeholder: 'https://facebook.com/tu_pagina' },
-  { key: 'instagram_url', icon: '🌸', label: 'Instagram',       placeholder: 'https://instagram.com/tu_cuenta' },
-  { key: 'tiktok_url',    icon: '⬛', label: 'TikTok',          placeholder: 'https://tiktok.com/@tu_cuenta' },
-  { key: 'soundcloud_url',icon: '🟠', label: 'SoundCloud',      placeholder: 'https://soundcloud.com/tu_perfil' },
+  { key: 'youtube',   icon: '🔴', label: 'YouTube',    placeholder: 'canal o @usuario' },
+  { key: 'facebook',  icon: '🔵', label: 'Facebook',   placeholder: 'nombre de página' },
+  { key: 'instagram', icon: '🌸', label: 'Instagram',  placeholder: 'usuario (sin @)' },
+  { key: 'tiktok',    icon: '⬛', label: 'TikTok',     placeholder: 'usuario (sin @)' },
+  { key: 'soundcloud',icon: '🟠', label: 'SoundCloud', placeholder: 'usuario' },
+  { key: 'spotify',   icon: '🟢', label: 'Spotify',    placeholder: 'usuario / id' },
 ] as const;
 
 const LiveEditor: React.FC<{ form: any; setVal: (k: string, v: any) => void; onSave: () => void; saving: boolean }> =
@@ -426,15 +459,16 @@ const LiveEditor: React.FC<{ form: any; setVal: (k: string, v: any) => void; onS
       <p className="text-[11px] text-gray-400 mt-1">Para radios con emisión directa. Se reproduce en el player de la plataforma.</p>
     </div>
 
-    {/* Plataformas de streaming */}
+    {/* Redes sociales (objeto JSONB `social`; usuario, no URL completa) */}
     <div>
-      <p className="text-sm font-semibold text-gray-700 mb-3">🔗 Perfiles en plataformas de streaming</p>
+      <p className="text-sm font-semibold text-gray-700 mb-1">🔗 Perfiles en redes / plataformas</p>
+      <p className="text-[11px] text-gray-400 mb-3">Escribe solo el <b>usuario</b> (no la URL). Ej: <code>djmamboking</code></p>
       <div className="space-y-2">
         {STREAM_PLATFORMS.map(({ key, icon, label, placeholder }) => (
           <div key={key} className="flex items-center gap-3">
             <span className="text-lg w-6 text-center flex-shrink-0">{icon}</span>
             <div className="flex-1">
-              <input type="url" value={(form as any)[key] || ''} onChange={e => setVal(key, e.target.value)}
+              <input type="text" value={form.social?.[key] || ''} onChange={e => setVal('social', { ...(form.social || {}), [key]: e.target.value.trim() })}
                 placeholder={placeholder}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
             </div>
