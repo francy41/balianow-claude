@@ -346,14 +346,28 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
   const [liked, setLiked] = useState(false);
 
   const loadEvent = () => {
-    supabase.from('events').select('*').eq('id', eventId).maybeSingle().then(({ data }) => {
-      if (data) { setEvent(normalizeEvent(data)); }
-      else {
-        const mock = EVENTS.find(e => String(e.id) === String(eventId));
-        setEvent(mock ? ({ ...mock, userId: '' } as any) : null);
-      }
+    let done = false;
+    const fallbackMock = () => {
+      if (done) return; done = true;
+      const mock = EVENTS.find(e => String(e.id) === String(eventId));
+      setEvent(mock ? ({ ...mock, userId: '' } as any) : null);
       setLoadingEvent(false);
-    });
+    };
+    // Safety-timeout: si la consulta se cuelga/rechaza, cae al ejemplo en vez de spinner infinito.
+    const timer = setTimeout(fallbackMock, 8000);
+    supabase.from('events').select('*').eq('id', eventId).maybeSingle().then(
+      ({ data }) => {
+        clearTimeout(timer);
+        if (done) return; done = true;
+        if (data) setEvent(normalizeEvent(data));
+        else {
+          const mock = EVENTS.find(e => String(e.id) === String(eventId));
+          setEvent(mock ? ({ ...mock, userId: '' } as any) : null);
+        }
+        setLoadingEvent(false);
+      },
+      () => { clearTimeout(timer); fallbackMock(); }
+    );
   };
 
   useEffect(() => {

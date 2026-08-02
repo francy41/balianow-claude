@@ -227,7 +227,7 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
             class_title: offering.title,
             class_date: classDate,
             vendor_name: offering.vendor_name,
-            jitsi_url: `https://bailanow-app.vercel.app/clase/${data.id}`,
+            jitsi_url: `${window.location.origin}/clase/${data.id}`,
             price: offering.price,
           },
         }).then((r: any) => console.log('[booking] email sent:', r))

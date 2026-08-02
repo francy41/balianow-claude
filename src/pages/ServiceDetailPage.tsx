@@ -10,6 +10,7 @@ import EntityAdminPanel from '../components/EntityAdminPanel';
 import ClaimProfileButton from '../components/ClaimProfileButton';
 import UnclaimedNotice from '../components/UnclaimedNotice';
 import { isClaimed, UNCLAIMED_TOAST } from '../lib/ownership';
+import { SERVICES } from '../data/mockData';
 
 type SvcDetail = {
   id: string; title: string; cover: string; category: string; description: string;
@@ -52,16 +53,34 @@ const ServiceDetailPage: React.FC = () => {
 
   useEffect(() => {
     if (!id) return;
+    // Fallback a ejemplo (mock) por id, para que las tarjetas de ejemplo del
+    // marketplace no lleven a "Servicio no encontrado" cuando la BD está vacía.
+    const mockFallback = (): SvcDetail | null => {
+      const m: any = SERVICES.find((s: any) => String(s.id) === String(id));
+      if (!m) return null;
+      return {
+        id: m.id, title: m.title || '', cover: m.cover || '', category: m.category || '',
+        description: m.description || '', artistId: m.artistId || '', artistName: m.artistName || '',
+        artistAvatar: m.artistAvatar || '', price: Number(m.price) || 0, rating: Number(m.rating) || 0,
+        reviews: Number(m.reviews) || 0, orders: Number(m.orders) || 0,
+        tags: Array.isArray(m.tags) ? m.tags : [], includes: Array.isArray(m.includes) ? m.includes : [],
+        deliveryDays: Number(m.deliveryDays) || 1, userId: '',
+      };
+    };
+    let done = false;
+    const finish = (svc: SvcDetail | null) => { if (done) return; done = true; setService(svc); setLoading(false); };
+    const timer = setTimeout(() => finish(mockFallback()), 8000);
     (async () => {
       try {
         const { data } = await supabase.from('services').select('*').eq('id', id).maybeSingle();
-        setService(data ? normalize(data) : null);
+        clearTimeout(timer);
+        finish(data ? normalize(data) : mockFallback());
       } catch {
-        // network error — leave service null
-      } finally {
-        setLoading(false);
+        clearTimeout(timer);
+        finish(mockFallback());
       }
     })();
+    return () => clearTimeout(timer);
   }, [id]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-orange" /></div>;

@@ -248,7 +248,17 @@ const AuthPage: React.FC = () => {
     const partnerFlow = selectedRole === 'partner';
     const registerRole: UserRole = partnerFlow ? 'user' : selectedRole;
 
-    const supa = await supabaseRegister(email, regPassword, { name, role: registerRole, city: regCity.trim() || 'Madrid' });
+    // Feedback visual + protección ante errores de red (libera el botón SIEMPRE).
+    setSubmitting(true);
+    let supa: Awaited<ReturnType<typeof supabaseRegister>>;
+    try {
+      supa = await supabaseRegister(email, regPassword, { name, role: registerRole, city: regCity.trim() || 'Madrid' });
+    } catch (e: any) {
+      addToast({ message: `No se pudo conectar: ${e?.message || 'error de red'}`, type: 'error' });
+      return;
+    } finally {
+      setSubmitting(false);
+    }
     if (supa.success) {
       // Correo de bienvenida (best-effort; no-op si el email no está configurado).
       supabase.functions.invoke('send-email', { body: { to: email, type: 'welcome', data: { name } } }).catch(() => {});
@@ -575,7 +585,7 @@ const AuthPage: React.FC = () => {
                   </div>
                 )}
 
-                <Button variant="orange" className="w-full" loading={isLoading} onClick={handleRegister}>
+                <Button variant="orange" className="w-full" loading={submitting || isLoading} disabled={submitting} onClick={handleRegister}>
                   Crear Cuenta Gratis
                 </Button>
 

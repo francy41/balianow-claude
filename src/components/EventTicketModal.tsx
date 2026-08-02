@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Ticket, CreditCard, CheckCircle, Loader2, ChevronRight, Minus, Plus, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
@@ -47,6 +48,7 @@ const EventTicketModal: React.FC<Props> = ({
 }) => {
   const { user, isAuthenticated } = useAuthStore();
   const { addToast } = useUIStore();
+  const navigate = useNavigate();
   const commissionPct = useCommissionPercent();
 
   const [step, setStep] = useState<Step>('select');
@@ -81,11 +83,19 @@ const EventTicketModal: React.FC<Props> = ({
   if (!open) return null;
 
   const total = selectedSection ? selectedSection.price * qty : 0;
-  const commission = Math.round(total * commissionPct * 100) / 100;
+  // commissionPct es un PORCENTAJE (p. ej. 15), no una fracción → dividir entre 100.
+  const commission = Math.round(total * (commissionPct / 100) * 100) / 100;
   const net = Math.round((total - commission) * 100) / 100;
 
   const goToPay = async () => {
-    if (!selectedSection || !isAuthenticated || !user) return;
+    if (!selectedSection) return;
+    // Si no ha iniciado sesión, no dejar el botón "muerto": avisar y llevar a login.
+    if (!isAuthenticated || !user) {
+      addToast({ message: 'Inicia sesión para comprar tu entrada', type: 'info' });
+      onClose();
+      navigate('/auth?redirect=' + encodeURIComponent(`/eventos/${eventId}`));
+      return;
+    }
     setLoading(true);
 
     if (stripeReady) {
