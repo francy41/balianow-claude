@@ -559,23 +559,37 @@ const LineupTab: React.FC<{
   const [showForm, setShowForm] = useState(false);
   const [manualEntry, setManualEntry] = useState<Partial<LineupEntry>>({ role: 'DJ' });
   const debounce = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [allArtists, setAllArtists] = useState<ArtistResult[]>([]);
 
-  const searchArtists = useCallback(async (q: string) => {
-    if (!q.trim()) { setResults([]); return; }
-    setSearching(true);
-    const { data } = await supabase
-      .from('artists')
-      .select('id, name, avatar, type, genre, city, rating, is_verified')
-      .ilike('name', `%${q}%`)
-      .limit(8);
-    setSearching(false);
-    setResults(data || []);
+  // Cargamos todos los artistas una vez y filtramos en cliente, insensible a
+  // MAYÚSCULAS y ACENTOS (ilike de Postgres no ignora acentos: "lucia" ≠ "Lucía").
+  useEffect(() => {
+    supabase.from('artists').select('id, name, avatar, type, genre, city, rating, is_verified').order('name').limit(1000)
+      .then(({ data }) => setAllArtists(data || []), () => {});
   }, []);
+
+  const norm = (s: string) => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+
+  const searchArtists = useCallback((q: string) => {
+    const nq = norm(q);
+    if (!nq) { setResults([]); return; }
+    setSearching(true);
+    // Filtro local insensible a acentos
+    let found = allArtists.filter(a => norm(a.name).includes(nq)).slice(0, 8);
+    // Respaldo: si aún no se cargaron todos, consulta directa a la BD
+    if (found.length === 0 && allArtists.length === 0) {
+      supabase.from('artists').select('id, name, avatar, type, genre, city, rating, is_verified').ilike('name', `%${q}%`).limit(8)
+        .then(({ data }) => { setResults(data || []); setSearching(false); }, () => setSearching(false));
+      return;
+    }
+    setResults(found);
+    setSearching(false);
+  }, [allArtists]);
 
   const handleSearchChange = (v: string) => {
     setSearch(v);
     if (debounce.current) clearTimeout(debounce.current);
-    debounce.current = setTimeout(() => searchArtists(v), 300);
+    debounce.current = setTimeout(() => searchArtists(v), 250);
   };
 
   const addFromResult = (a: ArtistResult) => {
