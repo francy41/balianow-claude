@@ -215,7 +215,7 @@ const AdminEditModal: React.FC<Props> = ({ open, onClose, title, entity, item, f
         </div>
 
         <div className="p-5 overflow-y-auto flex-1">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {fields.map(f => (
               <div key={f.key} className={f.cols === 2 || f.type === 'textarea' || f.type === 'image' ? 'col-span-2' : 'col-span-2 md:col-span-1'}>
                 <label className="text-xs font-bold text-gray-600 uppercase tracking-wide block mb-1">

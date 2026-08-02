@@ -248,7 +248,7 @@ const ArtistAdminPanel: React.FC<Props> = ({ id, onSaved, ownerUserId, autoOpen 
 const GeneralTab: React.FC<{ fields: EditField[]; form: any; setVal: (k: string, v: any) => void; table: string; onSave: () => void; saving: boolean }> =
 ({ fields, form, setVal, table, onSave, saving }) => (
   <div className="p-5">
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {fields.map(f => {
         const v = form[f.key];
         const wide = f.cols === 2 || f.type === 'textarea';
@@ -299,7 +299,7 @@ const GalleryEditor: React.FC<{ items: MediaItem[]; onChange: (v: MediaItem[]) =
     <div className="p-5 space-y-5">
       <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
         <h4 className="font-bold text-gray-800 text-sm">Añadir foto o vídeo</h4>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <select value={draft.type} onChange={e => setDraft(d => ({ ...d, type: e.target.value as any }))}
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-300">
             <option value="photo">Foto</option><option value="video">Vídeo</option><option value="mix">Mix / set</option>
@@ -353,7 +353,7 @@ const PackagesEditor: React.FC<{ items: Pkg[]; onChange: (v: Pkg[]) => void; onS
     <div className="p-5 space-y-5">
       <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
         <h4 className="font-bold text-gray-800 text-sm">Nuevo paquete de servicio</h4>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <select value={d.tier} onChange={e => setD(s => ({ ...s, tier: e.target.value as any }))} className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-300">
             <option value="basic">Básico</option><option value="standard">Estándar</option><option value="premium">Premium</option>
           </select>
@@ -507,7 +507,7 @@ const ClassPackagesEditor: React.FC<{ items: ClassPkg[]; onChange: (v: ClassPkg[
 
       <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
         <h4 className="font-bold text-gray-800 text-sm">Nuevo paquete de clase</h4>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <select value={preset} onChange={e => { const v = Number(e.target.value); setPreset(v); setD(s => ({ ...s, capacity: v === 0 ? 4 : v })); }}
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-300">
             {CAP_PRESETS.map(p => <option key={p.cap} value={p.cap}>{p.label}</option>)}
@@ -595,7 +595,7 @@ const CoursesEditor: React.FC<{ courses: Course[]; ownerId?: string; instructor:
       <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
         <h4 className="font-bold text-gray-800 text-sm">Nuevo curso</h4>
         <input value={d.title} onChange={e => setD(s => ({ ...s, title: e.target.value }))} placeholder="Título del curso" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <input type="number" value={d.price || ''} onChange={e => setD(s => ({ ...s, price: Number(e.target.value) }))} placeholder="Precio €" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
           <input value={d.duration} onChange={e => setD(s => ({ ...s, duration: e.target.value }))} placeholder="Duración (ej. 4 semanas)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
           <input value={d.category} onChange={e => setD(s => ({ ...s, category: e.target.value }))} placeholder="Categoría (Bachata…)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />

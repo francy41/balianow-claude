@@ -440,7 +440,7 @@ const GeneralTab: React.FC<{
   return (
     <div className="p-5 space-y-5">
       {/* Title & description */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {txt('title', 'Título del evento *', 'Noche de Salsa…', true)}
         <div className="col-span-2">
           <label className="block text-xs font-semibold text-gray-600 mb-1.5">Descripción</label>
@@ -470,7 +470,7 @@ const GeneralTab: React.FC<{
       </div>
 
       {/* Type & category */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-semibold text-gray-600 mb-1.5">Tipo</label>
           <select
@@ -490,7 +490,7 @@ const GeneralTab: React.FC<{
       </div>
 
       {/* Location */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {txt('venue_name', 'Nombre del local', 'La Clave Club')}
         {txt('city', 'Ciudad', 'Madrid')}
         {txt('country', 'País', 'España')}
@@ -507,7 +507,7 @@ const GeneralTab: React.FC<{
       </div>
 
       {/* Images */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <ImageInput label="Portada / cartel" value={data.cover} onChange={v => onChange({ cover: v })} />
         <ImageInput label="Imagen alternativa" value={data.image_url} onChange={v => onChange({ image_url: v })} />
       </div>
@@ -692,7 +692,7 @@ const LineupTab: React.FC<{
 
         {showForm && (
           <div className="mt-3 p-4 bg-gray-50 rounded-xl space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-gray-600 mb-1">Nombre *</label>
                 <input
@@ -844,7 +844,7 @@ const SponsorsTab: React.FC<{
       {showForm && (
         <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
           <h4 className="font-semibold text-gray-800 text-sm">Nuevo patrocinador</h4>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="col-span-2">
               <label className="block text-xs font-semibold text-gray-600 mb-1">Nombre *</label>
               <input
