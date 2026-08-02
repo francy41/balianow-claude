@@ -71,6 +71,21 @@ async function resolveUser(supaId: string, email: string, oauthMeta?: {
   return null;
 }
 
+// ── Safe wrapper: resolveUser NUNCA debe colgar la app ─────────────────────
+// Si la consulta a `profiles` se cuelga, resolveUser podría no resolver jamás y
+// dejar la app en "cargando" para siempre (arranque con sesión previa) o el
+// login/refresco a medias. Esta versión corre una carrera con un timeout: si el
+// perfil no llega en 6s, devuelve null y el llamador usa el fallback de sesión.
+async function resolveUserSafe(supaId: string, email: string, oauthMeta?: {
+  name?: string;
+  avatar?: string;
+}): Promise<User | null> {
+  return Promise.race([
+    resolveUser(supaId, email, oauthMeta),
+    new Promise<User | null>(res => setTimeout(() => res(null), 6000)),
+  ]);
+}
+
 // ── Auth state listener (App-level, runs once) ─────────────────────────────
 export function useSupabaseAuthListener() {
   const { updateUser } = useAuthStore();
@@ -83,7 +98,7 @@ export function useSupabaseAuthListener() {
         console.log('[auth] init session:', session?.user?.id || 'none');
         if (session?.user) {
           const meta = session.user.user_metadata;
-          let user = await resolveUser(
+          let user = await resolveUserSafe(
             session.user.id,
             session.user.email ?? '',
             { name: meta?.full_name || meta?.name, avatar: meta?.avatar_url || meta?.picture }
@@ -124,7 +139,7 @@ export function useSupabaseAuthListener() {
     const { data: { subscription } } = authService.onAuthChange(async (event, session) => {
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session?.user) {
         const meta = session.user.user_metadata;
-        let user = await resolveUser(
+        let user = await resolveUserSafe(
           session.user.id,
           session.user.email ?? '',
           { name: meta?.full_name || meta?.name, avatar: meta?.avatar_url || meta?.picture }
@@ -156,7 +171,7 @@ export function useSupabaseAuthListener() {
         // After password update or email confirmation
         if (session?.user) {
           const meta = session.user.user_metadata;
-          const user = await resolveUser(
+          const user = await resolveUserSafe(
             session.user.id,
             session.user.email ?? '',
             { name: meta?.full_name || meta?.name, avatar: meta?.avatar_url }
