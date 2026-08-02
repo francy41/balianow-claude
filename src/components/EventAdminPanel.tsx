@@ -313,7 +313,7 @@ const EventAdminPanel: React.FC<Props> = ({ eventId, onSaved, ownerUserId }) => 
                   <LineupTab
                     entries={data.lineup}
                     onChange={lineup => setData(d => ({ ...d, lineup }))}
-                    onSave={() => save({ lineup: data.lineup })}
+                    onSave={() => save({ lineup: data.lineup, artists: data.lineup.map(e => e.artist_id).filter(Boolean) } as any)}
                     saving={saving}
                   />
                 )}
