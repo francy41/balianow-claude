@@ -1657,16 +1657,8 @@ const HomePage: React.FC = () => {
       {/* ── FILA 3 COLUMNAS: Eventos destacados · Artistas recomendados · BailaNow TV ── */}
       <FeaturedTripleRow navigate={navigate} />
 
-      {/* ── EN DIRECTO AHORA ── */}
-      <LiveNowHomeSection navigate={navigate} />
-
       {/* ── SECCIONES DE DESCUBRIMIENTO (Tendencias, Clases, Profesores, Trabajos) ── */}
       <DiscoverySections navigate={navigate} />
-
-      {/* ── NEWSLETTER ── */}
-      <section className="mx-3 sm:mx-4 mt-6">
-        <NewsletterForm variant="banner" />
-      </section>
 
       {/* ── DONDE BAILAR EN LA CIUDAD ── */}
       {isModuleOn('cities') && (
@@ -1780,6 +1772,11 @@ const HomePage: React.FC = () => {
 
       {/* ── PATROCINADORES (pie de página) ── */}
       <SponsorsFooterStrip navigate={navigate} />
+
+      {/* ── NEWSLETTER (al final, debajo de patrocinadores) ── */}
+      <section className="mx-3 sm:mx-4 mt-6">
+        <NewsletterForm variant="banner" />
+      </section>
 
       {/* ── FOOTER LEGAL ── */}
       <footer className="mt-10 mx-4 mb-4 pb-2 border-t border-gray-200 dark:border-gray-800 pt-6">
