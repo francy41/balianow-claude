@@ -4,6 +4,7 @@ import { Search, Menu, LogOut, LayoutDashboard, Edit3, ShoppingCart, MapPin, Mes
 import NotificationsBell from '../NotificationsBell';
 import ProfileEditModal from '../ProfileEditModal';
 import { useAuthStore, useUIStore, useCartStore, useSiteConfigStore } from '../../store/appStore';
+import { supabaseLogout } from '../../hooks/useSupabaseAuth';
 import { Avatar } from '../ui';
 import LanguageSelector from '../LanguageSelector';
 
@@ -20,14 +21,14 @@ const ROLE_LABELS: Record<string, string> = {
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
   const { siteLogo } = useSiteConfigStore();
   const { addToast } = useUIStore();
   const cart = useCartStore();
   const [showEdit, setShowEdit] = useState(false);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await supabaseLogout();   // cierra sesión en Supabase (no solo estado local)
     addToast({ message: 'Sesión cerrada', type: 'success' });
     navigate('/');
   };
