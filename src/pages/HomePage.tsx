@@ -1012,12 +1012,12 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
   const events = (dbEvents.length
     ? dbEvents.map((e: any) => ({ id: e.id, title: e.title || e.name || 'Evento', date: e.date || e.event_date || '', venueName: e.venue_name || '', city: e.city || '', cover: e.cover || e.image_url || '' }))
     : EVENTS
-  ).slice(0, 4);
+  ).slice(0, 8);
 
   const artists = (dbArtists.length
     ? dbArtists.map((a: any) => ({ id: a.id, name: a.name || 'Artista', avatar: a.avatar || a.cover || '', genre: Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : []) }))
     : ARTISTS
-  ).slice(0, 4);
+  ).slice(0, 8);
 
   // Tarjetas de BailaNow TV — editables desde Admin → Home destacados (site_config global)
   const tvCards = useSiteConfigStore(s => s.homeTvCards);
@@ -1038,22 +1038,21 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
         {/* Col 1: Eventos destacados */}
         <div>
           <ColHeader title="🎫 Eventos destacados" onAll={() => navigate('/eventos')} />
-          <div className="space-y-2.5">
+          <div className="grid grid-cols-2 gap-2.5">
             {events.map(e => (
               <button key={e.id} onClick={() => navigate(`/eventos/${e.id}`)}
-                className="w-full flex items-center gap-3 bg-white dark:bg-gray-900 rounded-2xl p-2.5 shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-md hover:-translate-y-0.5 transition-all text-left">
-                <div className="relative flex-shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-gray-900 text-white">
-                  {(e as any).cover && <img src={(e as any).cover} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />}
-                  <div className="absolute inset-0 bg-black/45 flex flex-col items-center justify-center leading-none">
-                    <span className="font-black text-base">{day(e.date)}</span>
-                    <span className="text-[8px] font-bold text-pink-300 mt-0.5">{month(e.date)}</span>
-                  </div>
+                className="relative aspect-square rounded-2xl overflow-hidden bg-gray-900 text-left group shadow-sm border border-gray-100 dark:border-gray-800 hover:-translate-y-0.5 hover:shadow-md transition-all">
+                {(e as any).cover && <img src={(e as any).cover} alt="" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" loading="lazy" />}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+                <div className="absolute top-2 left-2 bg-white/90 text-gray-900 rounded-lg px-1.5 py-0.5 text-center leading-none">
+                  <div className="font-black text-sm">{day(e.date)}</div>
+                  <div className="text-[8px] font-bold text-pink-600">{month(e.date)}</div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-900 dark:text-white text-xs truncate">{e.title}</p>
-                  <p className="text-gray-400 text-[10px] truncate flex items-center gap-1"><MapPin className="w-3 h-3" />{e.venueName || e.city}</p>
+                <span className="absolute top-2 right-2 bg-pink-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">Entradas</span>
+                <div className="absolute bottom-2 left-2 right-2">
+                  <p className="text-white font-bold text-xs leading-tight truncate">{e.title}</p>
+                  <p className="text-white/70 text-[9px] truncate flex items-center gap-1 mt-0.5"><MapPin className="w-2.5 h-2.5" />{e.venueName || e.city}</p>
                 </div>
-                <span className="flex-shrink-0 bg-pink-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full">Entradas</span>
               </button>
             ))}
           </div>
@@ -1062,19 +1061,15 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
         {/* Col 2: Artistas recomendados */}
         <div>
           <ColHeader title="🎧 Artistas recomendados" onAll={() => navigate('/artistas')} />
-          <div className="flex -space-x-3 mb-3 px-1">
-            {artists.map(a => (
-              <img key={a.id} src={a.avatar} alt={a.name} className="w-12 h-12 rounded-full border-2 border-white dark:border-gray-900 object-cover" loading="lazy" />
-            ))}
-          </div>
-          <div className="space-y-1.5">
+          <div className="grid grid-cols-2 gap-2.5">
             {artists.map(a => (
               <button key={a.id} onClick={() => navigate(`/artistas/${a.id}`)}
-                className="w-full flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-xl p-1.5 transition text-left">
-                <img src={a.avatar} alt={a.name} className="w-9 h-9 rounded-full object-cover flex-shrink-0" loading="lazy" />
-                <div className="min-w-0">
-                  <p className="font-bold text-gray-900 dark:text-white text-xs truncate">{a.name}</p>
-                  <p className="text-gray-400 text-[10px] truncate">{a.genre.slice(0, 2).join(' · ')}</p>
+                className="relative aspect-square rounded-2xl overflow-hidden bg-gray-900 text-left group shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all">
+                {a.avatar && <img src={a.avatar} alt={a.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
+                <div className="absolute bottom-2 left-2 right-2">
+                  <p className="text-white font-bold text-xs leading-tight truncate">{a.name}</p>
+                  <p className="text-white/70 text-[9px] truncate">{a.genre.slice(0, 2).join(' · ')}</p>
                 </div>
               </button>
             ))}
