@@ -190,17 +190,33 @@ const EventAdminPanel: React.FC<Props> = ({ eventId, onSaved, ownerUserId }) => 
   // ── Save ──────────────────────────────────────────────────────────────────
   const save = async (patch: Partial<AdminData>) => {
     setSaving(true);
-    const { error } = await supabase
-      .from('events')
-      .update(patch as any)
-      .eq('id', eventId);
+    // Guardado robusto: descarta columnas inexistentes (reintentando) y comprueba
+    // que la BD aplicó el cambio (0 filas = RLS/permisos → NO decir "guardado").
+    const p: Record<string, any> = { ...(patch as any) };
+    const dropped: string[] = [];
+    let lastErr: any = null;
+    let savedRows: any[] | null = null;
+    for (let i = 0; i < 14; i++) {
+      if (Object.keys(p).length === 0) { lastErr = { message: 'ningún campo válido' }; break; }
+      const { data, error } = await supabase.from('events').update(p).eq('id', eventId).select('id');
+      if (!error) { lastErr = null; savedRows = data; break; }
+      lastErr = error;
+      const m = /column "?([a-z_]+)"? of relation .* does not exist/i.exec(error.message || '')
+        || /Could not find the '([a-z_]+)' column/i.exec(error.message || '');
+      if (m && p[m[1]] !== undefined) { dropped.push(m[1]); delete p[m[1]]; continue; }
+      break;
+    }
     setSaving(false);
 
-    if (error) {
-      addToast({ type: 'error', message: `Error al guardar: ${error.message}` });
+    if (lastErr) {
+      addToast({ type: 'error', message: `Error al guardar: ${lastErr.message}` });
       return false;
     }
-    addToast({ type: 'success', message: '¡Guardado correctamente!' });
+    if (!savedRows || savedRows.length === 0) {
+      addToast({ type: 'warning', message: 'La BD no aplicó el cambio (sin permisos o id inexistente). Ejecuta el SQL de permisos is_admin().' });
+      return false;
+    }
+    addToast({ type: 'success', message: dropped.length ? `Guardado (omitido: ${dropped.join(', ')})` : '¡Guardado correctamente!' });
     if (onSaved) onSaved();
     return true;
   };

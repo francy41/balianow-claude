@@ -173,7 +173,8 @@ const ArtistAdminPanel: React.FC<Props> = ({ id, onSaved, ownerUserId, autoOpen 
       const { data, error } = await supabase.from(table).update(p).eq('id', id).select('id');
       if (!error) { lastErr = null; savedRows = data; break; }
       lastErr = error;
-      const m = /column "?([a-z_]+)"? of relation .* does not exist/i.exec(error.message || '');
+      const m = /column "?([a-z_]+)"? of relation .* does not exist/i.exec(error.message || '')
+        || /Could not find the '([a-z_]+)' column/i.exec(error.message || '');
       if (m && p[m[1]] !== undefined) { dropped.push(m[1]); delete p[m[1]]; continue; }
       break;
     }
