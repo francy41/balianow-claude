@@ -4,9 +4,10 @@ import {
   Compass, MapPin, Calendar, Users, Music2,
   Briefcase, BookOpen, Radio, Megaphone, MessageCircle,
   LayoutDashboard, User, ChevronDown, ChevronRight,
-  Ticket, Video, Gift, Sparkles, Home, Tv, Heart, Trophy
+  Ticket, Video, Gift, Sparkles, Home, Tv, Heart, Trophy, LogOut
 } from 'lucide-react';
-import { useSiteConfigStore } from '../../store/appStore';
+import { useSiteConfigStore, useAuthStore } from '../../store/appStore';
+import { supabaseLogout } from '../../hooks/useSupabaseAuth';
 
 interface NavItem {
   label: string;
@@ -78,6 +79,7 @@ interface SidebarProps { open: boolean; onClose?: () => void; }
 const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const { isAuthenticated } = useAuthStore();
   const siteLogo = useSiteConfigStore(s => s.siteLogo);
   const homeCategories = useSiteConfigStore(s => s.homeCategories);
 
@@ -183,6 +185,15 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                   <span className="truncate">{item.label}</span>
                 </NavLink>
               ))}
+              {isAuthenticated && (
+                <button
+                  onClick={async () => { onClose?.(); await supabaseLogout(); }}
+                  className="nav-link mb-0.5 w-full text-left text-red-500 hover:bg-red-50"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span className="truncate">Cerrar sesión</span>
+                </button>
+              )}
             </div>
           ))}
         </nav>
