@@ -4011,6 +4011,35 @@ const PatrocinadoresSection: React.FC<{ addToast: Function }> = ({ addToast }) =
 
   const setF = (k: keyof Sponsor, v: any) => setForm(p => ({ ...p, [k]: v }));
 
+  // Entidades REALES de la BD para los desplegables (con fallback a ejemplos).
+  const [dbArtists, setDbArtists] = React.useState<any[]>([]);
+  const [dbVenues, setDbVenues] = React.useState<any[]>([]);
+  const [dbEvents, setDbEvents] = React.useState<any[]>([]);
+  React.useEffect(() => {
+    supabase.from('artists').select('id,name,city,avatar,cover,type').limit(1000).then(({ data }) => setDbArtists(data || []), () => {});
+    supabase.from('venues').select('id,name,city,cover,avatar,image_url').limit(1000).then(({ data }) => setDbVenues(data || []), () => {});
+    supabase.from('events').select('id,title,city,cover,image_url').limit(1000).then(({ data }) => setDbEvents(data || []), () => {});
+  }, []);
+  const artistList: any[] = dbArtists.length ? dbArtists : (ARTISTS as any[]);
+  const venueList: any[] = dbVenues.length ? dbVenues : (VENUES as any[]);
+  const eventList: any[] = dbEvents.length ? dbEvents : (EVENTS as any[]);
+
+  // Al elegir una entidad: enlaza + rellena imagen (foto/portada) y nombre/ciudad si están vacíos.
+  const selectEntity = (kind: 'artist' | 'venue' | 'event', item: any) => {
+    if (!item) return;
+    const img = item.avatar || item.cover || item.image_url || '';
+    const name = item.name || item.title || '';
+    const link = kind === 'artist' ? `/artistas/${item.id}` : kind === 'venue' ? `/venues/${item.id}` : `/eventos/${item.id}`;
+    setForm(p => ({
+      ...p,
+      link,
+      logo: img || p.logo,
+      name: p.name?.trim() ? p.name : name,
+      tagline: p.tagline?.trim() ? p.tagline : (item.city || ''),
+      city: p.city?.trim() ? p.city : (item.city || ''),
+    }));
+  };
+
   // Sync sponsors to Supabase site_config (cross-device)
   React.useEffect(() => {
     (async () => {
@@ -4203,27 +4232,27 @@ const PatrocinadoresSection: React.FC<{ addToast: Function }> = ({ addToast }) =
                   </div>
 
                   {linkMode === 'venue' && (
-                    <select onChange={e => setF('link', `/venues/${e.target.value}`)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
+                    <select onChange={e => selectEntity('venue', venueList.find((v:any) => String(v.id) === e.target.value))} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
                       <option value="">— Selecciona un local —</option>
-                      {VENUES.map(v => <option key={v.id} value={v.id}>{v.name} · {v.city}</option>)}
+                      {venueList.map((v:any) => <option key={v.id} value={v.id}>{v.name}{v.city ? ` · ${v.city}` : ''}</option>)}
                     </select>
                   )}
                   {linkMode === 'artist' && (
-                    <select onChange={e => setF('link', `/artistas/${e.target.value}`)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
+                    <select onChange={e => selectEntity('artist', artistList.find((a:any) => String(a.id) === e.target.value))} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
                       <option value="">— Selecciona un artista —</option>
-                      {ARTISTS.filter(a => a.type === 'singer' || a.type === 'band').map(a => <option key={a.id} value={a.id}>{a.name} · {a.city}</option>)}
+                      {artistList.map((a:any) => <option key={a.id} value={a.id}>{a.name}{a.city ? ` · ${a.city}` : ''}</option>)}
                     </select>
                   )}
                   {linkMode === 'event' && (
-                    <select onChange={e => setF('link', `/eventos/${e.target.value}`)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
+                    <select onChange={e => selectEntity('event', eventList.find((ev:any) => String(ev.id) === e.target.value))} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
                       <option value="">— Selecciona un evento —</option>
-                      {EVENTS.map(ev => <option key={ev.id} value={ev.id}>{ev.title} · {ev.city || ''}</option>)}
+                      {eventList.map((ev:any) => <option key={ev.id} value={ev.id}>{(ev.title || ev.name)}{ev.city ? ` · ${ev.city}` : ''}</option>)}
                     </select>
                   )}
                   {linkMode === 'dancer' && (
-                    <select onChange={e => setF('link', `/artistas/${e.target.value}`)} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
+                    <select onChange={e => selectEntity('artist', artistList.find((a:any) => String(a.id) === e.target.value))} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-brand-orange">
                       <option value="">— Selecciona un bailarín/a —</option>
-                      {ARTISTS.filter(a => a.type === 'dancer' || a.type === 'instructor').map(a => <option key={a.id} value={a.id}>{a.name} · {a.city}</option>)}
+                      {artistList.map((a:any) => <option key={a.id} value={a.id}>{a.name}{a.city ? ` · ${a.city}` : ''}</option>)}
                     </select>
                   )}
                   {linkMode === 'vendor' && (
