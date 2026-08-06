@@ -6,6 +6,7 @@ import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useS
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
 import { Avatar, StarRating, SearchBar, AppImage } from '../components/ui';
 import { supabase } from '../lib/supabase';
+import { fixText } from '../lib/text';
 import NewsletterForm from '../components/NewsletterForm';
 import HomeFabStack from '../components/HomeFabStack';
 import HomeBackground from '../components/HomeBackground';
@@ -1010,12 +1011,12 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
   }, []);
 
   const events = (dbEvents.length
-    ? dbEvents.map((e: any) => ({ id: e.id, title: e.title || e.name || 'Evento', date: e.date || e.event_date || '', venueName: e.venue_name || '', city: e.city || '', cover: e.cover || e.image_url || '' }))
+    ? dbEvents.map((e: any) => ({ id: e.id, title: fixText(e.title || e.name || 'Evento'), date: e.date || e.event_date || '', venueName: fixText(e.venue_name || ''), city: fixText(e.city || ''), cover: e.cover || e.image_url || '' }))
     : EVENTS
   ).slice(0, 8);
 
   const artists = (dbArtists.length
-    ? dbArtists.map((a: any) => ({ id: a.id, name: a.name || 'Artista', avatar: a.avatar || a.cover || '', genre: Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : []) }))
+    ? dbArtists.map((a: any) => ({ id: a.id, name: fixText(a.name || 'Artista'), avatar: a.avatar || a.cover || '', genre: Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : []) }))
     : ARTISTS
   ).slice(0, 8);
 
