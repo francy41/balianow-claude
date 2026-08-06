@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
+import { fixText } from '../lib/text';
 import ArtistAdminPanel from '../components/ArtistAdminPanel';
 import ClassPackageBookingModal from '../components/ClassPackageBookingModal';
 import ClaimProfileButton from '../components/ClaimProfileButton';
@@ -55,7 +56,7 @@ const FAKE_REVIEWS = [
 function mapDbArtist(a: any): Artist {
   return {
     id:         a.id,
-    name:       a.name,
+    name:       fixText(a.name),
     type:       a.type || 'artist',
     genre:      Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : []),
     avatar:     a.avatar || '',
@@ -66,7 +67,7 @@ function mapDbArtist(a: any): Artist {
     reviews:    Number(a.reviews) || 0,
     followers:  Number(a.followers) || 0,
     priceFrom:  Number(a.price_from) || 0,
-    bio:        a.bio || '',
+    bio:        fixText(a.bio || ''),
     tags:       Array.isArray(a.tags) ? a.tags : [],
     isVerified: !!a.is_verified,
     isPremium:  !!a.is_premium,
@@ -90,7 +91,7 @@ function mapDbArtist(a: any): Artist {
 function mapProfileToArtist(p: any): Artist {
   return {
     id:         p.id,
-    name:       p.full_name || p.email || 'Usuario',
+    name:       fixText(p.full_name || p.email || 'Usuario'),
     type:       (p.role === 'dj' || p.role === 'dancer' || p.role === 'singer' || p.role === 'band' || p.role === 'instructor') ? p.role : 'artist',
     genre:      Array.isArray(p.styles) ? p.styles : [],
     avatar:     p.avatar_url || '',
@@ -101,7 +102,7 @@ function mapProfileToArtist(p: any): Artist {
     reviews:    0,
     followers:  0,
     priceFrom:  0,
-    bio:        p.bio || '',
+    bio:        fixText(p.bio || ''),
     tags:       Array.isArray(p.tags) ? p.tags : [],
     isVerified: !!p.verified,
     isPremium:  false,
