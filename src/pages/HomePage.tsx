@@ -1102,7 +1102,17 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           </button>
 
           {/* Accesos rápidos para rellenar la columna (más corta que Eventos/Artistas) */}
-          <div className="mt-3 space-y-2.5">
+          <p className="mt-5 mb-2 px-1 text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Explora más</p>
+          <div className="space-y-2.5">
+            <button onClick={() => navigate('/cerca')}
+              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-left hover:shadow-lg transition-all">
+              <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">📍</span>
+              <div className="min-w-0 flex-1">
+                <p className="font-black text-sm leading-tight">Cerca de ti</p>
+                <p className="text-white/80 text-[11px]">Descubre la escena de tu ciudad</p>
+              </div>
+              <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-80" />
+            </button>
             <button onClick={() => navigate('/clases')}
               className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-left hover:shadow-lg transition-all">
               <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">🎓</span>
