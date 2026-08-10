@@ -151,10 +151,9 @@ export const useAuthStore = create<AuthState>()(
     // DEMO FALLBACK — only activates when Supabase auth fails (no real credentials stored here)
     // Real auth goes through supabaseLogin() in useSupabaseAuth.ts
     let user: User;
-    if (email === SOLFA_ADMIN.email) {
-      // Superadmin — acepta cualquier contraseña (Supabase ya validó antes)
-      user = SOLFA_ADMIN;
-    } else if (email === DEMO_ADMIN.email && password === 'demo') {
+    // Nota: el login real va por supabaseLogin() (Supabase). Este fallback solo
+    // cubre cuentas DEMO con contraseña 'demo'. NO se concede admin sin contraseña.
+    if (email === DEMO_ADMIN.email && password === 'demo') {
       user = DEMO_ADMIN;
     } else if (email === DEMO_ARTIST.email && password === 'demo') {
       user = DEMO_ARTIST;

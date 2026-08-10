@@ -205,15 +205,16 @@ const EventsManagerTab: React.FC<{ performerId: string }> = ({ performerId }) =>
 
   useEffect(() => {
     let cancelled = false;
+    // Safety-timeout: si la consulta se cuelga/rechaza, no dejar spinner infinito.
+    const safety = setTimeout(() => { if (!cancelled) setLoading(false); }, 8000);
     supabase.from('events').select('id,title,city,date,price,attending,capacity,image_url,cover')
       .or(`user_id.eq.${performerId},owner_id.eq.${performerId}`)
       .order('date', { ascending: false })
-      .then(({ data }) => {
-        if (cancelled) return;
-        setEvents(data || []);
-        setLoading(false);
-      });
-    return () => { cancelled = true; };
+      .then(
+        ({ data }) => { if (cancelled) return; clearTimeout(safety); setEvents(data || []); setLoading(false); },
+        () => { if (cancelled) return; clearTimeout(safety); setLoading(false); }
+      );
+    return () => { cancelled = true; clearTimeout(safety); };
   }, [performerId]);
 
   return (
