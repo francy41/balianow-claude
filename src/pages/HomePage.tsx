@@ -1013,12 +1013,12 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
   const events = (dbEvents.length
     ? dbEvents.map((e: any) => ({ id: e.id, title: fixText(e.title || e.name || 'Evento'), date: e.date || e.event_date || '', venueName: fixText(e.venue_name || ''), city: fixText(e.city || ''), cover: e.cover || e.image_url || '' }))
     : EVENTS
-  ).slice(0, 8);
+  ).slice(0, 6);
 
   const artists = (dbArtists.length
     ? dbArtists.map((a: any) => ({ id: a.id, name: fixText(a.name || 'Artista'), avatar: a.avatar || a.cover || '', genre: Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : []) }))
     : ARTISTS
-  ).slice(0, 8);
+  ).slice(0, 6);
 
   // Tarjetas de BailaNow TV — editables desde Admin → Home destacados (site_config global)
   const tvCards = useSiteConfigStore(s => s.homeTvCards);
