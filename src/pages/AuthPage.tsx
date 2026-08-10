@@ -319,7 +319,7 @@ const AuthPage: React.FC = () => {
           <h1 className="font-display font-black text-3xl text-gray-900 dark:text-white mt-3">
             ¡Ritmo <span className="text-brand-orange">Latino!</span>
           </h1>
-          <p className="text-gray-400 mt-1">El ecosistema latino #1</p>
+          <p className="text-gray-400 mt-1">Todo el mundo del baile en tus manos</p>
         </div>
 
         {/* ── VERIFY EMAIL VIEW ── */}

@@ -23,7 +23,7 @@ export function organizationLd() {
     url: 'https://bailanow.com',
     logo: 'https://bailanow.com/logo.svg',
     image: 'https://bailanow.com/og-default.svg',
-    description: 'El ecosistema latino #1 para DJs, artistas, bailarines, eventos y venues.',
+    description: 'Todo el mundo del baile en tus manos. DJs, artistas, bailarines, eventos y venues.',
     email: 'hola@bailanow.com',
     address: { '@type': 'PostalAddress', addressCountry: 'ES', addressLocality: 'Madrid' },
     sameAs: [
