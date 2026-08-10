@@ -1100,6 +1100,37 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
             className="w-full mt-3 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-sm font-black flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-pink-500/30 transition-all">
             <Play className="w-4 h-4" fill="currentColor" /> Ver TV
           </button>
+
+          {/* Accesos rápidos para rellenar la columna (más corta que Eventos/Artistas) */}
+          <div className="mt-3 space-y-2.5">
+            <button onClick={() => navigate('/clases')}
+              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-left hover:shadow-lg transition-all">
+              <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">🎓</span>
+              <div className="min-w-0 flex-1">
+                <p className="font-black text-sm leading-tight">Clases online</p>
+                <p className="text-white/80 text-[11px]">Aprende con los mejores</p>
+              </div>
+              <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-80" />
+            </button>
+            <button onClick={() => navigate('/subscripciones')}
+              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-left hover:shadow-lg transition-all">
+              <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">👑</span>
+              <div className="min-w-0 flex-1">
+                <p className="font-black text-sm leading-tight">Hazte Premium</p>
+                <p className="text-white/80 text-[11px]">Baila sin límites</p>
+              </div>
+              <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-80" />
+            </button>
+            <button onClick={() => navigate('/promocionate')}
+              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white text-left hover:shadow-lg transition-all">
+              <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">📢</span>
+              <div className="min-w-0 flex-1">
+                <p className="font-black text-sm leading-tight">Promociona tu evento</p>
+                <p className="text-white/80 text-[11px]">Llega a más bailarines</p>
+              </div>
+              <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-80" />
+            </button>
+          </div>
         </div>
 
       </div>
