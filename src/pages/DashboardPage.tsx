@@ -122,7 +122,7 @@ const DashboardPage: React.FC = () => {
                 </p>
               </div>
               {isPerformer && (
-                <Button variant="ghost" size="sm" onClick={() => navigate('/artistas/a1')}>
+                <Button variant="ghost" size="sm" onClick={() => navigate(`/artistas/${user.id}`)}>
                   Ver perfil público
                 </Button>
               )}
