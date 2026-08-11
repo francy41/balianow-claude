@@ -16,6 +16,7 @@ import { Avatar, Badge, Button } from '../components/ui';
 import PaymentMethodsPanel from '../components/PaymentMethodsPanel';
 import TicketSalesTab from '../components/TicketSalesTab';
 import ProfileEditModal from '../components/ProfileEditModal';
+import AdminLocationModal from '../components/AdminLocationModal';
 import { BuyerTable, QRScanner } from '../components/BuyerManagement';
 import { QrCode, Scan } from 'lucide-react';
 import TeacherClassesPanel from '../components/TeacherClassesPanel';
@@ -202,6 +203,8 @@ const EventsManagerTab: React.FC<{ performerId: string }> = ({ performerId }) =>
   const navigate = useNavigate();
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -215,18 +218,22 @@ const EventsManagerTab: React.FC<{ performerId: string }> = ({ performerId }) =>
         () => { if (cancelled) return; clearTimeout(safety); setLoading(false); }
       );
     return () => { cancelled = true; clearTimeout(safety); };
-  }, [performerId]);
+  }, [performerId, reloadKey]);
 
   return (
     <div>
+      <AdminLocationModal open={showCreate} mode="event" onClose={() => setShowCreate(false)} onSaved={() => { setShowCreate(false); setReloadKey(k => k + 1); }} />
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="font-display font-black text-xl text-gray-900 mb-1">🎉 Mis Eventos</h2>
           <p className="text-gray-400 text-sm">Crea y gestiona los eventos que organizas</p>
         </div>
-        <Button variant="orange" size="sm" icon={<Plus className="w-4 h-4" />} onClick={() => navigate('/eventos')}>
-          Ver eventos
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/eventos')}>Ver todos</Button>
+          <Button variant="orange" size="sm" icon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)}>
+            Crear evento
+          </Button>
+        </div>
       </div>
 
       {loading ? (
