@@ -45,6 +45,7 @@ export const FIELDS_ARTIST: EditField[] = [
       { value: 'dj', label: 'DJ / Productor' },
       { value: 'dancer', label: 'Bailarín/a / Pareja de baile' },
       { value: 'singer', label: 'Cantante / Vocalista' },
+      { value: 'musician', label: 'Músico/a / Instrumentista' },
       { value: 'band', label: 'Banda / Grupo musical' },
       { value: 'instructor', label: 'Instructor/a de danza' },
       { value: 'choreographer', label: 'Coreógrafo/a' },
