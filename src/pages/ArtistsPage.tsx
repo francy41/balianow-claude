@@ -52,7 +52,8 @@ const normalizeRoleToType = (role: string): DbArtist['type'] | null => {
   if (r === 'singer' || r === 'musician')          return 'singer';
   if (r === 'band')                                return 'band';
   if (r === 'instructor' || r === 'teacher')       return 'instructor';
-  if (['artist','promoter','performer','user','vendor'].includes(r)) return 'artist';
+  if (['artist','performer','choreographer','event-organizer','promoter','videographer','photographer'].includes(r)) return 'artist';
+  // 'user' y 'vendor' NO son artistas → no aparecen en /artistas (antes se colaban).
   return null;
 };
 
