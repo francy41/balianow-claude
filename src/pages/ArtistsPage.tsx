@@ -13,7 +13,7 @@ import { ARTISTS } from '../data/mockData';
 interface DbArtist {
   id: string;
   name: string;
-  type: 'dj' | 'dancer' | 'singer' | 'band' | 'instructor' | 'artist';
+  type: 'dj' | 'dancer' | 'singer' | 'musician' | 'band' | 'instructor' | 'artist';
   city: string;
   country?: string;
   cover?: string;
@@ -42,14 +42,15 @@ const FALLBACK_ARTISTS: DbArtist[] = ARTISTS.slice(0, 10).map((a: any) => ({
   userId: '', source: 'artist',
 }));
 
-const TYPES = ['Todos', 'DJ', 'Bailarín/a', 'Banda', 'Instructor/a', 'Cantante'];
+const TYPES = ['Todos', 'DJ', 'Bailarín/a', 'Cantante', 'Músico/a', 'Banda', 'Instructor/a'];
 const GENRES = ['Todos', 'Salsa', 'Salsa Cubana', 'Salsa Colombiana (Caleña)', 'Bachata', 'Bachata Dominicana', 'Bachata Moderna', 'Bachata Sensual', 'Bachata Urbana', 'Cha-cha-chá', 'Cumbia', 'Reparto Cubano', 'Merengue', 'Reggaeton', 'Timba', 'Afrobeats', 'Kizomba'];
 
 const normalizeRoleToType = (role: string): DbArtist['type'] | null => {
   const r = String(role || '').toLowerCase();
   if (r === 'dj')                                  return 'dj';
   if (r === 'dancer')                              return 'dancer';
-  if (r === 'singer' || r === 'musician')          return 'singer';
+  if (r === 'singer')                              return 'singer';
+  if (r === 'musician')                            return 'musician';
   if (r === 'band')                                return 'band';
   if (r === 'instructor' || r === 'teacher')       return 'instructor';
   if (['artist','performer','choreographer','event-organizer','promoter','videographer','photographer'].includes(r)) return 'artist';
@@ -99,6 +100,7 @@ const ArtistsPage: React.FC = () => {
     tp === 'dj' ? 'DJ' :
     tp === 'dancer' ? 'Bailarín/a' :
     tp === 'singer' ? 'Cantante' :
+    tp === 'musician' ? 'Músico/a' :
     tp === 'instructor' ? 'Instructor/a' :
     tp === 'band' ? 'Banda' : 'Todos';
   const [selectedType, setSelectedType] = useState([tipoToLabel(initialType)]);
@@ -210,9 +212,10 @@ const ArtistsPage: React.FC = () => {
       const matchType = selectedType.includes('Todos') || selectedType.some(t =>
         (t === 'DJ' && a.type === 'dj') ||
         (t === 'Bailarín/a' && a.type === 'dancer') ||
+        (t === 'Cantante' && a.type === 'singer') ||
+        (t === 'Músico/a' && (a.type as any) === 'musician') ||
         (t === 'Banda' && a.type === 'band') ||
-        (t === 'Instructor/a' && a.type === 'instructor') ||
-        (t === 'Cantante' && a.type === 'singer')
+        (t === 'Instructor/a' && a.type === 'instructor')
       );
       const matchGenre = selectedGenre.includes('Todos') || selectedGenre.some(g => a.genre.includes(g));
       const matchCity = selectedCity.includes('Todas') || selectedCity.includes(a.city);
