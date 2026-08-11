@@ -95,13 +95,16 @@ const ArtistsPage: React.FC = () => {
     } catch (e: any) { log.push(`/profiles EXCEPTION: ${e.message}`); }
     setDebugInfo(log.join('\n'));
   };
-  const [selectedType, setSelectedType] = useState([
-    initialType === 'dj' ? 'DJ' :
-    initialType === 'dancer' ? 'Bailarín/a' :
-    initialType === 'singer' ? 'Cantante' :
-    initialType === 'instructor' ? 'Instructor/a' :
-    initialType === 'band' ? 'Banda' : 'Todos'
-  ]);
+  const tipoToLabel = (tp: string) =>
+    tp === 'dj' ? 'DJ' :
+    tp === 'dancer' ? 'Bailarín/a' :
+    tp === 'singer' ? 'Cantante' :
+    tp === 'instructor' ? 'Instructor/a' :
+    tp === 'band' ? 'Banda' : 'Todos';
+  const [selectedType, setSelectedType] = useState([tipoToLabel(initialType)]);
+  // Al navegar entre categorías (DJs, Bailarines…) solo cambia el ?tipo= de la URL,
+  // NO se re-monta el componente, así que hay que sincronizar el filtro con el param.
+  useEffect(() => { setSelectedType([tipoToLabel(params.get('tipo') || '')]); }, [params]);
   const [selectedGenre, setSelectedGenre] = useState(['Todos']);
   const [selectedCity, setSelectedCity] = useState(['Todas']);
   const [onlyLive, setOnlyLive] = useState(false);
