@@ -148,6 +148,27 @@ const AdminLocationModal: React.FC<Props> = ({ open, mode, onClose, onSaved }) =
         setSaving(false); return;
       }
 
+      // Insert robusto: si una columna no existe en la tabla, la descarta y reintenta
+      // (reconoce el error crudo de Postgres Y el PGRST204 de Supabase). Así una
+      // columna sobrante no bloquea la creación entera.
+      const insertRobust = async (table: string, payload: Record<string, any>) => {
+        const p = { ...payload };
+        const dropped: string[] = [];
+        let lastErr: any = null;
+        for (let i = 0; i < 16; i++) {
+          if (Object.keys(p).length === 0) { throw lastErr || new Error('sin campos válidos'); }
+          const { data, error } = await supabase.from(table).insert(p).select().single();
+          if (!error) return { data, dropped };
+          lastErr = error;
+          const m = /column "?([a-z_]+)"? of relation .* does not exist/i.exec(error.message || '')
+            || /Could not find the '([a-z_]+)' column/i.exec(error.message || '');
+          if (m && p[m[1]] !== undefined) { dropped.push(m[1]); delete p[m[1]]; continue; }
+          throw error;
+        }
+        throw lastErr;
+      };
+
+      let dropped: string[] = [];
       if (mode === 'venue') {
         const payload = {
           name, city, country: country || 'España', address: address || null,
@@ -159,10 +180,7 @@ const AdminLocationModal: React.FC<Props> = ({ open, mode, onClose, onSaved }) =
           status: 'active', admin_status: 'approved',
           type: venueType.toLowerCase(),
         };
-        console.log('Inserting venue:', payload);
-        const { data, error } = await supabase.from('venues').insert(payload).select().single();
-        if (error) throw error;
-        console.log('Venue created:', data);
+        ({ dropped } = await insertRobust('venues', payload));
       } else {
         const payload = {
           title: name, city, country: country || 'España', location: address || city,
@@ -175,12 +193,9 @@ const AdminLocationModal: React.FC<Props> = ({ open, mode, onClose, onSaved }) =
           lat: position[0], lng: position[1],
           admin_status: 'approved', type: 'Social',
         };
-        console.log('Inserting event:', payload);
-        const { data, error } = await supabase.from('events').insert(payload).select().single();
-        if (error) throw error;
-        console.log('Event created:', data);
+        ({ dropped } = await insertRobust('events', payload));
       }
-      addToast({ message: `✅ ${mode === 'venue' ? 'Local' : 'Evento'} guardado correctamente`, type: 'success' });
+      addToast({ message: `✅ ${mode === 'venue' ? 'Local' : 'Evento'} guardado correctamente${dropped.length ? ` (omitido: ${dropped.join(', ')})` : ''}`, type: 'success' });
       onSaved?.();
       onClose();
     } catch (err: any) {
