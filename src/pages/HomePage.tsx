@@ -207,25 +207,10 @@ const SponsorsFooterStrip: React.FC<{ navigate: ReturnType<typeof useNavigate> }
 
 // ── COMMUNITY POSTS (Ruta de Hoy) ────────────────────────────────────────
 const COMMUNITY_POSTS = [
-  { id: 1, user: 'Elena García', fullText: 'Primera vez en Madrid, busca un local donde bailar bachata esta noche. ¡Alguien que me recomiende el mejor lugar!', location: 'Madrid', category: 'localidades', status: 'APROBADO', time: 'Hace 15 min' },
-  { id: 2, user: 'Miguel Ángel', fullText: '¿Alguien para practicar ruedas de casino? Tengo nivel intermedio y busco pareja para entrenamiento en Barcelona.', location: 'Barcelona', category: 'bailarines', status: 'APROBADO', time: 'Hace 32 min' },
-  { id: 3, user: 'Sofía Tomás', fullText: 'Tengo 2 entradas extra para el concierto de Grupo Mania en Medellín. ¡Rápido, se agotan en minutos!', location: 'Medellín', category: 'eventos', status: 'APROBADO', time: 'Hace 48 min' },
-  { id: 4, user: 'Daniel Cruz', fullText: '¿Cuál es la mejor discoteca latina abierta ahora en Valencia? Queremos bailar sábado por la noche.', location: 'Valencia', category: 'localidades', status: 'APROBADO', time: 'Hace 1 hora' },
-  { id: 5, user: 'María Vargas', fullText: 'Buscamos grupo para ir a Tropical House Nightclub. ¡Somos 4 personas de Cali! Quien quiera unirse?', location: 'Cali', category: 'eventos', status: 'APROBADO', time: 'Hace 2 horas' },
-  { id: 6, user: 'Pedro Koss', fullText: 'Mensaje de spam: compra criptomo aqui...', location: 'Online', category: 'comunidad', status: 'RECHAZAR', time: 'Hace 2 horas' },
-  { id: 7, user: 'Carlos Mendez', fullText: 'El viernes voy a Madrid, ¿donde puedo salir a bailar? Prefiero salsa y ambiente latino auténtico.', location: 'Madrid', category: 'artistas', status: 'APROBADO', time: 'Hace 3 horas' },
-  { id: 8, user: 'Laura Silva', fullText: 'Busco pareja para ir a la social de salsa de este jueves. ¡Nivel intermedio! Quien esté interesado?', location: 'Barcelona', category: 'bailarines', status: 'APROBADO', time: 'Hace 3 horas' },
-  { id: 9, user: 'David Rojas', fullText: '¿Algún evento de Kizomba esta semana? Quiero aprender con alguien experimentado en Valencia.', location: 'Valencia', category: 'eventos', status: 'APROBADO', time: 'Hace 4 horas' },
-  { id: 10, user: 'Ana Belén', fullText: 'OFERTA: Doy clases particulares de bachata sensual, primera clase gratis. Zona centro de Sevilla.', location: 'Sevilla', category: 'artistas', status: 'APROBADO', time: 'Hace 5 horas' },
-  { id: 11, user: 'Javier Núñez', fullText: 'Comparto coche a la fiesta latina de Zaragoza este sábado, salgo desde Madrid. ¡3 plazas libres!', location: 'Madrid', category: 'comunidad', status: 'APROBADO', time: 'Hace 5 horas' },
-  { id: 12, user: 'Camila Restrepo', fullText: 'Busco academia de salsa caleña para principiantes en Bogotá. ¿Recomendaciones con buen ambiente?', location: 'Bogotá', category: 'localidades', status: 'APROBADO', time: 'Hace 6 horas' },
-  { id: 13, user: 'Roberto Díaz', fullText: 'OFERTA: Vendo par de zapatos de baile latino, talla 42, casi nuevos. Precio a convenir en Barcelona.', location: 'Barcelona', category: 'comunidad', status: 'APROBADO', time: 'Hace 6 horas' },
-  { id: 14, user: 'Lucía Fernández', fullText: 'Somos un grupo de 6 buscando DJ de salsa y timba para una fiesta privada en Valencia el mes que viene.', location: 'Valencia', category: 'artistas', status: 'APROBADO', time: 'Hace 7 horas' },
-  { id: 15, user: 'Andrés Molina', fullText: '¿Dónde hay social de bachata dominicana los domingos en Miami? Nivel avanzado, busco ambiente auténtico.', location: 'Miami', category: 'localidades', status: 'APROBADO', time: 'Hace 8 horas' },
-  { id: 16, user: 'Valentina Ruiz', fullText: 'OFERTA: 4 entradas con descuento para el Congreso Latino de Cali. ¡Aprovechen antes del viernes!', location: 'Cali', category: 'eventos', status: 'APROBADO', time: 'Hace 9 horas' },
-  { id: 17, user: 'Gabriel Ortiz', fullText: 'Busco pareja de baile femenina para competición de salsa en Ciudad de México. Ensayos 2 veces por semana.', location: 'Ciudad de México', category: 'bailarines', status: 'APROBADO', time: 'Hace 10 horas' },
-  { id: 18, user: 'Paula Gómez', fullText: '¿Alguien va al festival de kizomba de Buenos Aires? Busco compañía para compartir alojamiento.', location: 'Buenos Aires', category: 'eventos', status: 'APROBADO', time: 'Hace 11 horas' },
-  { id: 19, user: 'Sergio Ramírez', fullText: 'OFERTA: Organizo taller intensivo de rueda de casino este finde en Madrid. Plazas limitadas, apúntate.', location: 'Madrid', category: 'artistas', status: 'APROBADO', time: 'Hace 12 horas' },
+  { id: 1, user: 'Carlos Méndez', fullText: 'El viernes voy a Madrid, ¿dónde puedo salir a bailar? Prefiero salsa y ambiente latino auténtico.', location: 'Madrid', category: 'localidades', status: 'APROBADO', time: 'Hace 15 min' },
+  { id: 2, user: 'Daniel Cruz', fullText: '¿Cuál es la mejor discoteca latina abierta ahora en Valencia? Queremos bailar el sábado por la noche.', location: 'Valencia', category: 'localidades', status: 'APROBADO', time: 'Hace 1 hora' },
+  { id: 3, user: 'Laura Silva', fullText: 'Busco pareja para ir a la social de salsa de este jueves. ¡Nivel intermedio! ¿Quién se apunta?', location: 'Barcelona', category: 'bailarines', status: 'APROBADO', time: 'Hace 2 horas' },
+  { id: 4, user: 'Andrés Molina', fullText: '¿Dónde hay social de bachata dominicana los domingos en Sevilla? Busco buen ambiente.', location: 'Sevilla', category: 'localidades', status: 'APROBADO', time: 'Hace 3 horas' },
 ];
 
 // ── CITIES ────────────────────────────────────────────────────────────────
