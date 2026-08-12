@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Loader2, Plus, Trash2, Copy, Save, Clock, ShoppingBag, FileText } from 'lucide-react';
+import { Loader2, Plus, Trash2, Copy, Save, Clock, ShoppingBag, FileText, Users } from 'lucide-react';
 
 interface Props {
   userId: string;
@@ -21,6 +21,7 @@ const VenueReservationsManager: React.FC<Props> = ({ userId, addToast }) => {
   const [venue, setVenue] = useState<any>(null);
   const [hours, setHours] = useState<Hour[]>(blankHours());
   const [products, setProducts] = useState<Product[]>([]);
+  const [reservations, setReservations] = useState<any[]>([]);
   const [terms, setTerms] = useState('');
   const [refund, setRefund] = useState(50);
   const [enabled, setEnabled] = useState(true);
@@ -80,7 +81,16 @@ const VenueReservationsManager: React.FC<Props> = ({ userId, addToast }) => {
     }
     const { data: p } = await supabase.from('venue_products').select('*').eq('venue_id', v.id).order('sort');
     if (p) setProducts(p.map((r: any) => ({ id: r.id, name: r.name, price: Number(r.price), description: r.description || '', active: r.active })));
+    const { data: res } = await supabase.from('reservations').select('*').eq('venue_id', v.id).order('reservation_date', { ascending: false }).limit(100);
+    if (res) setReservations(res);
     setLoading(false);
+  };
+
+  const setResStatus = async (id: string, status: string) => {
+    const { error } = await supabase.from('reservations').update({ status }).eq('id', id);
+    if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
+    setReservations(rs => rs.map(r => r.id === id ? { ...r, status } : r));
+    addToast({ message: status === 'confirmed' ? '✅ Reserva confirmada' : status === 'no_show' ? 'Marcada como no asistió' : 'Actualizada', type: 'success' });
   };
 
   useEffect(() => { load(); }, [userId]);
@@ -165,6 +175,40 @@ const VenueReservationsManager: React.FC<Props> = ({ userId, addToast }) => {
 
   return (
     <div className="space-y-6 max-w-3xl">
+      {/* Reservas recibidas */}
+      <section className="card-white rounded-2xl p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-black text-gray-900 dark:text-white flex items-center gap-2"><Users className="w-5 h-5 text-brand-orange" /> Reservas recibidas <span className="text-sm text-gray-400 font-semibold">({reservations.length})</span></h3>
+        </div>
+        {reservations.length === 0 ? (
+          <p className="text-sm text-gray-400">Aún no tienes reservas. Aparecerán aquí con los datos del cliente y su código para validar.</p>
+        ) : (
+          <div className="space-y-2">
+            {reservations.map(r => (
+              <div key={r.id} className="flex items-center gap-3 flex-wrap p-3 rounded-xl border border-gray-100 dark:border-gray-800">
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-gray-900 dark:text-white text-sm truncate">
+                    {r.contact_email || r.contact_whatsapp || 'Cliente'} · <span className="text-gray-400">{r.party_size} pers.</span>
+                    {r.table_number && <span className="ml-1 text-pink-600">· {r.table_number}</span>}
+                  </p>
+                  <p className="text-[11px] text-gray-400">
+                    {r.reservation_date} {r.reservation_time?.slice(0, 5) || ''} · {r.kind === 'reservado' ? 'Mesa' : 'Entrada'}
+                    {r.total_amount > 0 && ` · €${Number(r.total_amount).toFixed(2)} (${r.payment_status})`}
+                    {r.guest_description && ` · ${r.guest_description}`}
+                  </p>
+                  <p className="text-[11px] font-mono font-bold text-gray-500 tracking-widest mt-0.5">{r.confirmation_code}</p>
+                </div>
+                <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${r.status === 'confirmed' ? 'bg-green-100 text-green-700' : r.status === 'no_show' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'}`}>
+                  {r.status === 'confirmed' ? 'Confirmada' : r.status === 'no_show' ? 'No asistió' : 'Pendiente'}
+                </span>
+                {r.status !== 'confirmed' && <button onClick={() => setResStatus(r.id, 'confirmed')} className="text-xs font-bold text-green-600 hover:underline">Confirmar</button>}
+                {r.status !== 'no_show' && <button onClick={() => setResStatus(r.id, 'no_show')} className="text-xs font-bold text-red-500 hover:underline">No asistió</button>}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
       {/* Horarios */}
       <section className="card-white rounded-2xl p-5">
         <div className="flex items-center justify-between mb-4">

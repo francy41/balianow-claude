@@ -4,6 +4,7 @@ import { useAuthStore, useUIStore } from '../store/appStore';
 import { useSaleFees } from '../lib/saleFees';
 import { getStripe, createStripePaymentIntent } from '../lib/payments';
 import StripePayment from './payment/StripePayment';
+import { QRCodeCanvas } from './QRTicket';
 import { X, Loader2, CheckCircle, CalendarDays, Users, Wine, FileText, CreditCard, AlertCircle } from 'lucide-react';
 
 interface Props {
@@ -132,13 +133,22 @@ const VenueReservationModal: React.FC<Props> = ({ open, onClose, venueId, venueN
       <div className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-md max-h-[92vh] overflow-y-auto">
         {done ? (
           <div className="p-6 text-center">
-            <div className="w-16 h-16 bg-green-100 rounded-full grid place-items-center mx-auto mb-4"><CheckCircle className="w-8 h-8 text-green-600" /></div>
+            <div className="w-14 h-14 bg-green-100 rounded-full grid place-items-center mx-auto mb-3"><CheckCircle className="w-7 h-7 text-green-600" /></div>
             <h3 className="font-black text-xl text-gray-900 dark:text-white">¡Reserva confirmada!</h3>
-            <p className="text-sm text-gray-500 mt-1">Te enviaremos la confirmación a tu email/WhatsApp.</p>
+            <p className="text-xs text-gray-500 mt-1">Muestra este QR en la entrada del local.</p>
+            {/* QR de la reserva — el local lo escanea para validar */}
+            <div className="bg-white rounded-2xl p-3 mt-4 inline-block shadow-sm border border-gray-100">
+              <QRCodeCanvas token={done.code} size={168} />
+            </div>
+            <p className="font-black text-lg tracking-widest text-gray-900 dark:text-white mt-2">{done.code}</p>
+            {/* Datos del comprador para el dueño */}
             <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 mt-4 text-left space-y-1.5 text-sm">
-              <div className="flex justify-between"><span className="text-gray-500">Código</span><span className="font-black text-gray-900 dark:text-white">{done.code}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Nombre</span><span className="font-bold text-gray-900 dark:text-white">{user?.name || email || '—'}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Fecha</span><span className="font-bold text-gray-900 dark:text-white">{date} {time}</span></div>
+              <div className="flex justify-between"><span className="text-gray-500">Personas</span><span className="font-bold text-gray-900 dark:text-white">{party}</span></div>
               {done.table && <div className="flex justify-between"><span className="text-gray-500">Mesa</span><span className="font-bold text-gray-900 dark:text-white">{done.table}</span></div>}
-              <div className="flex justify-between"><span className="text-gray-500">Total</span><span className="font-black text-brand-orange">€{done.total.toFixed(2)}</span></div>
+              {product && <div className="flex justify-between"><span className="text-gray-500">Producto</span><span className="font-bold text-gray-900 dark:text-white">{product.name} ×{productQty}</span></div>}
+              <div className="flex justify-between border-t border-gray-200 dark:border-gray-700 pt-1.5"><span className="text-gray-500">Total</span><span className="font-black text-brand-orange">€{done.total.toFixed(2)}</span></div>
             </div>
             <button onClick={onClose} className="btn-orange w-full mt-5 py-2.5">Cerrar</button>
           </div>
