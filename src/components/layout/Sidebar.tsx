@@ -48,7 +48,7 @@ const NAV: { section: string; items: NavItem[] }[] = [
   {
     section: 'MERCADO',
     items: [
-      { label: 'Ruta de Hoy',    icon: <Compass className="w-4 h-4" />,    to: '/' },
+      { label: '❤️ Planes Para Bailar', icon: <Compass className="w-4 h-4" />, to: '/rutas' },
       { label: 'Proyectos',      icon: <Briefcase className="w-4 h-4" />,  to: '/marketplace' },
       { label: '📢 Promociónate',icon: <Megaphone className="w-4 h-4" />, to: '/promocionate' },
       { label: 'Ofertas',        icon: <Gift className="w-4 h-4" />,       to: '/marketplace?cat=ofertas' },
@@ -57,7 +57,6 @@ const NAV: { section: string; items: NavItem[] }[] = [
   {
     section: 'COMUNIDAD',
     items: [
-      { label: '🗺️ Ruta de Hoy',     icon: <MapPin className="w-4 h-4" />,        to: '/rutas' },
       { label: '💃 Pareja de baile',  icon: <Heart className="w-4 h-4" />,         to: '/parejas' },
       { label: '🏆 Retos de baile',   icon: <Trophy className="w-4 h-4" />,        to: '/retos' },
       { label: 'Anuncios',  icon: <Megaphone className="w-4 h-4" />,      to: '/comunidad' },

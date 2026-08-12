@@ -606,7 +606,7 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-display font-black text-2xl sm:text-3xl bg-brand-orange bg-clip-text text-transparent mb-1">
-              🔥 Ruta de Hoy
+              ❤️ Planes Para Bailar
             </h2>
             <p className="text-gray-500 text-sm">Lo que está pasando ahora mismo en tu comunidad</p>
           </div>
@@ -1151,7 +1151,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
 // ── MÁS PARA TI (6 accesos destacados, estilo premium) ──
 const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
   const items = [
-    { to: '/rutas',        icon: '❤️', title: 'Planes',                sub: 'Encuentra personas para salir a bailar',  grad: 'from-rose-500 to-pink-600' },
+    { to: '/rutas',        icon: '❤️', title: 'Planes Para Bailar',    sub: 'Encuentra personas y planes para salir a bailar', grad: 'from-rose-500 to-pink-600' },
     { to: '/parejas',      icon: '💑', title: 'Pareja de baile',       sub: 'Busca compañero/a de baile',              grad: 'from-fuchsia-500 to-purple-600' },
     { to: '/danceflow',    icon: '🤖', title: 'DanceFlow IA',          sub: 'Entrena con inteligencia artificial',     grad: 'from-cyan-500 to-blue-600' },
     { to: '/clases',       icon: '🎓', title: 'Clases Online',         sub: 'Aprende desde cualquier lugar',           grad: 'from-amber-500 to-orange-600' },

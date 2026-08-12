@@ -93,7 +93,7 @@ const DEFAULT_HOME_MODULES: HomeModule[] = [
   { id: 'mod-buyer-alert',   type: 'buyer-alert',   title: 'Aviso pedidos pendientes',enabled: true, order: 2 },
   { id: 'mod-hero',          type: 'hero',          title: 'Hero / Banner principal', enabled: true, order: 3 },
   { id: 'mod-radio',         type: 'radio',         title: 'Radios en directo',       enabled: true, order: 4 },
-  { id: 'mod-ruta',          type: 'ruta',          title: 'La Ruta de Hoy',          enabled: true, order: 5 },
+  { id: 'mod-ruta',          type: 'ruta',          title: 'Planes Para Bailar',      enabled: true, order: 5 },
   { id: 'mod-categories',    type: 'categories',    title: 'Categorías principales',  enabled: true, order: 6 },
   { id: 'mod-cities',        type: 'cities',        title: 'Ciudades destacadas',     enabled: true, order: 7 },
   { id: 'mod-artists',       type: 'artists',       title: 'Artistas destacados',     enabled: true, order: 8 },

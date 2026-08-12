@@ -223,7 +223,7 @@ export const DEFAULT_HOME_CATEGORIES: HomeCategory[] = [
   { id: '20', name: 'Promociónate',    icon: '📢', route: '/promocionate',              section: 'main',      display_order: 7,  active: true },
   { id: '7',  name: 'En Directo',      icon: '🔴', route: '/live',                      section: 'main',      display_order: 8,  active: true },
   { id: '8',  name: 'Comunidad',       icon: '💬', route: '/comunidad',                 section: 'main',      display_order: 9,  active: true },
-  { id: '9',  name: 'Ruta de Hoy',     icon: '📍', route: '/eventos?type=featured',     section: 'mercado',   display_order: 1,  active: true },
+  { id: '9',  name: 'Planes Para Bailar', icon: '❤️', route: '/rutas',                  section: 'mercado',   display_order: 1,  active: true },
   { id: '10', name: 'Proyectos',       icon: '🚀', route: '/marketplace?cat=Producción',section: 'mercado',   display_order: 2,  active: true },
   { id: '12', name: 'Ofertas',         icon: '⭐', route: '/eventos?featured=true',     section: 'mercado',   display_order: 4,  active: true },
   { id: '13', name: 'Anuncios',        icon: '📢', route: '/comunidad',                 section: 'comunidad', display_order: 1,  active: true },

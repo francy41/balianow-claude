@@ -71,7 +71,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'afiliados',      label: 'Afiliados & RRPP',        icon: <Share2 className="w-4 h-4" />, badge: 'NEW' },
   { id: 'promocionate',   label: 'Promociónate',            icon: <TrendingUp className="w-4 h-4" />, badge: 'NEW' },
   { id: 'tv',             label: 'BailaNow TV',             icon: <Tv className="w-4 h-4" />, badge: 'NEW' },
-  { id: 'rutas',          label: 'Ruta de Hoy',             icon: <MapPin className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'rutas',          label: 'Planes Para Bailar',      icon: <MapPin className="w-4 h-4" />, badge: 'NEW' },
   { id: 'parejas',        label: 'Pareja de baile',         icon: <Heart className="w-4 h-4" />, badge: 'NEW' },
   { id: 'retos',          label: 'Retos de baile',          icon: <Trophy className="w-4 h-4" />, badge: 'NEW' },
   { id: 'partner',        label: 'Partners de ciudad',      icon: <Globe className="w-4 h-4" />, badge: 'NEW' },
@@ -1265,7 +1265,7 @@ const RutasAdminSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   useEffect(() => { load(); }, [load]);
 
   const remove = async (r: any) => {
-    if (!confirm(`¿Eliminar la ruta "${r.title}"?`)) return;
+    if (!confirm(`¿Eliminar el plan "${r.title}"?`)) return;
     const { error } = await supabase.from('rutas').delete().eq('id', r.id);
     if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
     addToast({ message: `✅ Ruta eliminada`, type: 'success' }); load();
@@ -1275,7 +1275,7 @@ const RutasAdminSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 
   return (
   <div>
-    <PageHeader title="Ruta de Hoy" subtitle={`${rutas.length} rutas creadas`} action={
+    <PageHeader title="Planes Para Bailar" subtitle={`${rutas.length} planes creados`} action={
       <Button variant="dark" icon={<Eye className="w-4 h-4" />} onClick={() => navigate('/rutas')}>Ver módulo</Button>
     } />
     <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-6">
