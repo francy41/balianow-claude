@@ -32,6 +32,7 @@ import ModulesAdminSection from '../components/ModulesAdminSection';
 import AppBuilderSection from '../components/AppBuilderSection';
 import { uploadImage, uploadVideo } from '../lib/uploadHelper';
 import { fetchCommissionPercent, getCachedCommissionPercent, setCommissionPercent } from '../lib/commission';
+import { fetchSaleFees, setSaleFees, type SaleFees } from '../lib/saleFees';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
 import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS, PROMO_SERVICES } from '../data/mockData';
 
@@ -2163,6 +2164,49 @@ const GlobalCommissionCard: React.FC<{ addToast: Function }> = ({ addToast }) =>
   );
 };
 
+const SaleFeesCard: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const [fees, setFees] = useState<SaleFees>({ reservation: 1.5, ticket: 1.5 });
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { fetchSaleFees().then(setFees); }, []);
+  const save = async () => {
+    setSaving(true);
+    const { error } = await setSaleFees(fees);
+    setSaving(false);
+    addToast({ message: error ? `Error: ${error}` : '✅ Ganancia por venta guardada', type: error ? 'error' : 'success' });
+  };
+  return (
+    <div className="card-white p-5 mb-6 border-l-4 border-emerald-400">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="font-black text-gray-900 flex items-center gap-2">💶 Ganancia fija por venta</h3>
+          <p className="text-xs text-gray-400 mt-0.5">Importe fijo que gana la plataforma en cada reserva y cada entrada vendida (se suma al %).</p>
+        </div>
+        <button onClick={save} disabled={saving} className="btn-orange text-sm px-4 py-2">{saving ? 'Guardando…' : 'Guardar'}</button>
+      </div>
+      <div className="grid grid-cols-2 gap-4 mt-4 max-w-md">
+        <div>
+          <label className="text-xs font-bold text-gray-500 uppercase">Por reserva (€)</label>
+          <div className="flex items-center gap-1">
+            <span className="text-2xl font-black text-emerald-600">€</span>
+            <input type="number" step="0.10" min="0" value={fees.reservation}
+              onChange={e => setFees(f => ({ ...f, reservation: parseFloat(e.target.value) || 0 }))}
+              className="input-field text-2xl font-black text-emerald-600 w-full" />
+          </div>
+        </div>
+        <div>
+          <label className="text-xs font-bold text-gray-500 uppercase">Por entrada (€)</label>
+          <div className="flex items-center gap-1">
+            <span className="text-2xl font-black text-emerald-600">€</span>
+            <input type="number" step="0.10" min="0" value={fees.ticket}
+              onChange={e => setFees(f => ({ ...f, ticket: parseFloat(e.target.value) || 0 }))}
+              className="input-field text-2xl font-black text-emerald-600 w-full" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const { commissions, setCommission, setDefaultCommission, setPremiumDiscount, resetCommissions } = useSiteConfigStore();
 
@@ -2186,6 +2230,8 @@ const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
       />
 
       <GlobalCommissionCard addToast={addToast} />
+
+      <SaleFeesCard addToast={addToast} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <div className="card-white p-5">
