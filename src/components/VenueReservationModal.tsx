@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
 import { useSaleFees } from '../lib/saleFees';
-import { X, Loader2, CheckCircle, CalendarDays, Users, Wine, FileText } from 'lucide-react';
+import { getStripe, createStripePaymentIntent } from '../lib/payments';
+import StripePayment from './payment/StripePayment';
+import { X, Loader2, CheckCircle, CalendarDays, Users, Wine, FileText, CreditCard, AlertCircle } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -35,9 +37,13 @@ const VenueReservationModal: React.FC<Props> = ({ open, onClose, venueId, venueN
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState<{ code: string; total: number; table?: string } | null>(null);
+  const [step, setStep] = useState<'form' | 'pay'>('form');
+  const [clientSecret, setClientSecret] = useState('');
+  const [stripeReady] = useState(!!getStripe());
 
   useEffect(() => {
     if (!open) return;
+    setStep('form'); setClientSecret(''); setDone(null);
     setEmail(user?.email || '');
     (async () => {
       const { data: v } = await supabase.from('venues').select('refund_percent, reservation_terms').eq('id', venueId).maybeSingle();
@@ -54,10 +60,14 @@ const VenueReservationModal: React.FC<Props> = ({ open, onClose, venueId, venueN
   const fee = Math.round(saleFees.reservation * 100) / 100;
   const total = Math.round((productTotal + fee) * 100) / 100;
 
-  const submit = async () => {
-    if (!date) { addToast({ message: 'Elige una fecha', type: 'error' }); return; }
-    if (!email.trim() && !whatsapp.trim()) { addToast({ message: 'Deja un email o WhatsApp para la confirmación', type: 'error' }); return; }
-    if (terms && !acceptTerms) { addToast({ message: 'Debes aceptar los términos', type: 'error' }); return; }
+  const validate = () => {
+    if (!date) { addToast({ message: 'Elige una fecha', type: 'error' }); return false; }
+    if (!email.trim() && !whatsapp.trim()) { addToast({ message: 'Deja un email o WhatsApp para la confirmación', type: 'error' }); return false; }
+    if (terms && !acceptTerms) { addToast({ message: 'Debes aceptar los términos', type: 'error' }); return false; }
+    return true;
+  };
+
+  const createReservation = async (paymentId: string | null) => {
     setSaving(true);
     const code = genCode();
     const table = kind === 'reservado' ? 'Mesa ' + Math.floor(10 + Math.random() * 90) : null;
@@ -76,7 +86,7 @@ const VenueReservationModal: React.FC<Props> = ({ open, onClose, venueId, venueN
       total_amount: total,
       currency: 'EUR',
       status: 'pending',
-      payment_status: total > 0 ? 'pending' : 'unpaid',
+      payment_status: paymentId ? 'paid' : (total > 0 ? 'pending' : 'unpaid'),
       refund_percent: refundPct,
       confirmation_code: code,
       contact_email: email.trim() || null,
@@ -94,6 +104,28 @@ const VenueReservationModal: React.FC<Props> = ({ open, onClose, venueId, venueN
     setDone({ code, total, table: table || undefined });
   };
 
+  // Reserva gratis → crea directo. Con importe → intento de pago Stripe (o demo).
+  const goToPay = async () => {
+    if (!validate()) return;
+    if (total <= 0) { await createReservation(null); return; }
+    setSaving(true);
+    if (stripeReady && user) {
+      try {
+        const timeout = new Promise<never>((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000));
+        const result: any = await Promise.race([
+          createStripePaymentIntent({
+            amount: total, currency: 'eur', userId: user.id,
+            items: [{ serviceId: venueId, sellerId: venueId, sellerName: venueName, title: `Reserva ${venueName}`, price: total, extrasTotal: 0 }],
+          }),
+          timeout,
+        ]);
+        setClientSecret(result.clientSecret);
+      } catch { /* fallback demo */ }
+    }
+    setSaving(false);
+    setStep('pay');
+  };
+
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
@@ -109,6 +141,31 @@ const VenueReservationModal: React.FC<Props> = ({ open, onClose, venueId, venueN
               <div className="flex justify-between"><span className="text-gray-500">Total</span><span className="font-black text-brand-orange">€{done.total.toFixed(2)}</span></div>
             </div>
             <button onClick={onClose} className="btn-orange w-full mt-5 py-2.5">Cerrar</button>
+          </div>
+        ) : step === 'pay' ? (
+          <div className="p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-black text-lg text-gray-900 dark:text-white">Pagar reserva</h3>
+              <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 grid place-items-center"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 mb-4 flex justify-between font-black">
+              <span className="text-gray-900 dark:text-white">Total</span>
+              <span className="text-brand-orange text-lg">€{total.toFixed(2)}</span>
+            </div>
+            {clientSecret && stripeReady ? (
+              <StripePayment clientSecret={clientSecret} total={total} onSuccess={(pid: string) => createReservation(pid)} onError={(e: string) => addToast({ type: 'error', message: e })} />
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                  <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-700">Modo demo. En producción configura <code>VITE_STRIPE_PUBLISHABLE_KEY</code> para pagos reales.</p>
+                </div>
+                <button onClick={() => createReservation(`demo-${Date.now()}`)} disabled={saving} className="btn-orange w-full py-3 flex items-center justify-center gap-2 disabled:opacity-50">
+                  {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />} Pagar €{total.toFixed(2)} (Demo)
+                </button>
+              </div>
+            )}
+            <button onClick={() => setStep('form')} className="w-full text-center text-sm text-gray-500 mt-3">← Volver</button>
           </div>
         ) : (
           <>
@@ -190,9 +247,9 @@ const VenueReservationModal: React.FC<Props> = ({ open, onClose, venueId, venueN
                 </label>
               )}
 
-              <button onClick={submit} disabled={saving} className="btn-orange w-full py-3 flex items-center justify-center gap-2 disabled:opacity-50">
+              <button onClick={goToPay} disabled={saving} className="btn-orange w-full py-3 flex items-center justify-center gap-2 disabled:opacity-50">
                 {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <CalendarDays className="w-5 h-5" />}
-                {total > 0 ? `Pagar y reservar — €${total.toFixed(2)}` : 'Confirmar reserva'}
+                {total > 0 ? `Continuar al pago — €${total.toFixed(2)}` : 'Confirmar reserva'}
               </button>
             </div>
           </>
