@@ -120,6 +120,11 @@ function mapProfileToArtist(p: any): Artist {
     availability: [],
     currency:   'EUR',
     completedBookings: 0,
+    featuredVideo: p.featured_video || '',
+    featuredVideoTitle: p.featured_video_title || '',
+    location:   fixText(p.location || ''),
+    lat:        p.lat ?? null,
+    lng:        p.lng ?? null,
   } as unknown as Artist;
 }
 
@@ -602,12 +607,19 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
   const [dbEvents, setDbEvents] = useState<any[]>([]);
   useEffect(() => {
     let cancelled = false;
-    supabase.from('events').select('id,title,date,event_date,venue_name,city,artists')
+    supabase.from('events').select('id,title,date,event_date,venue_name,city,artists,owner_id,user_id,venue_id')
       .then(({ data }) => { if (!cancelled) setDbEvents(data || []); }, () => {});
     return () => { cancelled = true; };
   }, [artist.id]);
   const realEv = dbEvents
-    .filter(e => Array.isArray(e.artists) && e.artists.includes(artist.id))
+    // Eventos donde el artista está en el lineup, O eventos propios del local/perfil
+    // (por dueño o por nombre del venue) — así los locales ven sus eventos.
+    .filter(e =>
+      (Array.isArray(e.artists) && e.artists.includes(artist.id)) ||
+      e.owner_id === artist.id || e.user_id === artist.id ||
+      String(e.venue_id || '') === String(artist.id) ||
+      (!!e.venue_name && !!artist.name && e.venue_name === artist.name)
+    )
     .map(e => ({ id: e.id, title: e.title || 'Evento', date: e.date || e.event_date || '', venueName: e.venue_name || '', city: e.city || '' }));
   const mockEv = EVENTS
     .filter(e => Array.isArray((e as any).artists) && (e as any).artists.includes(artist.id))
@@ -686,22 +698,24 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
 
 // ── LOCATION CARD (tipo mapa) ─────────────────────────────────────────────────
 const LocationCard: React.FC<{ artist: Artist }> = ({ artist }) => {
-  const place = [artist.city, artist.country].filter(Boolean).join(', ');
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place || 'España')}`;
+  const a = artist as any;
+  const address = a.location || [artist.city, artist.country].filter(Boolean).join(', ');
+  const hasCoords = a.lat != null && a.lng != null && !(a.lat === 0 && a.lng === 0);
+  const query = hasCoords ? `${a.lat},${a.lng}` : (address || 'España');
+  const embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=15&output=embed`;
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
   return (
     <div className="card-white rounded-2xl overflow-hidden">
-      <div className="relative h-40 bg-gradient-to-br from-gray-900 via-purple-950 to-black">
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.3) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-500/25 rounded-full blur-3xl" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-          <span className="w-12 h-12 rounded-full bg-pink-500 flex items-center justify-center shadow-lg shadow-pink-500/40"><MapPin className="w-6 h-6" /></span>
-          <p className="font-display font-black text-xl mt-2 drop-shadow">{place || 'España'}</p>
-        </div>
+      <div className="relative h-52 bg-gray-100 dark:bg-gray-800">
+        <iframe title="Mapa de ubicación" src={embedUrl} className="w-full h-full border-0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
       </div>
       <div className="p-4 flex items-center justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Ubicación</p>
-          <p className="font-bold text-gray-900 text-sm flex items-center gap-1"><MapPin className="w-4 h-4 text-pink-500" />{place || 'España'}</p>
+          <p className="font-bold text-gray-900 dark:text-white text-sm flex items-start gap-1">
+            <MapPin className="w-4 h-4 text-pink-500 flex-shrink-0 mt-0.5" />
+            <span className="break-words">{address || 'España'}</span>
+          </p>
         </div>
         <a href={mapsUrl} target="_blank" rel="noreferrer" className="btn-orange text-sm py-2 px-4 flex items-center gap-1.5 flex-shrink-0">Ver en el mapa →</a>
       </div>

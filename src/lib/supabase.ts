@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 // Usar en TODA consulta de cara al público para no filtrar PII.
 // El acceso anónimo a esas columnas sensibles está revocado a nivel de BD.
 export const PUBLIC_PROFILE_COLUMNS =
-  'id,full_name,role,avatar_url,bio,location,verified,created_at,youtube_url,instagram_url,tiktok_url,website_url,is_live,last_active,status,country,lat,lng,genre,cover_photo,facebook_url,soundcloud_url,twitch_url,spotify_url,styles,tags,city,deleted_at';
+  'id,full_name,role,avatar_url,bio,location,verified,created_at,youtube_url,instagram_url,tiktok_url,website_url,is_live,last_active,status,country,lat,lng,genre,cover_photo,facebook_url,soundcloud_url,twitch_url,spotify_url,styles,tags,city,deleted_at,featured_video,featured_video_title';
 
 // Config del proyecto. Se prefieren las variables de entorno (.env.local en dev,
 // Vercel en prod). Si faltan o son inválidas (p. ej. "placeholder"), se usan los
