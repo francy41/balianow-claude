@@ -12,6 +12,7 @@ import HomeFabStack from '../components/HomeFabStack';
 import HomeBackground from '../components/HomeBackground';
 import DanceFlowPromo from '../components/DanceFlowPromo';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useHomeModules } from '../hooks/useHomeModules';
 import { useJsonLd, organizationLd, websiteLd } from '../lib/structuredData';
 
 // Category interface
@@ -1147,27 +1148,48 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
 
 // ── MÁS PARA TI (6 accesos destacados, estilo premium) ──
 const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
-  const items = [
-    { to: '/rutas',        icon: '❤️', title: 'Planes Para Bailar',    sub: 'Encuentra personas y planes para salir a bailar', grad: 'from-rose-500 to-pink-600',      glow: 'hover:shadow-rose-500/30' },
-    { to: '/parejas',      icon: '💑', title: 'Pareja de baile',       sub: 'Busca compañero/a de baile',              grad: 'from-fuchsia-500 to-purple-600', glow: 'hover:shadow-fuchsia-500/30' },
-    { to: '/danceflow',    icon: '🤖', title: 'DanceFlow IA',          sub: 'Entrena con inteligencia artificial',     grad: 'from-cyan-500 to-blue-600',      glow: 'hover:shadow-cyan-500/30' },
-    { to: '/clases',       icon: '🎓', title: 'Clases Online',         sub: 'Aprende desde cualquier lugar',           grad: 'from-amber-500 to-orange-600',   glow: 'hover:shadow-amber-500/30' },
-    { to: '/artistas',     icon: '🕺', title: 'Bailarines',            sub: 'Contrata bailarines · reserva clases',    grad: 'from-emerald-500 to-teal-600',   glow: 'hover:shadow-emerald-500/30' },
-    { to: '/promocionate', icon: '🎤', title: 'Promociona tu negocio', sub: 'Publicidad, flyers, vídeos y marketing',  grad: 'from-pink-500 to-rose-600',      glow: 'hover:shadow-pink-500/30' },
-  ];
+  // Data-driven: lee de `home_modules` (Supabase) con fallback a la semilla local.
+  const modules = useHomeModules('mas-para-ti');
   return (
     <section className="mx-3 sm:mx-4 mt-8">
-      <div className="flex items-center gap-2 mb-4 px-1">
-        <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-brand-orange to-pink-500" />
-        <h2 className="font-display font-black text-xl text-gray-900 dark:text-white">Más para ti</h2>
+      <div className="flex items-center justify-between mb-4 px-1">
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-brand-orange to-pink-500" />
+          <h2 className="font-display font-black text-xl text-gray-900 dark:text-white">Más para ti</h2>
+        </div>
+        <button onClick={() => navigate('/explorar')}
+          className="text-xs font-bold text-pink-500 hover:text-pink-600 flex items-center gap-1 transition-colors">
+          Ver todas <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-        {items.map(it => (
-          <button key={it.title} onClick={() => navigate(it.to)}
-            className={`group relative bg-white dark:bg-gray-900 rounded-3xl p-4 sm:p-5 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-2xl ${it.glow} hover:-translate-y-1.5 hover:border-transparent transition-all duration-300 text-center flex flex-col items-center`}>
-            <span className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${it.grad} flex items-center justify-center text-3xl mb-3 shadow-lg group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300`}>{it.icon}</span>
-            <p className="font-black text-gray-900 dark:text-white text-sm leading-tight">{it.title}</p>
-            <p className="text-gray-400 text-[11px] mt-1.5 leading-snug">{it.sub}</p>
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        {modules.map(m => (
+          <button key={m.id} onClick={() => navigate(m.route)}
+            className={`group relative overflow-hidden rounded-3xl h-52 sm:h-60 text-left shadow-lg hover:shadow-2xl ${m.glow} hover:-translate-y-1.5 transition-all duration-300`}>
+            {/* Fondo: degradado de marca siempre; imagen encima si está configurada */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${m.gradient}`} />
+            {m.imageUrl && (
+              <img src={m.imageUrl} alt="" loading="lazy"
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+            )}
+            {/* Velo para legibilidad */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/5" />
+            {/* Icono */}
+            <span className={`absolute top-3.5 left-3.5 w-11 h-11 rounded-full ${m.iconBg} text-white grid place-items-center text-xl shadow-lg ring-2 ring-white/30`}>{m.icon}</span>
+            {/* Badge */}
+            {m.badge && (
+              <span className="absolute top-3.5 right-3.5 bg-white text-pink-600 text-[10px] font-black uppercase tracking-wide px-2.5 py-1 rounded-full shadow">{m.badge}</span>
+            )}
+            {/* Texto */}
+            <div className="absolute bottom-3.5 left-4 right-16">
+              <p className="text-white font-black text-base sm:text-lg leading-tight drop-shadow">{m.title}</p>
+              <p className="text-white/85 text-[11px] sm:text-xs mt-1 leading-snug line-clamp-2">{m.subtitle}</p>
+            </div>
+            {/* Flecha */}
+            <span className="absolute bottom-3.5 right-3.5 w-11 h-11 rounded-full bg-white/95 grid place-items-center text-gray-900 shadow-lg group-hover:bg-white group-hover:scale-110 transition-all">
+              <ArrowRight className="w-5 h-5" />
+            </span>
           </button>
         ))}
       </div>
