@@ -155,7 +155,7 @@ const NearMePage: React.FC = () => {
 
       // Venues
       try {
-        const { data } = await supabase.from('venues').select('*');
+        const { data } = await supabase.from('venues').select('*').is('deleted_at', null);
         data?.forEach((v: any) => {
           const c = coordsOrCity(v);
           if (!c) return;
