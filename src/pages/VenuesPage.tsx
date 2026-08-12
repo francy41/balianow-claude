@@ -114,9 +114,17 @@ const VenuesList: React.FC = () => {
     return ['Todas', ...Array.from(new Set(merged))];
   }, [allVenues]);
 
+  // La etiqueta del filtro no siempre coincide con el `type` real de la BD:
+  // "Discoteca" no existe como tipo (los clubes son 'club'); "Restaurante" es 'restaurant'.
+  const typeAlias = (t: string): string => {
+    const x = t.toLowerCase();
+    if (x === 'discoteca') return 'club';
+    if (x === 'restaurante') return 'restaurant';
+    return x;
+  };
   const filtered = useMemo(() => {
     return allVenues.filter(v => {
-      const matchType = selectedType.includes('Todos') || selectedType.some(t => v.type === t.toLowerCase());
+      const matchType = selectedType.includes('Todos') || selectedType.some(t => v.type === typeAlias(t));
       const matchCity = selectedCity.includes('Todas') || selectedCity.includes(v.city);
       const matchOpen = !onlyOpen || v.isOpen;
       return matchType && matchCity && matchOpen;
