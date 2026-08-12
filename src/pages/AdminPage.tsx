@@ -33,6 +33,7 @@ import AppBuilderSection from '../components/AppBuilderSection';
 import { uploadImage, uploadVideo } from '../lib/uploadHelper';
 import { fetchCommissionPercent, getCachedCommissionPercent, setCommissionPercent } from '../lib/commission';
 import { fetchSaleFees, setSaleFees, type SaleFees } from '../lib/saleFees';
+import { fixText } from '../lib/text';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
 import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS, PROMO_SERVICES } from '../data/mockData';
 
@@ -1455,18 +1456,24 @@ const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
       <AdminTable
         headers={['Nombre', 'Ciudad', 'Tipo', 'Estado', 'Suscripción', 'Acciones']}
         rows={venues.map(v => [
-          <span className="font-semibold">{v.name}</span>,
-          <span>{v.city || '—'}</span>,
+          <span className="font-semibold">{fixText(v.name)}</span>,
+          <span>{fixText(v.city) || '—'}</span>,
           <Badge variant="gray" className="capitalize">{v.type || 'local'}</Badge>,
           <Badge variant={v.is_open ? 'green' : 'gray'}>{v.is_open ? '🟢 Abierto' : 'Cerrado'}</Badge>,
           v.is_premium ? <Badge variant="orange">Premium</Badge> : <Badge variant="gray">Básico</Badge>,
           <div className="flex gap-1">
             <button onClick={() => navigate(`/venues/${v.id}?edit=1`)} title="Editar en la página del local" className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-pink-500"><Edit className="w-4 h-4" /></button>
             <button onClick={async () => {
-              if (!confirm(`¿Eliminar el local "${v.name}"?`)) return;
-              const { error } = await supabase.from('venues').delete().eq('id', v.id);
-              if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
-              addToast({ message: `✅ ${v.name} eliminado`, type: 'success' }); load();
+              if (!confirm(`¿Eliminar el local "${fixText(v.name)}"?`)) return;
+              // Soft delete (marca deleted_at) — respeta RLS admin y evita romper FKs de eventos.
+              let { error } = await supabase.from('venues').update({ deleted_at: new Date().toISOString() }).eq('id', v.id);
+              // Si la columna deleted_at no existiese, intento borrado duro como fallback.
+              if (error && /deleted_at/.test(error.message)) {
+                ({ error } = await supabase.from('venues').delete().eq('id', v.id));
+              }
+              if (error) { addToast({ message: `Error al eliminar: ${error.message}`, type: 'error' }); return; }
+              setVenues(vs => vs.filter(x => x.id !== v.id));
+              addToast({ message: `✅ ${fixText(v.name)} eliminado`, type: 'success' });
             }} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
           </div>
         ])}
