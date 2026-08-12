@@ -1040,8 +1040,8 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <div className="grid grid-cols-2 gap-2.5">
             {events.map(e => (
               <button key={e.id} onClick={() => navigate(`/eventos/${e.id}`)}
-                className="relative aspect-square rounded-2xl overflow-hidden bg-gray-900 text-left group shadow-sm border border-gray-100 dark:border-gray-800 hover:-translate-y-0.5 hover:shadow-md transition-all">
-                {(e as any).cover && <img src={(e as any).cover} alt="" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" loading="lazy" />}
+                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-fuchsia-900/60 via-purple-900/40 to-gray-900 text-left group shadow-sm border border-gray-100 dark:border-gray-800 hover:-translate-y-0.5 hover:shadow-md transition-all">
+                {(e as any).cover && <img src={(e as any).cover} alt="" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                 <div className="absolute top-2 left-2 bg-white/90 text-gray-900 rounded-lg px-1.5 py-0.5 text-center leading-none">
                   <div className="font-black text-sm">{day(e.date)}</div>
@@ -1063,8 +1063,8 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <div className="grid grid-cols-2 gap-2.5">
             {artists.map(a => (
               <button key={a.id} onClick={() => navigate(`/artistas/${a.id}`)}
-                className="relative aspect-square rounded-2xl overflow-hidden bg-gray-900 text-left group shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all">
-                {a.avatar && <img src={a.avatar} alt={a.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />}
+                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-pink-900/60 via-rose-900/40 to-gray-900 text-left group shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all">
+                {a.avatar && <img src={a.avatar} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
                 <div className="absolute bottom-2 left-2 right-2">
                   <p className="text-white font-bold text-xs leading-tight truncate">{a.name}</p>
@@ -1083,8 +1083,8 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
               const img = c.image || PLACEHOLDER[i];
               return (
               <button key={i} onClick={() => navigate(c.link || '/tv')}
-                className="relative rounded-2xl overflow-hidden h-40 group text-left bg-gray-900">
-                {img && <img src={img} alt={c.title} className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" loading="lazy" />}
+                className="relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-indigo-900/60 via-purple-900/40 to-gray-950">
+                {img && <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/40 to-transparent" />
                 {c.tag && <span className="absolute top-2.5 left-2.5 bg-pink-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">{c.tag}</span>}
                 <div className="absolute bottom-3 left-3 right-3">
@@ -1216,8 +1216,8 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
       <HScroll>
         {shows.map((s, i) => (
           <button key={i} onClick={() => navigate('/tv')}
-            className="flex-shrink-0 w-64 relative rounded-2xl overflow-hidden h-40 group text-left bg-gray-900 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
-            {s.img && <img src={s.img} alt={s.title} className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" />}
+            className="flex-shrink-0 w-64 relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-indigo-900/60 via-purple-900/40 to-gray-950 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
+            {s.img && <img src={s.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
             <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
             <span className={`absolute top-2.5 left-2.5 ${s.tagColor} text-white text-[9px] font-black px-2 py-0.5 rounded-full`}>{s.tag}</span>
             <span className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm grid place-items-center text-white opacity-0 group-hover:opacity-100 transition"><Play className="w-4 h-4" fill="currentColor" /></span>
