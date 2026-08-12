@@ -76,7 +76,7 @@ const VenueReservationModal: React.FC<Props> = ({ open, onClose, venueId, venueN
       total_amount: total,
       currency: 'EUR',
       status: 'pending',
-      payment_status: total > 0 ? 'paid' : 'unpaid',
+      payment_status: total > 0 ? 'pending' : 'unpaid',
       refund_percent: refundPct,
       confirmation_code: code,
       contact_email: email.trim() || null,
