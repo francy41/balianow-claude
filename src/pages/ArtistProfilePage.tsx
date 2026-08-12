@@ -17,6 +17,7 @@ import type { Artist, MediaItem, OfferPackage } from '../data/mockData';
 import { useAuthStore, useUIStore, useCartStore, getYouTubeId, useSiteConfigStore } from '../store/appStore';
 import { Avatar, Modal, Button } from '../components/ui';
 import BookingModal from '../components/BookingModal';
+import VenueReservationModal from '../components/VenueReservationModal';
 import ExclusiveContentTab from '../components/ExclusiveContentTab';
 import PaymentGateway from '../components/payment/PaymentGateway';
 
@@ -190,6 +191,7 @@ const ArtistProfilePage: React.FC = () => {
   const { addItem, clearCart } = useCartStore();
   const [bookingOpen, setBookingOpen] = useState(false);
   const [classBookingOpen, setClassBookingOpen] = useState(false);
+  const [venueResOpen, setVenueResOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [bookingPreset, setBookingPreset] = useState<{ concept: string; price: number }>({ concept: '', price: 0 });
   const [customOfferPrice, setCustomOfferPrice] = useState('');
@@ -220,6 +222,7 @@ const ArtistProfilePage: React.FC = () => {
 
   const artist = dbArtist!;
   const currentStream = null; // live streams se cargan de live_sessions, no de mock
+  const isVenue = ['venue', 'business'].includes(String((artist as any).role || '').toLowerCase());
 
   const claimed = isClaimed((artist as any).userId);
 
@@ -330,7 +333,7 @@ const ArtistProfilePage: React.FC = () => {
             className="btn-orange text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
             <MessageSquare className="w-4 h-4" /> Chat interno
           </button>
-          <button onClick={() => openBooking(`Servicio con ${artist.name}`, artist.packages?.[0]?.price || 150)}
+          <button onClick={() => isVenue ? setVenueResOpen(true) : openBooking(`Servicio con ${artist.name}`, artist.packages?.[0]?.price || 150)}
             className="btn-outline text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
             <Award className="w-4 h-4" /> Reservar
           </button>
@@ -473,6 +476,13 @@ const ArtistProfilePage: React.FC = () => {
           </Button>
         </div>
       </Modal>
+
+      <VenueReservationModal
+        open={venueResOpen}
+        onClose={() => setVenueResOpen(false)}
+        venueId={artist.id}
+        venueName={artist.name}
+      />
 
       <BookingModal
         open={bookingOpen}
