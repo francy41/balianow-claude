@@ -25,6 +25,36 @@ const VenueReservationsManager: React.FC<Props> = ({ userId, addToast }) => {
   const [refund, setRefund] = useState(50);
   const [enabled, setEnabled] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [creating, setCreating] = useState(false);
+
+  // Crea una fila en `venues` a partir del perfil del usuario (para perfiles-local
+  // que se registraron como usuario y no tienen aún su local en la tabla venues).
+  const createVenue = async () => {
+    setCreating(true);
+    const { data: p } = await supabase.from('profiles')
+      .select('full_name, city, location, country, avatar_url, cover_photo, lat, lng, whatsapp, email')
+      .eq('id', userId).maybeSingle();
+    const body: any = {
+      name: p?.full_name || 'Mi local', city: p?.city || null, address: p?.location || null,
+      country: p?.country || null, owner_id: userId, user_id: userId, type: 'Discoteca',
+      status: 'active', is_open: true, avatar: p?.avatar_url || null, cover: p?.cover_photo || null,
+      lat: p?.lat ?? null, lng: p?.lng ?? null, whatsapp: p?.whatsapp || null, email: p?.email || null,
+    };
+    // Reintenta quitando columnas que no existan en la tabla.
+    let lastErr: any = null;
+    for (let i = 0; i < 14; i++) {
+      const { error } = await supabase.from('venues').insert(body);
+      if (!error) { lastErr = null; break; }
+      lastErr = error;
+      const m = /column "?([a-z_]+)"? .* does not exist/i.exec(error.message) || /Could not find the '([a-z_]+)' column/i.exec(error.message);
+      if (m && body[m[1]] !== undefined) { delete body[m[1]]; continue; }
+      break;
+    }
+    setCreating(false);
+    if (lastErr) { addToast({ message: `No se pudo crear el local: ${lastErr.message}`, type: 'error' }); return; }
+    addToast({ message: '✅ Local creado y vinculado a tu cuenta', type: 'success' });
+    load();
+  };
 
   const load = async () => {
     setLoading(true);
@@ -122,7 +152,15 @@ const VenueReservationsManager: React.FC<Props> = ({ userId, addToast }) => {
   }
 
   if (!venue) {
-    return <div className="rounded-2xl border border-gray-200 dark:border-gray-800 p-5 text-sm text-gray-500">No encontramos un local asociado a tu cuenta. Crea tu local primero (o pide al superadmin que lo vincule) para gestionar reservas.</div>;
+    return (
+      <div className="rounded-2xl border border-gray-200 dark:border-gray-800 p-6 text-center max-w-md">
+        <p className="font-black text-gray-900 dark:text-white text-lg">Aún no tienes tu local registrado</p>
+        <p className="text-sm text-gray-500 mt-1 mb-4">Créalo desde los datos de tu perfil para que aparezca en el mapa y en Localidades, y puedas gestionar reservas.</p>
+        <button onClick={createVenue} disabled={creating} className="btn-orange px-5 py-2.5 inline-flex items-center gap-2 disabled:opacity-50">
+          {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Crear/vincular mi local
+        </button>
+      </div>
+    );
   }
 
   return (
