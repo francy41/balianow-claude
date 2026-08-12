@@ -1250,8 +1250,8 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
         <HScroll>
           {clases.map((c, i) => (
             <button key={i} onClick={() => navigate('/clases')}
-              className="flex-shrink-0 w-52 relative rounded-2xl overflow-hidden h-32 group text-left bg-gray-900 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
-              {c.img && <img src={c.img} alt={c.title} className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" />}
+              className="flex-shrink-0 w-52 relative rounded-2xl overflow-hidden h-32 group text-left bg-gradient-to-br from-pink-600/30 via-fuchsia-700/20 to-gray-900 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
+              {c.img && <img src={c.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />}
               <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
               <span className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm grid place-items-center text-white opacity-0 group-hover:opacity-100 transition"><Play className="w-4 h-4" fill="currentColor" /></span>
               <div className="absolute bottom-3 left-3 right-3">
@@ -1271,7 +1271,10 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
             <button key={t.id} onClick={() => navigate(`/artistas/${t.id}`)}
               className="flex-shrink-0 w-40 bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all text-center flex flex-col items-center">
               <div className="relative">
-                <img src={t.avatar} alt={t.name} className="w-16 h-16 rounded-full object-cover" loading="lazy" />
+                <div className="w-16 h-16 rounded-full overflow-hidden grid place-items-center bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white font-black text-xl">
+                  <span>{t.name?.[0] || '?'}</span>
+                  <img src={t.avatar} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                </div>
                 <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-gray-900" title="Disponible" />
               </div>
               <p className="font-black text-gray-900 dark:text-white text-sm mt-2 truncate max-w-full">{t.name}</p>
