@@ -29,8 +29,11 @@ import MembershipsAdminSection from '../components/MembershipsAdminSection';
 import CreatorApplicationsAdminSection from '../components/CreatorApplicationsAdminSection';
 import TvMonetizationAdminSection from '../components/TvMonetizationAdminSection';
 import ModulesAdminSection from '../components/ModulesAdminSection';
+import AppBuilderSection from '../components/AppBuilderSection';
 import { uploadImage, uploadVideo } from '../lib/uploadHelper';
 import { fetchCommissionPercent, getCachedCommissionPercent, setCommissionPercent } from '../lib/commission';
+import { fetchSaleFees, setSaleFees, type SaleFees } from '../lib/saleFees';
+import { fixText } from '../lib/text';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
 import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS, PROMO_SERVICES } from '../data/mockData';
 
@@ -42,7 +45,7 @@ type AdminSection =
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms' | 'home-destacados'
   | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter' | 'danceavatares' | 'afiliados' | 'promocionate'
   | 'reclamaciones' | 'planificador' | 'soporte'
-  | 'tv' | 'rutas' | 'parejas' | 'retos' | 'partner' | 'publicidad' | 'donaciones' | 'membresias' | 'solicitudes-creador' | 'tv-monetizacion' | 'modulos';
+  | 'tv' | 'rutas' | 'parejas' | 'retos' | 'partner' | 'publicidad' | 'donaciones' | 'membresias' | 'solicitudes-creador' | 'tv-monetizacion' | 'modulos' | 'app-builder';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -71,7 +74,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'afiliados',      label: 'Afiliados & RRPP',        icon: <Share2 className="w-4 h-4" />, badge: 'NEW' },
   { id: 'promocionate',   label: 'Promociónate',            icon: <TrendingUp className="w-4 h-4" />, badge: 'NEW' },
   { id: 'tv',             label: 'BailaNow TV',             icon: <Tv className="w-4 h-4" />, badge: 'NEW' },
-  { id: 'rutas',          label: 'Ruta de Hoy',             icon: <MapPin className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'rutas',          label: 'Planes Para Bailar',      icon: <MapPin className="w-4 h-4" />, badge: 'NEW' },
   { id: 'parejas',        label: 'Pareja de baile',         icon: <Heart className="w-4 h-4" />, badge: 'NEW' },
   { id: 'retos',          label: 'Retos de baile',          icon: <Trophy className="w-4 h-4" />, badge: 'NEW' },
   { id: 'partner',        label: 'Partners de ciudad',      icon: <Globe className="w-4 h-4" />, badge: 'NEW' },
@@ -81,6 +84,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'solicitudes-creador', label: 'Solicitudes creadores', icon: <Sparkles className="w-4 h-4" />, badge: 'NEW' },
   { id: 'tv-monetizacion', label: 'Monetización TV',          icon: <DollarSign className="w-4 h-4" />, badge: '60/40' },
   { id: 'modulos',        label: 'Módulos y precios',       icon: <Tag className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'app-builder',    label: 'App Builder',             icon: <LayoutDashboard className="w-4 h-4" />, badge: 'NEW' },
   { id: 'creators',       label: 'Dashboards Creators',     icon: <LayoutDashboard className="w-4 h-4" /> },
   { id: 'retiros',        label: 'Retiros pendientes',      icon: <DollarSign className="w-4 h-4" />, badge: 'esc.' },
   { id: 'diseno',         label: 'Diseño Web',              icon: <Palette className="w-4 h-4" /> },
@@ -309,6 +313,7 @@ const AdminPage: React.FC = () => {
         {active === 'solicitudes-creador' && <CreatorApplicationsAdminSection addToast={addToast} />}
         {active === 'tv-monetizacion' && <TvMonetizationAdminSection addToast={addToast} />}
         {active === 'modulos'        && <ModulesAdminSection addToast={addToast} />}
+        {active === 'app-builder'    && <AppBuilderSection addToast={addToast} />}
         {active === 'cms'            && <AdminCMS />}
         {active === 'home-destacados' && <HomeFeaturedSection addToast={addToast} />}
         {active === 'diseno'         && <DisenoSection addToast={addToast} />}
@@ -1265,7 +1270,7 @@ const RutasAdminSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   useEffect(() => { load(); }, [load]);
 
   const remove = async (r: any) => {
-    if (!confirm(`¿Eliminar la ruta "${r.title}"?`)) return;
+    if (!confirm(`¿Eliminar el plan "${r.title}"?`)) return;
     const { error } = await supabase.from('rutas').delete().eq('id', r.id);
     if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
     addToast({ message: `✅ Ruta eliminada`, type: 'success' }); load();
@@ -1275,7 +1280,7 @@ const RutasAdminSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 
   return (
   <div>
-    <PageHeader title="Ruta de Hoy" subtitle={`${rutas.length} rutas creadas`} action={
+    <PageHeader title="Planes Para Bailar" subtitle={`${rutas.length} planes creados`} action={
       <Button variant="dark" icon={<Eye className="w-4 h-4" />} onClick={() => navigate('/rutas')}>Ver módulo</Button>
     } />
     <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-6">
@@ -1451,18 +1456,24 @@ const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
       <AdminTable
         headers={['Nombre', 'Ciudad', 'Tipo', 'Estado', 'Suscripción', 'Acciones']}
         rows={venues.map(v => [
-          <span className="font-semibold">{v.name}</span>,
-          <span>{v.city || '—'}</span>,
+          <span className="font-semibold">{fixText(v.name)}</span>,
+          <span>{fixText(v.city) || '—'}</span>,
           <Badge variant="gray" className="capitalize">{v.type || 'local'}</Badge>,
           <Badge variant={v.is_open ? 'green' : 'gray'}>{v.is_open ? '🟢 Abierto' : 'Cerrado'}</Badge>,
           v.is_premium ? <Badge variant="orange">Premium</Badge> : <Badge variant="gray">Básico</Badge>,
           <div className="flex gap-1">
             <button onClick={() => navigate(`/venues/${v.id}?edit=1`)} title="Editar en la página del local" className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-pink-500"><Edit className="w-4 h-4" /></button>
             <button onClick={async () => {
-              if (!confirm(`¿Eliminar el local "${v.name}"?`)) return;
-              const { error } = await supabase.from('venues').delete().eq('id', v.id);
-              if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
-              addToast({ message: `✅ ${v.name} eliminado`, type: 'success' }); load();
+              if (!confirm(`¿Eliminar el local "${fixText(v.name)}"?`)) return;
+              // Soft delete (marca deleted_at) — respeta RLS admin y evita romper FKs de eventos.
+              let { error } = await supabase.from('venues').update({ deleted_at: new Date().toISOString() }).eq('id', v.id);
+              // Si la columna deleted_at no existiese, intento borrado duro como fallback.
+              if (error && /deleted_at/.test(error.message)) {
+                ({ error } = await supabase.from('venues').delete().eq('id', v.id));
+              }
+              if (error) { addToast({ message: `Error al eliminar: ${error.message}`, type: 'error' }); return; }
+              setVenues(vs => vs.filter(x => x.id !== v.id));
+              addToast({ message: `✅ ${fixText(v.name)} eliminado`, type: 'success' });
             }} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
           </div>
         ])}
@@ -2160,6 +2171,49 @@ const GlobalCommissionCard: React.FC<{ addToast: Function }> = ({ addToast }) =>
   );
 };
 
+const SaleFeesCard: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const [fees, setFees] = useState<SaleFees>({ reservation: 1.5, ticket: 1.5 });
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { fetchSaleFees().then(setFees); }, []);
+  const save = async () => {
+    setSaving(true);
+    const { error } = await setSaleFees(fees);
+    setSaving(false);
+    addToast({ message: error ? `Error: ${error}` : '✅ Ganancia por venta guardada', type: error ? 'error' : 'success' });
+  };
+  return (
+    <div className="card-white p-5 mb-6 border-l-4 border-emerald-400">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="font-black text-gray-900 flex items-center gap-2">💶 Ganancia fija por venta</h3>
+          <p className="text-xs text-gray-400 mt-0.5">Importe fijo que gana la plataforma en cada reserva y cada entrada vendida (se suma al %).</p>
+        </div>
+        <button onClick={save} disabled={saving} className="btn-orange text-sm px-4 py-2">{saving ? 'Guardando…' : 'Guardar'}</button>
+      </div>
+      <div className="grid grid-cols-2 gap-4 mt-4 max-w-md">
+        <div>
+          <label className="text-xs font-bold text-gray-500 uppercase">Por reserva (€)</label>
+          <div className="flex items-center gap-1">
+            <span className="text-2xl font-black text-emerald-600">€</span>
+            <input type="number" step="0.10" min="0" value={fees.reservation}
+              onChange={e => setFees(f => ({ ...f, reservation: parseFloat(e.target.value) || 0 }))}
+              className="input-field text-2xl font-black text-emerald-600 w-full" />
+          </div>
+        </div>
+        <div>
+          <label className="text-xs font-bold text-gray-500 uppercase">Por entrada (€)</label>
+          <div className="flex items-center gap-1">
+            <span className="text-2xl font-black text-emerald-600">€</span>
+            <input type="number" step="0.10" min="0" value={fees.ticket}
+              onChange={e => setFees(f => ({ ...f, ticket: parseFloat(e.target.value) || 0 }))}
+              className="input-field text-2xl font-black text-emerald-600 w-full" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const { commissions, setCommission, setDefaultCommission, setPremiumDiscount, resetCommissions } = useSiteConfigStore();
 
@@ -2183,6 +2237,8 @@ const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
       />
 
       <GlobalCommissionCard addToast={addToast} />
+
+      <SaleFeesCard addToast={addToast} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
         <div className="card-white p-5">
@@ -2501,7 +2557,7 @@ const CreatorsSection: React.FC = () => {
       const [{ data: profs }, { data: esc }] = await Promise.all([
         supabase.from('profiles')
           .select('id, full_name, email, avatar_url, role, city')
-          .in('role', ['artist', 'dj', 'dancer', 'venue', 'instructor'])
+          .in('role', ['artist', 'musician', 'band', 'dj', 'dancer', 'venue', 'instructor', 'promoter', 'business'])
           .order('full_name'),
         supabase.from('escrows').select('payee_id, amount, commission, status').limit(1000),
       ]);

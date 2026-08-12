@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { MapPin, Users, Clock, CheckCircle, Star, MessageSquare, Bell, Heart, Share2, Calendar, Music2, Instagram, Youtube, Facebook, Globe, Headphones, Video, Loader2 } from 'lucide-react';
 import EntityAdminPanel from '../components/EntityAdminPanel';
 import DemoBadge from '../components/DemoBadge';
+import { CardGridSkeleton } from '../components/Skeleton';
 import ClaimProfileButton from '../components/ClaimProfileButton';
 import { isClaimed, UNCLAIMED_TOAST } from '../lib/ownership';
 import { VENUES } from '../data/mockData';
@@ -179,14 +180,7 @@ const VenuesList: React.FC = () => {
             {loading ? 'Cargando locales…' : `${filtered.length} ${filtered.length === 1 ? 'local' : 'locales'}`}
           </p>
           {loading && filtered.length === 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="card-white overflow-hidden">
-                  <div className="h-44 bg-gray-200 animate-pulse" />
-                  <div className="p-4 space-y-2"><div className="h-4 bg-gray-200 animate-pulse rounded w-3/4" /></div>
-                </div>
-              ))}
-            </div>
+            <CardGridSkeleton count={8} />
           ) : filtered.length === 0 ? (
             <EmptyState icon="🏛️" title="No hay venues" description="Intenta con otros filtros" />
           ) : (

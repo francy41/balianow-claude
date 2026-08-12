@@ -7,6 +7,7 @@ import { getStripe, createStripePaymentIntent } from '../lib/payments';
 import StripePayment from './payment/StripePayment';
 import { QRCodeCanvas, downloadTicketQR } from './QRTicket';
 import { useCommissionPercent } from '../lib/commission';
+import { useSaleFees } from '../lib/saleFees';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface TicketSection {
@@ -50,6 +51,7 @@ const EventTicketModal: React.FC<Props> = ({
   const { addToast } = useUIStore();
   const navigate = useNavigate();
   const commissionPct = useCommissionPercent();
+  const saleFees = useSaleFees();
 
   const [step, setStep] = useState<Step>('select');
   const [sections, setSections] = useState<TicketSection[]>([]);
@@ -82,10 +84,13 @@ const EventTicketModal: React.FC<Props> = ({
 
   if (!open) return null;
 
-  const total = selectedSection ? selectedSection.price * qty : 0;
+  const subtotal = selectedSection ? selectedSection.price * qty : 0;
+  // Tarifa fija de plataforma por entrada (configurable en SuperAdmin → Comisiones).
+  const serviceFee = selectedSection ? Math.round(saleFees.ticket * qty * 100) / 100 : 0;
+  const total = Math.round((subtotal + serviceFee) * 100) / 100; // lo que paga el comprador
   // commissionPct es un PORCENTAJE (p. ej. 15), no una fracción → dividir entre 100.
-  const commission = Math.round(total * (commissionPct / 100) * 100) / 100;
-  const net = Math.round((total - commission) * 100) / 100;
+  const commission = Math.round(subtotal * (commissionPct / 100) * 100) / 100;
+  const net = Math.round((subtotal - commission) * 100) / 100; // neto del vendedor
 
   const goToPay = async () => {
     if (!selectedSection) return;
@@ -256,12 +261,14 @@ const EventTicketModal: React.FC<Props> = ({
                 <div className="bg-gray-50 rounded-2xl p-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">Subtotal ({qty}×€{selectedSection.price})</span>
-                    <span className="font-bold text-gray-900">€{total.toFixed(2)}</span>
+                    <span className="font-bold text-gray-900">€{subtotal.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-400">Comisión plataforma ({Math.round(commissionPct * 100)}%)</span>
-                    <span className="text-gray-400">€{commission.toFixed(2)}</span>
-                  </div>
+                  {serviceFee > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Tarifa de servicio ({qty}×€{saleFees.ticket.toFixed(2)})</span>
+                      <span className="text-gray-400">€{serviceFee.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="border-t border-gray-200 pt-2 flex justify-between font-black">
                     <span className="text-gray-900">Total</span>
                     <span className="text-brand-orange text-lg">€{total.toFixed(2)}</span>

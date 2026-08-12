@@ -12,6 +12,7 @@ import HomeFabStack from '../components/HomeFabStack';
 import HomeBackground from '../components/HomeBackground';
 import DanceFlowPromo from '../components/DanceFlowPromo';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useHomeModules } from '../hooks/useHomeModules';
 import { useJsonLd, organizationLd, websiteLd } from '../lib/structuredData';
 
 // Category interface
@@ -207,25 +208,10 @@ const SponsorsFooterStrip: React.FC<{ navigate: ReturnType<typeof useNavigate> }
 
 // ── COMMUNITY POSTS (Ruta de Hoy) ────────────────────────────────────────
 const COMMUNITY_POSTS = [
-  { id: 1, user: 'Elena García', fullText: 'Primera vez en Madrid, busca un local donde bailar bachata esta noche. ¡Alguien que me recomiende el mejor lugar!', location: 'Madrid', category: 'localidades', status: 'APROBADO', time: 'Hace 15 min' },
-  { id: 2, user: 'Miguel Ángel', fullText: '¿Alguien para practicar ruedas de casino? Tengo nivel intermedio y busco pareja para entrenamiento en Barcelona.', location: 'Barcelona', category: 'bailarines', status: 'APROBADO', time: 'Hace 32 min' },
-  { id: 3, user: 'Sofía Tomás', fullText: 'Tengo 2 entradas extra para el concierto de Grupo Mania en Medellín. ¡Rápido, se agotan en minutos!', location: 'Medellín', category: 'eventos', status: 'APROBADO', time: 'Hace 48 min' },
-  { id: 4, user: 'Daniel Cruz', fullText: '¿Cuál es la mejor discoteca latina abierta ahora en Valencia? Queremos bailar sábado por la noche.', location: 'Valencia', category: 'localidades', status: 'APROBADO', time: 'Hace 1 hora' },
-  { id: 5, user: 'María Vargas', fullText: 'Buscamos grupo para ir a Tropical House Nightclub. ¡Somos 4 personas de Cali! Quien quiera unirse?', location: 'Cali', category: 'eventos', status: 'APROBADO', time: 'Hace 2 horas' },
-  { id: 6, user: 'Pedro Koss', fullText: 'Mensaje de spam: compra criptomo aqui...', location: 'Online', category: 'comunidad', status: 'RECHAZAR', time: 'Hace 2 horas' },
-  { id: 7, user: 'Carlos Mendez', fullText: 'El viernes voy a Madrid, ¿donde puedo salir a bailar? Prefiero salsa y ambiente latino auténtico.', location: 'Madrid', category: 'artistas', status: 'APROBADO', time: 'Hace 3 horas' },
-  { id: 8, user: 'Laura Silva', fullText: 'Busco pareja para ir a la social de salsa de este jueves. ¡Nivel intermedio! Quien esté interesado?', location: 'Barcelona', category: 'bailarines', status: 'APROBADO', time: 'Hace 3 horas' },
-  { id: 9, user: 'David Rojas', fullText: '¿Algún evento de Kizomba esta semana? Quiero aprender con alguien experimentado en Valencia.', location: 'Valencia', category: 'eventos', status: 'APROBADO', time: 'Hace 4 horas' },
-  { id: 10, user: 'Ana Belén', fullText: 'OFERTA: Doy clases particulares de bachata sensual, primera clase gratis. Zona centro de Sevilla.', location: 'Sevilla', category: 'artistas', status: 'APROBADO', time: 'Hace 5 horas' },
-  { id: 11, user: 'Javier Núñez', fullText: 'Comparto coche a la fiesta latina de Zaragoza este sábado, salgo desde Madrid. ¡3 plazas libres!', location: 'Madrid', category: 'comunidad', status: 'APROBADO', time: 'Hace 5 horas' },
-  { id: 12, user: 'Camila Restrepo', fullText: 'Busco academia de salsa caleña para principiantes en Bogotá. ¿Recomendaciones con buen ambiente?', location: 'Bogotá', category: 'localidades', status: 'APROBADO', time: 'Hace 6 horas' },
-  { id: 13, user: 'Roberto Díaz', fullText: 'OFERTA: Vendo par de zapatos de baile latino, talla 42, casi nuevos. Precio a convenir en Barcelona.', location: 'Barcelona', category: 'comunidad', status: 'APROBADO', time: 'Hace 6 horas' },
-  { id: 14, user: 'Lucía Fernández', fullText: 'Somos un grupo de 6 buscando DJ de salsa y timba para una fiesta privada en Valencia el mes que viene.', location: 'Valencia', category: 'artistas', status: 'APROBADO', time: 'Hace 7 horas' },
-  { id: 15, user: 'Andrés Molina', fullText: '¿Dónde hay social de bachata dominicana los domingos en Miami? Nivel avanzado, busco ambiente auténtico.', location: 'Miami', category: 'localidades', status: 'APROBADO', time: 'Hace 8 horas' },
-  { id: 16, user: 'Valentina Ruiz', fullText: 'OFERTA: 4 entradas con descuento para el Congreso Latino de Cali. ¡Aprovechen antes del viernes!', location: 'Cali', category: 'eventos', status: 'APROBADO', time: 'Hace 9 horas' },
-  { id: 17, user: 'Gabriel Ortiz', fullText: 'Busco pareja de baile femenina para competición de salsa en Ciudad de México. Ensayos 2 veces por semana.', location: 'Ciudad de México', category: 'bailarines', status: 'APROBADO', time: 'Hace 10 horas' },
-  { id: 18, user: 'Paula Gómez', fullText: '¿Alguien va al festival de kizomba de Buenos Aires? Busco compañía para compartir alojamiento.', location: 'Buenos Aires', category: 'eventos', status: 'APROBADO', time: 'Hace 11 horas' },
-  { id: 19, user: 'Sergio Ramírez', fullText: 'OFERTA: Organizo taller intensivo de rueda de casino este finde en Madrid. Plazas limitadas, apúntate.', location: 'Madrid', category: 'artistas', status: 'APROBADO', time: 'Hace 12 horas' },
+  { id: 1, user: 'Carlos Méndez', fullText: 'El viernes voy a Madrid, ¿dónde puedo salir a bailar? Prefiero salsa y ambiente latino auténtico.', location: 'Madrid', category: 'localidades', status: 'APROBADO', time: 'Hace 15 min' },
+  { id: 2, user: 'Daniel Cruz', fullText: '¿Cuál es la mejor discoteca latina abierta ahora en Valencia? Queremos bailar el sábado por la noche.', location: 'Valencia', category: 'localidades', status: 'APROBADO', time: 'Hace 1 hora' },
+  { id: 3, user: 'Laura Silva', fullText: 'Busco pareja para ir a la social de salsa de este jueves. ¡Nivel intermedio! ¿Quién se apunta?', location: 'Barcelona', category: 'bailarines', status: 'APROBADO', time: 'Hace 2 horas' },
+  { id: 4, user: 'Andrés Molina', fullText: '¿Dónde hay social de bachata dominicana los domingos en Sevilla? Busco buen ambiente.', location: 'Sevilla', category: 'localidades', status: 'APROBADO', time: 'Hace 3 horas' },
 ];
 
 // ── CITIES ────────────────────────────────────────────────────────────────
@@ -606,7 +592,7 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-display font-black text-2xl sm:text-3xl bg-brand-orange bg-clip-text text-transparent mb-1">
-              🔥 Ruta de Hoy
+              ❤️ Planes Para Bailar
             </h2>
             <p className="text-gray-500 text-sm">Lo que está pasando ahora mismo en tu comunidad</p>
           </div>
@@ -682,6 +668,17 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
 };
 
 // ── DYNAMIC CATEGORIES SECTION ────────────────────────────────────────
+// Tintes rotativos para los chips de categoría — dan variedad tipo escaparate
+// (Glovo/Fever) manteniendo la identidad BailaNow. Clases literales para el JIT.
+const CHIP_TINTS = [
+  'from-rose-500/20 to-pink-500/10 ring-rose-400/40 group-hover:shadow-rose-500/25',
+  'from-orange-500/20 to-amber-500/10 ring-orange-400/40 group-hover:shadow-orange-500/25',
+  'from-violet-500/20 to-fuchsia-500/10 ring-violet-400/40 group-hover:shadow-violet-500/25',
+  'from-cyan-500/20 to-blue-500/10 ring-cyan-400/40 group-hover:shadow-cyan-500/25',
+  'from-emerald-500/20 to-teal-500/10 ring-emerald-400/40 group-hover:shadow-emerald-500/25',
+  'from-amber-500/20 to-yellow-500/10 ring-amber-400/40 group-hover:shadow-amber-500/25',
+];
+
 const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => {
   const { homeCategories } = useSiteConfigStore();
   const active = homeCategories.filter(c => c.active);
@@ -701,16 +698,17 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
   const shown = showAll ? visibleCats : visibleCats.slice(0, LIMIT);
   const rest = visibleCats.length - LIMIT;
 
-  const CategoryButton: React.FC<{ cat: HomeCategory; index: number }> = ({ cat }) => {
+  const CategoryButton: React.FC<{ cat: HomeCategory; index: number }> = ({ cat, index }) => {
+    const tint = CHIP_TINTS[index % CHIP_TINTS.length];
     return (
       <button
         onClick={() => navigate(cat.route)}
-        className="group bg-white dark:bg-gray-800/80 rounded-xl px-1 py-2.5 flex flex-col items-center justify-center gap-1.5 border border-gray-100 dark:border-pink-500/20 shadow-sm hover:shadow-md hover:shadow-pink-500/15 hover:border-pink-300 hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
+        className="group relative bg-white dark:bg-gray-800/70 rounded-2xl p-3 flex flex-col items-center justify-start gap-2 border border-gray-100 dark:border-white/10 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-transparent active:scale-95 transition-all duration-300"
       >
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-100 to-fuchsia-50 dark:from-pink-500/15 dark:to-fuchsia-500/10 flex items-center justify-center group-hover:scale-110 transition-all duration-200">
-          <span className="text-lg">{cat.icon}</span>
+        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${tint} ring-1 flex items-center justify-center shadow-sm group-hover:shadow-lg group-hover:scale-110 transition-all duration-300`}>
+          <span className="text-2xl sm:text-[26px] leading-none">{cat.icon}</span>
         </div>
-        <span className="text-gray-700 dark:text-gray-200 text-[10px] font-bold leading-tight text-center line-clamp-2 group-hover:text-pink-600 transition-colors">{cat.name}</span>
+        <span className="text-gray-700 dark:text-gray-200 text-[11px] sm:text-xs font-bold leading-tight text-center line-clamp-2 group-hover:text-brand-orange transition-colors">{cat.name}</span>
       </button>
     );
   };
@@ -733,9 +731,9 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
           <div>
             <div className="flex items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-brand-orange" />
-                <h3 className="font-display font-bold text-sm sm:text-base text-gray-900 uppercase tracking-wider">
-                  ⭐ Principales
+                <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-brand-orange to-pink-500" />
+                <h3 className="font-display font-black text-sm sm:text-base text-gray-900 dark:text-white uppercase tracking-wider">
+                  Principales
                 </h3>
               </div>
               <button
@@ -745,7 +743,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
                 Ver todas →
               </button>
             </div>
-            <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-2 sm:gap-2.5">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5 sm:gap-3">
               {shown.map((cat, idx) => (
                 <CategoryButton key={cat.id} cat={cat} index={idx} />
               ))}
@@ -1042,8 +1040,8 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <div className="grid grid-cols-2 gap-2.5">
             {events.map(e => (
               <button key={e.id} onClick={() => navigate(`/eventos/${e.id}`)}
-                className="relative aspect-square rounded-2xl overflow-hidden bg-gray-900 text-left group shadow-sm border border-gray-100 dark:border-gray-800 hover:-translate-y-0.5 hover:shadow-md transition-all">
-                {(e as any).cover && <img src={(e as any).cover} alt="" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" loading="lazy" />}
+                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-fuchsia-900/60 via-purple-900/40 to-gray-900 text-left group shadow-sm border border-gray-100 dark:border-gray-800 hover:-translate-y-0.5 hover:shadow-md transition-all">
+                {(e as any).cover && <img src={(e as any).cover} alt="" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                 <div className="absolute top-2 left-2 bg-white/90 text-gray-900 rounded-lg px-1.5 py-0.5 text-center leading-none">
                   <div className="font-black text-sm">{day(e.date)}</div>
@@ -1065,8 +1063,8 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <div className="grid grid-cols-2 gap-2.5">
             {artists.map(a => (
               <button key={a.id} onClick={() => navigate(`/artistas/${a.id}`)}
-                className="relative aspect-square rounded-2xl overflow-hidden bg-gray-900 text-left group shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all">
-                {a.avatar && <img src={a.avatar} alt={a.name} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />}
+                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-pink-900/60 via-rose-900/40 to-gray-900 text-left group shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all">
+                {a.avatar && <img src={a.avatar} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
                 <div className="absolute bottom-2 left-2 right-2">
                   <p className="text-white font-bold text-xs leading-tight truncate">{a.name}</p>
@@ -1085,8 +1083,8 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
               const img = c.image || PLACEHOLDER[i];
               return (
               <button key={i} onClick={() => navigate(c.link || '/tv')}
-                className="relative rounded-2xl overflow-hidden h-40 group text-left bg-gray-900">
-                {img && <img src={img} alt={c.title} className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" loading="lazy" />}
+                className="relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-indigo-900/60 via-purple-900/40 to-gray-950">
+                {img && <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/40 to-transparent" />
                 {c.tag && <span className="absolute top-2.5 left-2.5 bg-pink-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">{c.tag}</span>}
                 <div className="absolute bottom-3 left-3 right-3">
@@ -1150,24 +1148,48 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
 
 // ── MÁS PARA TI (6 accesos destacados, estilo premium) ──
 const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
-  const items = [
-    { to: '/rutas',        icon: '❤️', title: 'Planes',                sub: 'Encuentra personas para salir a bailar',  grad: 'from-rose-500 to-pink-600' },
-    { to: '/parejas',      icon: '💑', title: 'Pareja de baile',       sub: 'Busca compañero/a de baile',              grad: 'from-fuchsia-500 to-purple-600' },
-    { to: '/danceflow',    icon: '🤖', title: 'DanceFlow IA',          sub: 'Entrena con inteligencia artificial',     grad: 'from-cyan-500 to-blue-600' },
-    { to: '/clases',       icon: '🎓', title: 'Clases Online',         sub: 'Aprende desde cualquier lugar',           grad: 'from-amber-500 to-orange-600' },
-    { to: '/artistas',     icon: '🕺', title: 'Bailarines',            sub: 'Contrata bailarines · reserva clases',    grad: 'from-emerald-500 to-teal-600' },
-    { to: '/promocionate', icon: '🎤', title: 'Promociona tu negocio', sub: 'Publicidad, flyers, vídeos y marketing',  grad: 'from-pink-500 to-rose-600' },
-  ];
+  // Data-driven: lee de `home_modules` (Supabase) con fallback a la semilla local.
+  const modules = useHomeModules('mas-para-ti');
   return (
     <section className="mx-3 sm:mx-4 mt-8">
-      <h2 className="font-display font-black text-xl text-gray-900 dark:text-white mb-4 px-1 flex items-center gap-2">✨ Más para ti</h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-        {items.map(it => (
-          <button key={it.title} onClick={() => navigate(it.to)}
-            className="group relative bg-white dark:bg-gray-900 rounded-3xl p-4 sm:p-5 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:shadow-pink-500/10 hover:-translate-y-1 transition-all duration-300 text-center flex flex-col items-center">
-            <span className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${it.grad} flex items-center justify-center text-3xl mb-3 shadow-lg group-hover:scale-105 transition-transform`}>{it.icon}</span>
-            <p className="font-black text-gray-900 dark:text-white text-sm leading-tight">{it.title}</p>
-            <p className="text-gray-400 text-[11px] mt-1.5 leading-snug">{it.sub}</p>
+      <div className="flex items-center justify-between mb-4 px-1">
+        <div className="flex items-center gap-2">
+          <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-brand-orange to-pink-500" />
+          <h2 className="font-display font-black text-xl text-gray-900 dark:text-white">Más para ti</h2>
+        </div>
+        <button onClick={() => navigate('/explorar')}
+          className="text-xs font-bold text-pink-500 hover:text-pink-600 flex items-center gap-1 transition-colors">
+          Ver todas <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        {modules.map(m => (
+          <button key={m.id} onClick={() => navigate(m.route)}
+            className={`group relative overflow-hidden rounded-3xl h-52 sm:h-60 text-left shadow-lg hover:shadow-2xl ${m.glow} hover:-translate-y-1.5 transition-all duration-300`}>
+            {/* Fondo: degradado de marca siempre; imagen encima si está configurada */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${m.gradient}`} />
+            {m.imageUrl && (
+              <img src={m.imageUrl} alt="" loading="lazy"
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+            )}
+            {/* Velo para legibilidad */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/5" />
+            {/* Icono */}
+            <span className={`absolute top-3.5 left-3.5 w-11 h-11 rounded-full ${m.iconBg} text-white grid place-items-center text-xl shadow-lg ring-2 ring-white/30`}>{m.icon}</span>
+            {/* Badge */}
+            {m.badge && (
+              <span className="absolute top-3.5 right-3.5 bg-white text-pink-600 text-[10px] font-black uppercase tracking-wide px-2.5 py-1 rounded-full shadow">{m.badge}</span>
+            )}
+            {/* Texto */}
+            <div className="absolute bottom-3.5 left-4 right-16">
+              <p className="text-white font-black text-base sm:text-lg leading-tight drop-shadow">{m.title}</p>
+              <p className="text-white/85 text-[11px] sm:text-xs mt-1 leading-snug line-clamp-2">{m.subtitle}</p>
+            </div>
+            {/* Flecha */}
+            <span className="absolute bottom-3.5 right-3.5 w-11 h-11 rounded-full bg-white/95 grid place-items-center text-gray-900 shadow-lg group-hover:bg-white group-hover:scale-110 transition-all">
+              <ArrowRight className="w-5 h-5" />
+            </span>
           </button>
         ))}
       </div>
@@ -1194,8 +1216,8 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
       <HScroll>
         {shows.map((s, i) => (
           <button key={i} onClick={() => navigate('/tv')}
-            className="flex-shrink-0 w-64 relative rounded-2xl overflow-hidden h-40 group text-left bg-gray-900 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
-            {s.img && <img src={s.img} alt={s.title} className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" />}
+            className="flex-shrink-0 w-64 relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-indigo-900/60 via-purple-900/40 to-gray-950 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
+            {s.img && <img src={s.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
             <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
             <span className={`absolute top-2.5 left-2.5 ${s.tagColor} text-white text-[9px] font-black px-2 py-0.5 rounded-full`}>{s.tag}</span>
             <span className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm grid place-items-center text-white opacity-0 group-hover:opacity-100 transition"><Play className="w-4 h-4" fill="currentColor" /></span>
@@ -1250,8 +1272,8 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
         <HScroll>
           {clases.map((c, i) => (
             <button key={i} onClick={() => navigate('/clases')}
-              className="flex-shrink-0 w-52 relative rounded-2xl overflow-hidden h-32 group text-left bg-gray-900 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
-              {c.img && <img src={c.img} alt={c.title} className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" />}
+              className="flex-shrink-0 w-52 relative rounded-2xl overflow-hidden h-32 group text-left bg-gradient-to-br from-pink-600/30 via-fuchsia-700/20 to-gray-900 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
+              {c.img && <img src={c.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />}
               <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
               <span className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm grid place-items-center text-white opacity-0 group-hover:opacity-100 transition"><Play className="w-4 h-4" fill="currentColor" /></span>
               <div className="absolute bottom-3 left-3 right-3">
@@ -1271,7 +1293,10 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
             <button key={t.id} onClick={() => navigate(`/artistas/${t.id}`)}
               className="flex-shrink-0 w-40 bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all text-center flex flex-col items-center">
               <div className="relative">
-                <img src={t.avatar} alt={t.name} className="w-16 h-16 rounded-full object-cover" loading="lazy" />
+                <div className="w-16 h-16 rounded-full overflow-hidden grid place-items-center bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white font-black text-xl">
+                  <span>{t.name?.[0] || '?'}</span>
+                  <img src={t.avatar} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                </div>
                 <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-gray-900" title="Disponible" />
               </div>
               <p className="font-black text-gray-900 dark:text-white text-sm mt-2 truncate max-w-full">{t.name}</p>
@@ -1317,7 +1342,7 @@ const HomePage: React.FC = () => {
   const isModuleOn = (type: string) => enabled.some(m => m.type === type);
   const dynamicCats = activeCategories(cmsCategories);
   const { balanceFor, offers, classes, transactions, withdrawals, platformTotals } = usePerformerStore();
-  const PERFORMER_ROLES = ['artist', 'dj', 'dancer', 'venue'];
+  const PERFORMER_ROLES = ['artist', 'musician', 'band', 'dj', 'dancer', 'venue', 'instructor', 'business', 'promoter'];
   const isAdmin = !!user && (user.role === 'admin' || user.role === 'superadmin');
   const isPerformer = !!user && PERFORMER_ROLES.includes(user.role);
   const isBuyer = !!user && user.role === 'user';

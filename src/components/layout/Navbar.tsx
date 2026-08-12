@@ -11,12 +11,19 @@ import LanguageSelector from '../LanguageSelector';
 interface NavbarProps { onMenuToggle: () => void; }
 
 const ROLE_LABELS: Record<string, string> = {
-  admin:   'Superadministrador',
-  dj:      'DJ / Artista',
-  artist:  'Artista',
-  dancer:  'Bailarín/a',
-  venue:   'Local',
-  user:    'Usuario',
+  admin:     'Superadministrador',
+  superadmin:'Superadministrador',
+  dj:        'DJ',
+  artist:    'Artista',
+  musician:  'Músico/a',
+  band:      'Banda',
+  dancer:    'Bailarín/a',
+  instructor:'Profesor/a',
+  venue:     'Local',
+  business:  'Vendedor',
+  promoter:  'Promotor',
+  partner:   'Partner',
+  user:      'Usuario',
 };
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {

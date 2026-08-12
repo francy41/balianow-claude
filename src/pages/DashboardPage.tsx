@@ -22,8 +22,9 @@ import { QrCode, Scan } from 'lucide-react';
 import TeacherClassesPanel from '../components/TeacherClassesPanel';
 import ClassReviewModal from '../components/ClassReviewModal';
 import { QRCodeCanvas, downloadTicketQR } from '../components/QRTicket';
+import VenueReservationsManager from '../components/VenueReservationsManager';
 
-type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers' | 'buyers' | 'scanner' | 'events' | 'ventas';
+type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers' | 'buyers' | 'scanner' | 'events' | 'ventas' | 'reservations';
 
 // Tabs "core" (financieros/operativos) — siempre visibles, no se controlan por módulos.
 // Tabs con `module` se muestran solo si el módulo global está activo (Admin → Categorías).
@@ -38,16 +39,18 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode; module?: string }
   { id: 'calendar', label: 'Calendario',    icon: <CalIcon className="w-4 h-4" />,   module: 'calendar' },
   { id: 'classes',  label: 'Clases Online', icon: <Video className="w-4 h-4" />,     module: 'classes' },
   { id: 'events',   label: 'Eventos',       icon: <CalIcon className="w-4 h-4" />,    module: 'events' },
+  { id: 'reservations', label: 'Reservas',  icon: <CalIcon className="w-4 h-4" /> },
   { id: 'ventas',   label: 'Ventas entradas', icon: <DollarSign className="w-4 h-4" /> },
   { id: 'offers',   label: 'Ofertas',       icon: <Briefcase className="w-4 h-4" />, module: 'offers' },
 ];
 
-const PERFORMER_ROLES = ['artist', 'dj', 'dancer', 'venue', 'instructor', 'admin', 'superadmin', 'business', 'promoter'];
+const PERFORMER_ROLES = ['artist', 'musician', 'band', 'dj', 'dancer', 'venue', 'instructor', 'admin', 'superadmin', 'business', 'promoter'];
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, isAuthenticated } = useAuthStore();
+  const { addToast } = useUIStore();
   const initialTab = (searchParams.get('tab') as TabId) || 'overview';
   const [tab, setTab] = useState<TabId>(initialTab);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
@@ -70,7 +73,12 @@ const DashboardPage: React.FC = () => {
   // Filtra tabs por módulos globales (Admin → Categorías). Core tabs siempre visibles.
   const { profileModules } = useSiteConfigStore();
   const isModuleOn = (modId?: string) => !modId || profileModules.find(m => m.id === modId)?.enabled !== false;
-  const visibleTabs = TABS.filter(t => isModuleOn(t.module));
+  const isVenue = ['venue', 'business'].includes(user.role);
+  const visibleTabs = TABS.filter(t => {
+    if (t.id === 'reservations') return isVenue;                          // Reservas: solo locales
+    if (isVenue && (t.id === 'courses' || t.id === 'classes')) return false; // locales no tienen cursos/clases online
+    return isModuleOn(t.module);
+  });
 
   // Si el tab activo queda oculto al desactivar un módulo, vuelve a Resumen
   useEffect(() => {
@@ -188,6 +196,7 @@ const DashboardPage: React.FC = () => {
               </div>
             )}
             {tab === 'events'   && <EventsManagerTab performerId={performerId} />}
+            {tab === 'reservations' && <VenueReservationsManager userId={performerId} addToast={addToast} />}
             {tab === 'ventas'   && <TicketSalesTab performerId={performerId} />}
           </>
         ) : (

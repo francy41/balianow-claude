@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, Calendar, Megaphone, MapPin, User } from 'lucide-react';
+import { Home, Search, CalendarDays, Megaphone, Navigation2, Building2, User } from 'lucide-react';
 import { useAuthStore } from '../../store/appStore';
 import { Avatar } from '../ui';
 
@@ -9,16 +9,16 @@ const BottomNav: React.FC = () => {
   const { user, isAuthenticated } = useAuthStore();
 
   const tabs = [
-    { to: '/',             icon: <Home className="w-4 h-4" />,     label: 'Inicio' },
-    { to: '/cerca',        icon: <MapPin className="w-4 h-4" />,   label: 'Cerca' },
-    { to: '/eventos',      icon: <Calendar className="w-4 h-4" />, label: 'Eventos' },
-    { to: '/mapa',         icon: <MapPin className="w-4 h-4" />,   label: 'Ciudades' },
-    { to: '/promocionate', icon: <Megaphone className="w-4 h-4" />,label: 'Promo', dot: true },
+    { to: '/',             icon: <Home className="w-[18px] h-[18px]" />,        label: 'Inicio' },
+    { to: '/cerca',        icon: <Navigation2 className="w-[18px] h-[18px]" />, label: 'Cerca' },
+    { to: '/eventos',      icon: <CalendarDays className="w-[18px] h-[18px]" />,label: 'Eventos' },
+    { to: '/mapa',         icon: <Building2 className="w-[18px] h-[18px]" />,   label: 'Ciudades' },
+    { to: '/promocionate', icon: <Megaphone className="w-[18px] h-[18px]" />,   label: 'Promo', dot: true },
     {
       to: isAuthenticated ? '/dashboard' : '/auth',
       icon: isAuthenticated && user
         ? <Avatar src={user.avatar} name={user.name} size="xs" />
-        : <User className="w-4 h-4" />,
+        : <User className="w-[18px] h-[18px]" />,
       label: isAuthenticated ? 'Perfil' : 'Entrar'
     },
   ];
@@ -47,20 +47,21 @@ const BottomNav: React.FC = () => {
             (tab.to !== '/' && location.pathname.startsWith(tab.to));
           return (
             <Link key={tab.to} to={tab.to}
-              className={`flex-1 flex flex-col items-center justify-center h-full gap-0.5 relative transition-all active:scale-95 ${
-                isActive ? 'text-pink-400' : 'text-gray-500'
+              className={`flex-1 flex flex-col items-center justify-center h-full gap-1 relative transition-all active:scale-95 ${
+                isActive ? 'text-white' : 'text-gray-500'
               }`}
             >
-              <div className={`relative p-1 rounded-xl transition-all ${isActive ? 'bg-pink-500/15' : ''}`}>
+              <div className={`relative grid place-items-center rounded-2xl transition-all duration-200 ${
+                isActive
+                  ? 'bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white p-2 shadow-lg shadow-pink-500/40 -translate-y-0.5'
+                  : 'p-1.5'
+              }`}>
                 {tab.icon}
                 {tab.dot && (
                   <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-pink-500 rounded-full animate-pulse shadow-lg shadow-pink-500/50" />
                 )}
               </div>
-              <span className="text-[8px] sm:text-[9px] font-semibold">{tab.label}</span>
-              {isActive && (
-                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-brand-orange rounded-full shadow-lg shadow-pink-500/50" />
-              )}
+              <span className={`text-[8px] sm:text-[9px] font-bold ${isActive ? 'text-pink-400' : ''}`}>{tab.label}</span>
             </Link>
           );
         })}

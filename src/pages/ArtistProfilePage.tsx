@@ -17,6 +17,7 @@ import type { Artist, MediaItem, OfferPackage } from '../data/mockData';
 import { useAuthStore, useUIStore, useCartStore, getYouTubeId, useSiteConfigStore } from '../store/appStore';
 import { Avatar, Modal, Button } from '../components/ui';
 import BookingModal from '../components/BookingModal';
+import VenueReservationModal from '../components/VenueReservationModal';
 import ExclusiveContentTab from '../components/ExclusiveContentTab';
 import PaymentGateway from '../components/payment/PaymentGateway';
 
@@ -120,6 +121,12 @@ function mapProfileToArtist(p: any): Artist {
     availability: [],
     currency:   'EUR',
     completedBookings: 0,
+    featuredVideo: p.featured_video || '',
+    featuredVideoTitle: p.featured_video_title || '',
+    location:   fixText(p.location || ''),
+    lat:        p.lat ?? null,
+    lng:        p.lng ?? null,
+    role:       p.role || '',
   } as unknown as Artist;
 }
 
@@ -184,6 +191,7 @@ const ArtistProfilePage: React.FC = () => {
   const { addItem, clearCart } = useCartStore();
   const [bookingOpen, setBookingOpen] = useState(false);
   const [classBookingOpen, setClassBookingOpen] = useState(false);
+  const [venueResOpen, setVenueResOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [bookingPreset, setBookingPreset] = useState<{ concept: string; price: number }>({ concept: '', price: 0 });
   const [customOfferPrice, setCustomOfferPrice] = useState('');
@@ -214,6 +222,7 @@ const ArtistProfilePage: React.FC = () => {
 
   const artist = dbArtist!;
   const currentStream = null; // live streams se cargan de live_sessions, no de mock
+  const isVenue = ['venue', 'business'].includes(String((artist as any).role || '').toLowerCase());
 
   const claimed = isClaimed((artist as any).userId);
 
@@ -324,7 +333,7 @@ const ArtistProfilePage: React.FC = () => {
             className="btn-orange text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
             <MessageSquare className="w-4 h-4" /> Chat interno
           </button>
-          <button onClick={() => openBooking(`Servicio con ${artist.name}`, artist.packages?.[0]?.price || 150)}
+          <button onClick={() => isVenue ? setVenueResOpen(true) : openBooking(`Servicio con ${artist.name}`, artist.packages?.[0]?.price || 150)}
             className="btn-outline text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
             <Award className="w-4 h-4" /> Reservar
           </button>
@@ -468,6 +477,13 @@ const ArtistProfilePage: React.FC = () => {
         </div>
       </Modal>
 
+      <VenueReservationModal
+        open={venueResOpen}
+        onClose={() => setVenueResOpen(false)}
+        venueId={artist.id}
+        venueName={artist.name}
+      />
+
       <BookingModal
         open={bookingOpen}
         onClose={() => setBookingOpen(false)}
@@ -602,12 +618,19 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
   const [dbEvents, setDbEvents] = useState<any[]>([]);
   useEffect(() => {
     let cancelled = false;
-    supabase.from('events').select('id,title,date,event_date,venue_name,city,artists')
+    supabase.from('events').select('id,title,date,event_date,venue_name,city,artists,owner_id,user_id,venue_id')
       .then(({ data }) => { if (!cancelled) setDbEvents(data || []); }, () => {});
     return () => { cancelled = true; };
   }, [artist.id]);
   const realEv = dbEvents
-    .filter(e => Array.isArray(e.artists) && e.artists.includes(artist.id))
+    // Eventos donde el artista está en el lineup, O eventos propios del local/perfil
+    // (por dueño o por nombre del venue) — así los locales ven sus eventos.
+    .filter(e =>
+      (Array.isArray(e.artists) && e.artists.includes(artist.id)) ||
+      e.owner_id === artist.id || e.user_id === artist.id ||
+      String(e.venue_id || '') === String(artist.id) ||
+      (!!e.venue_name && !!artist.name && e.venue_name === artist.name)
+    )
     .map(e => ({ id: e.id, title: e.title || 'Evento', date: e.date || e.event_date || '', venueName: e.venue_name || '', city: e.city || '' }));
   const mockEv = EVENTS
     .filter(e => Array.isArray((e as any).artists) && (e as any).artists.includes(artist.id))
@@ -618,8 +641,10 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
   const courses = (((artist as any).classPackages || []).length
     ? (artist as any).classPackages
     : ((artist as any).packages || [])).slice(0, 3);
+  // Los locales no tienen cursos: se oculta esa tarjeta y la rejilla se ajusta.
+  const isVenue = ['venue', 'business'].includes(String((artist as any).role || '').toLowerCase());
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div className={`grid grid-cols-1 ${isVenue ? 'lg:grid-cols-2' : 'lg:grid-cols-3'} gap-4`}>
       {/* 1) Vídeo */}
       <div className="card-white rounded-2xl overflow-hidden flex flex-col">
         <div className="p-4 pb-2 flex items-center justify-between">
@@ -660,7 +685,8 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
         )}
       </div>
 
-      {/* 3) Cursos */}
+      {/* 3) Cursos — no aplica a locales */}
+      {!isVenue && (
       <div className="card-white rounded-2xl p-4 flex flex-col">
         <h3 className="font-display font-bold text-gray-900 flex items-center gap-2 mb-3">🎓 Cursos</h3>
         {courses.length > 0 ? (
@@ -680,28 +706,31 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
           <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-xs gap-1 py-6"><Award className="w-6 h-6" /> Sin cursos publicados</div>
         )}
       </div>
+      )}
     </div>
   );
 };
 
 // ── LOCATION CARD (tipo mapa) ─────────────────────────────────────────────────
 const LocationCard: React.FC<{ artist: Artist }> = ({ artist }) => {
-  const place = [artist.city, artist.country].filter(Boolean).join(', ');
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place || 'España')}`;
+  const a = artist as any;
+  const address = a.location || [artist.city, artist.country].filter(Boolean).join(', ');
+  const hasCoords = a.lat != null && a.lng != null && !(a.lat === 0 && a.lng === 0);
+  const query = hasCoords ? `${a.lat},${a.lng}` : (address || 'España');
+  const embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(query)}&z=15&output=embed`;
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
   return (
     <div className="card-white rounded-2xl overflow-hidden">
-      <div className="relative h-40 bg-gradient-to-br from-gray-900 via-purple-950 to-black">
-        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.3) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-500/25 rounded-full blur-3xl" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-          <span className="w-12 h-12 rounded-full bg-pink-500 flex items-center justify-center shadow-lg shadow-pink-500/40"><MapPin className="w-6 h-6" /></span>
-          <p className="font-display font-black text-xl mt-2 drop-shadow">{place || 'España'}</p>
-        </div>
+      <div className="relative h-52 bg-gray-100 dark:bg-gray-800">
+        <iframe title="Mapa de ubicación" src={embedUrl} className="w-full h-full border-0" loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
       </div>
       <div className="p-4 flex items-center justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Ubicación</p>
-          <p className="font-bold text-gray-900 text-sm flex items-center gap-1"><MapPin className="w-4 h-4 text-pink-500" />{place || 'España'}</p>
+          <p className="font-bold text-gray-900 dark:text-white text-sm flex items-start gap-1">
+            <MapPin className="w-4 h-4 text-pink-500 flex-shrink-0 mt-0.5" />
+            <span className="break-words">{address || 'España'}</span>
+          </p>
         </div>
         <a href={mapsUrl} target="_blank" rel="noreferrer" className="btn-orange text-sm py-2 px-4 flex items-center gap-1.5 flex-shrink-0">Ver en el mapa →</a>
       </div>

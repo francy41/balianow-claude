@@ -238,8 +238,8 @@ const RutasPage: React.FC = () => {
       <div className="bg-gradient-to-br from-pink-600 via-fuchsia-600 to-purple-700 px-4 py-6 sm:py-8">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-3 flex-wrap">
           <div>
-            <h1 className="font-display font-black text-2xl sm:text-3xl text-white flex items-center gap-2">🔥 Ruta de Hoy</h1>
-            <p className="text-white/80 text-sm mt-1">Crea la ruta de esta noche y que el grupo se una en el mapa.</p>
+            <h1 className="font-display font-black text-2xl sm:text-3xl text-white flex items-center gap-2">❤️ Planes Para Bailar</h1>
+            <p className="text-white/80 text-sm mt-1">Crea el plan de esta noche y que el grupo se una en el mapa.</p>
           </div>
           <button onClick={() => (isAuthenticated ? setCreating(true) : navigate('/auth'))} className="bg-white text-gray-900 font-bold rounded-xl px-5 py-2.5 text-sm hover:bg-gray-100 transition-all flex items-center gap-1.5">
             <Plus className="w-4 h-4" /> Crear ruta
@@ -264,7 +264,7 @@ const RutasPage: React.FC = () => {
           <div className="py-20 text-center">
             <RouteIcon className="w-10 h-10 mx-auto text-gray-300 mb-2" />
             <p className="text-gray-900 dark:text-white font-bold">Aún no hay rutas</p>
-            <p className="text-gray-400 text-sm mt-1">Sé el primero: crea la ruta de esta noche y que el grupo se una.</p>
+            <p className="text-gray-400 text-sm mt-1">Sé el primero: crea el plan de esta noche y que el grupo se una.</p>
             <button onClick={() => (isAuthenticated ? setCreating(true) : navigate('/auth'))} className="mt-4 bg-brand-orange text-white font-bold rounded-xl px-5 py-2.5 text-sm">Crear la primera ruta</button>
           </div>
         ) : (

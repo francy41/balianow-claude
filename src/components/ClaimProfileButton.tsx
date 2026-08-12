@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Flag, X, CheckCircle, Loader2, AlertCircle, Mail } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useUIStore } from '../store/appStore';
@@ -30,6 +30,14 @@ const ClaimProfileButton: React.FC<Props> = ({ targetTable, targetId, targetName
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  // Al abrir, si hay sesión, prellenar con el email de la cuenta
+  useEffect(() => {
+    if (!open) return;
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user?.email) setEmail(prev => prev || session.user.email!);
+    });
+  }, [open]);
+
   if (hasOwner) return null;
 
   const submit = async () => {
@@ -39,7 +47,11 @@ const ClaimProfileButton: React.FC<Props> = ({ targetTable, targetId, targetName
     }
 
     setSubmitting(true);
+    // Si el usuario está logueado, vinculamos la reclamación a su cuenta (claimant_id).
+    // Así, al aprobarla el admin, la propiedad del perfil se asigna automáticamente.
+    const { data: { session } } = await supabase.auth.getSession();
     const { error } = await supabase.from('profile_claims').insert({
+      claimant_id: session?.user?.id ?? null,
       claimant_email: email.trim(),
       target_table: targetTable,
       target_id: targetId,

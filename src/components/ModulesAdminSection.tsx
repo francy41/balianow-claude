@@ -5,7 +5,7 @@ import { Loader2, Save, Plus, Trash2, Tag } from 'lucide-react';
 interface CatalogRow { module_id: string; name: string; emoji: string | null; price: number; active: boolean; is_full: boolean; sort: number; }
 interface Override { id: string; module_id: string; scope_type: string; scope_value: string; price: number | null; active: boolean | null; }
 
-const ROLES = ['user', 'artist', 'dj', 'dancer', 'venue', 'instructor', 'business', 'promoter'];
+const ROLES = ['user', 'artist', 'musician', 'band', 'dj', 'dancer', 'venue', 'instructor', 'business', 'promoter'];
 
 const ModulesAdminSection: React.FC<{ addToast: (t: any) => void }> = ({ addToast }) => {
   const [catalog, setCatalog] = useState<CatalogRow[]>([]);
