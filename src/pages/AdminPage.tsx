@@ -34,6 +34,7 @@ import { uploadImage, uploadVideo } from '../lib/uploadHelper';
 import { fetchCommissionPercent, getCachedCommissionPercent, setCommissionPercent } from '../lib/commission';
 import { fetchSaleFees, setSaleFees, type SaleFees } from '../lib/saleFees';
 import { fixText } from '../lib/text';
+import AdminDupeToolbar, { normKey, duplicateKeySet } from '../components/AdminDupeToolbar';
 import { Avatar, Badge, Button, Input, SearchBar } from '../components/ui';
 import { ARTISTS, EVENTS, VENUES, SERVICES, SUBSCRIPTION_PLANS, PROMO_SERVICES } from '../data/mockData';
 
@@ -1420,6 +1421,8 @@ const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const [loading, setLoading] = useState(true);
   const [showAddVenue, setShowAddVenue] = React.useState(false);
   const [showAddEvent, setShowAddEvent] = React.useState(false);
+  const [q, setQ] = React.useState('');
+  const [onlyDupes, setOnlyDupes] = React.useState(false);
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -1432,6 +1435,15 @@ const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const cities = new Set(venues.map(v => v.city).filter(Boolean)).size;
   const active = venues.filter(v => v.status !== 'inactive').length;
   const pending = venues.filter(v => v.admin_status === 'pending').length;
+
+  const keyOf = (v: any) => normKey(v.name) + '|' + normKey(v.city);
+  const dupeKeys = React.useMemo(() => duplicateKeySet(venues.map(keyOf)), [venues]);
+  const dupeCount = venues.filter(v => dupeKeys.has(keyOf(v))).length;
+  const filtered = venues.filter(v => {
+    const nk = normKey(q);
+    const matchesQ = !nk || normKey(v.name).includes(nk) || normKey(v.city).includes(nk);
+    return matchesQ && (!onlyDupes || dupeKeys.has(keyOf(v)));
+  });
 
   return (
   <div>
@@ -1453,9 +1465,14 @@ const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     {loading ? <div className="py-12 text-center text-gray-400">Cargando…</div> : venues.length === 0 ? (
       <div className="card-white p-10 text-center text-gray-400"><MapPin className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No hay venues. Usa "Nueva localidad" para añadir el primero.</p></div>
     ) : (
+      <>
+      <AdminDupeToolbar query={q} setQuery={setQ} onlyDupes={onlyDupes} setOnlyDupes={setOnlyDupes} dupeCount={dupeCount} shown={filtered.length} total={venues.length} />
+      {filtered.length === 0 ? (
+        <div className="card-white p-8 text-center text-gray-400">Sin resultados{onlyDupes ? ' — no hay duplicados' : ''}.</div>
+      ) : (
       <AdminTable
         headers={['Nombre', 'Ciudad', 'Tipo', 'Estado', 'Suscripción', 'Acciones']}
-        rows={venues.map(v => [
+        rows={filtered.map(v => [
           <span className="font-semibold">{fixText(v.name)}</span>,
           <span>{fixText(v.city) || '—'}</span>,
           <Badge variant="gray" className="capitalize">{v.type || 'local'}</Badge>,
@@ -1478,6 +1495,8 @@ const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           </div>
         ])}
       />
+      )}
+      </>
     )}
   </div>
   );
@@ -1574,6 +1593,8 @@ const ArtistasSection: React.FC<{ addToast: Function; navigate: Function }> = ({
   const { openEdit } = useAdminEdit();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState('');
+  const [onlyDupes, setOnlyDupes] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -1611,6 +1632,15 @@ const ArtistasSection: React.FC<{ addToast: Function; navigate: Function }> = ({
     else { addToast({ message: `✅ ${item.name} eliminado`, type: 'success' }); load(); }
   };
 
+  const keyOf = (a: any) => normKey(a.name) + '|' + normKey(a.city);
+  const dupeKeys = React.useMemo(() => duplicateKeySet(items.map(keyOf)), [items]);
+  const dupeCount = items.filter(a => dupeKeys.has(keyOf(a))).length;
+  const filtered = items.filter(a => {
+    const nk = normKey(q);
+    const matchesQ = !nk || normKey(a.name).includes(nk) || normKey(a.city).includes(nk);
+    return matchesQ && (!onlyDupes || dupeKeys.has(keyOf(a)));
+  });
+
   return (
     <div>
       <PageHeader title="Artistas" subtitle={loading ? 'Cargando…' : `${items.length} artistas/perfiles desde BD`} action={
@@ -1622,9 +1652,12 @@ const ArtistasSection: React.FC<{ addToast: Function; navigate: Function }> = ({
       {loading ? <div className="text-center py-12 text-gray-400"><RefreshCw className="w-6 h-6 animate-spin mx-auto" /></div>
        : items.length === 0 ? <div className="text-center py-12 text-gray-400">No hay artistas en la BD aún</div>
        : (
+        <>
+        <AdminDupeToolbar query={q} setQuery={setQ} onlyDupes={onlyDupes} setOnlyDupes={setOnlyDupes} dupeCount={dupeCount} shown={filtered.length} total={items.length} placeholder="Buscar artista o ciudad…" />
+        {filtered.length === 0 ? <div className="card-white p-8 text-center text-gray-400">Sin resultados{onlyDupes ? ' — no hay duplicados' : ''}.</div> : (
         <AdminTable
           headers={['Artista', 'Tipo', 'Ciudad', 'Rating', 'Fuente', 'Acciones']}
-          rows={items.map(a => [
+          rows={filtered.map(a => [
             <div className="flex items-center gap-2">
               {a.avatar
                 ? <img src={a.avatar} alt={a.name} className="w-8 h-8 rounded-full object-cover" />
@@ -1645,6 +1678,8 @@ const ArtistasSection: React.FC<{ addToast: Function; navigate: Function }> = ({
             </div>
           ])}
         />
+        )}
+        </>
       )}
     </div>
   );
@@ -1833,6 +1868,8 @@ const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const { openEdit } = useAdminEdit();
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState('');
+  const [onlyDupes, setOnlyDupes] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -1869,6 +1906,15 @@ const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     else { addToast({ message: `✅ ${item.name} eliminado`, type: 'success' }); load(); }
   };
 
+  const keyOf = (a: any) => normKey(a.name) + '|' + normKey(a.city);
+  const dupeKeys = React.useMemo(() => duplicateKeySet(items.map(keyOf)), [items]);
+  const dupeCount = items.filter(a => dupeKeys.has(keyOf(a))).length;
+  const filtered = items.filter(a => {
+    const nk = normKey(q);
+    const matchesQ = !nk || normKey(a.name).includes(nk) || normKey(a.city).includes(nk);
+    return matchesQ && (!onlyDupes || dupeKeys.has(keyOf(a)));
+  });
+
   return (
     <div>
       <PageHeader title="Bailarines & Instructores" subtitle={loading ? 'Cargando…' : `${items.length} perfiles desde BD`} action={
@@ -1880,8 +1926,11 @@ const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
       {loading ? <div className="text-center py-12 text-gray-400"><RefreshCw className="w-6 h-6 animate-spin mx-auto" /></div>
        : items.length === 0 ? <div className="text-center py-12 text-gray-400">No hay bailarines/instructores en la BD aún</div>
        : (
+        <>
+        <AdminDupeToolbar query={q} setQuery={setQ} onlyDupes={onlyDupes} setOnlyDupes={setOnlyDupes} dupeCount={dupeCount} shown={filtered.length} total={items.length} placeholder="Buscar bailarín/a o ciudad…" />
+        {filtered.length === 0 ? <div className="card-white p-8 text-center text-gray-400">Sin resultados{onlyDupes ? ' — no hay duplicados' : ''}.</div> : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {items.map(a => (
+          {filtered.map(a => (
             <div key={`${a.source}-${a.id}`} className="card-white p-4 text-center hover:shadow-card-hover transition-shadow">
               {a.avatar
                 ? <img src={a.avatar} alt={a.name} className="w-16 h-16 rounded-full mx-auto mb-3 ring-2 ring-brand-orange/30 object-cover" />
@@ -1899,6 +1948,8 @@ const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
             </div>
           ))}
         </div>
+        )}
+        </>
       )}
     </div>
   );
