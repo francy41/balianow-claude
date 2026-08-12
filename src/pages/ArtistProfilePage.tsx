@@ -125,6 +125,7 @@ function mapProfileToArtist(p: any): Artist {
     location:   fixText(p.location || ''),
     lat:        p.lat ?? null,
     lng:        p.lng ?? null,
+    role:       p.role || '',
   } as unknown as Artist;
 }
 
@@ -630,8 +631,10 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
   const courses = (((artist as any).classPackages || []).length
     ? (artist as any).classPackages
     : ((artist as any).packages || [])).slice(0, 3);
+  // Los locales no tienen cursos: se oculta esa tarjeta y la rejilla se ajusta.
+  const isVenue = ['venue', 'business'].includes(String((artist as any).role || '').toLowerCase());
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div className={`grid grid-cols-1 ${isVenue ? 'lg:grid-cols-2' : 'lg:grid-cols-3'} gap-4`}>
       {/* 1) Vídeo */}
       <div className="card-white rounded-2xl overflow-hidden flex flex-col">
         <div className="p-4 pb-2 flex items-center justify-between">
@@ -672,7 +675,8 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
         )}
       </div>
 
-      {/* 3) Cursos */}
+      {/* 3) Cursos — no aplica a locales */}
+      {!isVenue && (
       <div className="card-white rounded-2xl p-4 flex flex-col">
         <h3 className="font-display font-bold text-gray-900 flex items-center gap-2 mb-3">🎓 Cursos</h3>
         {courses.length > 0 ? (
@@ -692,6 +696,7 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
           <div className="flex-1 flex flex-col items-center justify-center text-gray-400 text-xs gap-1 py-6"><Award className="w-6 h-6" /> Sin cursos publicados</div>
         )}
       </div>
+      )}
     </div>
   );
 };
