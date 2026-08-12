@@ -52,7 +52,7 @@ const FALLBACK_ARTISTS: DbArtist[] = ARTISTS.slice(0, 10).map((a: any) => ({
   userId: '', source: 'artist',
 }));
 
-const TYPES = ['Todos', 'DJ', 'Bailarín/a', 'Cantante', 'Músico/a', 'Banda', 'Instructor/a'];
+const TYPES = ['Todos', 'Artista', 'DJ', 'Bailarín/a', 'Músico/a', 'Banda', 'Instructor/a'];
 const GENRES = ['Todos', 'Salsa', 'Salsa Cubana', 'Salsa Colombiana (Caleña)', 'Bachata', 'Bachata Dominicana', 'Bachata Moderna', 'Bachata Sensual', 'Bachata Urbana', 'Cha-cha-chá', 'Cumbia', 'Reparto Cubano', 'Merengue', 'Reggaeton', 'Timba', 'Afrobeats', 'Kizomba'];
 
 const normalizeRoleToType = (role: string): DbArtist['type'] | null => {
@@ -109,7 +109,8 @@ const ArtistsPage: React.FC = () => {
   const tipoToLabel = (tp: string) =>
     tp === 'dj' ? 'DJ' :
     tp === 'dancer' ? 'Bailarín/a' :
-    tp === 'singer' ? 'Cantante' :
+    tp === 'artist' ? 'Artista' :
+    tp === 'singer' ? 'Artista' :   // Cantantes se fusionan en "Artistas"
     tp === 'musician' ? 'Músico/a' :
     tp === 'instructor' ? 'Instructor/a' :
     tp === 'band' ? 'Banda' : 'Todos';
@@ -220,9 +221,9 @@ const ArtistsPage: React.FC = () => {
   const filtered = useMemo(() => {
     return items.filter(a => {
       const matchType = selectedType.includes('Todos') || selectedType.some(t =>
+        (t === 'Artista' && (a.type === 'artist' || a.type === 'singer')) ||
         (t === 'DJ' && a.type === 'dj') ||
         (t === 'Bailarín/a' && a.type === 'dancer') ||
-        (t === 'Cantante' && a.type === 'singer') ||
         (t === 'Músico/a' && (a.type as any) === 'musician') ||
         (t === 'Banda' && a.type === 'band') ||
         (t === 'Instructor/a' && a.type === 'instructor')

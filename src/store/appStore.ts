@@ -217,7 +217,7 @@ export const DEFAULT_HOME_CATEGORIES: HomeCategory[] = [
   { id: '1',  name: 'Explorador',     icon: '🧭', route: '/explorar',                  section: 'main',      display_order: 1,  active: true },
   { id: '2',  name: 'Ciudades',        icon: '🌆', route: '/venues',                    section: 'main',      display_order: 2,  active: true },
   { id: '3',  name: 'Eventos',         icon: '🎉', route: '/eventos',                   section: 'main',      display_order: 3,  active: true },
-  { id: '4',  name: 'Artistas',        icon: '🎧', route: '/artistas',                  section: 'main',      display_order: 4,  active: true },
+  { id: '4',  name: 'Artistas',        icon: '🎧', route: '/artistas?tipo=artist',                  section: 'main',      display_order: 4,  active: true },
   { id: '5',  name: 'Bailarines',      icon: '💃', route: '/artistas?tipo=dancer',      section: 'main',      display_order: 5,  active: true },
   { id: '6',  name: 'Marketplace',     icon: '🏪', route: '/marketplace',               section: 'main',      display_order: 6,  active: true },
   { id: '20', name: 'Promociónate',    icon: '📢', route: '/promocionate',              section: 'main',      display_order: 7,  active: true },
