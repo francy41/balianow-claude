@@ -1898,6 +1898,7 @@ const EventosSection: React.FC<{ addToast: Function; navigate: Function }> = ({ 
   const { openEdit } = useAdminEdit();
   const [events, setEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
 
   const load = React.useCallback(async () => {
     setLoading(true);
@@ -1909,11 +1910,15 @@ const EventosSection: React.FC<{ addToast: Function; navigate: Function }> = ({ 
 
   return (
   <div>
+    <AdminLocationModal open={showCreate} mode="event" onClose={() => setShowCreate(false)} onSaved={() => { setShowCreate(false); addToast({ message: '✅ Evento creado', type: 'success' }); load(); }} />
     <PageHeader title="Eventos" subtitle={`${events.length} eventos en la plataforma`} action={
-      <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => navigate('/eventos')}>Ver eventos</Button>
+      <div className="flex gap-2">
+        <Button variant="dark" onClick={() => navigate('/eventos')}>Ver eventos</Button>
+        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => setShowCreate(true)}>Crear evento</Button>
+      </div>
     } />
     {loading ? <div className="py-12 text-center text-gray-400">Cargando…</div> : events.length === 0 ? (
-      <div className="card-white p-10 text-center text-gray-400"><Calendar className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No hay eventos. Crea el primero desde la sección Localidades.</p></div>
+      <div className="card-white p-10 text-center text-gray-400"><Calendar className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>No hay eventos. Pulsa <b>“Crear evento”</b> arriba para añadir el primero.</p></div>
     ) : (
       <AdminTable
         headers={['Evento', 'Ciudad', 'Fecha', 'Precio', 'Capacidad', 'Estado', 'Acciones']}
