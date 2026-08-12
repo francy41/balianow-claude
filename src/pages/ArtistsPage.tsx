@@ -2,6 +2,16 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { MapPin, Users, CheckCircle, Radio, Music } from 'lucide-react';
 import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
+import { fixText } from '../lib/text';
+
+// Etiqueta del tipo de artista en español (la BD guarda el valor en inglés)
+const TYPE_LABELS: Record<string, string> = {
+  dj: 'DJ', dancer: 'Bailarín/a', singer: 'Cantante', musician: 'Músico/a',
+  band: 'Banda', instructor: 'Instructor/a', artist: 'Artista',
+  choreographer: 'Coreógrafo/a', 'event-organizer': 'Organizador/a',
+  promoter: 'Promotor/a', videographer: 'Videógrafo/a', photographer: 'Fotógrafo/a',
+};
+const typeLabel = (t: string) => TYPE_LABELS[t] || 'Artista';
 import { Badge, StarRating, Avatar, SectionHeader, EmptyState } from '../components/ui';
 import DemoBadge from '../components/DemoBadge';
 import ClaimProfileButton from '../components/ClaimProfileButton';
@@ -131,9 +141,9 @@ const ArtistsPage: React.FC = () => {
         data?.forEach((a: any) => {
           combined.push({
             id:         a.id,
-            name:       a.name,
+            name:       fixText(a.name),
             type:       a.type || 'artist',
-            city:       cleanCity(a.city),
+            city:       fixText(cleanCity(a.city)),
             country:    a.country,
             cover:      a.cover || a.avatar,
             avatar:     a.avatar,
@@ -161,9 +171,9 @@ const ArtistsPage: React.FC = () => {
           if (!t) return;
           combined.push({
             id:         p.id,
-            name:       p.full_name || p.email || 'Usuario',
+            name:       fixText(p.full_name || p.email || 'Usuario'),
             type:       t,
-            city:       cleanCity(p.city || p.location),
+            city:       fixText(cleanCity(p.city || p.location)),
             country:    p.country,
             cover:      p.cover_photo || p.avatar_url,
             avatar:     p.avatar_url,
@@ -386,7 +396,7 @@ const ArtistCard: React.FC<{ artist: DbArtist; onClick: () => void }> = ({ artis
             <span className="text-white font-semibold text-sm">{artist.name}</span>
             {artist.isVerified && <CheckCircle className="w-3.5 h-3.5 text-blue-400" />}
           </div>
-          <span className="text-white/70 text-xs capitalize">{artist.type}</span>
+          <span className="text-white/70 text-xs">{typeLabel(artist.type)}</span>
         </div>
       </div>
     </div>
