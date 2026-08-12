@@ -44,6 +44,8 @@ interface PublicProfile {
 
 const ROLE_LABELS: Record<string, { label: string; color: string; emoji: string }> = {
   artist:     { label: 'Artista',      color: 'bg-purple-500', emoji: '🎤' },
+  musician:   { label: 'Músico/a',     color: 'bg-indigo-500', emoji: '🎸' },
+  band:       { label: 'Banda',        color: 'bg-rose-500',   emoji: '🥁' },
   dancer:     { label: 'Bailarín/a',   color: 'bg-green-500',  emoji: '💃' },
   dj:         { label: 'DJ',           color: 'bg-cyan-500',      emoji: '🎧' },
   instructor: { label: 'Profesor/a',   color: 'bg-pink-500',      emoji: '🎓' },

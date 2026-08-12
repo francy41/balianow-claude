@@ -2501,7 +2501,7 @@ const CreatorsSection: React.FC = () => {
       const [{ data: profs }, { data: esc }] = await Promise.all([
         supabase.from('profiles')
           .select('id, full_name, email, avatar_url, role, city')
-          .in('role', ['artist', 'dj', 'dancer', 'venue', 'instructor'])
+          .in('role', ['artist', 'musician', 'band', 'dj', 'dancer', 'venue', 'instructor', 'promoter', 'business'])
           .order('full_name'),
         supabase.from('escrows').select('payee_id, amount, commission, status').limit(1000),
       ]);
