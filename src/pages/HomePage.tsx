@@ -1148,21 +1148,24 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
 // ── MÁS PARA TI (6 accesos destacados, estilo premium) ──
 const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
   const items = [
-    { to: '/rutas',        icon: '❤️', title: 'Planes Para Bailar',    sub: 'Encuentra personas y planes para salir a bailar', grad: 'from-rose-500 to-pink-600' },
-    { to: '/parejas',      icon: '💑', title: 'Pareja de baile',       sub: 'Busca compañero/a de baile',              grad: 'from-fuchsia-500 to-purple-600' },
-    { to: '/danceflow',    icon: '🤖', title: 'DanceFlow IA',          sub: 'Entrena con inteligencia artificial',     grad: 'from-cyan-500 to-blue-600' },
-    { to: '/clases',       icon: '🎓', title: 'Clases Online',         sub: 'Aprende desde cualquier lugar',           grad: 'from-amber-500 to-orange-600' },
-    { to: '/artistas',     icon: '🕺', title: 'Bailarines',            sub: 'Contrata bailarines · reserva clases',    grad: 'from-emerald-500 to-teal-600' },
-    { to: '/promocionate', icon: '🎤', title: 'Promociona tu negocio', sub: 'Publicidad, flyers, vídeos y marketing',  grad: 'from-pink-500 to-rose-600' },
+    { to: '/rutas',        icon: '❤️', title: 'Planes Para Bailar',    sub: 'Encuentra personas y planes para salir a bailar', grad: 'from-rose-500 to-pink-600',      glow: 'hover:shadow-rose-500/30' },
+    { to: '/parejas',      icon: '💑', title: 'Pareja de baile',       sub: 'Busca compañero/a de baile',              grad: 'from-fuchsia-500 to-purple-600', glow: 'hover:shadow-fuchsia-500/30' },
+    { to: '/danceflow',    icon: '🤖', title: 'DanceFlow IA',          sub: 'Entrena con inteligencia artificial',     grad: 'from-cyan-500 to-blue-600',      glow: 'hover:shadow-cyan-500/30' },
+    { to: '/clases',       icon: '🎓', title: 'Clases Online',         sub: 'Aprende desde cualquier lugar',           grad: 'from-amber-500 to-orange-600',   glow: 'hover:shadow-amber-500/30' },
+    { to: '/artistas',     icon: '🕺', title: 'Bailarines',            sub: 'Contrata bailarines · reserva clases',    grad: 'from-emerald-500 to-teal-600',   glow: 'hover:shadow-emerald-500/30' },
+    { to: '/promocionate', icon: '🎤', title: 'Promociona tu negocio', sub: 'Publicidad, flyers, vídeos y marketing',  grad: 'from-pink-500 to-rose-600',      glow: 'hover:shadow-pink-500/30' },
   ];
   return (
     <section className="mx-3 sm:mx-4 mt-8">
-      <h2 className="font-display font-black text-xl text-gray-900 dark:text-white mb-4 px-1 flex items-center gap-2">✨ Más para ti</h2>
+      <div className="flex items-center gap-2 mb-4 px-1">
+        <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-brand-orange to-pink-500" />
+        <h2 className="font-display font-black text-xl text-gray-900 dark:text-white">Más para ti</h2>
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         {items.map(it => (
           <button key={it.title} onClick={() => navigate(it.to)}
-            className="group relative bg-white dark:bg-gray-900 rounded-3xl p-4 sm:p-5 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:shadow-pink-500/10 hover:-translate-y-1 transition-all duration-300 text-center flex flex-col items-center">
-            <span className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${it.grad} flex items-center justify-center text-3xl mb-3 shadow-lg group-hover:scale-105 transition-transform`}>{it.icon}</span>
+            className={`group relative bg-white dark:bg-gray-900 rounded-3xl p-4 sm:p-5 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-2xl ${it.glow} hover:-translate-y-1.5 hover:border-transparent transition-all duration-300 text-center flex flex-col items-center`}>
+            <span className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${it.grad} flex items-center justify-center text-3xl mb-3 shadow-lg group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300`}>{it.icon}</span>
             <p className="font-black text-gray-900 dark:text-white text-sm leading-tight">{it.title}</p>
             <p className="text-gray-400 text-[11px] mt-1.5 leading-snug">{it.sub}</p>
           </button>
