@@ -833,7 +833,7 @@ const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
     let cancelled = false;
     (async () => {
       try {
-        const { data } = await supabase.from('venues').select('*');
+        const { data } = await supabase.from('venues').select('*').is('deleted_at', null);
         if (cancelled) return;
         setDbVenues(data || []);
       } catch (e) { console.warn('[home] venues', e); }

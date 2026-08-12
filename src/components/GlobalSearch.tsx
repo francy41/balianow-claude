@@ -64,7 +64,7 @@ const GlobalSearch: React.FC<Props> = ({ open, onClose }) => {
 
       try {
         const [venuesRes, eventsRes, artistsRes, profilesRes, livesRes] = await Promise.all([
-          supabase.from('venues').select('id,name,city,country,image_url,cover,avatar').ilike('name', q).limit(6),
+          supabase.from('venues').select('id,name,city,country,image_url,cover,avatar').is('deleted_at', null).ilike('name', q).limit(6),
           supabase.from('events').select('id,title,city,country,date,image_url,cover').ilike('title', q).limit(6),
           supabase.from('artists').select('id,name,city,type,avatar').ilike('name', q).limit(6),
           supabase.from('profiles').select('id,full_name,role,city,location,avatar_url,styles').ilike('full_name', q).limit(8),

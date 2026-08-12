@@ -123,7 +123,7 @@ const MapPage: React.FC = () => {
 
       // 1. Try venues from Supabase
       try {
-        const { data: venues } = await supabase.from('venues').select('*');
+        const { data: venues } = await supabase.from('venues').select('*').is('deleted_at', null);
         if (venues && venues.length) {
           venues.forEach((v: any) => {
             const baseCoord = v.lat && v.lng

@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { MapPin, Users, Clock, CheckCircle, Star, MessageSquare, Bell, Heart, Share2, Calendar, Music2, Instagram, Youtube, Facebook, Globe, Headphones, Video, Loader2 } from 'lucide-react';
 import EntityAdminPanel from '../components/EntityAdminPanel';
 import DemoBadge from '../components/DemoBadge';
+import { fixText } from '../lib/text';
 import { CardGridSkeleton } from '../components/Skeleton';
 import ClaimProfileButton from '../components/ClaimProfileButton';
 import { isClaimed, UNCLAIMED_TOAST } from '../lib/ownership';
@@ -31,9 +32,9 @@ function venueIsOpenNowDb(v: any): boolean {
 function mapDbVenue(v: any): Venue {
   return {
     id:          v.id,
-    name:        v.name,
+    name:        fixText(v.name),
     type:        (v.type || 'club') as Venue['type'],
-    city:        cleanCity(v.city),
+    city:        cleanCity(fixText(v.city)),
     address:     v.address || '',
     cover:       v.cover || v.image_url || v.avatar || '',
     avatar:      v.avatar || v.image_url || '',
@@ -89,7 +90,7 @@ const VenuesList: React.FC = () => {
     const safety = setTimeout(() => { if (!cancelled) setLoading(false); }, 8000);
     (async () => {
       try {
-        const { data } = await supabase.from('venues').select('*');
+        const { data } = await supabase.from('venues').select('*').is('deleted_at', null);
         if (cancelled) return;
         setDbVenues((data || []).map(mapDbVenue));
       } catch (e) { console.warn('[venues] load', e); }
@@ -125,7 +126,7 @@ const VenuesList: React.FC = () => {
   };
   const filtered = useMemo(() => {
     return allVenues.filter(v => {
-      const matchType = selectedType.includes('Todos') || selectedType.some(t => v.type === typeAlias(t));
+      const matchType = selectedType.includes('Todos') || selectedType.some(t => typeAlias(v.type) === typeAlias(t));
       const matchCity = selectedCity.includes('Todas') || selectedCity.includes(v.city);
       const matchOpen = !onlyOpen || v.isOpen;
       return matchType && matchCity && matchOpen;
