@@ -128,7 +128,7 @@ const ArtistsPage: React.FC = () => {
   // ── Load from Supabase ────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
-    const safety = setTimeout(() => { if (!cancelled) { setItems(prev => prev.length ? prev : FALLBACK_ARTISTS); setLoading(false); } }, 8000);
+    const safety = setTimeout(() => { if (!cancelled) { setLoading(false); } }, 8000);
 
     (async () => {
       const combined: DbArtist[] = [];
@@ -195,8 +195,7 @@ const ArtistsPage: React.FC = () => {
       } catch (e: any) { errors.push(`profiles fetch: ${e?.message}`); console.warn('[artists] profiles', e); }
       profileCount = combined.length - artistCount;
 
-      // Fallback: si no hay datos reales en BD, mostrar ejemplos (sin dueño = "Ejemplo")
-      if (combined.length === 0) combined.push(...FALLBACK_ARTISTS);
+      // Sin mock: si no hay datos reales, empty state honesto (no fantasmas imposibles de borrar).
 
       if (!cancelled) {
         setItems(combined);

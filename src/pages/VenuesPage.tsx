@@ -99,10 +99,9 @@ const VenuesList: React.FC = () => {
     return () => { cancelled = true; clearTimeout(safety); };
   }, []);
 
-  // Solo usar mock si no hay datos reales en BD
-  const allVenues = useMemo(() => {
-    return dbVenues.length > 0 ? dbVenues : VENUES.slice(0, 10);
-  }, [dbVenues]);
+  // SOLO datos reales de la BD. Nada de mock: eran fantasmas imposibles de
+  // borrar (borrabas en admin y seguían saliendo porque estaban hardcodeados).
+  const allVenues = dbVenues;
 
   // Ciudades dinámicas: base + las que realmente tienen locales (por nº de locales)
   const CITIES = useMemo(() => {
