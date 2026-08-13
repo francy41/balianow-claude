@@ -426,6 +426,39 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
         </div>
       </section>
 
+      {/* ── TIRA DE PRÓXIMOS EVENTOS (animada) ── */}
+      {(() => {
+        const MONTHS = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+        const mapped = realEvents.slice(0, 6).map(e => ({
+          id: e.id, day: (e.date || '').split('-')[2] || '--',
+          month: MONTHS[(Number((e.date || '').split('-')[1]) || 1) - 1] || '', title: e.title || 'Evento',
+        }));
+        const examples = [
+          { id: 'ex1', day: '21', month: 'JUN', title: 'Noche de Salsa Cubana' },
+          { id: 'ex2', day: '28', month: 'JUN', title: 'Bachata Sensual Night' },
+          { id: 'ex3', day: '05', month: 'JUL', title: 'Festival Latino Summer' },
+        ];
+        const strip = mapped.length ? mapped : examples;
+        if (strip.length === 0) return null;
+        const chips = [...strip, ...strip]; // duplicado para el loop del marquee
+        return (
+          <div className="bg-gray-900 dark:bg-black overflow-hidden border-b border-white/5">
+            <div className="flex items-center gap-2 py-2.5 whitespace-nowrap animate-marquee-left-slow">
+              {chips.map((ev, i) => (
+                <button key={`${ev.id}-${i}`} onClick={() => setActiveTab('events')}
+                  className="flex-shrink-0 flex items-center gap-2 bg-white/5 hover:bg-white/10 rounded-full pl-1 pr-3 py-1 mx-1.5 transition-colors">
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-brand-orange to-pink-600 text-white flex flex-col items-center justify-center leading-none">
+                    <span className="font-black text-[10px]">{ev.day}</span>
+                  </span>
+                  <span className="text-white/90 text-xs font-semibold">{ev.title}</span>
+                  <span className="text-white/40 text-[10px]">{ev.month}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {/* ── ACTION BAR ── */}
       <div className="sticky top-14 z-30 bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>

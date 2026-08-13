@@ -224,6 +224,23 @@ const ArtistProfilePage: React.FC = () => {
   const currentStream = null; // live streams se cargan de live_sessions, no de mock
   const isVenue = ['venue', 'business'].includes(String((artist as any).role || '').toLowerCase());
 
+  // Eventos para la tira animada del hero (consulta ligera propia, independiente de ServiceCards).
+  const [heroEvents, setHeroEvents] = useState<any[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    supabase.from('events').select('id,title,date,event_date,artists,owner_id,user_id,venue_id,venue_name')
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        const filtered = data.filter((e: any) =>
+          (Array.isArray(e.artists) && e.artists.includes(artist.id)) ||
+          e.owner_id === artist.id || e.user_id === artist.id ||
+          String(e.venue_id || '') === String(artist.id) ||
+          (!!e.venue_name && !!artist.name && e.venue_name === artist.name));
+        setHeroEvents(filtered);
+      }, () => {});
+    return () => { cancelled = true; };
+  }, [artist.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const claimed = isClaimed((artist as any).userId);
 
   const guardSale = (): boolean => {
@@ -329,6 +346,37 @@ const ArtistProfilePage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* ── TIRA DE PRÓXIMOS EVENTOS (animada) ── */}
+      {(() => {
+        const MONTHS = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+        const mapped = heroEvents.slice(0, 6).map(e => ({
+          id: e.id, day: (e.date || e.event_date || '').split('-')[2] || '--',
+          month: MONTHS[(Number((e.date || e.event_date || '').split('-')[1]) || 1) - 1] || '', title: e.title || 'Evento',
+        }));
+        const examples = [
+          { id: 'ex1', day: '21', month: 'JUN', title: 'Bachata Sensual — Barcelona' },
+          { id: 'ex2', day: '28', month: 'JUN', title: 'Festival Latino' },
+        ];
+        const strip = mapped.length ? mapped : examples;
+        const chips = [...strip, ...strip];
+        return (
+          <div className="bg-gray-900 dark:bg-black overflow-hidden border-b border-white/5">
+            <div className="flex items-center gap-2 py-2.5 whitespace-nowrap animate-marquee-left-slow">
+              {chips.map((ev, i) => (
+                <button key={`${ev.id}-${i}`} onClick={() => setActiveTab('about')}
+                  className="flex-shrink-0 flex items-center gap-2 bg-white/5 hover:bg-white/10 rounded-full pl-1 pr-3 py-1 mx-1.5 transition-colors">
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-brand-orange to-pink-600 text-white flex flex-col items-center justify-center leading-none">
+                    <span className="font-black text-[10px]">{ev.day}</span>
+                  </span>
+                  <span className="text-white/90 text-xs font-semibold">{ev.title}</span>
+                  <span className="text-white/40 text-[10px]">{ev.month}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── ACTION BAR (NO contact info, only internal chat & booking) ── */}
       <div className="sticky top-14 z-30 bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 shadow-sm">
