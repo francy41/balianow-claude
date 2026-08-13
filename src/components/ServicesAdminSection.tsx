@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Plus, Pencil, Trash2, Eye, EyeOff, Loader2, X, Save, ShoppingBag, Upload, ImageIcon } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, EyeOff, Loader2, X, Save, ShoppingBag, Upload, ImageIcon, Inbox } from 'lucide-react';
 
 interface Props {
   addToast: (o: { message: string; type: 'success' | 'error' | 'warning' }) => void;
@@ -29,6 +29,8 @@ const ServicesAdminSection: React.FC<Props> = ({ addToast }) => {
   const [editing, setEditing] = useState<Partial<Service> | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, string>>({});
 
   const load = async () => {
     setLoading(true);
@@ -41,7 +43,24 @@ const ServicesAdminSection: React.FC<Props> = ({ addToast }) => {
       setTableMissing(false);
       setServices((data || []) as Service[]);
     }
+    const { data: ord } = await supabase.from('service_orders').select('*').order('created_at', { ascending: false }).limit(100);
+    if (ord) {
+      setOrders(ord);
+      const ids = Array.from(new Set(ord.map((o: any) => o.buyer_id).filter(Boolean)));
+      if (ids.length) {
+        const { data: profs } = await supabase.from('profiles').select('id, full_name, email').in('id', ids);
+        const map: Record<string, string> = {};
+        (profs || []).forEach((p: any) => { map[p.id] = p.full_name || p.email || String(p.id).slice(0, 8); });
+        setProfiles(map);
+      }
+    }
     setLoading(false);
+  };
+
+  const setOrderStatus = async (id: string, status: string) => {
+    const { error } = await supabase.from('service_orders').update({ status }).eq('id', id);
+    if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
+    setOrders(os => os.map(o => o.id === id ? { ...o, status } : o));
   };
   useEffect(() => { load(); }, []);
 
@@ -152,6 +171,36 @@ const ServicesAdminSection: React.FC<Props> = ({ addToast }) => {
         ))}
       </div>
       {services.length === 0 && <p className="text-gray-400 text-sm">No hay servicios todavía. Crea el primero.</p>}
+
+      {/* Pedidos y solicitudes (incluye mensajes de Soporte, price=0) */}
+      <div>
+        <h3 className="font-black text-lg text-gray-900 dark:text-white flex items-center gap-2 mb-3"><Inbox className="w-5 h-5 text-brand-orange" /> Pedidos y solicitudes <span className="text-sm text-gray-400 font-semibold">({orders.length})</span></h3>
+        {orders.length === 0 ? (
+          <p className="text-gray-400 text-sm">Aún no hay pedidos.</p>
+        ) : (
+          <div className="space-y-2">
+            {orders.map(o => (
+              <div key={o.id} className="card-white rounded-xl p-3.5 flex items-start gap-3 flex-wrap">
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-gray-900 dark:text-white text-sm">
+                    {o.service_name} <span className="text-gray-400 font-normal">· {profiles[o.buyer_id] || 'Usuario'}</span>
+                  </p>
+                  {o.request_description && <p className="text-gray-500 text-xs mt-1 line-clamp-2">{o.request_description}</p>}
+                  {o.reference_link && <a href={o.reference_link} target="_blank" rel="noreferrer" className="text-[11px] text-blue-500 hover:underline block mt-0.5">{o.reference_link}</a>}
+                  <p className="text-[10px] text-gray-400 mt-1">{new Date(o.created_at).toLocaleString('es-ES')}{o.price > 0 ? ` · €${Number(o.price).toFixed(2)} (${o.payment_status})` : ''}</p>
+                </div>
+                <select value={o.status} onChange={e => setOrderStatus(o.id, e.target.value)}
+                  className="text-xs font-bold border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 bg-transparent flex-shrink-0">
+                  <option value="pending">Pendiente</option>
+                  <option value="in_progress">En proceso</option>
+                  <option value="delivered">Entregado</option>
+                  <option value="cancelled">Cancelado</option>
+                </select>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {editing && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">

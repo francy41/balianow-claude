@@ -18,14 +18,15 @@ import TicketSalesTab from '../components/TicketSalesTab';
 import ProfileEditModal from '../components/ProfileEditModal';
 import AdminLocationModal from '../components/AdminLocationModal';
 import { BuyerTable, QRScanner } from '../components/BuyerManagement';
-import { QrCode, Scan, ShoppingBag } from 'lucide-react';
+import { QrCode, Scan, ShoppingBag, LifeBuoy } from 'lucide-react';
 import TeacherClassesPanel from '../components/TeacherClassesPanel';
 import ClassReviewModal from '../components/ClassReviewModal';
 import { QRCodeCanvas, downloadTicketQR } from '../components/QRTicket';
 import VenueReservationsManager from '../components/VenueReservationsManager';
 import BuyServicesTab from '../components/BuyServicesTab';
+import SupportTab from '../components/SupportTab';
 
-type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers' | 'buyers' | 'scanner' | 'events' | 'ventas' | 'reservations' | 'buyservices';
+type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers' | 'buyers' | 'scanner' | 'events' | 'ventas' | 'reservations' | 'buyservices' | 'support';
 
 // Tabs "core" (financieros/operativos) — siempre visibles, no se controlan por módulos.
 // Tabs con `module` se muestran solo si el módulo global está activo (Admin → Categorías).
@@ -42,6 +43,7 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode; module?: string }
   { id: 'events',   label: 'Eventos',       icon: <CalIcon className="w-4 h-4" />,    module: 'events' },
   { id: 'reservations', label: 'Reservas',  icon: <CalIcon className="w-4 h-4" /> },
   { id: 'buyservices',  label: 'Comprar servicios', icon: <ShoppingBag className="w-4 h-4" /> },
+  { id: 'support',      label: 'Soporte', icon: <LifeBuoy className="w-4 h-4" /> },
   { id: 'ventas',   label: 'Ventas entradas', icon: <DollarSign className="w-4 h-4" /> },
   { id: 'offers',   label: 'Ofertas',       icon: <Briefcase className="w-4 h-4" />, module: 'offers' },
 ];
@@ -199,6 +201,7 @@ const DashboardPage: React.FC = () => {
             {tab === 'events'   && <EventsManagerTab performerId={performerId} />}
             {tab === 'reservations' && <VenueReservationsManager userId={performerId} addToast={addToast} />}
             {tab === 'buyservices' && <BuyServicesTab />}
+            {tab === 'support' && <SupportTab />}
             {tab === 'ventas'   && <TicketSalesTab performerId={performerId} />}
           </>
         ) : (
