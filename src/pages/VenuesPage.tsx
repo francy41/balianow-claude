@@ -313,6 +313,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
   const [following, setFollowing] = useState(false);
   const [liked, setLiked] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [bioExpanded, setBioExpanded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -496,8 +497,13 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
               </button>
 
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3">Biografía</h3>
-                <p className="text-gray-600 leading-relaxed">{venue.description}</p>
+                <h3 className="font-display font-bold text-gray-900 dark:text-white mb-2">Biografía</h3>
+                <p className={`text-gray-600 leading-relaxed ${bioExpanded ? '' : 'line-clamp-3'}`}>{venue.description}</p>
+                {(venue.description || '').length > 160 && (
+                  <button onClick={() => setBioExpanded(v => !v)} className="text-brand-orange text-xs font-bold mt-1.5 hover:underline">
+                    {bioExpanded ? 'Leer menos' : 'Leer más'}
+                  </button>
+                )}
               </div>
 
               <div className="card-white rounded-2xl p-5">
@@ -618,6 +624,43 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                   <MapPin className="w-3 h-3" /> {venue.address}, {venue.city}
                 </p>
               </div>
+
+              {/* Próximos eventos (sidebar) */}
+              {(() => {
+                const MONTHS = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+                const mapped = realEvents.slice(0, 3).map(e => ({
+                  id: e.id,
+                  day: (e.date || '').split('-')[2] || '--',
+                  month: MONTHS[(Number((e.date || '').split('-')[1]) || 1) - 1] || '',
+                  title: e.title || 'Evento',
+                }));
+                const examples = [
+                  { id: 'ex1', day: '21', month: 'JUN', title: 'Noche de Salsa Cubana' },
+                  { id: 'ex2', day: '28', month: 'JUN', title: 'Bachata Sensual Night' },
+                ];
+                const list = mapped.length ? mapped : examples;
+                return (
+                  <div className="card-white rounded-2xl p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-display font-bold text-gray-900 dark:text-white">📅 Próximos eventos</h3>
+                      <button onClick={() => setActiveTab('events')} className="text-[11px] font-bold text-pink-500 hover:underline">Ver todos</button>
+                    </div>
+                    {mapped.length === 0 && <p className="text-[11px] text-gray-400 mb-2">Ejemplos — aún no hay eventos.</p>}
+                    <div className="space-y-2.5">
+                      {list.map(ev => (
+                        <div key={ev.id} onClick={() => ev.id.startsWith('ex') ? setActiveTab('events') : navigate(`/eventos/${ev.id}`)}
+                          className="flex items-center gap-3 cursor-pointer group">
+                          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-brand-orange to-pink-600 text-white flex flex-col items-center justify-center leading-none">
+                            <span className="font-black text-sm">{ev.day}</span>
+                            <span className="text-[8px] font-bold text-white/80">{ev.month}</span>
+                          </div>
+                          <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 group-hover:text-brand-orange transition-colors truncate">{ev.title}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Quick stats */}
               <div className="card-white rounded-2xl p-5">
