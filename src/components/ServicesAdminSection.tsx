@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Plus, Pencil, Trash2, Eye, EyeOff, Loader2, X, Save, ShoppingBag } from 'lucide-react';
+import { Plus, Pencil, Trash2, Eye, EyeOff, Loader2, X, Save, ShoppingBag, Upload, ImageIcon } from 'lucide-react';
 
 interface Props {
   addToast: (o: { message: string; type: 'success' | 'error' | 'warning' }) => void;
@@ -15,10 +15,11 @@ interface Service {
   category: string | null;
   active: boolean;
   sort: number;
+  sample_images: string[];
 }
 
 const blank = (sort: number): Partial<Service> => ({
-  name: '', description: '', price: 0, icon: '🎨', category: 'marketing', active: true, sort,
+  name: '', description: '', price: 0, icon: '🎨', category: 'marketing', active: true, sort, sample_images: [],
 });
 
 const ServicesAdminSection: React.FC<Props> = ({ addToast }) => {
@@ -27,6 +28,7 @@ const ServicesAdminSection: React.FC<Props> = ({ addToast }) => {
   const [tableMissing, setTableMissing] = useState(false);
   const [editing, setEditing] = useState<Partial<Service> | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -55,6 +57,7 @@ const ServicesAdminSection: React.FC<Props> = ({ addToast }) => {
       category: editing.category || 'marketing',
       active: editing.active ?? true,
       sort: editing.sort ?? services.length,
+      sample_images: editing.sample_images || [],
     };
     let error;
     if (editing.id) ({ error } = await supabase.from('platform_services').update(payload).eq('id', editing.id));
@@ -72,6 +75,26 @@ const ServicesAdminSection: React.FC<Props> = ({ addToast }) => {
     if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
     addToast({ message: 'Servicio eliminado', type: 'success' });
     load();
+  };
+
+  const addSampleImage = async (file: File) => {
+    if (!editing) return;
+    setUploading(true);
+    try {
+      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+      const path = `service-samples/${(editing.id || 'new')}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('media').upload(path, file, { contentType: file.type });
+      if (error) throw error;
+      const { data } = supabase.storage.from('media').getPublicUrl(path);
+      setEditing(e => e ? { ...e, sample_images: [...(e.sample_images || []), data.publicUrl] } : e);
+    } catch (err: any) {
+      addToast({ message: `No se pudo subir la imagen: ${err.message || err}`, type: 'error' });
+    } finally {
+      setUploading(false);
+    }
+  };
+  const removeSampleImage = (url: string) => {
+    setEditing(e => e ? { ...e, sample_images: (e.sample_images || []).filter(u => u !== url) } : e);
   };
 
   const toggleActive = async (s: Service) => {
@@ -160,6 +183,25 @@ const ServicesAdminSection: React.FC<Props> = ({ addToast }) => {
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
                 <input type="checkbox" checked={!!editing.active} onChange={e => setEditing({ ...editing, active: e.target.checked })} className="w-4 h-4 accent-brand-orange" /> Publicado
               </label>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-1 flex items-center gap-1"><ImageIcon className="w-3.5 h-3.5" /> Imágenes de muestra</label>
+                <p className="text-[11px] text-gray-400 mb-2">Ejemplos que verá el comprador antes de pedir el servicio.</p>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {(editing.sample_images || []).map(url => (
+                    <div key={url} className="relative w-16 h-16 rounded-lg overflow-hidden group">
+                      <img src={url} alt="" className="w-full h-full object-cover" />
+                      <button onClick={() => removeSampleImage(url)} className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  <label className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center cursor-pointer text-gray-400 hover:border-pink-300">
+                    {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                    <input type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && addSampleImage(e.target.files[0])} />
+                  </label>
+                </div>
+              </div>
             </div>
             <div className="flex justify-end gap-2 mt-6">
               <button onClick={() => setEditing(null)} className="text-sm font-bold text-gray-600 dark:text-gray-300 px-4 py-2">Cancelar</button>
