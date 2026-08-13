@@ -381,7 +381,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
   const socials = VENUE_SOCIALS[venue.id] || { instagram: venue.name.toLowerCase().replace(/\s+/g, '') };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-10">
       {/* ── HERO BANNER · portada tipo revista ── */}
       <section className="relative h-80 sm:h-[26rem] overflow-hidden">
         <img src={venue.cover} alt={venue.name} className="w-full h-full object-cover kenburns" />
@@ -451,9 +451,13 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
             }`}>
             <Heart className={`w-4 h-4 ${liked ? 'fill-red-500' : ''}`} />
           </button>
-          <button onClick={() => { navigator.clipboard.writeText(window.location.href); addToast({ message: 'Enlace copiado', type: 'success' }); }}
-            className="text-sm font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">
-            <Share2 className="w-4 h-4" />
+          <button onClick={async () => {
+              const url = window.location.href;
+              if ((navigator as any).share) { try { await (navigator as any).share({ title: `${venue.name} · BailaNow`, text: `Mira ${venue.name} en BailaNow`, url }); return; } catch {} }
+              try { await navigator.clipboard.writeText(url); addToast({ message: '✅ Enlace copiado — compártelo donde quieras', type: 'success' }); } catch {}
+            }}
+            className="text-sm font-bold py-2 px-3.5 rounded-lg flex items-center gap-1.5 whitespace-nowrap bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white hover:opacity-90 transition-all shadow shadow-pink-500/30">
+            <Share2 className="w-4 h-4" /> Compartir
           </button>
         </div>
 
@@ -477,8 +481,21 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Left column */}
             <div className="lg:col-span-2 space-y-4">
+              {/* CTA de reservas destacado */}
+              <button onClick={handleReserve}
+                className="w-full text-left relative overflow-hidden rounded-2xl p-5 bg-gradient-to-r from-brand-orange to-pink-600 text-white shadow-lg hover:shadow-xl hover:shadow-pink-500/30 hover:-translate-y-0.5 transition-all group">
+                <div className="absolute -top-8 -right-8 w-40 h-40 bg-white/15 rounded-full blur-2xl pointer-events-none" />
+                <div className="relative flex items-center justify-between gap-3 flex-wrap">
+                  <div className="min-w-0">
+                    <p className="font-display font-black text-lg leading-tight">🎟️ Reserva tu mesa o entrada</p>
+                    <p className="text-white/85 text-sm mt-0.5">Elige tu producto, paga y recibe tu QR de confirmación al instante.</p>
+                  </div>
+                  <span className="flex-shrink-0 bg-white text-brand-orange font-black rounded-xl px-4 py-2.5 group-hover:scale-105 transition-transform">Reservar →</span>
+                </div>
+              </button>
+
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 mb-3">Biografía</h3>
+                <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3">Biografía</h3>
                 <p className="text-gray-600 leading-relaxed">{venue.description}</p>
               </div>
 
