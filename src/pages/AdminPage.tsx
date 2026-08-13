@@ -1482,13 +1482,17 @@ const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
             <button onClick={() => navigate(`/venues/${v.id}?edit=1`)} title="Editar en la página del local" className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-pink-500"><Edit className="w-4 h-4" /></button>
             <button onClick={async () => {
               if (!confirm(`¿Eliminar el local "${fixText(v.name)}"?`)) return;
-              // Soft delete (marca deleted_at) — respeta RLS admin y evita romper FKs de eventos.
-              let { error } = await supabase.from('venues').update({ deleted_at: new Date().toISOString() }).eq('id', v.id);
-              // Si la columna deleted_at no existiese, intento borrado duro como fallback.
+              // Soft delete. .select() devuelve las filas afectadas: si es 0, RLS lo bloqueó
+              // (aunque no dé error) → avisamos en vez de fingir que se borró.
+              let { data, error } = await supabase.from('venues').update({ deleted_at: new Date().toISOString() }).eq('id', v.id).select('id');
               if (error && /deleted_at/.test(error.message)) {
-                ({ error } = await supabase.from('venues').delete().eq('id', v.id));
+                ({ data, error } = await supabase.from('venues').delete().eq('id', v.id).select('id'));
               }
               if (error) { addToast({ message: `Error al eliminar: ${error.message}`, type: 'error' }); return; }
+              if (!data || data.length === 0) {
+                addToast({ message: 'No se pudo eliminar: sin permiso (RLS). Ejecuta la política venues_admin_all.', type: 'error' });
+                return;
+              }
               setVenues(vs => vs.filter(x => x.id !== v.id));
               addToast({ message: `✅ ${fixText(v.name)} eliminado`, type: 'success' });
             }} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
