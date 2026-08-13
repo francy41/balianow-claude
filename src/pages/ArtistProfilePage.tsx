@@ -271,16 +271,20 @@ const ArtistProfilePage: React.FC = () => {
     navigate('/chat');
   };
 
-  const handleShare = () => {
-    addToast({ message: 'Enlace del perfil copiado', type: 'success' });
+  const handleShare = async () => {
+    const url = window.location.href;
+    if ((navigator as any).share) { try { await (navigator as any).share({ title: `${artist.name} · BailaNow`, text: `Mira a ${artist.name} en BailaNow`, url }); return; } catch {} }
+    try { await navigator.clipboard.writeText(url); addToast({ message: '✅ Enlace copiado — compártelo donde quieras', type: 'success' }); } catch {}
   };
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
       {/* ── HERO BANNER ── */}
-      <section className="relative h-72 sm:h-96 overflow-hidden">
-        <img src={artist.cover} alt={artist.name} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent" />
+      <section className="relative h-80 sm:h-[26rem] overflow-hidden">
+        <img src={artist.cover} alt={artist.name} className="w-full h-full object-cover kenburns" />
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-900/55 to-transparent" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-pink-500/25 rounded-full blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
 
         <button onClick={() => navigate(-1)}
           className="absolute top-4 left-4 bg-white/90 hover:bg-white text-gray-800 text-sm px-3 py-1.5 rounded-xl font-semibold transition-colors backdrop-blur-md">
@@ -359,8 +363,8 @@ const ArtistProfilePage: React.FC = () => {
             <Heart className={`w-4 h-4 ${liked ? 'fill-red-500' : ''}`} />
           </button>
           <button onClick={handleShare}
-            className="text-sm font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">
-            <Share2 className="w-4 h-4" />
+            className="text-sm font-bold py-2 px-3.5 rounded-lg flex items-center gap-1.5 whitespace-nowrap bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white hover:opacity-90 transition-all shadow shadow-pink-500/30">
+            <Share2 className="w-4 h-4" /> Compartir
           </button>
 
           {/* Internal-chat-only notice */}
@@ -392,7 +396,7 @@ const ArtistProfilePage: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-6">
+      <div key={activeTab} className="max-w-5xl mx-auto px-4 py-6 animate-fade-up">
         {/* ── TAB CONTENT ── */}
         {activeTab === 'about' && <AboutTab artist={artist} />}
         {activeTab === 'live' && <LiveTab artist={artist} currentStream={currentStream} onChat={handleChat} />}
