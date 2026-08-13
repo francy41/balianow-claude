@@ -36,6 +36,11 @@
 @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 .animate-fade-up { animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
+/* Ken Burns: zoom/paneo lento para portadas tipo revista */
+@keyframes kenburns { 0% { transform: scale(1) translate(0,0); } 100% { transform: scale(1.12) translate(-1.5%, -1.5%); } }
+.kenburns { animation: kenburns 18s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .kenburns { animation: none; } }
+
 /* ── Marquee animations (auto-scroll left) ──────────────────────── */
 @keyframes marquee-left {
   0%   { transform: translateX(0); }

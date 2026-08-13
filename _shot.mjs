@@ -1,0 +1,11 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const ctx = await browser.newContext({ viewport:{width:1280,height:1000}, deviceScaleFactor:1.5 });
+const page = await ctx.newPage();
+await page.goto('http://127.0.0.1:4200/venues/v1',{waitUntil:'load',timeout:25000}).catch(()=>{});
+await page.waitForTimeout(4000);
+await page.evaluate(()=>{const b=[...document.querySelectorAll('button')].find(x=>/Aceptar todas/i.test(x.textContent||''));if(b)b.click();});
+await page.waitForTimeout(800);
+await page.screenshot({ path:'/tmp/venue-premium.png' });
+console.log('saved');
+await browser.close();
