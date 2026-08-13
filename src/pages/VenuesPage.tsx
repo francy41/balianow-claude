@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { MapPin, Users, Clock, CheckCircle, Star, MessageSquare, Bell, Heart, Share2, Calendar, Music2, Instagram, Youtube, Facebook, Globe, Headphones, Video, Loader2 } from 'lucide-react';
+import { MapPin, Users, Clock, CheckCircle, Star, MessageSquare, Bell, Heart, Share2, Calendar, Music2, Instagram, Youtube, Facebook, Globe, Headphones, Video, Loader2, Phone } from 'lucide-react';
 import EntityAdminPanel from '../components/EntityAdminPanel';
 import DemoBadge from '../components/DemoBadge';
 import { fixText } from '../lib/text';
@@ -14,6 +14,7 @@ import { FilterFacet, ActiveFilterBar, FilterPanel } from '../components/SmartFi
 import { useAuthStore, useUIStore, getYouTubeId, useSiteConfigStore } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
 import VenueReservationModal from '../components/VenueReservationModal';
+import CallBookingModal from '../components/CallBookingModal';
 import { supabase } from '../lib/supabase';
 import { usePageMeta } from '../hooks/usePageMeta';
 
@@ -310,6 +311,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
     if (!visibleVenueTabs.some(t => t.id === activeTab)) setActiveTab('about');
   }, [profileModules]); // eslint-disable-line react-hooks/exhaustive-deps
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [callOpen, setCallOpen] = useState(false);
   const [following, setFollowing] = useState(false);
   const [liked, setLiked] = useState(false);
   const [lightbox, setLightbox] = useState<string | null>(null);
@@ -470,6 +472,10 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
             title={!isClaimed(venue.userId as string) ? 'Perfil no reclamado — reserva no disponible' : undefined}
             className="btn-outline text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed">
             <Calendar className="w-4 h-4" /> Reservar
+          </button>
+          <button onClick={() => setCallOpen(true)}
+            className="text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 whitespace-nowrap bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
+            <Phone className="w-4 h-4" /> Reservar llamada
           </button>
           <button onClick={() => {
             setFollowing(f => !f);
@@ -799,6 +805,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
         venueId={String(venue.id)}
         venueName={venue.name}
       />
+      <CallBookingModal open={callOpen} onClose={() => setCallOpen(false)} />
 
       {/* Lightbox de galería */}
       {lightbox && (

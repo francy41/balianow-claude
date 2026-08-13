@@ -10,7 +10,7 @@ import {
   MapPin, Users, CheckCircle, Instagram, Youtube, Facebook, Music2,
   Calendar, MessageSquare, Share2, Heart, Play, Eye, Globe, Clock,
   Star, Sparkles, Send, Video, Bell, Headphones, Award, Image as ImageIcon,
-  ChevronRight, Lock, Crown
+  ChevronRight, Lock, Crown, Phone
 } from 'lucide-react';
 import { SOCIAL_NETWORK_URLS, EVENTS, ARTISTS } from '../data/mockData';
 import type { Artist, MediaItem, OfferPackage } from '../data/mockData';
@@ -18,6 +18,7 @@ import { useAuthStore, useUIStore, useCartStore, getYouTubeId, useSiteConfigStor
 import { Avatar, Modal, Button } from '../components/ui';
 import BookingModal from '../components/BookingModal';
 import VenueReservationModal from '../components/VenueReservationModal';
+import CallBookingModal from '../components/CallBookingModal';
 import ExclusiveContentTab from '../components/ExclusiveContentTab';
 import PaymentGateway from '../components/payment/PaymentGateway';
 
@@ -192,6 +193,7 @@ const ArtistProfilePage: React.FC = () => {
   const [bookingOpen, setBookingOpen] = useState(false);
   const [classBookingOpen, setClassBookingOpen] = useState(false);
   const [venueResOpen, setVenueResOpen] = useState(false);
+  const [callOpen, setCallOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [bookingPreset, setBookingPreset] = useState<{ concept: string; price: number }>({ concept: '', price: 0 });
   const [customOfferPrice, setCustomOfferPrice] = useState('');
@@ -389,6 +391,10 @@ const ArtistProfilePage: React.FC = () => {
             className="btn-outline text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
             <Award className="w-4 h-4" /> Reservar
           </button>
+          <button onClick={() => setCallOpen(true)}
+            className="text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 whitespace-nowrap bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
+            <Phone className="w-4 h-4" /> Reservar llamada
+          </button>
           {currentStream && (
             <button onClick={() => navigate('/live')}
               className="bg-red-600 hover:bg-red-700 text-white font-bold text-sm py-2 px-4 rounded-lg flex items-center gap-1.5 whitespace-nowrap">
@@ -535,6 +541,7 @@ const ArtistProfilePage: React.FC = () => {
         venueId={artist.id}
         venueName={artist.name}
       />
+      <CallBookingModal open={callOpen} onClose={() => setCallOpen(false)} />
 
       <BookingModal
         open={bookingOpen}
