@@ -18,13 +18,14 @@ import TicketSalesTab from '../components/TicketSalesTab';
 import ProfileEditModal from '../components/ProfileEditModal';
 import AdminLocationModal from '../components/AdminLocationModal';
 import { BuyerTable, QRScanner } from '../components/BuyerManagement';
-import { QrCode, Scan } from 'lucide-react';
+import { QrCode, Scan, ShoppingBag } from 'lucide-react';
 import TeacherClassesPanel from '../components/TeacherClassesPanel';
 import ClassReviewModal from '../components/ClassReviewModal';
 import { QRCodeCanvas, downloadTicketQR } from '../components/QRTicket';
 import VenueReservationsManager from '../components/VenueReservationsManager';
+import BuyServicesTab from '../components/BuyServicesTab';
 
-type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers' | 'buyers' | 'scanner' | 'events' | 'ventas' | 'reservations';
+type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers' | 'buyers' | 'scanner' | 'events' | 'ventas' | 'reservations' | 'buyservices';
 
 // Tabs "core" (financieros/operativos) — siempre visibles, no se controlan por módulos.
 // Tabs con `module` se muestran solo si el módulo global está activo (Admin → Categorías).
@@ -40,6 +41,7 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode; module?: string }
   { id: 'classes',  label: 'Clases Online', icon: <Video className="w-4 h-4" />,     module: 'classes' },
   { id: 'events',   label: 'Eventos',       icon: <CalIcon className="w-4 h-4" />,    module: 'events' },
   { id: 'reservations', label: 'Reservas',  icon: <CalIcon className="w-4 h-4" /> },
+  { id: 'buyservices',  label: 'Comprar servicios', icon: <ShoppingBag className="w-4 h-4" /> },
   { id: 'ventas',   label: 'Ventas entradas', icon: <DollarSign className="w-4 h-4" /> },
   { id: 'offers',   label: 'Ofertas',       icon: <Briefcase className="w-4 h-4" />, module: 'offers' },
 ];
@@ -110,7 +112,6 @@ const DashboardPage: React.FC = () => {
                   {isPerformer && <span className="text-[10px] bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full font-bold uppercase">Panel Creator</span>}
                 </div>
                 <p className="text-gray-400 capitalize">{user.role} · {user.city}{user.country ? `, ${user.country}` : ''}</p>
-                {user.bio && <p className="text-gray-600 text-sm mt-2 max-w-2xl">{user.bio}</p>}
                 {user.socials && Object.values(user.socials).some(v => v) && (
                   <div className="flex gap-2 mt-2">
                     {Object.entries(user.socials).filter(([, v]) => v).map(([k, v]) => {
@@ -197,6 +198,7 @@ const DashboardPage: React.FC = () => {
             )}
             {tab === 'events'   && <EventsManagerTab performerId={performerId} />}
             {tab === 'reservations' && <VenueReservationsManager userId={performerId} addToast={addToast} />}
+            {tab === 'buyservices' && <BuyServicesTab />}
             {tab === 'ventas'   && <TicketSalesTab performerId={performerId} />}
           </>
         ) : (

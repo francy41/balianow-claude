@@ -30,6 +30,7 @@ import CreatorApplicationsAdminSection from '../components/CreatorApplicationsAd
 import TvMonetizationAdminSection from '../components/TvMonetizationAdminSection';
 import ModulesAdminSection from '../components/ModulesAdminSection';
 import AppBuilderSection from '../components/AppBuilderSection';
+import ServicesAdminSection from '../components/ServicesAdminSection';
 import { uploadImage, uploadVideo } from '../lib/uploadHelper';
 import { fetchCommissionPercent, getCachedCommissionPercent, setCommissionPercent } from '../lib/commission';
 import { fetchSaleFees, setSaleFees, type SaleFees } from '../lib/saleFees';
@@ -46,7 +47,7 @@ type AdminSection =
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms' | 'home-destacados'
   | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter' | 'danceavatares' | 'afiliados' | 'promocionate'
   | 'reclamaciones' | 'planificador' | 'soporte'
-  | 'tv' | 'rutas' | 'parejas' | 'retos' | 'partner' | 'publicidad' | 'donaciones' | 'membresias' | 'solicitudes-creador' | 'tv-monetizacion' | 'modulos' | 'app-builder';
+  | 'tv' | 'rutas' | 'parejas' | 'retos' | 'partner' | 'publicidad' | 'donaciones' | 'membresias' | 'solicitudes-creador' | 'tv-monetizacion' | 'modulos' | 'app-builder' | 'servicios';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -86,6 +87,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'tv-monetizacion', label: 'Monetización TV',          icon: <DollarSign className="w-4 h-4" />, badge: '60/40' },
   { id: 'modulos',        label: 'Módulos y precios',       icon: <Tag className="w-4 h-4" />, badge: 'NEW' },
   { id: 'app-builder',    label: 'App Builder',             icon: <LayoutDashboard className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'servicios',      label: 'Servicios',               icon: <ShoppingBag className="w-4 h-4" />, badge: 'NEW' },
   { id: 'creators',       label: 'Dashboards Creators',     icon: <LayoutDashboard className="w-4 h-4" /> },
   { id: 'retiros',        label: 'Retiros pendientes',      icon: <DollarSign className="w-4 h-4" />, badge: 'esc.' },
   { id: 'diseno',         label: 'Diseño Web',              icon: <Palette className="w-4 h-4" /> },
@@ -315,6 +317,7 @@ const AdminPage: React.FC = () => {
         {active === 'tv-monetizacion' && <TvMonetizationAdminSection addToast={addToast} />}
         {active === 'modulos'        && <ModulesAdminSection addToast={addToast} />}
         {active === 'app-builder'    && <AppBuilderSection addToast={addToast} />}
+        {active === 'servicios'      && <ServicesAdminSection addToast={addToast} />}
         {active === 'cms'            && <AdminCMS />}
         {active === 'home-destacados' && <HomeFeaturedSection addToast={addToast} />}
         {active === 'diseno'         && <DisenoSection addToast={addToast} />}
