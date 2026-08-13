@@ -6,7 +6,7 @@
  */
 import { useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { useSiteConfigStore, type HomeCategory, type ProfileModule } from '../store/appStore';
+import { useSiteConfigStore, useSponsorsStore, type HomeCategory, type ProfileModule } from '../store/appStore';
 
 // ── Load config from Supabase on mount ────────────────────────────────────
 export function useSiteConfigLoader() {
@@ -32,6 +32,12 @@ export function useSiteConfigLoader() {
           }
           if (row.key === 'home_tv_cards' && Array.isArray(row.value) && row.value.length > 0) {
             setHomeTvCards(row.value);
+          }
+          // Sponsors/destacados: fuente de verdad = BD. Sincroniza el store público
+          // (incluye lista vacía) para que los borrados del admin se reflejen y no
+          // queden los INITIAL_SPONSORS de ejemplo como fantasmas.
+          if (row.key === 'sponsors' && Array.isArray(row.value)) {
+            useSponsorsStore.setState({ sponsors: row.value });
           }
         }
       } catch (e) { console.warn('[siteConfig] load', e); }
