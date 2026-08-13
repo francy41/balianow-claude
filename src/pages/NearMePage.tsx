@@ -153,10 +153,15 @@ const NearMePage: React.FC = () => {
         return resolveCityCoords(row.city || row.location);
       };
 
-      // Venues
+      // Venues — guardamos los dueños para no duplicar su perfil más abajo
+      // (un local reclamado tiene fila en venues Y en profiles; el venue ya
+      // trae los datos completos, así que su perfil no se añade aparte).
+      const venueOwnerIds = new Set<string>();
       try {
         const { data } = await supabase.from('venues').select('*').is('deleted_at', null);
         data?.forEach((v: any) => {
+          if (v.owner_id) venueOwnerIds.add(String(v.owner_id));
+          if (v.user_id) venueOwnerIds.add(String(v.user_id));
           const c = coordsOrCity(v);
           if (!c) return;
           combined.push({
@@ -205,6 +210,7 @@ const NearMePage: React.FC = () => {
       try {
         const { data } = await supabase.from('profiles').select(PUBLIC_PROFILE_COLUMNS);
         data?.forEach((p: any) => {
+          if (venueOwnerIds.has(String(p.id))) return; // ya está representado por su fila en venues
           const role = String(p.role || '').toLowerCase();
           // mapping permisivo: si el rol no es admin/superadmin, lo mostramos en alguna categoria
           const t: Item['type'] | null =

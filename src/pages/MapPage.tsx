@@ -121,11 +121,15 @@ const MapPage: React.FC = () => {
     const load = async () => {
       const combined: MapItem[] = [];
 
-      // 1. Try venues from Supabase
+      // 1. Try venues from Supabase — guarda los dueños para no duplicar su
+      // perfil más abajo (un local reclamado tiene fila en venues Y en profiles).
+      const venueOwnerIds = new Set<string>();
       try {
         const { data: venues } = await supabase.from('venues').select('*').is('deleted_at', null);
         if (venues && venues.length) {
           venues.forEach((v: any) => {
+            if (v.owner_id) venueOwnerIds.add(String(v.owner_id));
+            if (v.user_id) venueOwnerIds.add(String(v.user_id));
             const baseCoord = v.lat && v.lng
               ? [Number(v.lat), Number(v.lng)] as [number, number]
               : cityCoord(v.city || v.location || 'Madrid');
@@ -192,6 +196,7 @@ const MapPage: React.FC = () => {
         const { data: profiles } = await supabase.from('profiles').select(PUBLIC_PROFILE_COLUMNS);
         if (profiles && profiles.length) {
           profiles.forEach((p: any) => {
+            if (venueOwnerIds.has(String(p.id))) return; // ya está representado por su fila en venues
             const role = String(p.role || '').toLowerCase();
             const mapType: MapItem['type'] | null =
               role === 'dj'                    ? 'dj'     :
