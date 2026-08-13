@@ -58,6 +58,22 @@ const DashboardPage: React.FC = () => {
   const initialTab = (searchParams.get('tab') as TabId) || 'overview';
   const [tab, setTab] = useState<TabId>(initialTab);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
+
+  // Filtra tabs por módulos globales (Admin → Categorías). Core tabs siempre visibles.
+  const { profileModules } = useSiteConfigStore();
+  const isModuleOn = (modId?: string) => !modId || profileModules.find(m => m.id === modId)?.enabled !== false;
+  const isVenue = !!user && ['venue', 'business'].includes(user.role);
+  const visibleTabs = TABS.filter(t => {
+    if (t.id === 'reservations') return isVenue;                          // Reservas: solo locales
+    if (isVenue && (t.id === 'courses' || t.id === 'classes')) return false; // locales no tienen cursos/clases online
+    return isModuleOn(t.module);
+  });
+
+  // Si el tab activo queda oculto al desactivar un módulo, vuelve a Resumen
+  useEffect(() => {
+    if (!visibleTabs.some(t => t.id === tab)) setTab('overview');
+  }, [profileModules]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!isAuthenticated || !user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -73,21 +89,6 @@ const DashboardPage: React.FC = () => {
 
   const isPerformer = PERFORMER_ROLES.includes(user.role);
   const performerId = user.id;
-
-  // Filtra tabs por módulos globales (Admin → Categorías). Core tabs siempre visibles.
-  const { profileModules } = useSiteConfigStore();
-  const isModuleOn = (modId?: string) => !modId || profileModules.find(m => m.id === modId)?.enabled !== false;
-  const isVenue = ['venue', 'business'].includes(user.role);
-  const visibleTabs = TABS.filter(t => {
-    if (t.id === 'reservations') return isVenue;                          // Reservas: solo locales
-    if (isVenue && (t.id === 'courses' || t.id === 'classes')) return false; // locales no tienen cursos/clases online
-    return isModuleOn(t.module);
-  });
-
-  // Si el tab activo queda oculto al desactivar un módulo, vuelve a Resumen
-  useEffect(() => {
-    if (!visibleTabs.some(t => t.id === tab)) setTab('overview');
-  }, [profileModules]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="min-h-screen bg-gray-50 py-6">
@@ -224,7 +225,7 @@ const EventsManagerTab: React.FC<{ performerId: string }> = ({ performerId }) =>
     let cancelled = false;
     // Safety-timeout: si la consulta se cuelga/rechaza, no dejar spinner infinito.
     const safety = setTimeout(() => { if (!cancelled) setLoading(false); }, 8000);
-    supabase.from('events').select('id,title,city,date,price,attending,capacity,image_url,cover')
+    supabase.from('events').select('id,title,city,date,price,attending,capacity,image_url,cover').is('deleted_at', null)
       .or(`user_id.eq.${performerId},owner_id.eq.${performerId}`)
       .order('date', { ascending: false })
       .then(

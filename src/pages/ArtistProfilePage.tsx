@@ -12,7 +12,7 @@ import {
   Star, Sparkles, Send, Video, Bell, Headphones, Award, Image as ImageIcon,
   ChevronRight, Lock, Crown, Phone
 } from 'lucide-react';
-import { SOCIAL_NETWORK_URLS, EVENTS, ARTISTS } from '../data/mockData';
+import { SOCIAL_NETWORK_URLS } from '../data/mockData';
 import type { Artist, MediaItem, OfferPackage } from '../data/mockData';
 import { useAuthStore, useUIStore, useCartStore, getYouTubeId, useSiteConfigStore } from '../store/appStore';
 import { Avatar, Modal, Button } from '../components/ui';
@@ -153,20 +153,41 @@ const ArtistProfilePage: React.FC = () => {
       try {
         const { data: art } = await supabase.from('artists').select('*').eq('id', id).maybeSingle();
         if (cancelled) return;
-        if (art) { setDbArtist(mapDbArtist(art)); setLoadingDb(false); return; }
+        if (art) {
+          let mapped = mapDbArtist(art);
+          // Fusiona redes/vídeo del perfil dueño como fallback: si el artista edita
+          // "Editar perfil" (tabla profiles) en vez del panel de artists, esos cambios
+          // deben reflejarse aquí. Los valores propios de `artists` tienen prioridad.
+          if (art.user_id) {
+            const { data: ownerProf } = await supabase.from('profiles').select(PUBLIC_PROFILE_COLUMNS).eq('id', art.user_id).maybeSingle();
+            if (!cancelled && ownerProf) {
+              const ownerSocial: Record<string, string> = {};
+              if (ownerProf.instagram_url)  ownerSocial.instagram = ownerProf.instagram_url;
+              if (ownerProf.tiktok_url)     ownerSocial.tiktok = ownerProf.tiktok_url;
+              if (ownerProf.youtube_url)    ownerSocial.youtube = ownerProf.youtube_url;
+              if (ownerProf.facebook_url)   ownerSocial.facebook = ownerProf.facebook_url;
+              if (ownerProf.website_url)    ownerSocial.website = ownerProf.website_url;
+              if (ownerProf.spotify_url)    ownerSocial.spotify = ownerProf.spotify_url;
+              if (ownerProf.soundcloud_url) ownerSocial.soundcloud = ownerProf.soundcloud_url;
+              if (ownerProf.twitch_url)     ownerSocial.twitch = ownerProf.twitch_url;
+              mapped = {
+                ...mapped,
+                social: { ...ownerSocial, ...mapped.social },
+                featuredVideo: mapped.featuredVideo || ownerProf.featured_video || ownerProf.youtube_url || '',
+                featuredVideoTitle: mapped.featuredVideoTitle || ownerProf.featured_video_title || '',
+              };
+            }
+          }
+          if (!cancelled) { setDbArtist(mapped); setLoadingDb(false); }
+          return;
+        }
         const { data: prof } = await supabase.from('profiles').select(PUBLIC_PROFILE_COLUMNS).eq('id', id).maybeSingle();
         if (cancelled) return;
         if (prof) { setDbArtist(mapProfileToArtist(prof)); setLoadingDb(false); return; }
-        const mock = ARTISTS.find(a => a.id === id);
-        if (mock) { setDbArtist({ ...mock, userId: '' } as any); setLoadingDb(false); return; }
         setNotFound(true); setLoadingDb(false);
       } catch (e) {
         console.warn('[artist-profile] load', e);
-        if (!cancelled) {
-          const mock = ARTISTS.find(a => a.id === id);
-          if (mock) { setDbArtist({ ...mock, userId: '' } as any); } else { setNotFound(true); }
-          setLoadingDb(false);
-        }
+        if (!cancelled) { setNotFound(true); setLoadingDb(false); }
       }
     })();
     return () => { cancelled = true; clearTimeout(safety); };
@@ -206,7 +227,7 @@ const ArtistProfilePage: React.FC = () => {
     let cancelled = false;
     const artistId = dbArtist.id;
     const artistName = (dbArtist as any).name;
-    supabase.from('events').select('id,title,date,event_date,artists,owner_id,user_id,venue_id,venue_name')
+    supabase.from('events').select('id,title,date,event_date,artists,owner_id,user_id,venue_id,venue_name').is('deleted_at', null)
       .then(({ data }) => {
         if (cancelled || !data) return;
         const filtered = data.filter((e: any) =>
@@ -675,12 +696,11 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
   const month = (d: string) => MONTHS[(Number((d || '').split('-')[1]) || 1) - 1] || '';
   const ytId = artist.featuredVideo ? getYouTubeId(artist.featuredVideo) : '';
 
-  // Próximos eventos: eventos REALES de la BD donde el artista está en el lineup;
-  // si no hay ninguno, cae a los ejemplos (mock) que lo referencien.
+  // Próximos eventos: eventos REALES de la BD donde el artista está en el lineup.
   const [dbEvents, setDbEvents] = useState<any[]>([]);
   useEffect(() => {
     let cancelled = false;
-    supabase.from('events').select('id,title,date,event_date,venue_name,city,artists,owner_id,user_id,venue_id')
+    supabase.from('events').select('id,title,date,event_date,venue_name,city,artists,owner_id,user_id,venue_id').is('deleted_at', null)
       .then(({ data }) => { if (!cancelled) setDbEvents(data || []); }, () => {});
     return () => { cancelled = true; };
   }, [artist.id]);
@@ -694,10 +714,7 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
       (!!e.venue_name && !!artist.name && e.venue_name === artist.name)
     )
     .map(e => ({ id: e.id, title: e.title || 'Evento', date: e.date || e.event_date || '', venueName: e.venue_name || '', city: e.city || '' }));
-  const mockEv = EVENTS
-    .filter(e => Array.isArray((e as any).artists) && (e as any).artists.includes(artist.id))
-    .map(e => ({ id: e.id, title: e.title, date: e.date, venueName: (e as any).venueName || '', city: e.city }));
-  const events = (realEv.length ? realEv : mockEv)
+  const events = realEv
     .sort((a, b) => (a.date || '').localeCompare(b.date || ''))
     .slice(0, 3);
   const courses = (((artist as any).classPackages || []).length

@@ -52,7 +52,7 @@ const ClassesPage: React.FC = () => {
   // Load classes from Supabase — todo en paralelo con timeout
   useEffect(() => {
     let cancelled = false;
-    const safety = setTimeout(() => { if (!cancelled) { console.warn('[classes] timeout'); setLoading(false); setClasses(SAMPLE_CLASSES); } }, 6000);
+    const safety = setTimeout(() => { if (!cancelled) { console.warn('[classes] timeout'); setLoading(false); } }, 6000);
 
     (async () => {
       try {
@@ -67,7 +67,7 @@ const ClassesPage: React.FC = () => {
         console.log('[classes] loaded:', { count: data?.length, error });
 
         if (error || !data || data.length === 0) {
-          setClasses(SAMPLE_CLASSES);
+          setClasses([]);
           setLoading(false);
           clearTimeout(safety);
           return;
@@ -109,7 +109,7 @@ const ClassesPage: React.FC = () => {
         setClasses(enriched);
       } catch (err) {
         console.error('[classes] catch:', err);
-        if (!cancelled) setClasses(SAMPLE_CLASSES);
+        if (!cancelled) setClasses([]);
       } finally {
         if (!cancelled) { setLoading(false); clearTimeout(safety); }
       }
@@ -199,6 +199,12 @@ const ClassesPage: React.FC = () => {
           <div className="text-center py-16">
             <div className="w-10 h-10 border-3 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto" />
             <p className="text-gray-400 text-sm mt-3">Cargando clases…</p>
+          </div>
+        ) : classes.length === 0 ? (
+          <div className="text-center py-16">
+            <p className="text-5xl mb-3">📚</p>
+            <p className="font-bold text-gray-700 dark:text-gray-300">Aún no hay clases publicadas</p>
+            <p className="text-gray-400 text-sm mt-1">Los profesores pueden ofrecer sus clases desde su perfil. ¡Pronto habrá clases aquí!</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
@@ -341,42 +347,5 @@ const ClassCard: React.FC<{ cls: ClassOffering; onClick: () => void; onPractice?
     </article>
   );
 };
-
-// ── Datos de muestra (cuando BD está vacía) ─────────────────────────────
-const SAMPLE_CLASSES: ClassOffering[] = [
-  {
-    id: 'sample-1', vendor_id: 'demo-1',
-    title: 'Bachata Sensual — Nivel Intermedio',
-    description: 'Clase intensiva de bachata sensual con técnica de conexión y musicalidad',
-    category: 'class', style: ['Bachata'], level: 'Intermedio',
-    duration_minutes: 60, price: 25, currency: 'EUR', max_students: 1,
-    is_online: true,
-    cover_image: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=600&h=375&fit=crop',
-    vendor_name: 'Daniel & Desiree', vendor_avatar: '',
-    next_slot: { id: 's1', starts_at: new Date(Date.now() + 86400000 * 2).toISOString() },
-  },
-  {
-    id: 'sample-2', vendor_id: 'demo-2',
-    title: 'Salsa On1 desde cero — Principiantes',
-    description: 'Aprende salsa estilo Los Angeles paso a paso',
-    category: 'class', style: ['Salsa'], level: 'Principiante',
-    duration_minutes: 60, price: 18, currency: 'EUR', max_students: 5,
-    is_online: true,
-    cover_image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&h=375&fit=crop',
-    vendor_name: 'Grupo Niche', vendor_avatar: '',
-    next_slot: { id: 's2', starts_at: new Date(Date.now() + 86400000 * 1).toISOString() },
-  },
-  {
-    id: 'sample-3', vendor_id: 'demo-3',
-    title: 'Kizomba Fusion — Workshop intensivo',
-    description: 'Workshop de 90 min con técnica y figuras avanzadas',
-    category: 'workshop', style: ['Kizomba'], level: 'Avanzado',
-    duration_minutes: 90, price: 35, currency: 'EUR', max_students: 8,
-    is_online: true,
-    cover_image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&h=375&fit=crop',
-    vendor_name: 'Masa & Polina', vendor_avatar: '',
-    next_slot: { id: 's3', starts_at: new Date(Date.now() + 86400000 * 4).toISOString() },
-  },
-];
 
 export default ClassesPage;
