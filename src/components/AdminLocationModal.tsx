@@ -192,6 +192,8 @@ const AdminLocationModal: React.FC<Props> = ({ open, mode, onClose, onSaved }) =
           currency: 'EUR',
           lat: position[0], lng: position[1],
           admin_status: 'approved', type: 'Social',
+          owner_id: session?.user?.id ?? null,
+          user_id: session?.user?.id ?? null,
         };
         ({ dropped } = await insertRobust('events', payload));
       }
