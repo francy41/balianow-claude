@@ -52,6 +52,16 @@ function mapDbVenue(v: any): Venue {
     lng:         Number(v.lng) || 0,
     priceRange:  Number(v.price_range) || 2,
     userId:      v.user_id || v.owner_id || '',
+    socials: {
+      ...(v.instagram_url  ? { instagram:  v.instagram_url }  : {}),
+      ...(v.tiktok_url     ? { tiktok:     v.tiktok_url }     : {}),
+      ...(v.youtube_url    ? { youtube:    v.youtube_url }    : {}),
+      ...(v.facebook_url   ? { facebook:   v.facebook_url }   : {}),
+      ...(v.twitch_url     ? { twitch:     v.twitch_url }     : {}),
+      ...(v.spotify_url    ? { spotify:    v.spotify_url }    : {}),
+      ...(v.soundcloud_url ? { soundcloud: v.soundcloud_url } : {}),
+      ...(v.website_url    ? { website:    v.website_url }    : {}),
+    },
   } as Venue;
 }
 
@@ -344,16 +354,34 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
     return () => { cancelled = true; clearTimeout(timer); };
   }, [venueId]);
 
-  // Datos reales enriquecidos: vídeo del dueño (perfil), eventos del local y horarios por día.
+  // Datos reales enriquecidos: vídeo y redes del dueño (perfil), eventos del local y horarios por día.
+  // El local (venues) y la cuenta (profiles) son tablas distintas — "Editar perfil" guarda en
+  // profiles, así que si el local no tiene sus propias redes, usamos las de la cuenta del dueño.
   const [ownerVideo, setOwnerVideo] = useState<{ url: string; title: string } | null>(null);
+  const [ownerSocials, setOwnerSocials] = useState<Record<string, string>>({});
   const [realEvents, setRealEvents] = useState<any[]>([]);
   const [dayHours, setDayHours] = useState<any[]>([]);
   useEffect(() => {
     if (!venue) return;
     const ownerId = String(venue.userId || '');
     if (ownerId) {
-      supabase.from('profiles').select('youtube_url, featured_video, featured_video_title').eq('id', ownerId).maybeSingle().then(
-        ({ data }) => { const url = data?.featured_video || data?.youtube_url; if (url) setOwnerVideo({ url, title: data?.featured_video_title || `Vídeo de ${venue.name}` }); }, () => {});
+      supabase.from('profiles')
+        .select('youtube_url, featured_video, featured_video_title, instagram_url, tiktok_url, facebook_url, twitch_url, spotify_url, soundcloud_url, website_url')
+        .eq('id', ownerId).maybeSingle().then(({ data }) => {
+          if (!data) return;
+          const url = data.featured_video || data.youtube_url;
+          if (url) setOwnerVideo({ url, title: data.featured_video_title || `Vídeo de ${venue.name}` });
+          const socials: Record<string, string> = {};
+          if (data.instagram_url)  socials.instagram = data.instagram_url;
+          if (data.tiktok_url)     socials.tiktok = data.tiktok_url;
+          if (data.youtube_url)    socials.youtube = data.youtube_url;
+          if (data.facebook_url)   socials.facebook = data.facebook_url;
+          if (data.twitch_url)     socials.twitch = data.twitch_url;
+          if (data.spotify_url)    socials.spotify = data.spotify_url;
+          if (data.soundcloud_url) socials.soundcloud = data.soundcloud_url;
+          if (data.website_url)    socials.website = data.website_url;
+          setOwnerSocials(socials);
+        }, () => {});
     }
     supabase.from('events').select('id,title,date,time,price,venue_id,venue_name,owner_id,user_id,cover,image_url').is('deleted_at', null).then(
       ({ data }) => {
@@ -382,7 +410,13 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
     </div>
   );
 
-  const socials = VENUE_SOCIALS[venue.id] || { instagram: venue.name.toLowerCase().replace(/\s+/g, '') };
+  // El propio local tiene prioridad; si no tiene redes propias, usa las de la cuenta
+  // del dueño; si no hay ninguna (venue sin dueño real / mock), cae al ejemplo.
+  const realSocials = { ...ownerSocials, ...(venue.socials || {}) };
+  const socials = Object.keys(realSocials).length > 0
+    ? realSocials
+    : (VENUE_SOCIALS[venue.id] || { instagram: venue.name.toLowerCase().replace(/\s+/g, '') });
+  const socialHref = (key: string, value: string) => value.startsWith('http') ? value : `https://${key}.com/${value}`;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-10">
@@ -627,7 +661,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                 <div className="grid grid-cols-3 gap-2">
                   {Object.entries(socials).map(([key, handle]) => (
                     <a key={key}
-                      href={`https://${key}.com/${handle}`}
+                      href={socialHref(key, handle)}
                       target="_blank" rel="noreferrer"
                       className={`bg-gradient-to-br ${SOCIAL_COLORS[key] || 'bg-gray-400'} text-white aspect-square rounded-xl flex flex-col items-center justify-center gap-0.5 hover:scale-105 transition-transform p-2`}>
                       <SocialIcon kind={key} />
