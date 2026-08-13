@@ -199,6 +199,26 @@ const ArtistProfilePage: React.FC = () => {
   const [customOfferPrice, setCustomOfferPrice] = useState('');
   const [customOfferDesc, setCustomOfferDesc] = useState('');
 
+  // Eventos para la tira animada del hero (consulta ligera propia, independiente de ServiceCards).
+  const [heroEvents, setHeroEvents] = useState<any[]>([]);
+  useEffect(() => {
+    if (!dbArtist) return;
+    let cancelled = false;
+    const artistId = dbArtist.id;
+    const artistName = (dbArtist as any).name;
+    supabase.from('events').select('id,title,date,event_date,artists,owner_id,user_id,venue_id,venue_name')
+      .then(({ data }) => {
+        if (cancelled || !data) return;
+        const filtered = data.filter((e: any) =>
+          (Array.isArray(e.artists) && e.artists.includes(artistId)) ||
+          e.owner_id === artistId || e.user_id === artistId ||
+          String(e.venue_id || '') === String(artistId) ||
+          (!!e.venue_name && !!artistName && e.venue_name === artistName));
+        setHeroEvents(filtered);
+      }, () => {});
+    return () => { cancelled = true; };
+  }, [dbArtist]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Returns condicionales DESPUES de todos los hooks
   if (loadingDb) {
     return (
@@ -225,23 +245,6 @@ const ArtistProfilePage: React.FC = () => {
   const artist = dbArtist!;
   const currentStream = null; // live streams se cargan de live_sessions, no de mock
   const isVenue = ['venue', 'business'].includes(String((artist as any).role || '').toLowerCase());
-
-  // Eventos para la tira animada del hero (consulta ligera propia, independiente de ServiceCards).
-  const [heroEvents, setHeroEvents] = useState<any[]>([]);
-  useEffect(() => {
-    let cancelled = false;
-    supabase.from('events').select('id,title,date,event_date,artists,owner_id,user_id,venue_id,venue_name')
-      .then(({ data }) => {
-        if (cancelled || !data) return;
-        const filtered = data.filter((e: any) =>
-          (Array.isArray(e.artists) && e.artists.includes(artist.id)) ||
-          e.owner_id === artist.id || e.user_id === artist.id ||
-          String(e.venue_id || '') === String(artist.id) ||
-          (!!e.venue_name && !!artist.name && e.venue_name === artist.name));
-        setHeroEvents(filtered);
-      }, () => {});
-    return () => { cancelled = true; };
-  }, [artist.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const claimed = isClaimed((artist as any).userId);
 
