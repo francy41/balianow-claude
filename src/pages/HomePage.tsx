@@ -1242,7 +1242,18 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
     { title: 'Estilo femenino',      meta: 'Todos · 40 min',       img: ARTISTS[3]?.cover },
     { title: 'Ritmo y musicalidad',  meta: 'Intermedio · 50 min',  img: ARTISTS[4]?.cover },
   ];
-  const teachers = ARTISTS.slice(0, 8);
+
+  // "Profesores Destacados" enlaza a perfiles reales -> nunca usar IDs mock (llevaban a 404).
+  const [dbTeachers, setDbTeachers] = React.useState<any[]>([]);
+  React.useEffect(() => {
+    let cancelled = false;
+    supabase.from('artists').select('id,name,avatar,cover,genre,type,rating').in('type', ['instructor', 'dancer']).limit(8)
+      .then(({ data }) => { if (!cancelled && Array.isArray(data) && data.length) setDbTeachers(data); }, () => {});
+    return () => { cancelled = true; };
+  }, []);
+  // Sin fallback a mock: enlaza a perfiles reales, así que si no hay datos
+  // reales la sección se oculta en vez de llevar a un perfil que no existe.
+  const teachers = dbTeachers.map((a: any) => ({ id: a.id, name: fixText(a.name || 'Artista'), avatar: a.avatar || a.cover || '', genre: Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : []), rating: Number(a.rating) || 0 }));
 
   const Header = ({ icon, title, onAll }: { icon: string; title: string; onAll: () => void }) => (
     <div className="flex items-center justify-between mb-3 px-1">
@@ -1286,6 +1297,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
       </section>
 
       {/* Profesores Destacados */}
+      {teachers.length > 0 && (
       <section className="mx-3 sm:mx-4 mt-8">
         <Header icon="⭐" title="Profesores Destacados" onAll={() => navigate('/artistas')} />
         <HScroll>
@@ -1307,6 +1319,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
           ))}
         </HScroll>
       </section>
+      )}
 
       {/* Trabajos para Bailarines (CTA) */}
       <section className="mx-3 sm:mx-4 mt-8">
@@ -1347,6 +1360,21 @@ const HomePage: React.FC = () => {
   const isPerformer = !!user && PERFORMER_ROLES.includes(user.role);
   const isBuyer = !!user && user.role === 'user';
   const adminStats = isAdmin ? platformTotals() : null;
+
+  // "Artistas y Bailarines" enlaza a perfiles reales -> nunca IDs mock (404).
+  const [dbHomeArtists, setDbHomeArtists] = React.useState<any[]>([]);
+  React.useEffect(() => {
+    let cancelled = false;
+    supabase.from('artists').select('id,name,avatar,cover,genre,city,type,rating').limit(12)
+      .then(({ data }) => { if (!cancelled && Array.isArray(data)) setDbHomeArtists(data); }, () => {});
+    return () => { cancelled = true; };
+  }, []);
+  const homeArtists = dbHomeArtists.map((a: any) => ({
+    id: a.id, name: fixText(a.name || 'Artista'), cover: a.cover || a.avatar || '', avatar: a.avatar || a.cover || '',
+    genre: Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : []), city: fixText(a.city || ''), country: '',
+    type: a.type || 'artist', rating: Number(a.rating) || 0, reviews: 0, followers: 0, priceFrom: 0, currency: 'EUR',
+    bio: '', isVerified: false, isPremium: false, isLive: false,
+  }) as unknown as typeof ARTISTS[0]);
   const totalEscrow = isAdmin ? transactions.filter(t => t.status === 'pending').reduce((s, t) => s + t.gross, 0) : 0;
   const pendingWithdrawals = isAdmin ? withdrawals.filter(w => w.status === 'pending') : [];
   const creatorCount = isAdmin ? new Set(transactions.map(t => t.performerId)).size : 0;
@@ -1769,7 +1797,7 @@ const HomePage: React.FC = () => {
       )}
 
       {/* ── ARTISTAS Y BAILARINES ── */}
-      {isModuleOn('artists') && (
+      {isModuleOn('artists') && homeArtists.length > 0 && (
       <HomeSectionWithSearch
         title="🎧 Artistas y Bailarines"
         subtitle="DJs, cantantes, bailarines y mas talento latino"
@@ -1781,8 +1809,8 @@ const HomePage: React.FC = () => {
       >
         {(searchQ) => {
           const filtered = searchQ
-            ? ARTISTS.filter(a => a.name.toLowerCase().includes(searchQ.toLowerCase()) || a.genre.some(g => g.toLowerCase().includes(searchQ.toLowerCase())) || a.city.toLowerCase().includes(searchQ.toLowerCase()))
-            : ARTISTS;
+            ? homeArtists.filter(a => a.name.toLowerCase().includes(searchQ.toLowerCase()) || a.genre.some((g: string) => g.toLowerCase().includes(searchQ.toLowerCase())) || a.city.toLowerCase().includes(searchQ.toLowerCase()))
+            : homeArtists;
           return (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {filtered.slice(0, 6).map(artist => (
