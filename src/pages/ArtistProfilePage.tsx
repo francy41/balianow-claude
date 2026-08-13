@@ -121,7 +121,7 @@ function mapProfileToArtist(p: any): Artist {
     availability: [],
     currency:   'EUR',
     completedBookings: 0,
-    featuredVideo: p.featured_video || '',
+    featuredVideo: p.featured_video || p.youtube_url || '',
     featuredVideoTitle: p.featured_video_title || '',
     location:   fixText(p.location || ''),
     lat:        p.lat ?? null,
