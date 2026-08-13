@@ -331,7 +331,7 @@ const ArtistProfilePage: React.FC = () => {
       </section>
 
       {/* ── ACTION BAR (NO contact info, only internal chat & booking) ── */}
-      <div className="sticky top-14 z-30 bg-white border-b border-gray-100 shadow-sm">
+      <div className="sticky top-14 z-30 bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           <button onClick={handleChat}
             className="btn-orange text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
@@ -407,14 +407,14 @@ const ArtistProfilePage: React.FC = () => {
             {isModuleOn('classes') && (artist as any).classPackages?.length > 0 && (
               <div className="card-white rounded-2xl p-5 border-2 border-pink-100">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-display font-bold text-gray-900 flex items-center gap-2"><Video className="w-5 h-5 text-pink-500" /> Clases online en directo</h3>
+                  <h3 className="font-display font-bold text-gray-900 dark:text-white flex items-center gap-2"><Video className="w-5 h-5 text-pink-500" /> Clases online en directo</h3>
                   <button onClick={() => { if (!guardSale()) return; setClassBookingOpen(true); }} className="btn-orange text-sm py-2 px-4">Reservar clase</button>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {(artist as any).classPackages.map((p: any) => (
                     <button key={p.id} onClick={() => { if (!guardSale()) return; setClassBookingOpen(true); }} className="text-left p-4 rounded-xl border border-gray-100 hover:border-pink-300 hover:shadow-sm transition-all">
                       <p className="text-[10px] font-black uppercase text-gray-400">{p.capacity === 1 ? 'Privada' : p.capacity === 2 ? 'Dúo' : `Grupo ${p.capacity}`}</p>
-                      <p className="font-bold text-gray-900 text-sm mt-0.5">{p.name}</p>
+                      <p className="font-bold text-gray-900 dark:text-white text-sm mt-0.5">{p.name}</p>
                       <p className="text-pink-600 font-black text-lg mt-1">€{p.price}</p>
                       <p className="text-[11px] text-gray-400">{p.duration_minutes}min · hasta {p.capacity} pers.</p>
                     </button>
@@ -437,7 +437,7 @@ const ArtistProfilePage: React.FC = () => {
               <img src={selectedMedia.url} alt={selectedMedia.title} className="w-full h-full object-cover" />
             </div>
             <div className="flex items-center justify-between text-sm">
-              <span className="font-bold text-gray-900">{selectedMedia.title}</span>
+              <span className="font-bold text-gray-900 dark:text-white">{selectedMedia.title}</span>
               {selectedMedia.views !== undefined && (
                 <span className="text-gray-400 flex items-center gap-1"><Eye className="w-4 h-4" /> {selectedMedia.views.toLocaleString()}</span>
               )}
@@ -535,19 +535,19 @@ const AboutTab: React.FC<{ artist: Artist }> = ({ artist }) => (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div className="lg:col-span-2 space-y-4">
         <div className="card-white rounded-2xl p-5">
-          <h3 className="font-display font-bold text-gray-900 mb-3">Biografía</h3>
+          <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3">Biografía</h3>
           <p className="text-gray-600 leading-relaxed">{artist.bio}</p>
         </div>
 
         {artist.performanceStyle && (
           <div className="card-white rounded-2xl p-5">
-            <h3 className="font-display font-bold text-gray-900 mb-3">🎭 Estilo</h3>
+            <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3">🎭 Estilo</h3>
             <p className="text-gray-600">{artist.performanceStyle}</p>
           </div>
         )}
 
         <div className="card-white rounded-2xl p-5">
-          <h3 className="font-display font-bold text-gray-900 mb-3">Géneros y especialidades</h3>
+          <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3">Géneros y especialidades</h3>
           <div className="flex flex-wrap gap-2">
             {artist.genre.map(g => (
               <span key={g} className="bg-pink-50 text-brand-orange border border-pink-100 text-sm font-semibold px-3 py-1 rounded-full">{g}</span>
@@ -560,7 +560,7 @@ const AboutTab: React.FC<{ artist: Artist }> = ({ artist }) => (
 
         {artist.languages && artist.languages.length > 0 && (
           <div className="card-white rounded-2xl p-5">
-            <h3 className="font-display font-bold text-gray-900 mb-3 flex items-center gap-2">
+            <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
               <Globe className="w-4 h-4 text-brand-orange" /> Idiomas
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -601,7 +601,7 @@ const HighlightsBar: React.FC<{ artist: Artist }> = ({ artist }) => {
         <div key={i} className="card-white rounded-2xl p-4 flex items-center gap-3">
           <span className="w-11 h-11 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0">{it.icon}</span>
           <div className="min-w-0">
-            <p className="font-display font-black text-gray-900 text-lg leading-none">{it.value}</p>
+            <p className="font-display font-black text-gray-900 dark:text-white text-lg leading-none">{it.value}</p>
             <p className="text-gray-400 text-[11px] truncate mt-0.5">{it.sub}</p>
           </div>
         </div>
@@ -652,7 +652,7 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
       {/* 1) Vídeo */}
       <div className="card-white rounded-2xl overflow-hidden flex flex-col">
         <div className="p-4 pb-2 flex items-center justify-between">
-          <h3 className="font-display font-bold text-gray-900 flex items-center gap-2">🎬 Vídeo</h3>
+          <h3 className="font-display font-bold text-gray-900 dark:text-white flex items-center gap-2">🎬 Vídeo</h3>
           {ytId && <a href={artist.featuredVideo} target="_blank" rel="noreferrer" className="text-[10px] text-red-500 font-bold hover:underline">YouTube ↗</a>}
         </div>
         <div className="bg-black aspect-video">
@@ -668,7 +668,7 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
 
       {/* 2) Próximos eventos */}
       <div className="card-white rounded-2xl p-4 flex flex-col">
-        <h3 className="font-display font-bold text-gray-900 flex items-center gap-2 mb-3">📅 Próximos eventos</h3>
+        <h3 className="font-display font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-3">📅 Próximos eventos</h3>
         {events.length > 0 ? (
           <div className="space-y-2.5">
             {events.map(e => (
@@ -678,7 +678,7 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
                   <span className="text-[8px] font-bold text-pink-400">{month(e.date)}</span>
                 </div>
                 <div className="min-w-0">
-                  <p className="font-bold text-gray-900 text-xs truncate">{e.title}</p>
+                  <p className="font-bold text-gray-900 dark:text-white text-xs truncate">{e.title}</p>
                   <p className="text-gray-400 text-[10px] truncate flex items-center gap-1"><MapPin className="w-3 h-3" />{e.venueName || e.city}</p>
                 </div>
               </div>
@@ -692,14 +692,14 @@ const ServiceCards: React.FC<{ artist: Artist }> = ({ artist }) => {
       {/* 3) Cursos — no aplica a locales */}
       {!isVenue && (
       <div className="card-white rounded-2xl p-4 flex flex-col">
-        <h3 className="font-display font-bold text-gray-900 flex items-center gap-2 mb-3">🎓 Cursos</h3>
+        <h3 className="font-display font-bold text-gray-900 dark:text-white flex items-center gap-2 mb-3">🎓 Cursos</h3>
         {courses.length > 0 ? (
           <div className="space-y-2.5">
             {courses.map((c: any) => (
               <div key={c.id} className="flex items-center gap-2.5 p-2.5 rounded-xl border border-gray-100">
                 {c.image && <img src={c.image} alt={c.name} className="w-11 h-11 rounded-lg object-cover flex-shrink-0" loading="lazy" />}
                 <div className="min-w-0 flex-1">
-                  <p className="font-bold text-gray-900 text-xs truncate">{c.name}</p>
+                  <p className="font-bold text-gray-900 dark:text-white text-xs truncate">{c.name}</p>
                   <p className="text-gray-400 text-[10px]">{c.duration_minutes ? `${c.duration_minutes} min` : 'Curso'}{c.capacity ? ` · hasta ${c.capacity} pers.` : ''}</p>
                 </div>
                 {c.price != null && <span className="flex-shrink-0 text-pink-600 font-black text-sm">€{c.price}</span>}
@@ -788,7 +788,7 @@ const FeaturedVideoCard: React.FC<{ artist: Artist }> = ({ artist }) => {
   return (
     <div className="card-white rounded-2xl overflow-hidden">
       <div className="p-5 pb-3 flex items-center justify-between">
-        <h3 className="font-display font-bold text-gray-900 flex items-center gap-2">
+        <h3 className="font-display font-bold text-gray-900 dark:text-white flex items-center gap-2">
           🎬 Vídeo destacado
         </h3>
         {ytId && (
@@ -813,7 +813,7 @@ const FeaturedVideoCard: React.FC<{ artist: Artist }> = ({ artist }) => {
       </div>
       {artist.featuredVideoTitle && (
         <div className="px-5 py-3 border-t border-gray-100">
-          <p className="text-sm font-semibold text-gray-900">{artist.featuredVideoTitle}</p>
+          <p className="text-sm font-semibold text-gray-900 dark:text-white">{artist.featuredVideoTitle}</p>
         </div>
       )}
     </div>
@@ -835,7 +835,7 @@ const SocialLinksCard: React.FC<{ artist: Artist }> = ({ artist }) => {
   return (
     <div className="card-white rounded-2xl p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-display font-bold text-gray-900">🌐 Redes sociales</h3>
+        <h3 className="font-display font-bold text-gray-900 dark:text-white">🌐 Redes sociales</h3>
         {totalFollowers > 0 && (
           <span className="text-[10px] text-gray-400">Total <span className="font-black text-brand-orange">{formatFollowers(totalFollowers)}</span></span>
         )}
@@ -861,7 +861,7 @@ const SocialLinksCard: React.FC<{ artist: Artist }> = ({ artist }) => {
 
 const StatsCard: React.FC<{ artist: Artist }> = ({ artist }) => (
   <div className="card-white rounded-2xl p-5">
-    <h3 className="font-display font-bold text-gray-900 mb-3">📊 Estadísticas</h3>
+    <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3">📊 Estadísticas</h3>
     <div className="space-y-3">
       <StatRow label="Bookings completados" value={artist.completedBookings.toLocaleString()} />
       <StatRow label="Reseñas" value={artist.reviews.toLocaleString()} />
@@ -905,7 +905,7 @@ const LiveTab: React.FC<{ artist: Artist; currentStream: any; onChat: () => void
             </button>
           </div>
           <div className="p-5">
-            <h3 className="font-display font-bold text-gray-900 text-xl mb-1">{currentStream.title}</h3>
+            <h3 className="font-display font-bold text-gray-900 dark:text-white text-xl mb-1">{currentStream.title}</h3>
             {currentStream.description && (
               <p className="text-gray-500 text-sm mb-4">{currentStream.description}</p>
             )}
@@ -945,7 +945,7 @@ const ScheduledStreamsList: React.FC<{ artist: Artist }> = ({ artist }) => {
   if (!artist.scheduledStreams?.length) return null;
   return (
     <div className="card-white rounded-2xl p-5">
-      <h3 className="font-display font-bold text-gray-900 mb-3 flex items-center gap-2">
+      <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
         <Calendar className="w-4 h-4 text-brand-orange" /> Próximos streams programados
       </h3>
       <div className="space-y-2">
@@ -953,7 +953,7 @@ const ScheduledStreamsList: React.FC<{ artist: Artist }> = ({ artist }) => {
           <div key={s.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
             <img src={s.thumbnail} alt={s.title} className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-gray-900 text-sm">{s.title}</p>
+              <p className="font-bold text-gray-900 dark:text-white text-sm">{s.title}</p>
               <p className="text-gray-400 text-xs">
                 {new Date(s.date).toLocaleDateString('es-ES', { day: '2-digit', month: 'long' })} · {s.time}
               </p>
@@ -1011,7 +1011,7 @@ const OffersTab: React.FC<{ artist: Artist; onBook: (p: OfferPackage) => void; o
         <div className="flex items-start gap-3">
           <Lock className="w-5 h-5 text-brand-orange flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-bold text-gray-900 text-sm">Solo comunicación por chat interno</p>
+            <p className="font-bold text-gray-900 dark:text-white text-sm">Solo comunicación por chat interno</p>
             <p className="text-gray-600 text-xs mt-0.5">
               No hay contacto externo. Todas las ofertas, negociaciones y pagos pasan por el sistema protegido de la plataforma (escrow, 15% comisión).
             </p>
@@ -1033,7 +1033,7 @@ const OffersTab: React.FC<{ artist: Artist; onBook: (p: OfferPackage) => void; o
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">
                 {pkg.tier === 'basic' ? 'BÁSICO' : pkg.tier === 'standard' ? 'ESTÁNDAR' : 'PREMIUM'}
               </p>
-              <h3 className="font-display font-black text-gray-900 text-lg leading-tight mb-1">{pkg.name}</h3>
+              <h3 className="font-display font-black text-gray-900 dark:text-white text-lg leading-tight mb-1">{pkg.name}</h3>
               <p className="text-gray-500 text-xs mb-4">{pkg.description}</p>
               <div className="flex items-end gap-1 mb-1">
                 <span className="text-4xl font-black text-brand-orange">€{pkg.price}</span>
@@ -1065,9 +1065,9 @@ const OffersTab: React.FC<{ artist: Artist; onBook: (p: OfferPackage) => void; o
         })}
       </div>
 
-      <div className="bg-white rounded-2xl border-2 border-dashed border-gray-200 p-5 flex flex-col sm:flex-row items-center gap-4">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl border-2 border-dashed border-gray-200 dark:border-gray-700 p-5 flex flex-col sm:flex-row items-center gap-4">
         <div className="flex-1 text-center sm:text-left">
-          <p className="font-bold text-gray-900">¿Necesitas algo personalizado?</p>
+          <p className="font-bold text-gray-900 dark:text-white">¿Necesitas algo personalizado?</p>
           <p className="text-gray-500 text-sm">Envía una oferta a medida con tu fecha, ubicación y presupuesto.</p>
         </div>
         <button onClick={onCustom} className="btn-outline text-sm whitespace-nowrap">
@@ -1088,7 +1088,7 @@ const ReviewsTab: React.FC<{ artist: Artist }> = ({ artist }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div className="card-white rounded-2xl p-5">
-        <p className="text-5xl font-black text-gray-900 leading-none">{artist.rating}</p>
+        <p className="text-5xl font-black text-gray-900 dark:text-white leading-none">{artist.rating}</p>
         <div className="flex items-center gap-0.5 my-2">
           {[1,2,3,4,5].map(i => (
             <Star key={i} className={`w-5 h-5 ${i <= Math.round(artist.rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} />
@@ -1116,7 +1116,7 @@ const ReviewsTab: React.FC<{ artist: Artist }> = ({ artist }) => {
               <Avatar src={`https://ui-avatars.com/api/?name=${encodeURIComponent(r.user)}&background=7C3AED&color=fff&size=80`} name={r.user} size="sm" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between flex-wrap gap-1">
-                  <p className="font-bold text-gray-900 text-sm">{r.user}</p>
+                  <p className="font-bold text-gray-900 dark:text-white text-sm">{r.user}</p>
                   <p className="text-gray-400 text-xs">{new Date(r.date).toLocaleDateString('es-ES')}</p>
                 </div>
                 <div className="flex items-center gap-0.5 mt-0.5">
@@ -1160,7 +1160,7 @@ const AvailabilityTab: React.FC<{ artist: Artist; onChat: () => void }> = ({ art
   return (
     <div className="space-y-4">
       <div className="card-white rounded-2xl p-5">
-        <h3 className="font-display font-bold text-gray-900 mb-1">📅 Disponibilidad semanal</h3>
+        <h3 className="font-display font-bold text-gray-900 dark:text-white mb-1">📅 Disponibilidad semanal</h3>
         <p className="text-gray-500 text-sm mb-4">Días y horas habituales — confirma por chat para fechas concretas</p>
 
         <div className="space-y-2">
@@ -1190,7 +1190,7 @@ const AvailabilityTab: React.FC<{ artist: Artist; onChat: () => void }> = ({ art
       </div>
 
       <div className="card-white rounded-2xl p-5">
-        <h3 className="font-display font-bold text-gray-900 mb-2">¿No ves tu fecha?</h3>
+        <h3 className="font-display font-bold text-gray-900 dark:text-white mb-2">¿No ves tu fecha?</h3>
         <p className="text-gray-500 text-sm mb-3">
           La disponibilidad puede variar según la temporada. Envía un mensaje por chat interno para confirmar fechas concretas.
         </p>

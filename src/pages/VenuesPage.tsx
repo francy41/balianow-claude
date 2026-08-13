@@ -198,7 +198,7 @@ const VenuesList: React.FC = () => {
 };
 
 const VenueCard: React.FC<{ venue: Venue; onClick: () => void }> = ({ venue, onClick }) => (
-  <div onClick={onClick} className="group bg-white rounded-3xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-pink-500/10 hover:-translate-y-1 transition-all duration-300 border border-gray-100">
+  <div onClick={onClick} className="group bg-white dark:bg-gray-900 rounded-3xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-pink-500/10 hover:-translate-y-1 transition-all duration-300 border border-gray-100 dark:border-gray-800">
     <div className="relative h-44 overflow-hidden bg-gray-100">
       <img src={venue.cover} alt={venue.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
@@ -223,7 +223,7 @@ const VenueCard: React.FC<{ venue: Venue; onClick: () => void }> = ({ venue, onC
       <DemoBadge ownerId={venue.userId as string} className="absolute bottom-3 right-3 z-10" />
     </div>
     <div className="p-4">
-      <h3 className="text-gray-900 font-black text-base line-clamp-1">{venue.name}</h3>
+      <h3 className="text-gray-900 dark:text-white font-black text-base line-clamp-1">{venue.name}</h3>
       <div className="flex items-center gap-1.5 text-gray-400 text-xs mt-1">
         <MapPin className="w-3.5 h-3.5 text-pink-500 flex-shrink-0" /> {venue.city}
         <span className="text-gray-300">·</span>
@@ -374,7 +374,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
   if (!venue) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-3 p-6 text-center">
       <p className="text-5xl">📍</p>
-      <h2 className="font-display font-black text-xl text-gray-900">Local no encontrado</h2>
+      <h2 className="font-display font-black text-xl text-gray-900 dark:text-white">Local no encontrado</h2>
       <p className="text-gray-400 text-sm">Este local ya no existe o fue eliminado.</p>
       <button onClick={() => navigate('/venues')} className="btn-orange px-6 py-2">Ver locales</button>
     </div>
@@ -427,7 +427,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
       </section>
 
       {/* ── ACTION BAR ── */}
-      <div className="sticky top-14 z-30 bg-white border-b border-gray-100 shadow-sm">
+      <div className="sticky top-14 z-30 bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           <button onClick={() => navigate('/chat')}
             className="btn-orange text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
@@ -507,7 +507,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
               </div>
 
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 mb-3">🎭 Estilo</h3>
+                <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3">🎭 Estilo</h3>
                 <p className="text-gray-600">
                   {venue.type === 'club' ? 'Ambiente nocturno con DJs en vivo y pista de baile profesional' :
                    venue.type === 'bar' ? 'Espacio acogedor con música en vivo y cocktails tropicales' :
@@ -519,7 +519,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
               </div>
 
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 mb-3">Servicios & Amenities</h3>
+                <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3">Servicios & Amenities</h3>
                 <div className="flex flex-wrap gap-2">
                   {venue.amenities.map(a => (
                     <span key={a} className="bg-pink-50 text-brand-orange border border-pink-100 text-sm font-semibold px-3 py-1 rounded-full">{a}</span>
@@ -531,7 +531,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
 
               <div className="card-white rounded-2xl p-5">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-display font-bold text-gray-900">🕐 Horario</h3>
+                  <h3 className="font-display font-bold text-gray-900 dark:text-white">🕐 Horario</h3>
                   <Badge variant={venue.isOpen ? 'green' : 'gray'}>{venue.isOpen ? 'Abierto ahora' : 'Cerrado'}</Badge>
                 </div>
                 {dayHours.length > 0 ? (
@@ -541,7 +541,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                       return (
                         <div key={d} className="flex items-center justify-between text-sm">
                           <span className="text-gray-600 font-medium">{dname}</span>
-                          <span className={h?.is_open ? 'text-gray-900 font-semibold' : 'text-gray-400'}>
+                          <span className={h?.is_open ? 'text-gray-900 dark:text-white font-semibold' : 'text-gray-400'}>
                             {h?.is_open ? `${String(h.open_time || '').slice(0,5)} – ${String(h.close_time || '').slice(0,5)}` : 'Cerrado'}
                           </span>
                         </div>
@@ -565,7 +565,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                 return (
                   <div className="card-white rounded-2xl overflow-hidden">
                     <div className="p-5 pb-3 flex items-center justify-between">
-                      <h3 className="font-display font-bold text-gray-900 flex items-center gap-2">
+                      <h3 className="font-display font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         🎬 Vídeo destacado
                       </h3>
                       <a href={vid.url} target="_blank" rel="noreferrer"
@@ -583,7 +583,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                       />
                     </div>
                     <div className="px-5 py-3 border-t border-gray-100">
-                      <p className="text-sm font-semibold text-gray-900">{vid.title}</p>
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{vid.title}</p>
                       <p className="text-xs text-gray-400 mt-0.5">{venue.name} · YouTube</p>
                     </div>
                   </div>
@@ -595,7 +595,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
             <div className="space-y-4">
               {/* Social Links */}
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 mb-3">🌐 Redes sociales</h3>
+                <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3">🌐 Redes sociales</h3>
                 <div className="grid grid-cols-3 gap-2">
                   {Object.entries(socials).map(([key, handle]) => (
                     <a key={key}
@@ -611,7 +611,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
 
               {/* Map (replaces Statistics) */}
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 mb-3">📍 Ubicación</h3>
+                <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3">📍 Ubicación</h3>
                 <div className="rounded-xl overflow-hidden border border-gray-100">
                   <iframe
                     title={`Mapa de ${venue.name}`}
@@ -664,7 +664,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
 
               {/* Quick stats */}
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 mb-3">📊 Estadísticas</h3>
+                <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3">📊 Estadísticas</h3>
                 <div className="space-y-3">
                   {[
                     { label: 'Próximos eventos', value: realEvents.length.toString() },
@@ -709,7 +709,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                     <span className="text-white/80 text-xs font-bold">{ev.month}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-gray-900 font-semibold truncate">{ev.title}</p>
+                    <p className="text-gray-900 dark:text-white font-semibold truncate">{ev.title}</p>
                     <p className="text-gray-400 text-xs mt-1">{venue.name}{ev.time ? ` · ${ev.time}` : ''}</p>
                     {ev.price != null && <p className="text-brand-orange text-sm font-bold mt-2">€{ev.price}</p>}
                   </div>
@@ -740,7 +740,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
           <div className="space-y-4">
             <div className="card-white rounded-2xl p-5 flex items-center gap-6">
               <div className="text-center">
-                <p className="font-black text-4xl text-gray-900">{venue.rating}</p>
+                <p className="font-black text-4xl text-gray-900 dark:text-white">{venue.rating}</p>
                 <StarRating rating={venue.rating} count={venue.reviews} size="md" className="mt-1" />
               </div>
               <div className="flex-1 space-y-1.5">
@@ -768,7 +768,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                 <div className="flex items-center gap-3 mb-2">
                   <div className="w-10 h-10 bg-brand-orange/10 rounded-full flex items-center justify-center text-brand-orange font-bold">{r.name[0]}</div>
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900 text-sm">{r.name}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white text-sm">{r.name}</p>
                     <p className="text-gray-400 text-xs">{r.time}</p>
                   </div>
                   <div className="flex items-center gap-0.5">
