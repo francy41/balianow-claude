@@ -140,6 +140,7 @@ export interface Venue {
   lng: number;
   priceRange: 1 | 2 | 3 | 4;
   userId?: string;
+  socials?: Record<string, string>;
 }
 
 export interface Service {
