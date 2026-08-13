@@ -658,18 +658,21 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                 </p>
               </div>
 
-              {/* Próximos eventos (sidebar) */}
+              {/* Próximos eventos — formato flyer (2x2) */}
               {(() => {
                 const MONTHS = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
-                const mapped = realEvents.slice(0, 3).map(e => ({
+                const mapped = realEvents.slice(0, 4).map(e => ({
                   id: e.id,
                   day: (e.date || '').split('-')[2] || '--',
                   month: MONTHS[(Number((e.date || '').split('-')[1]) || 1) - 1] || '',
                   title: e.title || 'Evento',
+                  cover: e.cover || e.image_url || '',
                 }));
                 const examples = [
-                  { id: 'ex1', day: '21', month: 'JUN', title: 'Noche de Salsa Cubana' },
-                  { id: 'ex2', day: '28', month: 'JUN', title: 'Bachata Sensual Night' },
+                  { id: 'ex1', day: '21', month: 'JUN', title: 'Noche de Salsa Cubana', cover: '' },
+                  { id: 'ex2', day: '28', month: 'JUN', title: 'Bachata Sensual Night', cover: '' },
+                  { id: 'ex3', day: '05', month: 'JUL', title: 'Festival Latino Summer', cover: '' },
+                  { id: 'ex4', day: '12', month: 'JUL', title: 'Reggaeton Party', cover: '' },
                 ];
                 const list = mapped.length ? mapped : examples;
                 return (
@@ -678,40 +681,24 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                       <h3 className="font-display font-bold text-gray-900 dark:text-white">📅 Próximos eventos</h3>
                       <button onClick={() => setActiveTab('events')} className="text-[11px] font-bold text-pink-500 hover:underline">Ver todos</button>
                     </div>
-                    {mapped.length === 0 && <p className="text-[11px] text-gray-400 mb-2">Ejemplos — aún no hay eventos.</p>}
-                    <div className="space-y-2.5">
-                      {list.map(ev => (
-                        <div key={ev.id} onClick={() => ev.id.startsWith('ex') ? setActiveTab('events') : navigate(`/eventos/${ev.id}`)}
-                          className="flex items-center gap-3 cursor-pointer group">
-                          <div className="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-brand-orange to-pink-600 text-white flex flex-col items-center justify-center leading-none">
-                            <span className="font-black text-sm">{ev.day}</span>
-                            <span className="text-[8px] font-bold text-white/80">{ev.month}</span>
+                    {mapped.length === 0 && <p className="text-[11px] text-gray-400 mb-3">Ejemplos — aún no hay eventos publicados.</p>}
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {list.map((ev, i) => (
+                        <button key={ev.id} onClick={() => ev.id.startsWith('ex') ? setActiveTab('events') : navigate(`/eventos/${ev.id}`)}
+                          className="relative aspect-[3/4] rounded-xl overflow-hidden text-left group bg-gradient-to-br from-fuchsia-900 via-purple-900 to-gray-950">
+                          {ev.cover && <img src={ev.cover} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500" onError={(e) => { e.currentTarget.style.display = 'none'; }} />}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/10" />
+                          <div className="absolute top-2 left-2 bg-white/95 rounded-lg px-1.5 py-1 text-center leading-none shadow">
+                            <div className="font-black text-sm text-gray-900">{ev.day}</div>
+                            <div className="text-[8px] font-bold text-pink-600">{ev.month}</div>
                           </div>
-                          <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 group-hover:text-brand-orange transition-colors truncate">{ev.title}</p>
-                        </div>
+                          <p className="absolute bottom-2 left-2 right-2 text-white font-black text-[11px] leading-tight line-clamp-2 drop-shadow">{ev.title}</p>
+                        </button>
                       ))}
                     </div>
                   </div>
                 );
               })()}
-
-              {/* Quick stats */}
-              <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3">📊 Estadísticas</h3>
-                <div className="space-y-3">
-                  {[
-                    { label: 'Próximos eventos', value: realEvents.length.toString() },
-                    { label: 'Reseñas', value: venue.reviews.toString() },
-                    { label: 'Capacidad máxima', value: venue.capacity.toLocaleString() },
-                    { label: 'Aforo / nivel', value: '€'.repeat(venue.priceRange || 2) },
-                  ].map(row => (
-                    <div key={row.label} className="flex justify-between items-center">
-                      <span className="text-gray-500 text-sm">{row.label}</span>
-                      <span className="font-black text-brand-orange">{row.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         )}
