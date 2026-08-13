@@ -552,17 +552,6 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
               </div>
 
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3">Servicios & Amenities</h3>
-                <div className="flex flex-wrap gap-2">
-                  {venue.amenities.map(a => (
-                    <span key={a} className="bg-pink-50 text-brand-orange border border-pink-100 text-sm font-semibold px-3 py-1 rounded-full">{a}</span>
-                  ))}
-                  <span className="bg-gray-50 text-gray-600 border border-gray-100 text-sm px-3 py-1 rounded-full">Capacidad: {venue.capacity}</span>
-                  <span className="bg-gray-50 text-gray-600 border border-gray-100 text-sm px-3 py-1 rounded-full">{'€'.repeat(venue.priceRange)}</span>
-                </div>
-              </div>
-
-              <div className="card-white rounded-2xl p-5">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-display font-bold text-gray-900 dark:text-white">🕐 Horario</h3>
                   <Badge variant={venue.isOpen ? 'green' : 'gray'}>{venue.isOpen ? 'Abierto ahora' : 'Cerrado'}</Badge>
