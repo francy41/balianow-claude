@@ -52,7 +52,13 @@ async function resolveUser(supaId: string, email: string, oauthMeta?: {
     if (i < 2) await new Promise(r => setTimeout(r, 800));
   }
 
-  // Profile not found (trigger may not exist yet) — create it manually
+  // No llegó tras 3 intentos: puede ser un usuario NUEVO (sin fila aún) o
+  // simplemente una consulta que falló por red/latencia en un usuario YA
+  // EXISTENTE. Antes esto hacía upsert() sin más, que en el segundo caso
+  // SOBRESCRIBÍA la fila real (rol, avatar...) con estos valores de "usuario
+  // nuevo" — así es como una cuenta de local podía perder su rol 'venue' y
+  // volver a 'user' por un simple hipo de red. ignoreDuplicates: true hace
+  // que, si la fila YA existe, no se toque nada (evita la corrupción).
   const fallback = {
     id:           supaId,
     full_name:    oauthMeta?.name || email.split('@')[0],
@@ -65,10 +71,17 @@ async function resolveUser(supaId: string, email: string, oauthMeta?: {
     wallet_balance: 0,
   };
 
-  const { error } = await supabase.from('profiles').upsert(fallback, { onConflict: 'id' });
-  if (!error) return mapProfile(fallback, supaId);
+  await supabase.from('profiles').upsert(fallback, { onConflict: 'id', ignoreDuplicates: true });
 
-  return null;
+  // Vuelve a leer: si la fila ya existía (caso "solo falló la red"), esto
+  // trae los datos REALES en vez de los de fallback. Si de verdad es nueva,
+  // trae lo que se acaba de insertar.
+  const { data: reread } = await authService.getProfile(supaId);
+  if (reread) return mapProfile(reread, supaId);
+
+  // Último recurso: ni la fila existía ni se pudo releer — usar fallback
+  // solo para esta sesión (no corrompe nada en BD gracias a ignoreDuplicates).
+  return mapProfile(fallback, supaId);
 }
 
 // ── Safe wrapper: resolveUser NUNCA debe colgar la app ─────────────────────
