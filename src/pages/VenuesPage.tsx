@@ -312,6 +312,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
   const [bookingOpen, setBookingOpen] = useState(false);
   const [following, setFollowing] = useState(false);
   const [liked, setLiked] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -415,7 +416,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
               </h1>
               <div className="flex items-center gap-3 mt-2 text-white/80 text-sm flex-wrap">
                 <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {venue.city}, España</span>
-                <span className="flex items-center gap-1"><Users className="w-4 h-4" /> {(venue.capacity * 12).toLocaleString()} seguidores</span>
+                <span className="flex items-center gap-1"><Users className="w-4 h-4" /> Aforo {venue.capacity}</span>
                 <span className="flex items-center gap-1"><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /> {venue.rating} ({venue.reviews})</span>
                 <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> Responde ~ 1 hora</span>
               </div>
@@ -623,10 +624,10 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                 <h3 className="font-display font-bold text-gray-900 mb-3">📊 Estadísticas</h3>
                 <div className="space-y-3">
                   {[
-                    { label: 'Eventos realizados', value: (venue.reviews * 3).toString() },
+                    { label: 'Próximos eventos', value: realEvents.length.toString() },
                     { label: 'Reseñas', value: venue.reviews.toString() },
                     { label: 'Capacidad máxima', value: venue.capacity.toLocaleString() },
-                    { label: 'Seguidores', value: (venue.capacity * 12).toLocaleString() },
+                    { label: 'Aforo / nivel', value: '€'.repeat(venue.priceRange || 2) },
                   ].map(row => (
                     <div key={row.label} className="flex justify-between items-center">
                       <span className="text-gray-500 text-sm">{row.label}</span>
@@ -677,12 +678,18 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
         })()}
 
         {activeTab === 'gallery' && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {Array.from({ length: 12 }, (_, i) => (
-              <div key={i} className="aspect-square overflow-hidden rounded-xl group cursor-pointer">
-                <img src={`https://picsum.photos/seed/${venue.id}gal${i}/400/400`} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-              </div>
-            ))}
+          <div className="columns-2 sm:columns-3 gap-3">
+            {Array.from({ length: 14 }, (_, i) => {
+              const h = [320, 240, 400, 260, 340, 220, 380][i % 7];
+              return (
+                <button key={i} onClick={() => setLightbox(`https://picsum.photos/seed/${venue.id}gal${i}/1000/${h * 2}`)}
+                  className="mb-3 w-full block overflow-hidden rounded-2xl group relative break-inside-avoid">
+                  <img src={`https://picsum.photos/seed/${venue.id}gal${i}/500/${h}`} alt="" loading="lazy"
+                    className="w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                </button>
+              );
+            })}
           </div>
         )}
 
@@ -740,6 +747,14 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
         venueId={String(venue.id)}
         venueName={venue.name}
       />
+
+      {/* Lightbox de galería */}
+      {lightbox && (
+        <div className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4" onClick={() => setLightbox(null)}>
+          <img src={lightbox} alt="" className="max-w-full max-h-full rounded-2xl object-contain" />
+          <button onClick={() => setLightbox(null)} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/15 text-white grid place-items-center hover:bg-white/25">✕</button>
+        </div>
+      )}
 
       <EntityAdminPanel kind="venue" id={venueId} ownerUserId={venue?.userId as string} />
       <div className="fixed z-[60] bottom-24 right-4 sm:bottom-8 sm:right-8">
