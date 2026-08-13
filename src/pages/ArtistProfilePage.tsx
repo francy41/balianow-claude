@@ -973,47 +973,32 @@ const ScheduledStreamsList: React.FC<{ artist: Artist }> = ({ artist }) => {
 // ── GALLERY TAB ─────────────────────────────────────────────────────────────
 const GalleryTab: React.FC<{ artist: Artist; onSelect: (m: MediaItem) => void }> = ({ artist, onSelect }) => {
   const gallery = artist.gallery || [];
-  if (gallery.length === 0) {
-    return (
-      <div className="card-white rounded-2xl p-10 text-center">
-        <ImageIcon className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-        <p className="text-gray-500 font-semibold">No hay contenido todavía</p>
-      </div>
-    );
-  }
+  const HS = [320, 240, 400, 260, 340, 220, 380];
+  const items: MediaItem[] = gallery.length ? gallery : Array.from({ length: 9 }, (_, i) => ({
+    id: `ex${i}`, type: 'photo',
+    thumbnail: `https://picsum.photos/seed/${artist.id}g${i}/500/${HS[i % HS.length]}`,
+    url: `https://picsum.photos/seed/${artist.id}g${i}/1000/1200`,
+    title: 'Foto',
+  } as MediaItem));
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-      {gallery.map(m => (
-        <button key={m.id} onClick={() => onSelect(m)}
-          className="card-white rounded-2xl overflow-hidden text-left group hover:shadow-lg transition-all">
-          <div className="relative aspect-square overflow-hidden">
-            <img src={m.thumbnail} alt={m.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+    <>
+      {gallery.length === 0 && <p className="text-xs text-gray-400 mb-3">Ejemplos — aún no hay fotos publicadas.</p>}
+      <div className="columns-2 sm:columns-3 gap-3">
+        {items.map(m => (
+          <button key={m.id} onClick={() => onSelect(m)}
+            className="mb-3 w-full block overflow-hidden rounded-2xl group relative break-inside-avoid">
+            <img src={m.thumbnail} alt={m.title} loading="lazy" className="w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors" />
             {m.type === 'video' && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center">
-                  <Play className="w-5 h-5 fill-brand-orange text-brand-orange ml-0.5" />
-                </div>
+                <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center"><Play className="w-5 h-5 fill-brand-orange text-brand-orange ml-0.5" /></div>
               </div>
             )}
-            {m.type === 'mix' && (
-              <div className="absolute top-2 left-2 bg-brand-orange text-white text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded">MIX</div>
-            )}
-            {m.duration && (
-              <div className="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">{m.duration}</div>
-            )}
-          </div>
-          <div className="p-2">
-            <p className="text-xs font-bold text-gray-900 truncate">{m.title}</p>
-            {m.views !== undefined && (
-              <p className="text-[10px] text-gray-400 flex items-center gap-1">
-                <Eye className="w-3 h-3" /> {m.views.toLocaleString()}
-              </p>
-            )}
-          </div>
-        </button>
-      ))}
-    </div>
+            {m.duration && <div className="absolute bottom-2 right-2 bg-black/70 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">{m.duration}</div>}
+          </button>
+        ))}
+      </div>
+    </>
   );
 };
 
