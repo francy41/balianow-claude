@@ -382,10 +382,12 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-10">
-      {/* ── HERO BANNER (like ArtistProfile) ── */}
-      <section className="relative h-72 sm:h-96 overflow-hidden">
-        <img src={venue.cover} alt={venue.name} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent" />
+      {/* ── HERO BANNER · portada tipo revista ── */}
+      <section className="relative h-80 sm:h-[26rem] overflow-hidden">
+        <img src={venue.cover} alt={venue.name} className="w-full h-full object-cover kenburns" />
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-900/55 to-transparent" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-pink-500/25 rounded-full blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
 
         <button onClick={() => navigate('/venues')}
           className="absolute top-4 left-4 bg-white/90 hover:bg-white text-gray-800 text-sm px-3 py-1.5 rounded-xl font-semibold transition-colors backdrop-blur-md">
@@ -469,7 +471,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
       </div>
 
       {/* ── TAB CONTENT ── */}
-      <div className="max-w-5xl mx-auto px-4 py-6">
+      <div key={activeTab} className="max-w-5xl mx-auto px-4 py-6 animate-fade-up">
 
         {activeTab === 'about' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -528,25 +530,6 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                     <span className="text-gray-600 font-medium">{venue.openHours || '23:00 – 06:00'}</span>
                   </div>
                 )}
-              </div>
-
-              {/* Ubicación tipo mapa */}
-              <div className="card-white rounded-2xl overflow-hidden">
-                <div className="relative h-44 bg-gradient-to-br from-gray-900 via-purple-950 to-black">
-                  <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.3) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
-                  <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-500/25 rounded-full blur-3xl pointer-events-none" />
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-                    <span className="w-12 h-12 rounded-full bg-pink-500 flex items-center justify-center shadow-lg shadow-pink-500/40"><MapPin className="w-6 h-6" /></span>
-                    <p className="font-display font-black text-xl mt-2 drop-shadow">{venue.city}</p>
-                  </div>
-                </div>
-                <div className="p-4 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Ubicación</p>
-                    <p className="font-bold text-gray-900 text-sm flex items-center gap-1 truncate"><MapPin className="w-4 h-4 text-pink-500 flex-shrink-0" />{(venue as any).address || venue.city}</p>
-                  </div>
-                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(((venue as any).address ? (venue as any).address + ', ' : '') + venue.city)}`} target="_blank" rel="noreferrer" className="btn-orange text-sm py-2 px-4 flex-shrink-0">Ver en el mapa →</a>
-                </div>
               </div>
 
               {/* Featured YouTube Video — del dueño (perfil) o ejemplo */}
