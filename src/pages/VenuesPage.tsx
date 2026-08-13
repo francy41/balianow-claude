@@ -13,6 +13,7 @@ import { Badge, StarRating, EmptyState, Button, Avatar } from '../components/ui'
 import { FilterFacet, ActiveFilterBar, FilterPanel } from '../components/SmartFilters';
 import { useAuthStore, useUIStore, getYouTubeId, useSiteConfigStore } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
+import VenueReservationModal from '../components/VenueReservationModal';
 import { supabase } from '../lib/supabase';
 import { usePageMeta } from '../hooks/usePageMeta';
 
@@ -339,6 +340,28 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
     return () => { cancelled = true; clearTimeout(timer); };
   }, [venueId]);
 
+  // Datos reales enriquecidos: vídeo del dueño (perfil), eventos del local y horarios por día.
+  const [ownerVideo, setOwnerVideo] = useState<{ url: string; title: string } | null>(null);
+  const [realEvents, setRealEvents] = useState<any[]>([]);
+  const [dayHours, setDayHours] = useState<any[]>([]);
+  useEffect(() => {
+    if (!venue) return;
+    const ownerId = String(venue.userId || '');
+    if (ownerId) {
+      supabase.from('profiles').select('youtube_url, featured_video, featured_video_title').eq('id', ownerId).maybeSingle().then(
+        ({ data }) => { const url = data?.featured_video || data?.youtube_url; if (url) setOwnerVideo({ url, title: data?.featured_video_title || `Vídeo de ${venue.name}` }); }, () => {});
+    }
+    supabase.from('events').select('id,title,date,time,price,venue_id,venue_name,owner_id,user_id,cover,image_url').is('deleted_at', null).then(
+      ({ data }) => {
+        const list = (data || []).filter((e: any) =>
+          String(e.venue_id || '') === String(venue.id) ||
+          (!!e.venue_name && e.venue_name === venue.name) ||
+          (!!ownerId && (e.owner_id === ownerId || e.user_id === ownerId)));
+        setRealEvents(list.sort((a: any, b: any) => (a.date || '').localeCompare(b.date || '')));
+      }, () => {});
+    supabase.from('venue_hours').select('*').eq('venue_id', venue.id).then(({ data }) => { if (data) setDayHours(data); }, () => {});
+  }, [venue?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleReserve = () => {
     if (!isClaimed(venue?.userId as string)) { addToast({ message: UNCLAIMED_TOAST, type: 'warning' }); return; }
     if (!isAuthenticated) { navigate('/auth'); return; }
@@ -481,14 +504,30 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
               </div>
 
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 mb-3">🕐 Horario</h3>
-                <div className="flex items-center gap-3">
-                  <Clock className="w-5 h-5 text-brand-orange" />
-                  <span className="text-gray-600 font-medium">{venue.openHours}</span>
-                  <Badge variant={venue.isOpen ? 'green' : 'gray'}>
-                    {venue.isOpen ? 'Abierto' : 'Cerrado'}
-                  </Badge>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-display font-bold text-gray-900">🕐 Horario</h3>
+                  <Badge variant={venue.isOpen ? 'green' : 'gray'}>{venue.isOpen ? 'Abierto ahora' : 'Cerrado'}</Badge>
                 </div>
+                {dayHours.length > 0 ? (
+                  <div className="space-y-1.5">
+                    {['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'].map((dname, d) => {
+                      const h = dayHours.find((x: any) => x.day_of_week === d);
+                      return (
+                        <div key={d} className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600 font-medium">{dname}</span>
+                          <span className={h?.is_open ? 'text-gray-900 font-semibold' : 'text-gray-400'}>
+                            {h?.is_open ? `${String(h.open_time || '').slice(0,5)} – ${String(h.close_time || '').slice(0,5)}` : 'Cerrado'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-brand-orange" />
+                    <span className="text-gray-600 font-medium">{venue.openHours || '23:00 – 06:00'}</span>
+                  </div>
+                )}
               </div>
 
               {/* Ubicación tipo mapa */}
@@ -510,9 +549,9 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                 </div>
               </div>
 
-              {/* Featured YouTube Video */}
+              {/* Featured YouTube Video — del dueño (perfil) o ejemplo */}
               {(() => {
-                const vid = VENUE_VIDEOS[venue.id];
+                const vid = ownerVideo || VENUE_VIDEOS[venue.id];
                 if (!vid) return null;
                 const ytId = getYouTubeId(vid.url);
                 if (!ytId) return null;
@@ -600,31 +639,42 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
           </div>
         )}
 
-        {activeTab === 'events' && (
-          <div className="space-y-3">
-            {[
-              { day: '21', month: 'JUN', title: 'Noche de Salsa Cubana', time: '22:00 – 05:00', price: 20 },
-              { day: '28', month: 'JUN', title: 'Bachata Sensual Night', time: '21:00 – 04:00', price: 25 },
-              { day: '05', month: 'JUL', title: 'Festival Latino Summer', time: '20:00 – 06:00', price: 35 },
-              { day: '12', month: 'JUL', title: 'Reggaeton Party', time: '23:00 – 05:00', price: 15 },
-            ].map((ev, i) => (
-              <div key={i} className="card-white rounded-2xl p-4 flex gap-4 hover:shadow-card-hover transition-shadow cursor-pointer">
-                <div className="w-16 flex-shrink-0 bg-brand-orange rounded-xl flex flex-col items-center justify-center p-2">
-                  <span className="text-white font-black text-2xl leading-none">{ev.day}</span>
-                  <span className="text-white/80 text-xs font-bold">{ev.month}</span>
+        {activeTab === 'events' && (() => {
+          const MONTHS = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+          const mapped = realEvents.map(e => ({
+            id: e.id,
+            day: (e.date || '').split('-')[2] || '--',
+            month: MONTHS[(Number((e.date || '').split('-')[1]) || 1) - 1] || '',
+            title: e.title || 'Evento',
+            time: e.time ? String(e.time).slice(0, 5) : '',
+            price: e.price != null ? Number(e.price) : null,
+          }));
+          const examples = [
+            { id: 'ex1', day: '21', month: 'JUN', title: 'Noche de Salsa Cubana', time: '22:00', price: 20 },
+            { id: 'ex2', day: '28', month: 'JUN', title: 'Bachata Sensual Night', time: '21:00', price: 25 },
+          ];
+          const events = mapped.length ? mapped : examples;
+          return (
+            <div className="space-y-3">
+              {mapped.length === 0 && <p className="text-xs text-gray-400 mb-1">Ejemplos — aún no hay eventos publicados.</p>}
+              {events.map(ev => (
+                <div key={ev.id} onClick={() => ev.id.startsWith('ex') ? null : navigate(`/eventos/${ev.id}`)}
+                  className="card-white rounded-2xl p-4 flex gap-4 hover:shadow-card-hover transition-shadow cursor-pointer">
+                  <div className="w-16 flex-shrink-0 bg-gradient-to-br from-brand-orange to-pink-600 rounded-xl flex flex-col items-center justify-center p-2">
+                    <span className="text-white font-black text-2xl leading-none">{ev.day}</span>
+                    <span className="text-white/80 text-xs font-bold">{ev.month}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-gray-900 font-semibold truncate">{ev.title}</p>
+                    <p className="text-gray-400 text-xs mt-1">{venue.name}{ev.time ? ` · ${ev.time}` : ''}</p>
+                    {ev.price != null && <p className="text-brand-orange text-sm font-bold mt-2">€{ev.price}</p>}
+                  </div>
+                  <button className="self-center bg-brand-orange text-white px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-brand-orange-dark transition-colors">🎫 Ver</button>
                 </div>
-                <div className="flex-1">
-                  <p className="text-gray-900 font-semibold">{ev.title}</p>
-                  <p className="text-gray-400 text-xs mt-1">{venue.name} · {ev.time}</p>
-                  <p className="text-brand-orange text-sm font-bold mt-2">€{ev.price}</p>
-                </div>
-                <button className="self-center bg-brand-orange text-white px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-brand-orange-dark transition-colors">
-                  🎫 Comprar
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          );
+        })()}
 
         {activeTab === 'gallery' && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -684,15 +734,11 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
         )}
       </div>
 
-      <BookingModal
+      <VenueReservationModal
         open={bookingOpen}
         onClose={() => setBookingOpen(false)}
-        providerId={venue.id}
-        providerName={venue.name}
-        source="booking"
-        defaultConcept={`Reserva del espacio ${venue.name}`}
-        defaultPrice={venue.priceRange * 100}
-        helperText={`${venue.type} en ${venue.city} · Capacidad ${venue.capacity}`}
+        venueId={String(venue.id)}
+        venueName={venue.name}
       />
 
       <EntityAdminPanel kind="venue" id={venueId} ownerUserId={venue?.userId as string} />
