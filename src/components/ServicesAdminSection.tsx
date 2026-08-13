@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Plus, Pencil, Trash2, Eye, EyeOff, Loader2, X, Save, ShoppingBag, Upload, ImageIcon, Inbox } from 'lucide-react';
+import { getYouTubeId } from '../store/appStore';
+import { Plus, Pencil, Trash2, Eye, EyeOff, Loader2, X, Save, ShoppingBag, Upload, ImageIcon, Inbox, Video, Link2 } from 'lucide-react';
 
 interface Props {
   addToast: (o: { message: string; type: 'success' | 'error' | 'warning' }) => void;
@@ -16,10 +17,11 @@ interface Service {
   active: boolean;
   sort: number;
   sample_images: string[];
+  sample_video_url: string | null;
 }
 
 const blank = (sort: number): Partial<Service> => ({
-  name: '', description: '', price: 0, icon: '🎨', category: 'marketing', active: true, sort, sample_images: [],
+  name: '', description: '', price: 0, icon: '🎨', category: 'marketing', active: true, sort, sample_images: [], sample_video_url: null,
 });
 
 const ServicesAdminSection: React.FC<Props> = ({ addToast }) => {
@@ -77,6 +79,7 @@ const ServicesAdminSection: React.FC<Props> = ({ addToast }) => {
       active: editing.active ?? true,
       sort: editing.sort ?? services.length,
       sample_images: editing.sample_images || [],
+      sample_video_url: editing.sample_video_url || null,
     };
     let error;
     if (editing.id) ({ error } = await supabase.from('platform_services').update(payload).eq('id', editing.id));
@@ -114,6 +117,24 @@ const ServicesAdminSection: React.FC<Props> = ({ addToast }) => {
   };
   const removeSampleImage = (url: string) => {
     setEditing(e => e ? { ...e, sample_images: (e.sample_images || []).filter(u => u !== url) } : e);
+  };
+
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const addSampleVideo = async (file: File) => {
+    if (!editing) return;
+    setUploadingVideo(true);
+    try {
+      const ext = (file.name.split('.').pop() || 'mp4').toLowerCase();
+      const path = `service-samples/${(editing.id || 'new')}-${Date.now()}.${ext}`;
+      const { error } = await supabase.storage.from('media').upload(path, file, { contentType: file.type });
+      if (error) throw error;
+      const { data } = supabase.storage.from('media').getPublicUrl(path);
+      setEditing(e => e ? { ...e, sample_video_url: data.publicUrl } : e);
+    } catch (err: any) {
+      addToast({ message: `No se pudo subir el vídeo: ${err.message || err}`, type: 'error' });
+    } finally {
+      setUploadingVideo(false);
+    }
   };
 
   const toggleActive = async (s: Service) => {
@@ -249,6 +270,35 @@ const ServicesAdminSection: React.FC<Props> = ({ addToast }) => {
                     {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                     <input type="file" accept="image/*" className="hidden" onChange={e => e.target.files?.[0] && addSampleImage(e.target.files[0])} />
                   </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-1 flex items-center gap-1"><Video className="w-3.5 h-3.5" /> Vídeo de muestra</label>
+                <p className="text-[11px] text-gray-400 mb-2">Sube un vídeo o pega un enlace (YouTube u otro) para que lo vean en movimiento.</p>
+                {editing.sample_video_url ? (
+                  <div className="relative w-full max-w-[220px] rounded-xl overflow-hidden mb-2 bg-black/5">
+                    {getYouTubeId(editing.sample_video_url) ? (
+                      <img src={`https://img.youtube.com/vi/${getYouTubeId(editing.sample_video_url)}/mqdefault.jpg`} alt="" className="w-full aspect-video object-cover" />
+                    ) : (
+                      <video src={editing.sample_video_url} className="w-full aspect-video object-cover" muted />
+                    )}
+                    <button onClick={() => setEditing(e => e ? { ...e, sample_video_url: null } : e)}
+                      className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : null}
+                <div className="flex items-center gap-2">
+                  <label className="flex-shrink-0 h-9 px-3 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 flex items-center gap-1.5 cursor-pointer text-gray-500 hover:border-pink-300 text-xs font-semibold">
+                    {uploadingVideo ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />} Subir
+                    <input type="file" accept="video/*" className="hidden" onChange={e => e.target.files?.[0] && addSampleVideo(e.target.files[0])} />
+                  </label>
+                  <div className="flex-1 flex items-center gap-1.5 border border-gray-200 dark:border-gray-700 rounded-lg px-2.5">
+                    <Link2 className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                    <input value={editing.sample_video_url || ''} onChange={e => setEditing({ ...editing, sample_video_url: e.target.value || null })}
+                      placeholder="o pega un enlace…" className="w-full text-xs py-2 bg-transparent outline-none" />
+                  </div>
                 </div>
               </div>
             </div>
