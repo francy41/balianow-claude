@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { useAuthStore, useUIStore } from '../store/appStore';
+import { useAuthStore, useUIStore, getYouTubeId } from '../store/appStore';
 import { getStripe, createStripePaymentIntent } from '../lib/payments';
 import StripePayment from './payment/StripePayment';
-import { Loader2, X, CreditCard, AlertCircle, CheckCircle, ShoppingBag, Upload, Link2, Phone } from 'lucide-react';
+import { Loader2, X, CreditCard, AlertCircle, CheckCircle, ShoppingBag, Upload, Link2, Phone, Play } from 'lucide-react';
 import GhlBookingWidget from './GhlBookingWidget';
 
 interface Service {
@@ -13,7 +13,19 @@ interface Service {
   price: number;
   icon: string | null;
   sample_images: string[];
+  sample_video_url: string | null;
 }
+
+const VideoPreview: React.FC<{ url: string; className?: string }> = ({ url, className }) => {
+  const ytId = getYouTubeId(url);
+  if (ytId) {
+    return (
+      <iframe src={`https://www.youtube.com/embed/${ytId}`} title="Vídeo de muestra" allowFullScreen
+        className={className} style={{ border: 0 }} />
+    );
+  }
+  return <video src={url} controls className={className} />;
+};
 
 const BuyServicesTab: React.FC = () => {
   const { user } = useAuthStore();
@@ -32,7 +44,7 @@ const BuyServicesTab: React.FC = () => {
       setServices([]);
     } else {
       setTableMissing(false);
-      setServices((data || []).map((s: any) => ({ ...s, sample_images: Array.isArray(s.sample_images) ? s.sample_images : [] })) as Service[]);
+      setServices((data || []).map((s: any) => ({ ...s, sample_images: Array.isArray(s.sample_images) ? s.sample_images : [], sample_video_url: s.sample_video_url || null })) as Service[]);
     }
     if (user?.id) {
       const { data: ord } = await supabase.from('service_orders').select('*').eq('buyer_id', user.id).order('created_at', { ascending: false });
@@ -64,8 +76,16 @@ const BuyServicesTab: React.FC = () => {
               <span className="w-11 h-11 rounded-xl bg-pink-50 dark:bg-pink-500/10 grid place-items-center text-2xl mb-3">{s.icon}</span>
               <p className="font-black text-gray-900 dark:text-white">{s.name}</p>
               <p className="text-gray-400 text-xs mt-1 flex-1">{s.description}</p>
-              {s.sample_images.length > 0 && (
+              {(s.sample_images.length > 0 || s.sample_video_url) && (
                 <div className="flex gap-1.5 mt-3">
+                  {s.sample_video_url && (
+                    <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-gray-900 flex-shrink-0">
+                      {getYouTubeId(s.sample_video_url) && (
+                        <img src={`https://img.youtube.com/vi/${getYouTubeId(s.sample_video_url)}/mqdefault.jpg`} alt="" className="w-full h-full object-cover opacity-80" />
+                      )}
+                      <span className="absolute inset-0 flex items-center justify-center"><Play className="w-3.5 h-3.5 text-white fill-white" /></span>
+                    </div>
+                  )}
                   {s.sample_images.slice(0, 3).map((url, i) => (
                     <img key={i} src={url} alt="" className="w-9 h-9 rounded-lg object-cover" />
                   ))}
@@ -232,6 +252,12 @@ const BuyModal: React.FC<{ service: Service; userId: string; onClose: () => void
             </div>
 
             {/* Muestras subidas por el admin */}
+            {service.sample_video_url && (
+              <div className="mb-4">
+                <label className="block text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-1.5">Vídeo de muestra</label>
+                <VideoPreview url={service.sample_video_url} className="w-full aspect-video rounded-xl" />
+              </div>
+            )}
             {service.sample_images.length > 0 && (
               <div className="mb-4">
                 <label className="block text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-1.5">Ejemplos</label>
