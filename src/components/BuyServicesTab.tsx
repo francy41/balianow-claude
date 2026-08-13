@@ -4,6 +4,7 @@ import { useAuthStore, useUIStore } from '../store/appStore';
 import { getStripe, createStripePaymentIntent } from '../lib/payments';
 import StripePayment from './payment/StripePayment';
 import { Loader2, X, CreditCard, AlertCircle, CheckCircle, ShoppingBag, Upload, Link2, Phone } from 'lucide-react';
+import GhlBookingWidget from './GhlBookingWidget';
 
 interface Service {
   id: string;
@@ -106,7 +107,7 @@ const BuyServicesTab: React.FC = () => {
 
 const BuyModal: React.FC<{ service: Service; userId: string; onClose: () => void; onDone: () => void }> = ({ service, userId, onClose, onDone }) => {
   const { addToast } = useUIStore();
-  const [step, setStep] = useState<'confirm' | 'pay' | 'done'>('confirm');
+  const [step, setStep] = useState<'confirm' | 'pay' | 'schedule' | 'done'>('confirm');
   const [clientSecret, setClientSecret] = useState('');
   const [stripeReady] = useState(!!getStripe());
   const [saving, setSaving] = useState(false);
@@ -150,7 +151,7 @@ const BuyModal: React.FC<{ service: Service; userId: string; onClose: () => void
   };
 
   const goToPay = async () => {
-    if (isFree) { await createOrder(null); return; }
+    if (isFree) { setStep('schedule'); return; }
     setSaving(true);
     if (stripeReady) {
       try {
@@ -205,6 +206,18 @@ const BuyModal: React.FC<{ service: Service; userId: string; onClose: () => void
                 </button>
               </div>
             )}
+          </>
+        ) : step === 'schedule' ? (
+          <>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-black text-lg text-gray-900 dark:text-white">Elige tu horario</h3>
+              <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 grid place-items-center"><X className="w-4 h-4" /></button>
+            </div>
+            <p className="text-sm text-gray-500 mb-3">Selecciona día y hora en el calendario. Cuando confirmes tu cita, pulsa el botón de abajo.</p>
+            <GhlBookingWidget />
+            <button onClick={() => createOrder(null)} disabled={saving} className="btn-orange w-full py-3 mt-4 flex items-center justify-center gap-2 disabled:opacity-50">
+              {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Phone className="w-5 h-5" />} Ya reservé mi llamada
+            </button>
           </>
         ) : (
           <>
@@ -262,7 +275,7 @@ const BuyModal: React.FC<{ service: Service; userId: string; onClose: () => void
 
             <button onClick={goToPay} disabled={saving} className="btn-orange w-full py-3 flex items-center justify-center gap-2 disabled:opacity-50">
               {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : isFree ? <Phone className="w-5 h-5" /> : <CreditCard className="w-5 h-5" />}
-              {isFree ? 'Reservar llamada' : 'Continuar al pago'}
+              {isFree ? 'Elegir horario' : 'Continuar al pago'}
             </button>
           </>
         )}

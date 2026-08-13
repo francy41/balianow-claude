@@ -4784,7 +4784,7 @@ const AdministradoresSection: React.FC<{ addToast: Function; isSuperAdmin: boole
 // INTEGRACIONES (GHL): chat widget, newsletter form, brands
 // ════════════════════════════════════════════════════════════════
 const IntegracionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
-  const [cfg, setCfg] = useState<{ chatWidget?: string; formId?: string; webhook?: string; subs?: number }>({});
+  const [cfg, setCfg] = useState<{ chatWidget?: string; formId?: string; webhook?: string; subs?: number; calendarId?: string }>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -4794,7 +4794,7 @@ const IntegracionesSection: React.FC<{ addToast: Function }> = ({ addToast }) =>
       const { data } = await supabase
         .from('site_config')
         .select('key, value')
-        .in('key', ['ghl_chat_widget_id', 'ghl_newsletter_form_id', 'ghl_newsletter_webhook']);
+        .in('key', ['ghl_chat_widget_id', 'ghl_newsletter_form_id', 'ghl_newsletter_webhook', 'ghl_booking_calendar_id']);
       const next: typeof cfg = {};
       for (const row of (data || [])) {
         const v = (row as any).value;
@@ -4802,6 +4802,7 @@ const IntegracionesSection: React.FC<{ addToast: Function }> = ({ addToast }) =>
         if (row.key === 'ghl_chat_widget_id')        next.chatWidget = val;
         if (row.key === 'ghl_newsletter_form_id')    next.formId = val;
         if (row.key === 'ghl_newsletter_webhook')    next.webhook = val;
+        if (row.key === 'ghl_booking_calendar_id')   next.calendarId = val;
       }
       // Count newsletter subscribers
       const { count } = await supabase.from('newsletter_subscribers').select('*', { count: 'exact', head: true });
@@ -4896,6 +4897,27 @@ const IntegracionesSection: React.FC<{ addToast: Function }> = ({ addToast }) =>
           initial={cfg.webhook || ''}
           placeholder="https://services.leadconnectorhq.com/hooks/..."
           onSave={(v) => saveKey('ghl_newsletter_webhook', v, true)}
+          saving={saving}
+        />
+      </div>
+
+      {/* Calendario de reservas GHL — usado por "Reserva una llamada" en Comprar servicios */}
+      <div className="card-white p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl">📞</span>
+          <div>
+            <h3 className="font-bold text-gray-900">Calendario de llamadas (GHL)</h3>
+            <p className="text-xs text-gray-500">Calendario que se embebe cuando alguien pulsa "Reservar llamada" en Comprar servicios</p>
+          </div>
+        </div>
+        <div className="text-xs text-gray-500 bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p>GHL → <b>Calendarios</b> → abre tu calendario de "Personal booking" → copia el Calendar ID de la URL/Configuración.</p>
+        </div>
+        <ConfigInput
+          label="Calendar ID"
+          initial={cfg.calendarId || ''}
+          placeholder="sw5dThSRsFlErTSSxBWZ"
+          onSave={(v) => saveKey('ghl_booking_calendar_id', v)}
           saving={saving}
         />
       </div>
