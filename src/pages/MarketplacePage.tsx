@@ -6,7 +6,6 @@ import { FilterFacet, ActiveFilterBar, FilterPanel, PriceRange } from '../compon
 import { useAuthStore, useCartStore } from '../store/appStore';
 import { supabase } from '../lib/supabase';
 import PaymentGateway from '../components/payment/PaymentGateway';
-import { SERVICES } from '../data/mockData';
 
 const CATEGORIES = ['Todos', 'DJ Set', 'Clases', 'Clases Online', 'Música en Vivo', 'Show Baile', 'Producción', 'Fotografía'];
 
@@ -29,15 +28,6 @@ function normalize(r: any): SvcRow {
   };
 }
 
-// Fallback: ejemplos cuando no hay servicios reales en BD
-const FALLBACK_SERVICES: SvcRow[] = SERVICES.slice(0, 10).map((s: any) => ({
-  id: s.id, title: s.title, cover: s.cover, category: s.category,
-  artistId: s.artistId, artistName: s.artistName, artistAvatar: s.artistAvatar,
-  price: Number(s.price) || 0, rating: Number(s.rating) || 0, reviews: Number(s.reviews) || 0,
-  orders: Number(s.orders) || 0, tags: Array.isArray(s.tags) ? s.tags : [],
-  deliveryDays: Number(s.deliveryDays) || 1,
-}));
-
 const MarketplacePage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
@@ -52,8 +42,8 @@ const MarketplacePage: React.FC = () => {
 
   useEffect(() => {
     let done = false;
-    const finish = (rows: SvcRow[]) => { if (done) return; done = true; setServices(rows.length ? rows : FALLBACK_SERVICES); setLoading(false); };
-    // Safety-timeout: si la consulta se cuelga/rechaza, mostramos ejemplos en vez de spinner infinito.
+    const finish = (rows: SvcRow[]) => { if (done) return; done = true; setServices(rows); setLoading(false); };
+    // Safety-timeout: si la consulta se cuelga/rechaza, deja de mostrar el spinner (lista vacía honesta).
     const timer = setTimeout(() => finish([]), 8000);
     supabase.from('services').select('*').eq('admin_status', 'approved').order('rating', { ascending: false }).limit(200)
       .then(

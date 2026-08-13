@@ -82,8 +82,8 @@ const PartnerProfilePage: React.FC = () => {
 
       const cities = p.cities.length ? p.cities : [''];
       const [{ data: ev }, { data: vn }, { data: ar }, followCount, mine] = await Promise.all([
-        supabase.from('events').select('id,title,date,cover').in('city', cities).order('date', { ascending: true }).limit(6),
-        supabase.from('venues').select('id,name,cover,type').in('city', cities).limit(6),
+        supabase.from('events').select('id,title,date,cover').is('deleted_at', null).in('city', cities).order('date', { ascending: true }).limit(6),
+        supabase.from('venues').select('id,name,cover,type').is('deleted_at', null).in('city', cities).limit(6),
         supabase.from('artists').select('id,name,avatar,cover,type').in('city', cities).limit(8),
         supabase.from('partner_followers').select('*', { count: 'exact', head: true }).eq('partner_id', p.partner_id),
         user ? supabase.from('partner_followers').select('user_id').eq('partner_id', p.partner_id).eq('user_id', user.id).maybeSingle() : Promise.resolve({ data: null }),

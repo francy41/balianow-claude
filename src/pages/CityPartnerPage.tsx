@@ -74,8 +74,8 @@ const CityPartnerPage: React.FC = () => {
     (async () => {
       const [{ data: cp }, { data: ev }, { data: vn }, { data: ar }] = await Promise.all([
         supabase.rpc('city_partner', { p_city: city }),
-        supabase.from('events').select('id,title,date,cover').ilike('city', city).order('date', { ascending: true }).limit(6),
-        supabase.from('venues').select('id,name,cover,type').ilike('city', city).limit(6),
+        supabase.from('events').select('id,title,date,cover').is('deleted_at', null).ilike('city', city).order('date', { ascending: true }).limit(6),
+        supabase.from('venues').select('id,name,cover,type').is('deleted_at', null).ilike('city', city).limit(6),
         supabase.from('artists').select('id,name,avatar,cover,type').ilike('city', city).limit(8),
       ]);
       if (cancelled) return;

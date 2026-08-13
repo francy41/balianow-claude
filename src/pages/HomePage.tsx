@@ -1003,7 +1003,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
   const [dbArtists, setDbArtists] = React.useState<any[]>([]);
   React.useEffect(() => {
     let cancelled = false;
-    supabase.from('events').select('*').limit(8).then(({ data }) => { if (!cancelled && Array.isArray(data)) setDbEvents(data); });
+    supabase.from('events').select('*').is('deleted_at', null).limit(8).then(({ data }) => { if (!cancelled && Array.isArray(data)) setDbEvents(data); });
     supabase.from('artists').select('*').limit(8).then(({ data }) => { if (!cancelled && Array.isArray(data)) setDbArtists(data); });
     return () => { cancelled = true; };
   }, []);

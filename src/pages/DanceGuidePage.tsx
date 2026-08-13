@@ -41,8 +41,8 @@ const DanceGuidePage: React.FC = () => {
     (async () => {
       const today = new Date().toISOString().slice(0, 10);
       const [{ data: ev }, { data: vn }] = await Promise.all([
-        supabase.from('events').select('id,title,date,cover,category').ilike('city', city).gte('date', today).order('date', { ascending: true }).limit(30),
-        supabase.from('venues').select('id,name,cover,address').ilike('city', city).limit(12),
+        supabase.from('events').select('id,title,date,cover,category').is('deleted_at', null).ilike('city', city).gte('date', today).order('date', { ascending: true }).limit(30),
+        supabase.from('venues').select('id,name,cover,address').is('deleted_at', null).ilike('city', city).limit(12),
       ]);
       if (cancelled) return;
       const match = (e: EventRow) => {

@@ -10,7 +10,7 @@ import EventAdminPanel from '../components/EventAdminPanel';
 import DemoBadge from '../components/DemoBadge';
 import ClaimProfileButton from '../components/ClaimProfileButton';
 import { isClaimed, UNCLAIMED_TOAST } from '../lib/ownership';
-import { EVENTS, ARTISTS, VENUES } from '../data/mockData';
+import { ARTISTS, VENUES } from '../data/mockData';
 import type { Artist, Event as EventType } from '../data/mockData';
 import { Badge, StarRating, EmptyState, Button, Avatar } from '../components/ui';
 import { FilterFacet, ActiveFilterBar, FilterPanel } from '../components/SmartFilters';
@@ -106,7 +106,7 @@ const EventsList: React.FC = () => {
     const safety = setTimeout(() => { if (!cancelled) setLoading(false); }, 8000);
     (async () => {
       try {
-        const { data } = await supabase.from('events').select('*').order('date', { ascending: true });
+        const { data } = await supabase.from('events').select('*').is('deleted_at', null).order('date', { ascending: true });
         if (cancelled) return;
         setDbEvents((data || []).map(mapDbEvent));
       } catch (e) { console.warn('[events] load', e); }
@@ -115,10 +115,7 @@ const EventsList: React.FC = () => {
     return () => { cancelled = true; clearTimeout(safety); };
   }, []);
 
-  // Solo usar mock si no hay datos reales en BD
-  const allEvents = useMemo(() => {
-    return dbEvents.length > 0 ? dbEvents : EVENTS.slice(0, 10);
-  }, [dbEvents]);
+  const allEvents = dbEvents;
 
   // Ciudades dinámicas: base + las que realmente tienen eventos (ordenadas por nº de eventos)
   const CITIES = useMemo(() => {
@@ -152,7 +149,7 @@ const EventsList: React.FC = () => {
   if (onlyOnline) activeChips.push({ label: '🌐 Online', onRemove: () => setOnlyOnline(false) });
   const clearAll = () => { setSelectedCat(['Todos']); setSelectedCity(['Todas']); setOnlyOnline(false); setSearch(''); };
 
-  const handleBuyTicket = (event: typeof EVENTS[0], e: React.MouseEvent) => {
+  const handleBuyTicket = (event: EventType, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!isAuthenticated) { navigate('/auth'); return; }
     addToast({ message: `Procesando ticket para: ${event.title}`, type: 'success' });
@@ -217,7 +214,7 @@ const EventsList: React.FC = () => {
    CARD — vertical style matching Venues
    ══════════════════════════════════════════════════════════════════════════ */
 const EventCard: React.FC<{
-  event: typeof EVENTS[0];
+  event: EventType;
   onClick: () => void;
   onBuy: (e: React.MouseEvent) => void;
 }> = ({ event, onClick, onBuy }) => {
@@ -347,26 +344,16 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
 
   const loadEvent = () => {
     let done = false;
-    const fallbackMock = () => {
-      if (done) return; done = true;
-      const mock = EVENTS.find(e => String(e.id) === String(eventId));
-      setEvent(mock ? ({ ...mock, userId: '' } as any) : null);
-      setLoadingEvent(false);
-    };
-    // Safety-timeout: si la consulta se cuelga/rechaza, cae al ejemplo en vez de spinner infinito.
-    const timer = setTimeout(fallbackMock, 8000);
-    supabase.from('events').select('*').eq('id', eventId).maybeSingle().then(
+    // Safety-timeout: si la consulta se cuelga/rechaza, deja de mostrar el spinner (evento no encontrado).
+    const timer = setTimeout(() => { if (!done) { done = true; setEvent(null); setLoadingEvent(false); } }, 8000);
+    supabase.from('events').select('*').eq('id', eventId).is('deleted_at', null).maybeSingle().then(
       ({ data }) => {
         clearTimeout(timer);
         if (done) return; done = true;
-        if (data) setEvent(normalizeEvent(data));
-        else {
-          const mock = EVENTS.find(e => String(e.id) === String(eventId));
-          setEvent(mock ? ({ ...mock, userId: '' } as any) : null);
-        }
+        setEvent(data ? normalizeEvent(data) : null);
         setLoadingEvent(false);
       },
-      () => { clearTimeout(timer); fallbackMock(); }
+      () => { clearTimeout(timer); if (!done) { done = true; setEvent(null); setLoadingEvent(false); } }
     );
   };
 
