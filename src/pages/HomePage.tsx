@@ -307,6 +307,7 @@ const HeroSlider: React.FC<{ images: HeroSliderImage[] }> = ({ images }) => {
 
 // ── HERO SLIDER (Full Height) ────────────────────────────────────────────────
 const HeroSliderFullHeight: React.FC<{ images: HeroSliderImage[] }> = ({ images }) => {
+  const navigate = useNavigate();
   const [current, setCurrent] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
@@ -318,6 +319,11 @@ const HeroSliderFullHeight: React.FC<{ images: HeroSliderImage[] }> = ({ images 
 
   const goToPrev = () => setCurrent(p => (p - 1 + images.length) % images.length);
   const goToNext = () => setCurrent(p => (p + 1) % images.length);
+  const goToLink = (link?: string) => {
+    if (!link) return;
+    if (/^https?:\/\//.test(link)) window.open(link, '_blank', 'noopener,noreferrer');
+    else navigate(link);
+  };
 
   return (
     <div className="relative w-full h-full overflow-hidden">
@@ -327,9 +333,10 @@ const HeroSliderFullHeight: React.FC<{ images: HeroSliderImage[] }> = ({ images 
       >
         {images.map(img => (
           <img key={img.id} src={img.url} alt={img.alt}
-            className="h-full object-cover flex-shrink-0"
+            className={`h-full object-cover flex-shrink-0 ${img.link ? 'cursor-pointer' : ''}`}
             style={{ width: `${100 / images.length}%` }}
             loading="eager"
+            onClick={() => goToLink(img.link)}
             onError={e => {
               const el = e.target as HTMLImageElement;
               if (!el.src.includes('unsplash')) {
@@ -368,6 +375,16 @@ const HeroSliderFullHeight: React.FC<{ images: HeroSliderImage[] }> = ({ images 
           />
         ))}
       </div>
+
+      {/* CTA del slide activo (si tiene enlace configurado) */}
+      {images[current]?.link && (
+        <button
+          onClick={() => goToLink(images[current].link)}
+          className="absolute bottom-14 sm:bottom-16 right-4 sm:right-8 z-10 bg-white/95 hover:bg-white text-gray-900 text-xs sm:text-sm font-black px-4 py-2.5 rounded-full shadow-xl flex items-center gap-1.5 transition-transform hover:scale-105"
+        >
+          {images[current].alt} <ChevronRight className="w-4 h-4" />
+        </button>
+      )}
 
       {/* Gradient Overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />

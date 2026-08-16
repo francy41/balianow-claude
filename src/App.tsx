@@ -46,6 +46,7 @@ const TVHomePage        = lazy(() => import('./tv/TVHomePage'));
 const TVTitlePage       = lazy(() => import('./tv/TVTitlePage'));
 const TVCreatorPage     = lazy(() => import('./tv/TVCreatorPage'));
 const TVAdminPage       = lazy(() => import('./tv/TVAdminPage'));
+const RadioPage         = lazy(() => import('./pages/RadioPage'));
 const RutasPage         = lazy(() => import('./pages/RutasPage'));
 const ParejasPage       = lazy(() => import('./pages/ParejasPage'));
 const RetosPage         = lazy(() => import('./pages/RetosPage'));
@@ -216,6 +217,7 @@ const App: React.FC = () => {
                   <Route path="/promocionate/unete"  element={<Navigate to="/unete" replace />} />
                   <Route path="/practicar/:room"     element={<ProtectedRoute><PracticeRoomPage /></ProtectedRoute>} />
                   <Route path="/partner"             element={<ProtectedRoute requiredRole="partner"><PartnerDashboardPage /></ProtectedRoute>} />
+                  <Route path="/radio"               element={<RadioPage />} />
                   <Route path="/tv"                  element={<TVHomePage />} />
                   <Route path="/tv/estudio"          element={<ProtectedRoute><TVCreatorPage /></ProtectedRoute>} />
                   <Route path="/tv/admin"            element={<ProtectedRoute requiredRole="admin"><TVAdminPage /></ProtectedRoute>} />
