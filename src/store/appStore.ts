@@ -268,6 +268,7 @@ export interface HeroSliderImage {
   id: string;
   url: string;
   alt: string;
+  link?: string;
 }
 
 export interface HeroMedia {

@@ -3105,12 +3105,15 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
     if (error) addToast({ message: `Error al guardar: ${error}`, type: 'error' });
   };
 
+  const [newSlideLink, setNewSlideLink] = useState('');
+
   const addSlide = () => {
     if (!newSlideUrl.trim()) return;
-    const updated = [...slides, { id: Date.now().toString(), url: newSlideUrl.trim(), alt: newSlideAlt.trim() || 'Banner slide' }];
+    const updated = [...slides, { id: Date.now().toString(), url: newSlideUrl.trim(), alt: newSlideAlt.trim() || 'Banner slide', link: newSlideLink.trim() || undefined }];
     saveSlides(updated);
     setNewSlideUrl('');
     setNewSlideAlt('');
+    setNewSlideLink('');
     addToast({ message: 'Slide agregado al banner', type: 'success' });
   };
 
@@ -3119,7 +3122,7 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
     addToast({ message: 'Slide eliminado', type: 'info' });
   };
 
-  const updateSlide = (id: string, field: 'url' | 'alt', value: string) => {
+  const updateSlide = (id: string, field: 'url' | 'alt' | 'link', value: string) => {
     saveSlides(slides.map(s => s.id === id ? { ...s, [field]: value } : s));
   };
 
@@ -3208,6 +3211,8 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
                     className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand-orange font-mono" placeholder="URL de la imagen" />
                   <input type="text" value={slide.alt} onChange={e => updateSlide(slide.id, 'alt', e.target.value)}
                     className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand-orange" placeholder="Texto descriptivo del slide" />
+                  <input type="text" value={slide.link || ''} onChange={e => updateSlide(slide.id, 'link', e.target.value)}
+                    className="w-full text-xs border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-brand-orange" placeholder="Enlace al hacer clic (opcional), ej: /radio" />
                 </div>
                 <div className="flex flex-col gap-1 flex-shrink-0">
                   <button onClick={() => moveSlide(idx, -1)} disabled={idx === 0}
@@ -3268,6 +3273,9 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
 
           <input value={newSlideAlt} onChange={e => setNewSlideAlt(e.target.value)}
             placeholder="Texto descriptivo (opcional)"
+            className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 mt-2 focus:outline-none focus:border-brand-orange" />
+          <input value={newSlideLink} onChange={e => setNewSlideLink(e.target.value)}
+            placeholder="Enlace al hacer clic (opcional), ej: /radio o /tv"
             className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 mt-2 focus:outline-none focus:border-brand-orange" />
 
           <Button variant="orange" onClick={addSlide} className="w-full mt-3 text-xs">
