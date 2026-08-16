@@ -1610,6 +1610,32 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* ── BANNER TV / RADIO (mitad y mitad, cada uno abre su widget flotante) ── */}
+      <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden grid grid-cols-2 h-24 sm:h-28">
+        <button onClick={() => setTvWidgetOpen(true)}
+          className="group relative flex items-center gap-3 px-4 sm:px-6 bg-gradient-to-br from-indigo-900 via-purple-900 to-fuchsia-950 hover:brightness-110 transition-all overflow-hidden">
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-fuchsia-500/20 rounded-full blur-2xl pointer-events-none" />
+          <span className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+            <Tv className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          </span>
+          <div className="text-left min-w-0">
+            <p className="text-white font-display font-black text-sm sm:text-lg leading-tight truncate">BailaNow TV</p>
+            <p className="text-white/60 text-[10px] sm:text-xs font-semibold">Mira ahora →</p>
+          </div>
+        </button>
+        <button onClick={() => setRadioWidgetOpen(true)}
+          className="group relative flex items-center gap-3 px-4 sm:px-6 bg-gradient-to-bl from-orange-600 via-pink-600 to-fuchsia-800 hover:brightness-110 transition-all overflow-hidden">
+          <div className="absolute -left-6 -top-6 w-24 h-24 bg-orange-400/20 rounded-full blur-2xl pointer-events-none" />
+          <span className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+            <Radio className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+          </span>
+          <div className="text-left min-w-0">
+            <p className="text-white font-display font-black text-sm sm:text-lg leading-tight truncate">Radio Online</p>
+            <p className="text-white/60 text-[10px] sm:text-xs font-semibold">Escucha en vivo →</p>
+          </div>
+        </button>
+      </section>
+
       {/* ── CATEGORÍAS (subidas justo bajo el hero, como el diseño objetivo) ── */}
       <DynamicCategoriesSection navigate={navigate} />
 
