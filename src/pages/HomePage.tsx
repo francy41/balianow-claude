@@ -9,6 +9,8 @@ import { supabase } from '../lib/supabase';
 import { fixText } from '../lib/text';
 import NewsletterForm from '../components/NewsletterForm';
 import HomeFabStack from '../components/HomeFabStack';
+import RadioWidgetModal from '../components/RadioWidgetModal';
+import TvPreviewModal from '../components/TvPreviewModal';
 import HomeBackground from '../components/HomeBackground';
 import DanceFlowPromo from '../components/DanceFlowPromo';
 import { usePageMeta } from '../hooks/usePageMeta';
@@ -306,7 +308,7 @@ const HeroSlider: React.FC<{ images: HeroSliderImage[] }> = ({ images }) => {
 };
 
 // ── HERO SLIDER (Full Height) ────────────────────────────────────────────────
-const HeroSliderFullHeight: React.FC<{ images: HeroSliderImage[] }> = ({ images }) => {
+const HeroSliderFullHeight: React.FC<{ images: HeroSliderImage[]; onLinkClick?: (link: string) => boolean }> = ({ images, onLinkClick }) => {
   const navigate = useNavigate();
   const [current, setCurrent] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
@@ -321,6 +323,9 @@ const HeroSliderFullHeight: React.FC<{ images: HeroSliderImage[] }> = ({ images 
   const goToNext = () => setCurrent(p => (p + 1) % images.length);
   const goToLink = (link?: string) => {
     if (!link) return;
+    // onLinkClick puede "capturar" el enlace (ej. abrir un widget flotante) devolviendo true;
+    // si devuelve false o no está definido, se navega normalmente.
+    if (onLinkClick?.(link)) return;
     if (/^https?:\/\//.test(link)) window.open(link, '_blank', 'noopener,noreferrer');
     else navigate(link);
   };
@@ -1404,6 +1409,14 @@ const HomePage: React.FC = () => {
   const [playing, setPlaying] = useState<number | null>(null);
   const [radiosOpen, setRadiosOpen] = useState(false);
   const [playlistsOpen, setPlaylistsOpen] = useState(false);
+  const [radioWidgetOpen, setRadioWidgetOpen] = useState(false);
+  const [tvWidgetOpen, setTvWidgetOpen] = useState(false);
+  // Banners del slider hero: Radio y TV abren un widget flotante sin salir del home.
+  const handleHeroLinkClick = (link: string): boolean => {
+    if (link === '/radio') { setRadioWidgetOpen(true); return true; }
+    if (link === '/tv') { setTvWidgetOpen(true); return true; }
+    return false;
+  };
 
   // ── Radio: carga desde Supabase; fallback a radio-browser API ──
   const [radioStations, setRadioStations] = useState(RADIO_STATIONS);
@@ -1515,7 +1528,7 @@ const HomePage: React.FC = () => {
       {/* ── HERO CINEMATOGRÁFICO (movido al top para igualar el diseño objetivo) ── */}
       <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden relative h-[360px] sm:h-[440px] lg:h-[520px] bg-brand-black">
         <div className="absolute inset-0">
-          <HeroSliderFullHeight images={
+          <HeroSliderFullHeight onLinkClick={handleHeroLinkClick} images={
             heroSliderImages.length > 0 ? heroSliderImages : [
               { id: '1', url: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=1400&h=500&fit=crop&q=80', alt: 'BailaNow - Todo lo que amas del baile latino' },
               { id: '2', url: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1400&h=500&fit=crop&q=80', alt: 'BailaNow - Encuentra todo el mundo del baile en tus manos' },
@@ -1909,6 +1922,10 @@ const HomePage: React.FC = () => {
 
       {/* Botones flotantes del home (FAB stack) */}
       <HomeFabStack />
+
+      {/* Widgets flotantes de los banners del slider (Radio/TV sin salir del home) */}
+      <RadioWidgetModal open={radioWidgetOpen} onClose={() => setRadioWidgetOpen(false)} />
+      <TvPreviewModal open={tvWidgetOpen} onClose={() => setTvWidgetOpen(false)} />
     </div>
   );
 };
