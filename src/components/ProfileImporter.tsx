@@ -203,7 +203,7 @@ const ProfileImporter: React.FC = () => {
           price: clean.price, currency: clean.currency || 'EUR', category: clean.category || 'social',
           image_url: clean.image_url, cover: clean.image_url, artists: clean.artists,
           lat: clean.lat, lng: clean.lng,
-          admin_status: 'approved', created_by: user?.id || null, owner_id: user?.id || null,
+          admin_status: 'approved', created_by: user?.id || null, owner_id: user?.id || null, user_id: user?.id || null,
           type: eventType,
         };
         ({ error } = await robustInsert('events', strip(row)));
@@ -214,7 +214,7 @@ const ProfileImporter: React.FC = () => {
           image_url: clean.image_url, cover: clean.image_url, email: clean.email,
           whatsapp: clean.whatsapp, open_hours: clean.open_hours,
           lat: clean.lat, lng: clean.lng,
-          status: 'active', admin_status: 'approved', owner_id: user?.id || null,
+          status: 'active', admin_status: 'approved', owner_id: user?.id || null, user_id: user?.id || null,
         };
         ({ error } = await robustInsert('venues', strip(row)));
       } else {

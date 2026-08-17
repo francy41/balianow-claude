@@ -293,6 +293,8 @@ interface SiteConfigState {
   setDefaultCommission: (rate: number) => void;
   setPremiumDiscount: (rate: number) => void;
   resetCommissions: () => void;
+  /** Hidrata el objeto completo — usado por el loader al leer site_config en el arranque. */
+  setCommissions: (cfg: CommissionConfig) => void;
   setSiteLogo: (logo: string) => void;
   setHomeCategories: (cats: HomeCategory[]) => void;
   setProfileModules: (mods: ProfileModule[]) => void;
@@ -346,6 +348,7 @@ export const useSiteConfigStore = create<SiteConfigState>()(
         set((state) => ({ commissions: { ...state.commissions, premiumDiscount: rate } })),
       resetCommissions: () =>
         set({ commissions: DEFAULT_COMMISSIONS }),
+      setCommissions: (cfg) => set({ commissions: cfg }),
     }),
     {
       name: 'bailanow-site-config-v2',
