@@ -6,11 +6,11 @@
  */
 import { useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { useSiteConfigStore, useSponsorsStore, type HomeCategory, type ProfileModule } from '../store/appStore';
+import { useSiteConfigStore, useSponsorsStore, type HomeCategory, type ProfileModule, type CommissionConfig } from '../store/appStore';
 
 // ── Load config from Supabase on mount ────────────────────────────────────
 export function useSiteConfigLoader() {
-  const { setHeroSliderImages, setHeroMedia, setSiteLogo, setHomeCategories, setProfileModules, setHomeTvCards } = useSiteConfigStore();
+  const { setHeroSliderImages, setHeroMedia, setSiteLogo, setHomeCategories, setProfileModules, setHomeTvCards, setCommissions } = useSiteConfigStore();
 
   useEffect(() => {
     const load = async () => {
@@ -32,6 +32,9 @@ export function useSiteConfigLoader() {
           }
           if (row.key === 'home_tv_cards' && Array.isArray(row.value) && row.value.length > 0) {
             setHomeTvCards(row.value);
+          }
+          if (row.key === 'commission_config' && row.value && typeof row.value === 'object') {
+            setCommissions(row.value as CommissionConfig);
           }
           // Sponsors/destacados: fuente de verdad = BD. Sincroniza el store público
           // (incluye lista vacía) para que los borrados del admin se reflejen y no

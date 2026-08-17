@@ -10,7 +10,7 @@ import {
   Wifi, Globe, Bell, Database, Server, FileText, Save, Loader2,
   Share2, Flag, ExternalLink, MessageSquare, Tv, Heart, Trophy, Film, Upload
 } from 'lucide-react';
-import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, useAdminOverridesStore, useSponsorsStore, DEFAULT_HOME_CATEGORIES, DEFAULT_HOME_TV, type HeroMediaType, type CommissionSource, type HeroSliderImage, type HomeCategory, type HomeTvCard, type Sponsor } from '../store/appStore';
+import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, useAdminOverridesStore, useSponsorsStore, DEFAULT_HOME_CATEGORIES, DEFAULT_HOME_TV, DEFAULT_COMMISSIONS, type HeroMediaType, type CommissionSource, type CommissionConfig, type HeroSliderImage, type HomeCategory, type HomeTvCard, type Sponsor } from '../store/appStore';
 import { supabase } from '../lib/supabase';
 import { saveSiteConfigKey, saveCategoriesToDb } from '../hooks/useSiteConfig';
 import AdminCMS from '../components/AdminCMS';
@@ -2275,6 +2275,32 @@ const SaleFeesCard: React.FC<{ addToast: Function }> = ({ addToast }) => {
 const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const { commissions, setCommission, setDefaultCommission, setPremiumDiscount, resetCommissions } = useSiteConfigStore();
 
+  // Antes estos cambios solo vivían en el localStorage del navegador del admin
+  // que los tocaba — nunca llegaban a Supabase, así que no afectaban a ningún
+  // usuario real. Ahora cada cambio se persiste en site_config.commission_config.
+  const persist = async (next: CommissionConfig) => {
+    const { error } = await saveSiteConfigKey('commission_config', next);
+    if (error) addToast({ message: `No se pudo guardar la comisión: ${error}`, type: 'error' });
+  };
+
+  const onSetCommission = (source: CommissionSource, rate: number) => {
+    setCommission(source, rate);
+    persist({ ...commissions, bySource: { ...commissions.bySource, [source]: rate } });
+  };
+  const onSetDefault = (rate: number) => {
+    setDefaultCommission(rate);
+    persist({ ...commissions, default: rate });
+  };
+  const onSetPremiumDiscount = (rate: number) => {
+    setPremiumDiscount(rate);
+    persist({ ...commissions, premiumDiscount: rate });
+  };
+  const onReset = () => {
+    resetCommissions();
+    persist(DEFAULT_COMMISSIONS);
+    addToast({ message: 'Comisiones restauradas al valor por defecto', type: 'info' });
+  };
+
   const sources: { id: CommissionSource; label: string; icon: string; desc: string }[] = [
     { id: 'booking', label: 'Reservas (DJs, artistas, venues)', icon: '📅', desc: 'Bookings de eventos privados y públicos' },
     { id: 'course',  label: 'Cursos digitales',                 icon: '🎓', desc: 'Cursos en vídeo y materiales descargables' },
@@ -2289,7 +2315,7 @@ const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
         title="Comisiones dinámicas"
         subtitle="Configura el % que la plataforma cobra en cada tipo de transacción. Los cambios afectan a TODAS las contrataciones nuevas."
         action={
-          <button onClick={() => { resetCommissions(); addToast({ message: 'Comisiones restauradas al valor por defecto', type: 'info' }); }}
+          <button onClick={onReset}
             className="text-sm text-gray-500 hover:text-gray-800 font-semibold">↺ Restaurar valores por defecto</button>
         }
       />
@@ -2304,7 +2330,7 @@ const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           <div className="flex items-center gap-2 mt-2">
             <input type="number" step="0.5" min="0" max="100"
               value={(commissions.default * 100).toFixed(1)}
-              onChange={e => setDefaultCommission((parseFloat(e.target.value) || 0) / 100)}
+              onChange={e => onSetDefault((parseFloat(e.target.value) || 0) / 100)}
               className="input-field text-3xl font-black text-brand-orange w-32" />
             <span className="text-3xl font-black text-brand-orange">%</span>
           </div>
@@ -2316,7 +2342,7 @@ const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           <div className="flex items-center gap-2 mt-2">
             <input type="number" step="0.5" min="0" max="100"
               value={(commissions.premiumDiscount * 100).toFixed(1)}
-              onChange={e => setPremiumDiscount((parseFloat(e.target.value) || 0) / 100)}
+              onChange={e => onSetPremiumDiscount((parseFloat(e.target.value) || 0) / 100)}
               className="input-field text-3xl font-black text-purple-600 w-32" />
             <span className="text-3xl font-black text-purple-600">%</span>
           </div>
@@ -2354,7 +2380,7 @@ const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
                 <div className="flex items-center gap-2">
                   <input type="number" step="0.5" min="0" max="100"
                     value={(rate * 100).toFixed(1)}
-                    onChange={e => setCommission(s.id, (parseFloat(e.target.value) || 0) / 100)}
+                    onChange={e => onSetCommission(s.id, (parseFloat(e.target.value) || 0) / 100)}
                     className="input-field w-24 text-center font-bold text-brand-orange" />
                   <span className="font-bold text-gray-700">%</span>
                   <div className="ml-3 text-right hidden sm:block">
