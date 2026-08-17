@@ -22,6 +22,7 @@ import { useTicketStore } from '../store/ticketStore';
 import LiveFab from '../components/LiveFab';
 import { supabase } from '../lib/supabase';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useCityOrder } from '../lib/cities';
 
 const cleanCity = (s: string | null | undefined) => (s || '').split(/[,\-\/(]/)[0].trim();
 
@@ -52,7 +53,6 @@ function mapDbEvent(e: any): EventType {
 }
 
 const CATEGORIES = ['Todos', 'Salsa', 'Salsa Cubana', 'Salsa Colombiana (Caleña)', 'Bachata', 'Bachata Dominicana', 'Bachata Moderna', 'Bachata Sensual', 'Bachata Urbana', 'Cha-cha-chá', 'Cumbia', 'Reparto Cubano', 'Festival', 'Masterclass', 'Online', 'Reggaeton', 'Timba'];
-const BASE_CITIES = ['Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris'];
 
 // ── Event featured videos (mock) ──
 const EVENT_VIDEOS: Record<string, { url: string; title: string }> = {
@@ -116,6 +116,7 @@ const EventsList: React.FC = () => {
   }, []);
 
   const allEvents = dbEvents;
+  const cityOrder = useCityOrder();
 
   // Ciudades dinámicas: base + las que realmente tienen eventos (ordenadas por nº de eventos)
   const CITIES = useMemo(() => {
@@ -125,9 +126,9 @@ const EventsList: React.FC = () => {
       if (c) counts.set(c, (counts.get(c) || 0) + 1);
     });
     const fromData = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).map(([c]) => c);
-    const merged = [...BASE_CITIES.filter(c => counts.has(c)), ...fromData.filter(c => !BASE_CITIES.includes(c))];
+    const merged = [...cityOrder.filter(c => counts.has(c)), ...fromData.filter(c => !cityOrder.includes(c))];
     return ['Todas', ...Array.from(new Set(merged)).filter(c => c !== 'Online'), 'Online'];
-  }, [allEvents]);
+  }, [allEvents, cityOrder]);
 
   const filtered = useMemo(() => {
     return allEvents.filter(e => {
