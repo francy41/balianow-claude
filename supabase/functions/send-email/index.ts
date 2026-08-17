@@ -53,6 +53,18 @@ function template(type: string, d: Record<string, any>): { subject: string; html
     case 'sale':
       return { subject: '💸 ¡Nueva venta en BailaNow!', html: shell('¡Has recibido un pago! 💸',
         `<p>${d.detail || 'Se ha registrado una nueva venta en tu cuenta.'}</p>${btn(`${APP}/dashboard`, 'Ver mis ganancias')}`) };
+    case 'claim_approved':
+      return { subject: `✅ Tu reclamación de "${d.targetName || 'perfil'}" fue aprobada`, html: shell('¡Perfil verificado! ✅',
+        `<p>Tu solicitud para reclamar <b>${d.targetName || 'el perfil'}</b> ha sido aprobada. Ya puedes editarlo, recibir reservas y gestionarlo desde tu panel.</p>${btn(`${APP}/dashboard`, 'Ir a mi panel')}`) };
+    case 'claim_rejected':
+      return { subject: `Tu reclamación de "${d.targetName || 'perfil'}" no fue aprobada`, html: shell('Solicitud no aprobada',
+        `<p>Tu solicitud para reclamar <b>${d.targetName || 'el perfil'}</b> no ha sido aprobada${d.reason ? `: <br><i>${d.reason}</i>` : '.'}</p>
+         <p>Si crees que es un error o quieres aportar más información, responde a este correo.</p>`) };
+    case 'claim_needs_info':
+      return { subject: `Necesitamos más información sobre tu reclamación de "${d.targetName || 'perfil'}"`, html: shell('Nos falta un dato ✍️',
+        `<p>Estamos revisando tu solicitud para reclamar <b>${d.targetName || 'el perfil'}</b>, pero necesitamos más información antes de continuar:</p>
+         <p style="background:#faf7fb;padding:12px 14px;border-radius:10px"><i>${d.reason || 'Por favor contáctanos con más detalles.'}</i></p>
+         <p>Responde a este correo con la información solicitada.</p>`) };
     default:
       // Sin contenido libre del usuario: evita usar esta función como relay de phishing.
       return { subject: 'BailaNow', html: shell('BailaNow', '<p>Tienes una novedad en BailaNow.</p>' + btn(APP, 'Abrir BailaNow')) };

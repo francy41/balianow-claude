@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Flag, X, CheckCircle, Loader2, AlertCircle, Mail } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Flag, X, CheckCircle, Loader2, AlertCircle, Mail, Upload } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { uploadImage } from '../lib/uploadHelper';
 import { useUIStore } from '../store/appStore';
 
 type TargetTable = 'artists' | 'events' | 'venues' | 'services';
@@ -22,25 +23,52 @@ const TABLE_LABEL: Record<TargetTable, string> = {
   services: 'servicio',
 };
 
+const RELATIONSHIP_OPTIONS = [
+  { value: 'owner', label: 'Soy yo / mi negocio' },
+  { value: 'manager', label: 'Soy su representante o mánager' },
+  { value: 'employee', label: 'Trabajo ahí / con esta persona' },
+  { value: 'other', label: 'Otro' },
+];
+
 const ClaimProfileButton: React.FC<Props> = ({ targetTable, targetId, targetName, hasOwner, fullWidth }) => {
   const { addToast } = useUIStore();
   const [open, setOpen] = useState(false);
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [relationship, setRelationship] = useState('owner');
   const [message, setMessage] = useState('');
+  const [evidenceUrl, setEvidenceUrl] = useState('');
+  const [uploadingEvidence, setUploadingEvidence] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
-  // Al abrir, si hay sesión, prellenar con el email de la cuenta
+  // Al abrir, si hay sesión, prellenar con el email/nombre de la cuenta
   useEffect(() => {
     if (!open) return;
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user?.email) setEmail(prev => prev || session.user.email!);
+      const name = session?.user?.user_metadata?.full_name;
+      if (name) setFullName(prev => prev || name);
     });
   }, [open]);
 
   if (hasOwner) return null;
 
+  const handleEvidenceFile = async (file: File) => {
+    setUploadingEvidence(true);
+    const { url, error } = await uploadImage(file, 'claim-evidence');
+    setUploadingEvidence(false);
+    if (url) setEvidenceUrl(url);
+    else addToast({ type: 'error', message: `No se pudo subir la imagen: ${error || 'error desconocido'}` });
+  };
+
   const submit = async () => {
+    if (!fullName.trim()) {
+      addToast({ type: 'warning', message: 'Por favor ingresa tu nombre.' });
+      return;
+    }
     if (!email.trim()) {
       addToast({ type: 'warning', message: 'Por favor ingresa tu correo.' });
       return;
@@ -53,6 +81,10 @@ const ClaimProfileButton: React.FC<Props> = ({ targetTable, targetId, targetName
     const { error } = await supabase.from('profile_claims').insert({
       claimant_id: session?.user?.id ?? null,
       claimant_email: email.trim(),
+      claimant_name: fullName.trim(),
+      claimant_phone: phone.trim() || null,
+      relationship,
+      evidence_url: evidenceUrl || null,
       target_table: targetTable,
       target_id: targetId,
       target_name: targetName,
@@ -92,7 +124,7 @@ const ClaimProfileButton: React.FC<Props> = ({ targetTable, targetId, targetName
       {open && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
-          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 z-10">
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-6 z-10 max-h-[90vh] overflow-y-auto">
             {submitted ? (
               <div className="text-center py-8">
                 <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -128,16 +160,76 @@ const ClaimProfileButton: React.FC<Props> = ({ targetTable, targetId, targetName
                   <p className="text-xs text-gray-400">{TABLE_LABEL[targetTable]}</p>
                 </div>
 
-                {/* Email */}
+                {/* Nombre */}
                 <div className="mb-4">
-                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Tu correo</label>
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Tu nombre</label>
                   <input
-                    type="email"
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    placeholder="tu@email.com"
+                    type="text"
+                    value={fullName}
+                    onChange={e => setFullName(e.target.value)}
+                    placeholder="Nombre y apellidos"
                     className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
                   />
+                </div>
+
+                {/* Email + teléfono */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Tu correo</label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      placeholder="tu@email.com"
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">Teléfono <span className="text-gray-400 font-normal">(opcional)</span></label>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={e => setPhone(e.target.value)}
+                      placeholder="+34 600 000 000"
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                    />
+                  </div>
+                </div>
+
+                {/* Relación con el perfil */}
+                <div className="mb-4">
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">Tu relación con este {TABLE_LABEL[targetTable]}</label>
+                  <select
+                    value={relationship}
+                    onChange={e => setRelationship(e.target.value)}
+                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white"
+                  >
+                    {RELATIONSHIP_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </div>
+
+                {/* Evidencia */}
+                <div className="mb-4">
+                  <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                    Evidencia <span className="text-gray-400 font-normal">(opcional — foto de tu DNI, factura, captura de redes, etc.)</span>
+                  </label>
+                  {evidenceUrl ? (
+                    <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200 group">
+                      <img src={evidenceUrl} alt="Evidencia" className="w-full h-full object-cover" />
+                      <button type="button" onClick={() => setEvidenceUrl('')}
+                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button type="button" onClick={() => fileRef.current?.click()} disabled={uploadingEvidence}
+                      className="w-full border-2 border-dashed border-gray-200 rounded-xl px-3 py-3 text-xs text-gray-500 flex items-center justify-center gap-2 hover:border-purple-300 disabled:opacity-50">
+                      {uploadingEvidence ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                      {uploadingEvidence ? 'Subiendo…' : 'Subir imagen'}
+                    </button>
+                  )}
+                  <input ref={fileRef} type="file" accept="image/*" className="hidden"
+                    onChange={e => e.target.files?.[0] && handleEvidenceFile(e.target.files[0])} />
                 </div>
 
                 {/* Mensaje opcional */}
