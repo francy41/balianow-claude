@@ -17,6 +17,7 @@ import VenueReservationModal from '../components/VenueReservationModal';
 import CallBookingModal from '../components/CallBookingModal';
 import { supabase } from '../lib/supabase';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useCityOrder } from '../lib/cities';
 
 // ── Carga venues reales de Supabase + merge con mock para no romper detalle ──
 const cleanCity = (s: string | null | undefined) => (s || '').split(/[,\-\/(]/)[0].trim();
@@ -66,7 +67,6 @@ function mapDbVenue(v: any): Venue {
 }
 
 const TYPES = ['Todos', 'Discoteca', 'Club', 'Bar', 'Studio', 'Rooftop', 'Lounge', 'Restaurante'];
-const BASE_CITIES = ['Madrid', 'Barcelona', 'Sevilla', 'Valencia', 'Paris', 'London', 'Santo Domingo', 'Buenos Aires', 'Cali', 'Miami', 'La Habana', 'Bogotá', 'Medellín', 'New York', 'Berlin', 'Ciudad de México', 'Caracas'];
 
 const VenuesPage: React.FC = () => {
   usePageMeta({
@@ -114,6 +114,7 @@ const VenuesList: React.FC = () => {
   // SOLO datos reales de la BD. Nada de mock: eran fantasmas imposibles de
   // borrar (borrabas en admin y seguían saliendo porque estaban hardcodeados).
   const allVenues = dbVenues;
+  const cityOrder = useCityOrder();
 
   // Ciudades dinámicas: base + las que realmente tienen locales (por nº de locales)
   const CITIES = useMemo(() => {
@@ -123,9 +124,9 @@ const VenuesList: React.FC = () => {
       if (c) counts.set(c, (counts.get(c) || 0) + 1);
     });
     const fromData = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).map(([c]) => c);
-    const merged = [...BASE_CITIES.filter(c => counts.has(c)), ...fromData.filter(c => !BASE_CITIES.includes(c))];
+    const merged = [...cityOrder.filter(c => counts.has(c)), ...fromData.filter(c => !cityOrder.includes(c))];
     return ['Todas', ...Array.from(new Set(merged))];
-  }, [allVenues]);
+  }, [allVenues, cityOrder]);
 
   // La etiqueta del filtro no siempre coincide con el `type` real de la BD:
   // "Discoteca" no existe como tipo (los clubes son 'club'); "Restaurante" es 'restaurant'.
