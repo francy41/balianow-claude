@@ -11,6 +11,7 @@ import { useAuthStore } from '../store/appStore';
 import ClassBookingModal from '../components/ClassBookingModal';
 import ClassPackageBookingModal from '../components/ClassPackageBookingModal';
 import LiveFab from '../components/LiveFab';
+import { useDanceStyles } from '../lib/danceStyles';
 
 const DanceStudio = lazy(() => import('../components/DanceStudio'));
 
@@ -34,7 +35,6 @@ interface ClassOffering {
   slots_count?: number;
 }
 
-const STYLES = ['Todos', 'Bachata', 'Bachata Dominicana', 'Bachata Moderna', 'Bachata Sensual', 'Bachata Urbana', 'Salsa', 'Salsa Cubana', 'Salsa Colombiana (Caleña)', 'Cha-cha-chá', 'Cumbia', 'Reparto Cubano', 'Kizomba', 'Reggaeton', 'Merengue', 'Latin Mix'];
 const LEVELS = ['Todos', 'Principiante', 'Intermedio', 'Avanzado', 'Profesional'];
 
 const ClassesPage: React.FC = () => {
@@ -44,6 +44,8 @@ const ClassesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [filterStyle, setFilterStyle] = useState('Todos');
   const [filterLevel, setFilterLevel] = useState('Todos');
+  const danceStyles = useDanceStyles();
+  const STYLES = ['Todos', ...danceStyles];
   const [filterOnline, setFilterOnline] = useState<'all' | 'online' | 'presencial'>('all');
   const [selectedClass, setSelectedClass] = useState<ClassOffering | null>(null);
   const [practiceClass, setPracticeClass] = useState<ClassOffering | null>(null);

@@ -19,6 +19,7 @@ import { CardGridSkeleton } from '../components/Skeleton';
 import { FilterFacet, ActiveFilterBar, FilterPanel } from '../components/SmartFilters';
 import LiveFab from '../components/LiveFab';
 import { usePageMeta } from '../hooks/usePageMeta';
+import { useDanceStyles } from '../lib/danceStyles';
 import { ARTISTS } from '../data/mockData';
 
 interface DbArtist {
@@ -54,7 +55,6 @@ const FALLBACK_ARTISTS: DbArtist[] = ARTISTS.slice(0, 10).map((a: any) => ({
 }));
 
 const TYPES = ['Todos', 'Artista', 'DJ', 'Bailarín/a', 'Músico/a', 'Banda', 'Instructor/a'];
-const GENRES = ['Todos', 'Salsa', 'Salsa Cubana', 'Salsa Colombiana (Caleña)', 'Bachata', 'Bachata Dominicana', 'Bachata Moderna', 'Bachata Sensual', 'Bachata Urbana', 'Cha-cha-chá', 'Cumbia', 'Reparto Cubano', 'Merengue', 'Reggaeton', 'Timba', 'Afrobeats', 'Kizomba'];
 
 const normalizeRoleToType = (role: string): DbArtist['type'] | null => {
   const r = String(role || '').toLowerCase();
@@ -120,6 +120,8 @@ const ArtistsPage: React.FC = () => {
   // NO se re-monta el componente, así que hay que sincronizar el filtro con el param.
   useEffect(() => { setSelectedType([tipoToLabel(params.get('tipo') || '')]); }, [params]);
   const [selectedGenre, setSelectedGenre] = useState(['Todos']);
+  const danceStyles = useDanceStyles();
+  const GENRES = ['Todos', ...danceStyles];
   const [selectedCity, setSelectedCity] = useState(['Todas']);
   const [onlyLive, setOnlyLive] = useState(false);
   const [onlyVerified, setOnlyVerified] = useState(false);
