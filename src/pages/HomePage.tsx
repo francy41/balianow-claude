@@ -1525,8 +1525,8 @@ const HomePage: React.FC = () => {
       {/* Fondo flotante decorativo en toda la home */}
       <HomeBackground />
 
-      {/* ── HERO CINEMATOGRÁFICO (movido al top para igualar el diseño objetivo) ── */}
-      <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden relative h-[360px] sm:h-[440px] lg:h-[520px] bg-brand-black">
+      {/* ── HERO (simplificado: un mensaje, dos CTA, un buscador — sin elementos compitiendo) ── */}
+      <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden relative h-[380px] sm:h-[420px] bg-brand-black">
         <div className="absolute inset-0">
           <HeroSliderFullHeight onLinkClick={handleHeroLinkClick} images={
             // Radio y TV ya tienen su propio banner fijo debajo del hero — se excluyen aquí
@@ -1537,77 +1537,36 @@ const HomePage: React.FC = () => {
             ]).filter(s => s.link !== '/radio' && s.link !== '/tv')
           } />
         </div>
-        {/* Overlay cinematográfico */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/60 to-black/25" />
-        <div className="absolute -top-24 -right-16 w-72 h-72 bg-pink-500/40 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-28 -left-20 w-80 h-80 bg-fuchsia-600/25 rounded-full blur-3xl pointer-events-none" />
+        {/* Overlay oscuro elegante, un solo degradado */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/25" />
 
-        <div className="relative h-full flex items-center">
-          <div className="w-full px-5 sm:px-8 lg:px-10 grid lg:grid-cols-[1.1fr_0.9fr] gap-6 items-center">
-            <div className="text-white max-w-xl">
-              <span className="text-[11px] font-black uppercase tracking-[0.18em] text-pink-300">Bienvenido a BailaNow</span>
-              <h1 className="font-display font-black text-3xl sm:text-5xl lg:text-6xl leading-[0.98] tracking-tight mt-3">
-                Todo lo que amas del <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-pink-200">baile</span>, en un solo lugar.
-              </h1>
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-3 text-white/80 text-sm sm:text-base font-semibold">
-                {['Locales', 'Eventos', 'Artistas', 'Clases', 'Cursos', 'BailaNow TV'].map((w, i) => (
-                  <React.Fragment key={w}>
-                    {i > 0 && <span className="text-pink-400/60">·</span>}
-                    <span>{w}</span>
-                  </React.Fragment>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-3 mt-5">
-                <button onClick={() => navigate('/explorar')} className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-pink-600 text-white font-black rounded-full px-6 py-3.5 shadow-lg shadow-pink-500/40 hover:scale-[1.03] active:scale-95 transition">
-                  Explorar ahora →
-                </button>
-                <button onClick={() => navigate('/tv')} className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white font-bold rounded-full px-6 py-3.5 hover:bg-white/20 transition">
-                  <Play className="w-4 h-4" fill="currentColor" /> Ver vídeo
-                </button>
-              </div>
-
-              {/* Buscador hero estilo Airbnb (Ciudad · Cuándo · Categoría · Buscar) */}
-              <div className="mt-6 hidden sm:flex items-center gap-1 bg-white rounded-full p-1.5 shadow-2xl max-w-xl">
-                <button onClick={() => window.dispatchEvent(new Event('bn:open-search'))} className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-gray-100 transition text-left flex-1 min-w-0">
-                  <MapPin className="w-4 h-4 text-pink-500 flex-shrink-0" />
-                  <span className="min-w-0"><span className="block text-[9px] font-black text-gray-400 uppercase leading-none">Ciudad</span><span className="block text-xs font-bold text-gray-800 truncate mt-0.5">Madrid</span></span>
-                </button>
-                <span className="w-px h-8 bg-gray-200 flex-shrink-0" />
-                <button onClick={() => window.dispatchEvent(new Event('bn:open-search'))} className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-gray-100 transition text-left flex-1 min-w-0">
-                  <Calendar className="w-4 h-4 text-pink-500 flex-shrink-0" />
-                  <span className="min-w-0"><span className="block text-[9px] font-black text-gray-400 uppercase leading-none">Cuándo</span><span className="block text-xs font-bold text-gray-800 truncate mt-0.5">Hoy</span></span>
-                </button>
-                <span className="w-px h-8 bg-gray-200 flex-shrink-0" />
-                <button onClick={() => window.dispatchEvent(new Event('bn:open-search'))} className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-gray-100 transition text-left flex-1 min-w-0">
-                  <Ticket className="w-4 h-4 text-pink-500 flex-shrink-0" />
-                  <span className="min-w-0"><span className="block text-[9px] font-black text-gray-400 uppercase leading-none">Categoría</span><span className="block text-xs font-bold text-gray-800 truncate mt-0.5">Todo</span></span>
-                </button>
-                <button onClick={() => window.dispatchEvent(new Event('bn:open-search'))} className="w-11 h-11 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white flex items-center justify-center flex-shrink-0 hover:shadow-lg hover:shadow-pink-500/40 transition">
-                  <Search className="w-4 h-4" />
-                </button>
-              </div>
+        <div className="relative h-full flex items-end sm:items-center">
+          <div className="w-full px-5 sm:px-10 pb-7 sm:pb-0 max-w-xl">
+            <span className="text-[11px] font-black uppercase tracking-[0.18em] text-pink-300">Bienvenido a BailaNow</span>
+            <h1 className="font-display font-black text-3xl sm:text-5xl leading-[1.02] tracking-tight mt-3 text-white">
+              Todo lo que amas del <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-pink-200">baile</span>, en un solo lugar.
+            </h1>
+            <p className="text-white/75 text-sm sm:text-base mt-3 max-w-md">
+              Descubre dónde bailar, encuentra eventos, aprende nuevos pasos y conecta con la comunidad.
+            </p>
+            <div className="flex flex-wrap gap-3 mt-5">
+              <button onClick={() => navigate('/explorar')} className="bg-gradient-to-r from-pink-500 to-pink-600 text-white font-black rounded-full px-6 py-3.5 shadow-lg shadow-pink-500/40 hover:scale-[1.03] active:scale-95 transition">
+                Explorar ahora →
+              </button>
+              <button onClick={() => navigate('/eventos')} className="bg-white/10 border border-white/20 text-white font-bold rounded-full px-6 py-3.5 hover:bg-white/20 transition backdrop-blur-sm">
+                Ver eventos
+              </button>
             </div>
 
-            {/* Tarjeta flotante de acciones rápidas (desktop) */}
-            <div className="hidden lg:block bg-white/[0.08] border border-white/15 backdrop-blur-md rounded-3xl p-5">
-              <h3 className="text-white font-black text-base mb-4 flex items-center gap-2">✨ ¿Qué quieres hacer hoy?</h3>
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { ic: '🕺', label: 'Bailar esta noche', to: '/explorar' },
-                  { ic: '🎟️', label: 'Comprar entradas', to: '/eventos' },
-                  { ic: '📍', label: 'Encontrar locales', to: '/venues' },
-                  { ic: '🎧', label: 'Contratar artistas', to: '/artistas' },
-                  { ic: '🎓', label: 'Aprender a bailar', to: '/tv' },
-                  { ic: '👥', label: 'Conocer gente', to: '/parejas' },
-                ].map(q => (
-                  <button key={q.to} onClick={() => navigate(q.to)}
-                    className="bg-white/[0.06] border border-white/10 rounded-2xl px-2 py-3 text-center hover:bg-pink-500/20 hover:border-pink-400/50 hover:-translate-y-0.5 transition">
-                    <span className="text-2xl block mb-1">{q.ic}</span>
-                    <span className="text-[11px] font-bold text-white/90 leading-tight block">{q.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Buscador — un único punto de entrada, no un formulario de varios campos */}
+            <button onClick={() => window.dispatchEvent(new Event('bn:open-search'))}
+              className="hidden sm:flex items-center gap-2.5 bg-white rounded-full pl-4 pr-1.5 py-1.5 shadow-2xl max-w-sm mt-5 hover:shadow-pink-500/20 transition-shadow">
+              <Search className="w-4 h-4 text-pink-500 flex-shrink-0" />
+              <span className="text-gray-500 text-sm flex-1 text-left">¿Qué quieres hacer hoy?</span>
+              <span className="w-9 h-9 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white flex items-center justify-center flex-shrink-0">
+                <Search className="w-3.5 h-3.5" />
+              </span>
+            </button>
           </div>
         </div>
       </section>
