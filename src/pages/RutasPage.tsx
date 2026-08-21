@@ -14,7 +14,7 @@ interface Ruta {
   description: string | null; date: string | null; time: string | null; stops: Stop[]; created_at: string;
 }
 
-const CARTO = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+const CARTO = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
 const numberPin = (n: number) => L.divIcon({
   className: '',
@@ -41,7 +41,7 @@ const FitStops: React.FC<{ stops: Stop[] }> = ({ stops }) => {
 
 const RutaMap: React.FC<{ stops: Stop[] }> = ({ stops }) => (
   <MapErrorBoundary>
-    <MapContainer center={[40.4168, -3.7038]} zoom={12} style={{ width: '100%', height: '100%', background: '#0a0a0a' }} zoomControl={false}>
+    <MapContainer center={[40.4168, -3.7038]} zoom={12} style={{ width: '100%', height: '100%', background: '#e5e3df' }} zoomControl={false}>
       <TileLayer url={CARTO} attribution='&copy; <a href="https://carto.com/">CARTO</a>' />
       <FitStops stops={stops} />
       {stops.map((s, i) => (
