@@ -12,7 +12,7 @@ interface Profile {
   color: string;
   user: {
     id: string; name: string; email: string; avatar: string;
-    role: UserRole; city: string;
+    role: UserRole; roles: UserRole[]; city: string;
     isVerified: boolean; isPremium: boolean;
     wallet: number; notifications: number;
   };
@@ -28,7 +28,7 @@ const PROFILES: Profile[] = [
     user: {
       id: 'u_solfa', name: 'Solfa Mende', email: 'solfamende41@gmail.com',
       avatar: 'https://ui-avatars.com/api/?name=Solfa+Mende&background=EC4899&color=fff',
-      role: 'admin', city: 'Madrid',
+      role: 'admin', roles: ['admin'], city: 'Madrid',
       isVerified: true, isPremium: true, wallet: 0, notifications: 0,
     },
     goto: '/admin',
@@ -41,7 +41,7 @@ const PROFILES: Profile[] = [
     user: {
       id: 'a1', name: 'DJ Mambo King', email: 'dj@bachasalseros.com',
       avatar: 'https://ui-avatars.com/api/?name=DJ+Mambo&background=A855F7&color=fff',
-      role: 'dj', city: 'Madrid',
+      role: 'dj', roles: ['dj'], city: 'Madrid',
       isVerified: true, isPremium: true, wallet: 0, notifications: 0,
     },
     goto: '/dashboard',
@@ -54,7 +54,7 @@ const PROFILES: Profile[] = [
     user: {
       id: 'a2', name: 'La Reina del Ritmo', email: 'lareina@bachasalseros.com',
       avatar: 'https://ui-avatars.com/api/?name=La+Reina&background=EC4899&color=fff',
-      role: 'dancer', city: 'Barcelona',
+      role: 'dancer', roles: ['dancer'], city: 'Barcelona',
       isVerified: true, isPremium: false, wallet: 0, notifications: 0,
     },
     goto: '/dashboard',
@@ -67,7 +67,7 @@ const PROFILES: Profile[] = [
     user: {
       id: 'a3', name: 'Orquesta Tropical', email: 'orquesta@bachasalseros.com',
       avatar: 'https://ui-avatars.com/api/?name=Orquesta+T&background=F59E0B&color=fff',
-      role: 'artist', city: 'Valencia',
+      role: 'artist', roles: ['artist'], city: 'Valencia',
       isVerified: true, isPremium: false, wallet: 0, notifications: 0,
     },
     goto: '/dashboard',
@@ -80,7 +80,7 @@ const PROFILES: Profile[] = [
     user: {
       id: 'a4', name: 'Marcos & Elena Dance', email: 'instructores@bachasalseros.com',
       avatar: 'https://ui-avatars.com/api/?name=Marcos+Elena&background=EF4444&color=fff',
-      role: 'dancer', city: 'Bilbao',
+      role: 'dancer', roles: ['dancer'], city: 'Bilbao',
       isVerified: true, isPremium: false, wallet: 0, notifications: 0,
     },
     goto: '/dashboard',
@@ -93,7 +93,7 @@ const PROFILES: Profile[] = [
     user: {
       id: 'v1', name: 'Tropical House Madrid', email: 'venue@bachasalseros.com',
       avatar: 'https://ui-avatars.com/api/?name=Tropical+H&background=7C3AED&color=fff',
-      role: 'venue', city: 'Madrid',
+      role: 'venue', roles: ['venue'], city: 'Madrid',
       isVerified: true, isPremium: true, wallet: 0, notifications: 0,
     },
     goto: '/dashboard',
@@ -106,7 +106,7 @@ const PROFILES: Profile[] = [
     user: {
       id: 'u1', name: 'Carlos Rodríguez', email: 'carlos@bachasalseros.com',
       avatar: 'https://ui-avatars.com/api/?name=Carlos+R&background=9CA3AF&color=fff',
-      role: 'user', city: 'Madrid',
+      role: 'user', roles: ['user'], city: 'Madrid',
       isVerified: false, isPremium: false, wallet: 0, notifications: 0,
     },
     goto: '/dashboard',
