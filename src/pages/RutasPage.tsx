@@ -26,7 +26,10 @@ const FitStops: React.FC<{ stops: Stop[] }> = ({ stops }) => {
   const map = useMap();
   useEffect(() => {
     // Leaflet en móvil necesita recalcular el tamaño cuando el contenedor se apila/redimensiona,
-    // si no el mapa sale gris o descentrado.
+    // si no el mapa sale gris, descentrado o cortado. El evento "resize" de window NO cubre esto:
+    // en móvil el viewport ya nace con su tamaño final, así que ese evento nunca llega a dispararse
+    // cuando lo que cambia es el layout interno (el grid pasa de 2 columnas a apilado). Un
+    // ResizeObserver sobre el propio contenedor del mapa detecta ese cambio de verdad.
     const apply = () => {
       map.invalidateSize();
       if (stops.length === 1) map.setView([stops[0].lat, stops[0].lng], 14);
@@ -34,7 +37,12 @@ const FitStops: React.FC<{ stops: Stop[] }> = ({ stops }) => {
     };
     const t = setTimeout(apply, 200);
     window.addEventListener('resize', apply);
-    return () => { clearTimeout(t); window.removeEventListener('resize', apply); };
+
+    const el = map.getContainer();
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(el);
+
+    return () => { clearTimeout(t); window.removeEventListener('resize', apply); ro.disconnect(); };
   }, [stops, map]);
   return null;
 };
