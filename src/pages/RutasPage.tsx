@@ -241,7 +241,7 @@ const RutasPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-20">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-20 overflow-x-hidden">
       {/* Header */}
       <div className="bg-gradient-to-br from-pink-600 via-fuchsia-600 to-purple-700 px-4 py-6 sm:py-8">
         <div className="max-w-6xl mx-auto flex items-center justify-between gap-3 flex-wrap">
@@ -276,9 +276,9 @@ const RutasPage: React.FC = () => {
             <button onClick={() => (isAuthenticated ? setCreating(true) : navigate('/auth'))} className="mt-4 bg-brand-orange text-white font-bold rounded-xl px-5 py-2.5 text-sm">Crear la primera ruta</button>
           </div>
         ) : (
-          <div className="grid lg:grid-cols-[360px_1fr] gap-4">
+          <div className="grid lg:grid-cols-[360px_1fr] gap-4 min-w-0">
             {/* Lista de rutas */}
-            <div className="space-y-3 order-2 lg:order-1">
+            <div className="space-y-3 order-2 lg:order-1 min-w-0">
               {filtered.map(r => (
                 <button key={r.id} onClick={() => setSelected(r)} className={`w-full text-left card-white rounded-2xl p-4 transition-all ${selected?.id === r.id ? 'ring-2 ring-pink-500' : 'hover:shadow-lg'}`}>
                   <p className="font-bold text-gray-900 dark:text-white text-sm">{r.title}</p>
@@ -294,8 +294,8 @@ const RutasPage: React.FC = () => {
             </div>
 
             {/* Mapa + detalle */}
-            <div className="order-1 lg:order-2">
-              <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 h-[340px] sm:h-[440px]">
+            <div className="order-1 lg:order-2 min-w-0">
+              <div className="rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 h-[340px] sm:h-[440px] w-full">
                 {selected && <RutaMap key={selected.id} stops={selected.stops} />}
               </div>
               {selected && (
