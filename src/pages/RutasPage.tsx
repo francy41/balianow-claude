@@ -164,7 +164,7 @@ const CreateRutaModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
   };
 
   return (
-    <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div className="bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-2xl max-w-lg w-full max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
           <h2 className="font-black text-lg text-gray-900 dark:text-white flex items-center gap-2"><RouteIcon className="w-5 h-5 text-pink-500" /> Crear ruta</h2>
