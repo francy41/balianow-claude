@@ -37,11 +37,15 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
 
   // Wrong role → send to dashboard, don't expose that the route exists
   // superadmin tiene acceso a todo (admin, partner, etc.)
+  // Se comprueba tanto el rol activo (user.role) como TODOS los roles de la
+  // cuenta (user.roles) — así alguien con rol activo "dancer" pero que
+  // también tiene "instructor" asignado no pierde acceso a rutas de instructor.
   if (requiredRole) {
     const hasAccess =
       user.role === requiredRole ||
       user.role === 'superadmin' ||
-      (requiredRole === 'admin' && user.role === 'admin');
+      (user.roles || []).includes(requiredRole) ||
+      (user.roles || []).includes('superadmin');
     if (!hasAccess) return <Navigate to="/dashboard" replace />;
   }
 

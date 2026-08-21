@@ -63,6 +63,10 @@ export interface User {
   bio?: string;
   phone?: string;
   role: UserRole;
+  /** Todos los roles que tiene esta cuenta (incluye `role`, que es el activo).
+   *  Fuente: tabla user_roles. Permite que un mismo usuario sea, por ejemplo,
+   *  bailarín + instructor a la vez sin tener cuentas duplicadas. */
+  roles: UserRole[];
   city: string;
   country?: string;
   isVerified: boolean;
@@ -89,6 +93,7 @@ const DEMO_USER: User = {
   email: 'carlos@bachasalseros.com',
   avatar: 'https://ui-avatars.com/api/?name=Carlos+Rodriguez&background=7C3AED&color=fff&size=200&bold=true',
   role: 'user',
+  roles: ['user'],
   city: 'Madrid',
   isVerified: true,
   isPremium: false,
@@ -102,6 +107,7 @@ const DEMO_ARTIST: User = {
   email: 'dj@bachasalseros.com',
   avatar: 'https://ui-avatars.com/api/?name=Mambo+King&background=EC4899&color=fff&size=200&bold=true',
   role: 'dj',
+  roles: ['dj'],
   city: 'Madrid',
   isVerified: true,
   isPremium: true,
@@ -116,6 +122,7 @@ const DEMO_ADMIN: User = {
   email: 'admin@bachasalseros.com',
   avatar: 'https://ui-avatars.com/api/?name=Super+Admin&background=EC4899&color=fff&size=200&bold=true',
   role: 'admin',
+  roles: ['admin'],
   city: 'Madrid',
   isVerified: true,
   isPremium: true,
@@ -130,6 +137,7 @@ const SOLFA_ADMIN: User = {
   email: 'solfamendez41@gmail.com',
   avatar: 'https://ui-avatars.com/api/?name=Solfa+Mendez&background=EC4899&color=fff&size=200&bold=true',
   role: 'superadmin',
+  roles: ['superadmin'],
   city: 'Madrid',
   isVerified: true,
   isPremium: true,
@@ -178,6 +186,7 @@ export const useAuthStore = create<AuthState>()(
       email: data.email || '',
       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.name || 'U')}&background=7C3AED&color=fff&size=200`,
       role: data.role || 'user',
+      roles: [data.role || 'user'],
       city: data.city || 'Madrid',
       isVerified: false,
       isPremium: false,

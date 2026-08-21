@@ -25,6 +25,7 @@ import { QRCodeCanvas, downloadTicketQR } from '../components/QRTicket';
 import VenueReservationsManager from '../components/VenueReservationsManager';
 import BuyServicesTab from '../components/BuyServicesTab';
 import SupportTab from '../components/SupportTab';
+import RoleManager from '../components/RoleManager';
 
 type TabId = 'overview' | 'earnings' | 'payouts' | 'payments' | 'courses' | 'calendar' | 'classes' | 'offers' | 'buyers' | 'scanner' | 'events' | 'ventas' | 'reservations' | 'buyservices' | 'support';
 
@@ -307,6 +308,8 @@ const OverviewTab: React.FC<{ performerId: string; onNavigate: (t: TabId) => voi
         <StatCard label="Cursos" value={String(myCourses.length)} sub={`${myCourses.reduce((s, c) => s + c.enrolledCount, 0)} alumnos`} icon={<BookOpen className="w-5 h-5" />} color="purple" />
         <StatCard label="Ofertas pendientes" value={String(pendingOffers.length)} sub="Por responder" icon={<Briefcase className="w-5 h-5" />} color="pink" />
       </div>
+
+      <RoleManager />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card-white p-5">

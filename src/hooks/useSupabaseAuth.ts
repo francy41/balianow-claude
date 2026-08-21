@@ -5,7 +5,8 @@ import { setSentryUser } from '../lib/sentry';
 import type { User } from '../store/appStore';
 
 // ── Profile mapper ─────────────────────────────────────────────────────────
-function mapProfile(profile: any, supaId: string): User {
+function mapProfile(profile: any, supaId: string, roles?: string[]): User {
+  const primaryRole = (profile.role as any) || 'user';
   return {
     id: supaId,
     name:      profile.full_name   || profile.name   || '',
@@ -14,7 +15,10 @@ function mapProfile(profile: any, supaId: string): User {
     coverPhoto: profile.cover_photo || '',
     bio:       profile.bio         || '',
     phone:     profile.whatsapp    || profile.phone   || '',
-    role:      (profile.role as any) || 'user',
+    role:      primaryRole,
+    // Todos los roles de la cuenta (tabla user_roles); si la consulta falla o
+    // aún no tiene filas, cae al rol único de siempre — nunca rompe el login.
+    roles:     (roles && roles.length ? roles : [primaryRole]) as any,
     city:      profile.location    || profile.city    || 'Madrid',
     country:   profile.country     || '',
     isVerified: profile.verified   ?? profile.is_verified ?? false,
@@ -36,6 +40,17 @@ function mapProfile(profile: any, supaId: string): User {
   };
 }
 
+// Todos los roles de la cuenta (tabla user_roles). Nunca lanza: si falla o
+// aún no hay filas (cuenta muy nueva, antes del trigger de sincronía), cae
+// al rol único — resolveUser jamás debe bloquearse por esto.
+async function fetchRoles(supaId: string): Promise<string[]> {
+  try {
+    const { data } = await supabase.from('user_roles').select('role').eq('user_id', supaId);
+    if (data && data.length) return data.map((r: any) => r.role);
+  } catch { /* noop */ }
+  return [];
+}
+
 // ── Resolve user after a Supabase session ──────────────────────────────────
 // Handles both email/password users and OAuth (Google) users.
 // Google users: Supabase auto-creates auth.users, DB trigger creates profiles row.
@@ -47,7 +62,7 @@ async function resolveUser(supaId: string, email: string, oauthMeta?: {
   // Try to fetch existing profile (up to 3 attempts for trigger delay)
   for (let i = 0; i < 3; i++) {
     const { data: profile } = await authService.getProfile(supaId);
-    if (profile) return mapProfile(profile, supaId);
+    if (profile) return mapProfile(profile, supaId, await fetchRoles(supaId));
     // Wait 800ms between attempts (trigger propagation)
     if (i < 2) await new Promise(r => setTimeout(r, 800));
   }
@@ -77,7 +92,7 @@ async function resolveUser(supaId: string, email: string, oauthMeta?: {
   // trae los datos REALES en vez de los de fallback. Si de verdad es nueva,
   // trae lo que se acaba de insertar.
   const { data: reread } = await authService.getProfile(supaId);
-  if (reread) return mapProfile(reread, supaId);
+  if (reread) return mapProfile(reread, supaId, await fetchRoles(supaId));
 
   // Último recurso: ni la fila existía ni se pudo releer — usar fallback
   // solo para esta sesión (no corrompe nada en BD gracias a ignoreDuplicates).
@@ -128,6 +143,7 @@ export function useSupabaseAuthListener() {
               bio: '',
               phone: '',
               role: 'user',
+              roles: ['user'],
               city: 'Madrid',
               country: '',
               isVerified: true,
@@ -163,7 +179,7 @@ export function useSupabaseAuthListener() {
             name: meta?.full_name || meta?.name || (session.user.email || 'Usuario').split('@')[0],
             email: session.user.email || '',
             avatar: meta?.avatar_url || meta?.picture || '',
-            coverPhoto: '', bio: '', phone: '', role: 'user', city: 'Madrid', country: '',
+            coverPhoto: '', bio: '', phone: '', role: 'user', roles: ['user'], city: 'Madrid', country: '',
             isVerified: true, isPremium: false, wallet: 0, notifications: 0,
             socials: { instagram:'', tiktok:'', youtube:'', website:'', facebook:'', soundcloud:'', twitch:'', spotify:'' },
           } as any;
@@ -233,7 +249,7 @@ export async function supabaseLogin(
         id: data.user.id,
         name: meta?.full_name || meta?.name || (data.user.email || 'Usuario').split('@')[0],
         email: data.user.email || '', avatar: meta?.avatar_url || '', coverPhoto: '', bio: '', phone: '',
-        role: 'user', city: 'Madrid', country: '', isVerified: true, isPremium: false,
+        role: 'user', roles: ['user'], city: 'Madrid', country: '', isVerified: true, isPremium: false,
         wallet: 0, notifications: 0,
         socials: { instagram: '', tiktok: '', youtube: '', website: '', facebook: '', soundcloud: '', twitch: '', spotify: '' },
       } as any;
