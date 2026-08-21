@@ -261,7 +261,7 @@ const AdminLocationModal: React.FC<Props> = ({ open, mode, onClose, onSaved }) =
             <MapErrorBoundary>
             <MapContainer center={mapDefault} zoom={5} style={{ width: '100%', height: '100%' }} zoomControl>
               <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                 attribution="&copy; CARTO &copy; OpenStreetMap"
               />
               <ClickHandler onPick={(lat, lng) => setPosition([lat, lng])} />
