@@ -1573,7 +1573,7 @@ const HomePage: React.FC = () => {
       <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden relative h-[380px] sm:h-[420px] bg-brand-black">
         <div className="absolute inset-0">
           <HeroSliderFullHeight onLinkClick={handleHeroLinkClick} images={
-            // Radio y TV ya tienen su propio banner fijo debajo del hero — se excluyen aquí
+            // Radio y TV tienen su acceso directo superpuesto en el propio hero — se excluyen aquí
             // aunque sigan guardados en site_config, para no duplicar el acceso.
             (heroSliderImages.length > 0 ? heroSliderImages : [
               { id: '1', url: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=1400&h=500&fit=crop&q=80', alt: 'BailaNow - Todo lo que amas del baile latino' },
@@ -1583,6 +1583,18 @@ const HomePage: React.FC = () => {
         </div>
         {/* Overlay oscuro elegante, un solo degradado */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/25" />
+
+        {/* Acceso directo a TV y Radio, superpuesto en el hero */}
+        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex gap-2 z-10">
+          <button onClick={() => setTvWidgetOpen(true)}
+            className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold rounded-full pl-2.5 pr-3 py-1.5 text-xs hover:bg-white/20 transition">
+            <Tv className="w-3.5 h-3.5" /> TV
+          </button>
+          <button onClick={() => setRadioWidgetOpen(true)}
+            className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold rounded-full pl-2.5 pr-3 py-1.5 text-xs hover:bg-white/20 transition">
+            <Radio className="w-3.5 h-3.5" /> Radio
+          </button>
+        </div>
 
         <div className="relative h-full flex items-end sm:items-center">
           <div className="w-full px-5 sm:px-10 pb-7 sm:pb-0 max-w-xl">
@@ -1613,32 +1625,6 @@ const HomePage: React.FC = () => {
             </button>
           </div>
         </div>
-      </section>
-
-      {/* ── BANNER TV / RADIO (mitad y mitad, cada uno abre su widget flotante) ── */}
-      <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden grid grid-cols-2 h-24 sm:h-28">
-        <button onClick={() => setTvWidgetOpen(true)}
-          className="group relative flex flex-col sm:flex-row items-center sm:items-center justify-center gap-1 sm:gap-3 px-2 sm:px-6 bg-gradient-to-br from-indigo-900 via-purple-900 to-fuchsia-950 hover:brightness-110 transition-all overflow-hidden">
-          <div className="absolute -right-6 -top-6 w-24 h-24 bg-fuchsia-500/20 rounded-full blur-2xl pointer-events-none" />
-          <span className="w-9 h-9 sm:w-12 sm:h-12 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-            <Tv className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-          </span>
-          <div className="text-center sm:text-left min-w-0">
-            <p className="text-white font-display font-black text-[11px] sm:text-lg leading-tight">BailaNow TV</p>
-            <p className="text-white/60 text-[9px] sm:text-xs font-semibold">Mira ahora →</p>
-          </div>
-        </button>
-        <button onClick={() => setRadioWidgetOpen(true)}
-          className="group relative flex flex-col sm:flex-row items-center sm:items-center justify-center gap-1 sm:gap-3 px-2 sm:px-6 bg-gradient-to-bl from-orange-600 via-pink-600 to-fuchsia-800 hover:brightness-110 transition-all overflow-hidden">
-          <div className="absolute -left-6 -top-6 w-24 h-24 bg-orange-400/20 rounded-full blur-2xl pointer-events-none" />
-          <span className="w-9 h-9 sm:w-12 sm:h-12 rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-            <Radio className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-          </span>
-          <div className="text-center sm:text-left min-w-0">
-            <p className="text-white font-display font-black text-[11px] sm:text-lg leading-tight">Radio Online</p>
-            <p className="text-white/60 text-[9px] sm:text-xs font-semibold">Escucha en vivo →</p>
-          </div>
-        </button>
       </section>
 
       {/* ── CATEGORÍAS (subidas justo bajo el hero, como el diseño objetivo) ── */}
