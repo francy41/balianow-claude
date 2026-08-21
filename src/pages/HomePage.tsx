@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket } from 'lucide-react';
-import { ARTISTS, EVENTS, VENUES } from '../data/mockData';
+import { ARTISTS, EVENTS } from '../data/mockData';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_TV, type HeroSliderImage, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
 import { Avatar, StarRating, SearchBar, AppImage } from '../components/ui';
@@ -847,7 +847,7 @@ const HScroll: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
-// ── OPEN VENUES NOW SECTION (Supabase + fallback mock) ──────────────
+// ── OPEN VENUES NOW SECTION (Supabase) ──────────────
 const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
   const [dbVenues, setDbVenues] = React.useState<any[]>([]);
 
@@ -874,16 +874,13 @@ const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
     return false;
   };
 
-  // Combina BD + mock; preferimos BD si tiene resultados
-  const allVenues: any[] = dbVenues.length > 0
-    ? dbVenues.map((v: any) => ({
-        id: v.id, name: v.name, city: v.city || '',
-        cover: v.cover || v.image_url || v.avatar || '',
-        rating: Number(v.rating) || 4.5,
-        isOpen: isOpenNow(v), isPremium: !!v.is_premium,
-        openHours: v.open_hours || (v.open_time && v.close_time ? `${String(v.open_time).slice(0,5)}–${String(v.close_time).slice(0,5)}` : '24/7'),
-      }))
-    : VENUES;
+  const allVenues: any[] = dbVenues.map((v: any) => ({
+    id: v.id, name: v.name, city: v.city || '',
+    cover: v.cover || v.image_url || v.avatar || '',
+    rating: Number(v.rating) || 4.5,
+    isOpen: isOpenNow(v), isPremium: !!v.is_premium,
+    openHours: v.open_hours || (v.open_time && v.close_time ? `${String(v.open_time).slice(0,5)}–${String(v.close_time).slice(0,5)}` : '24/7'),
+  }));
 
   const openVenues = allVenues.filter(v => v.isOpen).sort((a: any, b: any) => {
     if (a.isPremium && !b.isPremium) return -1;
@@ -1020,7 +1017,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
   const day = (d: string) => (d || '').split('-')[2] || '--';
   const month = (d: string) => MONTHS[(Number((d || '').split('-')[1]) || 1) - 1] || '';
 
-  // Datos reales de la BD (con fallback a ejemplos si está vacía)
+  // Datos reales de la BD
   const [dbEvents, setDbEvents] = React.useState<any[]>([]);
   const [dbArtists, setDbArtists] = React.useState<any[]>([]);
   React.useEffect(() => {
@@ -1030,19 +1027,16 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
     return () => { cancelled = true; };
   }, []);
 
-  const events = (dbEvents.length
-    ? dbEvents.map((e: any) => ({ id: e.id, title: fixText(e.title || e.name || 'Evento'), date: e.date || e.event_date || '', venueName: fixText(e.venue_name || ''), city: fixText(e.city || ''), cover: e.cover || e.image_url || '' }))
-    : EVENTS
-  ).slice(0, 6);
+  const events = dbEvents
+    .map((e: any) => ({ id: e.id, title: fixText(e.title || e.name || 'Evento'), date: e.date || e.event_date || '', venueName: fixText(e.venue_name || ''), city: fixText(e.city || ''), cover: e.cover || e.image_url || '' }))
+    .slice(0, 6);
 
-  const artists = (dbArtists.length
-    ? dbArtists.map((a: any) => ({ id: a.id, name: fixText(a.name || 'Artista'), avatar: a.avatar || a.cover || '', genre: Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : []) }))
-    : ARTISTS
-  ).slice(0, 6);
+  const artists = dbArtists
+    .map((a: any) => ({ id: a.id, name: fixText(a.name || 'Artista'), avatar: a.avatar || a.cover || '', genre: Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : []) }))
+    .slice(0, 6);
 
   // Tarjetas de BailaNow TV — editables desde Admin → Home destacados (site_config global)
   const tvCards = useSiteConfigStore(s => s.homeTvCards);
-  const PLACEHOLDER = [ARTISTS[2]?.cover, ARTISTS[3]?.cover, ARTISTS[0]?.cover, ARTISTS[1]?.cover];
   const tv = (tvCards && tvCards.length ? tvCards : DEFAULT_HOME_TV).slice(0, 4);
 
   const ColHeader = ({ title, onAll }: { title: string; onAll: () => void }) => (
@@ -1102,11 +1096,14 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <ColHeader title="📺 BailaNow TV" onAll={() => navigate('/tv')} />
           <div className="grid grid-cols-2 gap-3">
             {tv.map((c, i) => {
-              const img = c.image || PLACEHOLDER[i];
               return (
               <button key={i} onClick={() => navigate(c.link || '/tv')}
                 className="relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-indigo-900/60 via-purple-900/40 to-gray-950">
-                {img && <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
+                {c.image ? (
+                  <img src={c.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
+                ) : (
+                  <Video className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-white/15" />
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/40 to-transparent" />
                 {c.tag && <span className="absolute top-2.5 left-2.5 bg-pink-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">{c.tag}</span>}
                 <div className="absolute bottom-3 left-3 right-3">
@@ -1221,14 +1218,29 @@ const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
 
 // ── BAILANOW TV (estilo Netflix: scroll horizontal + etiquetas) ──
 const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
-  const shows = [
-    { title: 'Bachata desde cero',    meta: 'Curso · Principiante', tag: 'Nuevo',            tagColor: 'bg-pink-500',    img: ARTISTS[0]?.cover },
-    { title: 'Salsa en pareja',       meta: 'Curso · Intermedio',   tag: 'Más visto',        tagColor: 'bg-amber-500',   img: ARTISTS[1]?.cover },
-    { title: 'Kizomba fusión',        meta: 'Curso · Avanzado',     tag: 'Recomendado',      tagColor: 'bg-emerald-500', img: ARTISTS[2]?.cover },
-    { title: 'Estilo y musicalidad',  meta: 'Masterclass',          tag: 'Continuar viendo', tagColor: 'bg-blue-500',    img: ARTISTS[3]?.cover },
-    { title: 'Merengue clásico',      meta: 'Curso · Principiante', tag: 'Nuevo',            tagColor: 'bg-pink-500',    img: ARTISTS[4]?.cover },
-    { title: 'Reggaetón flow',        meta: 'Curso · Intermedio',   tag: 'Más visto',        tagColor: 'bg-amber-500',   img: EVENTS[0]?.cover },
-  ];
+  const [shows, setShows] = useState<{ id: string; title: string; meta: string; tag: string; tagColor: string; img: string }[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.from('tv_titles').select('id,title,type,level,style,cover_url,featured')
+      .eq('status', 'published').order('featured', { ascending: false }).order('created_at', { ascending: false }).limit(8)
+      .then(({ data }) => {
+        if (cancelled) return;
+        setShows((data || []).map((t: any) => ({
+          id: t.id, title: fixText(t.title || 'Vídeo'),
+          meta: [t.type, t.level].filter(Boolean).join(' · ') || t.style || '',
+          tag: t.featured ? 'Destacado' : 'Nuevo', tagColor: t.featured ? 'bg-emerald-500' : 'bg-pink-500',
+          img: t.cover_url || '',
+        })));
+        setLoaded(true);
+      }, () => setLoaded(true));
+    return () => { cancelled = true; };
+  }, []);
+
+  // Sin contenido real todavía: nada de cursos ficticios (ya se corrigió esa clase de bug).
+  if (loaded && shows.length === 0) return null;
+
   return (
     <section className="mx-3 sm:mx-4 mt-8">
       <div className="flex items-center justify-between mb-3 px-1">
@@ -1236,16 +1248,20 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
         <button onClick={() => navigate('/tv')} className="text-pink-600 dark:text-pink-400 text-xs font-bold hover:underline">Ver todo →</button>
       </div>
       <HScroll>
-        {shows.map((s, i) => (
-          <button key={i} onClick={() => navigate('/tv')}
+        {shows.map(s => (
+          <button key={s.id} onClick={() => navigate(`/tv/${s.id}`)}
             className="flex-shrink-0 w-64 relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-indigo-900/60 via-purple-900/40 to-gray-950 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
-            {s.img && <img src={s.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
+            {s.img ? (
+              <img src={s.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
+            ) : (
+              <Video className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-white/15" />
+            )}
             <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
             <span className={`absolute top-2.5 left-2.5 ${s.tagColor} text-white text-[9px] font-black px-2 py-0.5 rounded-full`}>{s.tag}</span>
             <span className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm grid place-items-center text-white opacity-0 group-hover:opacity-100 transition"><Play className="w-4 h-4" fill="currentColor" /></span>
             <div className="absolute bottom-3 left-3 right-3">
               <p className="text-white font-black text-sm leading-tight">{s.title}</p>
-              <p className="text-white/60 text-[10px] mt-0.5">{s.meta}</p>
+              {s.meta && <p className="text-white/60 text-[10px] mt-0.5 capitalize">{s.meta}</p>}
             </div>
           </button>
         ))}
@@ -1257,13 +1273,20 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
 // ── SECCIONES DE DESCUBRIMIENTO (Fase 4) ──
 const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
   const trends = ['Salsa', 'Bachata', 'Kizomba', 'Reggaetón', 'Merengue', 'Cumbia', 'Timba', 'Afrobeat'];
-  const clases = [
-    { title: 'Bachata sensual',      meta: 'Nivel medio · 45 min', img: ARTISTS[1]?.cover },
-    { title: 'Salsa on2',            meta: 'Avanzado · 60 min',    img: ARTISTS[0]?.cover },
-    { title: 'Kizomba básica',       meta: 'Principiante · 30 min', img: ARTISTS[2]?.cover },
-    { title: 'Estilo femenino',      meta: 'Todos · 40 min',       img: ARTISTS[3]?.cover },
-    { title: 'Ritmo y musicalidad',  meta: 'Intermedio · 50 min',  img: ARTISTS[4]?.cover },
-  ];
+
+  const [dbClases, setDbClases] = React.useState<any[]>([]);
+  React.useEffect(() => {
+    let cancelled = false;
+    supabase.from('class_offerings').select('id,title,level,duration_minutes,cover_image').eq('status', 'active').limit(6)
+      .then(({ data }) => { if (!cancelled) setDbClases(data || []); }, () => {});
+    return () => { cancelled = true; };
+  }, []);
+  // Sin fallback a mock: si no hay clases reales publicadas, la sección se oculta.
+  const clases = dbClases.map((c: any) => ({
+    id: c.id, title: fixText(c.title || 'Clase'),
+    meta: [c.level, c.duration_minutes ? `${c.duration_minutes} min` : ''].filter(Boolean).join(' · '),
+    img: c.cover_image || '',
+  }));
 
   // "Profesores Destacados" enlaza a perfiles reales -> nunca usar IDs mock (llevaban a 404).
   const [dbTeachers, setDbTeachers] = React.useState<any[]>([]);
@@ -1300,23 +1323,29 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
       </section>
 
       {/* Clases Populares */}
+      {clases.length > 0 && (
       <section className="mx-3 sm:mx-4 mt-8">
         <Header icon="🎓" title="Clases Populares" onAll={() => navigate('/clases')} />
         <HScroll>
-          {clases.map((c, i) => (
-            <button key={i} onClick={() => navigate('/clases')}
+          {clases.map(c => (
+            <button key={c.id} onClick={() => navigate('/clases')}
               className="flex-shrink-0 w-52 relative rounded-2xl overflow-hidden h-32 group text-left bg-gradient-to-br from-pink-600/30 via-fuchsia-700/20 to-gray-900 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
-              {c.img && <img src={c.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />}
+              {c.img ? (
+                <img src={c.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+              ) : (
+                <Video className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-7 h-7 text-white/15" />
+              )}
               <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
               <span className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm grid place-items-center text-white opacity-0 group-hover:opacity-100 transition"><Play className="w-4 h-4" fill="currentColor" /></span>
               <div className="absolute bottom-3 left-3 right-3">
                 <p className="text-white font-black text-sm leading-tight">{c.title}</p>
-                <p className="text-white/60 text-[10px] mt-0.5">{c.meta}</p>
+                {c.meta && <p className="text-white/60 text-[10px] mt-0.5">{c.meta}</p>}
               </div>
             </button>
           ))}
         </HScroll>
       </section>
+      )}
 
       {/* Profesores Destacados */}
       {teachers.length > 0 && (
@@ -1397,6 +1426,21 @@ const HomePage: React.FC = () => {
     type: a.type || 'artist', rating: Number(a.rating) || 0, reviews: 0, followers: 0, priceFrom: 0, currency: 'EUR',
     bio: '', isVerified: false, isPremium: false, isLive: false,
   }) as unknown as typeof ARTISTS[0]);
+
+  // "Próximos Eventos" enlaza a eventos reales -> nunca IDs mock (404).
+  const [dbHomeEvents, setDbHomeEvents] = React.useState<any[]>([]);
+  React.useEffect(() => {
+    let cancelled = false;
+    supabase.from('events').select('*').is('deleted_at', null).order('date', { ascending: true }).limit(12)
+      .then(({ data }) => { if (!cancelled && Array.isArray(data)) setDbHomeEvents(data); }, () => {});
+    return () => { cancelled = true; };
+  }, []);
+  const homeEvents = dbHomeEvents.map((e: any) => ({
+    id: e.id, title: fixText(e.title || 'Evento'), date: e.date || e.event_date || '',
+    venueName: fixText(e.venue_name || ''), city: fixText(e.city || ''), cover: e.cover || e.image_url || e.image || '',
+    category: Array.isArray(e.category) ? e.category : (e.category ? [e.category] : []),
+    price: Number(e.price) || 0, isFeatured: !!e.is_featured,
+  }) as unknown as typeof EVENTS[0]);
   const totalEscrow = isAdmin ? transactions.filter(t => t.status === 'pending').reduce((s, t) => s + t.gross, 0) : 0;
   const pendingWithdrawals = isAdmin ? withdrawals.filter(w => w.status === 'pending') : [];
   const creatorCount = isAdmin ? new Set(transactions.map(t => t.performerId)).size : 0;
@@ -1846,7 +1890,7 @@ const HomePage: React.FC = () => {
       )}
 
       {/* ── PRÓXIMOS EVENTOS ── */}
-      {isModuleOn('cta') && (
+      {isModuleOn('cta') && homeEvents.length > 0 && (
       <HomeSectionWithSearch
         title="🎉 Proximos Eventos"
         subtitle="Conciertos, festivales, sociales y mas"
@@ -1858,8 +1902,8 @@ const HomePage: React.FC = () => {
       >
         {(searchQ) => {
           const filtered = searchQ
-            ? EVENTS.filter(e => e.title.toLowerCase().includes(searchQ.toLowerCase()) || e.city.toLowerCase().includes(searchQ.toLowerCase()) || e.category.some(c => c.toLowerCase().includes(searchQ.toLowerCase())))
-            : EVENTS;
+            ? homeEvents.filter(e => e.title.toLowerCase().includes(searchQ.toLowerCase()) || e.city.toLowerCase().includes(searchQ.toLowerCase()) || e.category.some(c => c.toLowerCase().includes(searchQ.toLowerCase())))
+            : homeEvents;
           return (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {filtered.slice(0, 6).map(event => (
