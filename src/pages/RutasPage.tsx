@@ -1,18 +1,22 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Plus, Users, X, Loader2, Calendar, Clock, Trash2, Check, Route as RouteIcon, MessageCircle, Send } from 'lucide-react';
+import { MapPin, Plus, Users, X, Loader2, Calendar, Clock, Trash2, Check, Route as RouteIcon, MessageCircle, Send, Search, Building2, LifeBuoy, Lock, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
 import MapErrorBoundary from '../components/MapErrorBoundary';
+import { Avatar } from '../components/ui';
 
-interface Stop { name: string; address?: string; lat: number; lng: number; }
+interface Stop { name: string; address?: string; lat: number; lng: number; venue_id?: string; }
 interface Ruta {
   id: string; creator_id: string; creator_name: string | null; title: string; city: string;
   description: string | null; date: string | null; time: string | null; stops: Stop[]; created_at: string;
+  end_date: string | null; status: 'open' | 'closed';
 }
+interface Member { user_id: string; user_name: string | null; avatar_url?: string | null; }
+interface RutaComment { id: string; user_id: string; user_name: string | null; text: string; created_at: string; avatar_url?: string | null; }
 
 const CARTO = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 
@@ -83,20 +87,53 @@ async function geocode(q: string): Promise<Stop | null> {
 
 /* ── Modal para crear una ruta ── */
 const CreateRutaModal: React.FC<{ onClose: () => void; onCreated: () => void }> = ({ onClose, onCreated }) => {
+  const navigate = useNavigate();
   const { user } = useAuthStore();
   const { addToast } = useUIStore();
   const [title, setTitle] = useState('');
   const [city, setCity] = useState('');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [description, setDescription] = useState('');
   const [stops, setStops] = useState<Stop[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  // Cómo se añade cada parada: un local ya verificado en la plataforma, o una
+  // zona libre (dirección/barrio) para planes que no dependen de un sitio fijo.
+  const [stopMode, setStopMode] = useState<'venue' | 'zone'>('venue');
+  const [venueQuery, setVenueQuery] = useState('');
+  const [venueResults, setVenueResults] = useState<any[]>([]);
+  const [searchingVenues, setSearchingVenues] = useState(false);
+  const venueSearchTimer = useRef<ReturnType<typeof setTimeout>>();
+
   const [stopName, setStopName] = useState('');
   const [stopAddr, setStopAddr] = useState('');
   const [adding, setAdding] = useState(false);
-  const [saving, setSaving] = useState(false);
 
-  const addStop = async () => {
+  useEffect(() => {
+    clearTimeout(venueSearchTimer.current);
+    if (venueQuery.trim().length < 2) { setVenueResults([]); return; }
+    venueSearchTimer.current = setTimeout(async () => {
+      setSearchingVenues(true);
+      const { data } = await supabase.from('venues').select('id,name,city,address,lat,lng')
+        .is('deleted_at', null).ilike('name', `%${venueQuery.trim()}%`).limit(6);
+      setSearchingVenues(false);
+      setVenueResults(data || []);
+    }, 350);
+    return () => clearTimeout(venueSearchTimer.current);
+  }, [venueQuery]);
+
+  const addVenueStop = (v: any) => {
+    if (v.lat == null || v.lng == null) {
+      addToast({ message: 'Ese local aún no tiene ubicación en el mapa. Prueba con otro o usa una zona libre.', type: 'error' });
+      return;
+    }
+    setStops(s => [...s, { name: v.name, address: v.address || v.city || '', lat: Number(v.lat), lng: Number(v.lng), venue_id: v.id }]);
+    setVenueQuery(''); setVenueResults([]);
+  };
+
+  const addZoneStop = async () => {
     if (!stopName.trim()) { addToast({ message: 'Ponle nombre a la parada', type: 'error' }); return; }
     setAdding(true);
     const query = [stopName, stopAddr, city].filter(Boolean).join(', ');
@@ -107,14 +144,18 @@ const CreateRutaModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
     setStopName(''); setStopAddr('');
   };
 
+  const goToSupport = () => { onClose(); navigate('/dashboard?tab=support'); };
+
   const save = async () => {
     if (!user) { onClose(); return; }
     if (!title.trim() || !city.trim()) { addToast({ message: 'Título y ciudad son obligatorios', type: 'error' }); return; }
-    if (stops.length === 0) { addToast({ message: 'Añade al menos una parada', type: 'error' }); return; }
+    if (!endDate) { addToast({ message: 'Elige una fecha de fin — el plan se cierra automáticamente ese día', type: 'error' }); return; }
+    if (stops.length === 0) { addToast({ message: 'Añade al menos un local o zona', type: 'error' }); return; }
     setSaving(true);
     const { error } = await supabase.from('rutas').insert({
       creator_id: user.id, creator_name: user.name, title: title.trim(), city: city.trim(),
       description: description.trim() || null, date: date || null, time: time || null, stops,
+      end_date: endDate, status: 'open',
     });
     setSaving(false);
     if (error) { addToast({ message: error.message, type: 'error' }); return; }
@@ -137,20 +178,26 @@ const CreateRutaModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
           </div>
           <div className="grid grid-cols-2 gap-3">
             <input className="input-field" type="time" value={time} onChange={e => setTime(e.target.value)} />
-            <div />
+            <div>
+              <input className="input-field" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} min={date || undefined} />
+            </div>
           </div>
+          <p className="text-[10px] text-gray-400 -mt-2 flex items-center gap-1"><Lock className="w-3 h-3" /> Fecha de fin: el plan se cierra y deja de mostrarse automáticamente ese día.</p>
           <textarea className="input-field" rows={2} placeholder="Descripción (opcional)" value={description} onChange={e => setDescription(e.target.value)} />
 
-          {/* Paradas */}
+          {/* Paradas: local verificado de la plataforma, o zona libre */}
           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3">
-            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Paradas ({stops.length})</p>
+            <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Locales / zonas del plan ({stops.length})</p>
             {stops.length > 0 && (
               <div className="space-y-1.5 mb-3">
                 {stops.map((s, i) => (
                   <div key={i} className="flex items-center gap-2 bg-white dark:bg-gray-900 rounded-lg px-2.5 py-1.5">
                     <span className="w-5 h-5 rounded-full bg-brand-orange text-white text-[10px] font-black flex items-center justify-center flex-shrink-0">{i + 1}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{s.name}</p>
+                      <p className="text-xs font-bold text-gray-900 dark:text-white truncate flex items-center gap-1">
+                        {s.name}
+                        {s.venue_id && <CheckCircle2 className="w-3 h-3 text-emerald-500 flex-shrink-0" />}
+                      </p>
                       <p className="text-[10px] text-gray-400 truncate">{s.address}</p>
                     </div>
                     <button onClick={() => setStops(st => st.filter((_, j) => j !== i))} className="text-gray-300 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
@@ -158,13 +205,56 @@ const CreateRutaModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
                 ))}
               </div>
             )}
-            <div className="space-y-2">
-              <input className="input-field" placeholder="Nombre del sitio (ej: Café Berlín)" value={stopName} onChange={e => setStopName(e.target.value)} />
-              <input className="input-field" placeholder="Dirección o zona (opcional, mejora la ubicación)" value={stopAddr} onChange={e => setStopAddr(e.target.value)} />
-              <button onClick={addStop} disabled={adding} className="w-full border-2 border-dashed border-pink-300 dark:border-pink-800 text-pink-600 dark:text-pink-400 font-bold rounded-xl py-2 text-sm hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-all disabled:opacity-50">
-                {adding ? <Loader2 className="w-4 h-4 animate-spin inline" /> : <><Plus className="w-4 h-4 inline mr-1" /> Añadir parada al mapa</>}
+
+            {/* Tabs: local de la plataforma vs zona libre */}
+            <div className="flex gap-1.5 mb-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+              <button type="button" onClick={() => setStopMode('venue')}
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-bold transition-all ${stopMode === 'venue' ? 'bg-white dark:bg-gray-900 text-pink-600 shadow-sm' : 'text-gray-500'}`}>
+                <Building2 className="w-3.5 h-3.5" /> Local de BailaNow
+              </button>
+              <button type="button" onClick={() => setStopMode('zone')}
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-bold transition-all ${stopMode === 'zone' ? 'bg-white dark:bg-gray-900 text-pink-600 shadow-sm' : 'text-gray-500'}`}>
+                <MapPin className="w-3.5 h-3.5" /> Otra zona
               </button>
             </div>
+
+            {stopMode === 'venue' ? (
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input className="input-field pl-8" placeholder="Buscar local por nombre…" value={venueQuery} onChange={e => setVenueQuery(e.target.value)} />
+                </div>
+                {searchingVenues ? (
+                  <div className="py-3 text-center"><Loader2 className="w-4 h-4 animate-spin text-gray-400 mx-auto" /></div>
+                ) : venueResults.length > 0 ? (
+                  <div className="space-y-1">
+                    {venueResults.map(v => (
+                      <button key={v.id} type="button" onClick={() => addVenueStop(v)}
+                        className="w-full text-left flex items-center gap-2 bg-white dark:bg-gray-900 rounded-lg px-2.5 py-2 hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-colors">
+                        <Building2 className="w-3.5 h-3.5 text-pink-500 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{v.name}</p>
+                          <p className="text-[10px] text-gray-400 truncate">{v.city}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : venueQuery.trim().length >= 2 ? (
+                  <p className="text-[11px] text-gray-400 text-center py-1">Sin resultados para "{venueQuery}"</p>
+                ) : null}
+                <button type="button" onClick={goToSupport} className="w-full flex items-center justify-center gap-1.5 text-[11px] text-gray-400 hover:text-pink-500 py-1.5">
+                  <LifeBuoy className="w-3 h-3" /> ¿No encuentras tu local? Contacta con soporte para añadirlo
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <input className="input-field" placeholder="Nombre de la zona (ej: Malasaña)" value={stopName} onChange={e => setStopName(e.target.value)} />
+                <input className="input-field" placeholder="Dirección o barrio (opcional, mejora la ubicación)" value={stopAddr} onChange={e => setStopAddr(e.target.value)} />
+                <button type="button" onClick={addZoneStop} disabled={adding} className="w-full border-2 border-dashed border-pink-300 dark:border-pink-800 text-pink-600 dark:text-pink-400 font-bold rounded-xl py-2 text-sm hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-all disabled:opacity-50">
+                  {adding ? <Loader2 className="w-4 h-4 animate-spin inline" /> : <><Plus className="w-4 h-4 inline mr-1" /> Añadir zona al mapa</>}
+                </button>
+              </div>
+            )}
           </div>
 
           <button onClick={save} disabled={saving} className="w-full bg-brand-orange text-white font-black rounded-xl py-3.5 text-sm hover:opacity-90 transition-all disabled:opacity-50">
@@ -184,15 +274,21 @@ const RutasPage: React.FC = () => {
   const [rutas, setRutas] = useState<Ruta[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Ruta | null>(null);
-  const [members, setMembers] = useState<{ user_id: string; user_name: string | null }[]>([]);
-  const [comments, setComments] = useState<{ id: string; user_id: string; user_name: string | null; text: string; created_at: string }[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [comments, setComments] = useState<RutaComment[]>([]);
   const [commentText, setCommentText] = useState('');
   const [creating, setCreating] = useState(false);
   const [cityFilter, setCityFilter] = useState('');
+  const [closing, setClosing] = useState(false);
 
   const load = useCallback(async () => {
     const safety = setTimeout(() => setLoading(false), 8000);
-    const { data } = await supabase.from('rutas').select('*').order('created_at', { ascending: false });
+    const today = new Date().toISOString().slice(0, 10);
+    // Solo planes abiertos y no vencidos: uno cerrado (manual o por fecha) desaparece del listado.
+    const { data } = await supabase.from('rutas').select('*')
+      .eq('status', 'open')
+      .or(`end_date.is.null,end_date.gte.${today}`)
+      .order('created_at', { ascending: false });
     clearTimeout(safety);
     const list = (data || []).map((r: any) => ({ ...r, stops: Array.isArray(r.stops) ? r.stops : [] })) as Ruta[];
     setRutas(list);
@@ -202,12 +298,21 @@ const RutasPage: React.FC = () => {
 
   useEffect(() => { load().catch(() => setLoading(false)); }, [load]);
 
+  // Añade el avatar de cada participante consultando profiles por sus user_id.
+  const withAvatars = async <T extends { user_id: string }>(rows: T[]): Promise<(T & { avatar_url?: string | null })[]> => {
+    const ids = [...new Set(rows.map(r => r.user_id))];
+    if (ids.length === 0) return rows;
+    const { data: profs } = await supabase.from('profiles').select('id, avatar_url').in('id', ids);
+    const map = new Map((profs || []).map((p: any) => [p.id, p.avatar_url]));
+    return rows.map(r => ({ ...r, avatar_url: map.get(r.user_id) || null }));
+  };
+
   useEffect(() => {
     if (!selected) { setMembers([]); setComments([]); return; }
     supabase.from('ruta_members').select('user_id, user_name').eq('ruta_id', selected.id)
-      .then(({ data }) => setMembers((data || []) as any), () => {});
+      .then(async ({ data }) => setMembers(await withAvatars((data || []) as Member[])), () => {});
     supabase.from('ruta_comments').select('*').eq('ruta_id', selected.id).order('created_at', { ascending: true })
-      .then(({ data }) => setComments((data || []) as any), () => {});
+      .then(async ({ data }) => setComments(await withAvatars((data || []) as RutaComment[])), () => {});
   }, [selected]);
 
   const postComment = async () => {
@@ -217,7 +322,7 @@ const RutasPage: React.FC = () => {
     setCommentText('');
     const { data, error } = await supabase.from('ruta_comments')
       .insert({ ruta_id: selected.id, user_id: user.id, user_name: user.name, text: t }).select().single();
-    if (!error && data) setComments(c => [...c, data as any]);
+    if (!error && data) setComments(c => [...c, { ...(data as any), avatar_url: user.avatar }]);
   };
 
   const cities = useMemo(() => [...new Set(rutas.map(r => r.city))], [rutas]);
@@ -227,6 +332,7 @@ const RutasPage: React.FC = () => {
     if (filtered.length && (!selected || !filtered.some(r => r.id === selected.id))) setSelected(filtered[0]);
   }, [filtered, selected]);
   const isMember = !!user && members.some(m => m.user_id === user.id);
+  const isCreator = !!user && !!selected && selected.creator_id === user.id;
 
   const toggleJoin = async () => {
     if (!isAuthenticated || !user || !selected) { navigate('/auth'); return; }
@@ -237,7 +343,19 @@ const RutasPage: React.FC = () => {
       addToast({ message: `¡Te uniste a "${selected.title}"! 🗺️`, type: 'success' });
     }
     const { data } = await supabase.from('ruta_members').select('user_id, user_name').eq('ruta_id', selected.id);
-    setMembers((data || []) as any);
+    setMembers(await withAvatars((data || []) as Member[]));
+  };
+
+  const closeRuta = async () => {
+    if (!selected || !isCreator) return;
+    if (!confirm(`¿Cerrar "${selected.title}"? Dejará de mostrarse en el listado.`)) return;
+    setClosing(true);
+    const { error } = await supabase.from('rutas').update({ status: 'closed' }).eq('id', selected.id);
+    setClosing(false);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: 'Plan cerrado', type: 'info' });
+    setSelected(null);
+    load();
   };
 
   return (
@@ -307,15 +425,39 @@ const RutasPage: React.FC = () => {
                         <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {selected.city}</span>
                         {selected.date && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {selected.date}</span>}
                         {selected.time && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {selected.time}</span>}
+                        {selected.end_date && <span className="flex items-center gap-1"><Lock className="w-3 h-3" /> Cierra {selected.end_date}</span>}
                       </p>
                     </div>
-                    <button onClick={toggleJoin} className={`flex-shrink-0 rounded-xl px-4 py-2 text-sm font-bold flex items-center gap-1.5 ${isMember ? 'bg-emerald-100 text-emerald-700' : 'bg-brand-orange text-white'}`}>
-                      {isMember ? <><Check className="w-4 h-4" /> Voy</> : <><Users className="w-4 h-4" /> Unirme</>}
-                    </button>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {isCreator && (
+                        <button onClick={closeRuta} disabled={closing} title="Cerrar plan"
+                          className="w-9 h-9 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-red-500 hover:bg-red-50 flex items-center justify-center transition-colors disabled:opacity-50">
+                          {closing ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
+                        </button>
+                      )}
+                      <button onClick={toggleJoin} className={`rounded-xl px-4 py-2 text-sm font-bold flex items-center gap-1.5 ${isMember ? 'bg-emerald-100 text-emerald-700' : 'bg-brand-orange text-white'}`}>
+                        {isMember ? <><Check className="w-4 h-4" /> Voy</> : <><Users className="w-4 h-4" /> Unirme</>}
+                      </button>
+                    </div>
                   </div>
                   {selected.description && <p className="text-sm text-gray-600 dark:text-gray-300 mt-3">{selected.description}</p>}
-                  <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
-                    <Users className="w-4 h-4 text-pink-500" /> {members.length} {members.length === 1 ? 'persona va' : 'personas van'}
+
+                  {/* Grupo: perfiles de quienes van */}
+                  <div className="mt-3">
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
+                      <Users className="w-3.5 h-3.5 text-pink-500" /> {members.length === 0 ? 'Aún nadie va' : `${members.length} ${members.length === 1 ? 'persona va' : 'personas van'}`}
+                    </p>
+                    {members.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {members.map(m => (
+                          <button key={m.user_id} onClick={() => navigate(`/artistas/${m.user_id}`)}
+                            title={m.user_name || 'Perfil'} className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-800 rounded-full pl-1 pr-2.5 py-1 hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-colors">
+                            <Avatar src={m.avatar_url || ''} name={m.user_name || '?'} size="xs" />
+                            <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-200 max-w-[90px] truncate">{m.user_name || 'Anónimo'}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   {/* Paradas */}
                   <div className="mt-3 space-y-1.5">
@@ -331,14 +473,19 @@ const RutasPage: React.FC = () => {
                   {/* Chat del grupo */}
                   <div className="mt-4 border-t border-gray-100 dark:border-gray-800 pt-3">
                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1"><MessageCircle className="w-3.5 h-3.5" /> Chat del grupo</p>
-                    <div className="space-y-1.5 max-h-48 overflow-y-auto mb-2">
+                    <div className="space-y-2 max-h-48 overflow-y-auto mb-2">
                       {comments.length === 0 ? (
                         <p className="text-xs text-gray-400">Aún no hay mensajes. Coordina la hora y el punto de encuentro con el grupo. 🙂</p>
                       ) : comments.map(c => (
-                        <p key={c.id} className="text-sm">
-                          <span className="font-bold text-gray-900 dark:text-white text-xs">{c.user_name || 'Anónimo'}:</span>
-                          <span className="text-gray-600 dark:text-gray-300 ml-1">{c.text}</span>
-                        </p>
+                        <div key={c.id} className="flex items-start gap-2">
+                          <button onClick={() => navigate(`/artistas/${c.user_id}`)} className="flex-shrink-0">
+                            <Avatar src={c.avatar_url || ''} name={c.user_name || '?'} size="xs" />
+                          </button>
+                          <p className="text-sm min-w-0">
+                            <span className="font-bold text-gray-900 dark:text-white text-xs">{c.user_name || 'Anónimo'}:</span>
+                            <span className="text-gray-600 dark:text-gray-300 ml-1 break-words">{c.text}</span>
+                          </p>
+                        </div>
                       ))}
                     </div>
                     <div className="flex gap-2">
