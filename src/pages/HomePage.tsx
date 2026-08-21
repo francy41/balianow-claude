@@ -276,37 +276,6 @@ const PLAYLISTS = [
   { id: 'p5', name: 'Reggaeton Party', tracks: 22, duration: '1h 18m', img: 'https://picsum.photos/seed/playlist-reggaeton/120/120', color: 'bg-yellow-500' },
 ];
 
-// ── HERO SLIDER (Small) ──────────────────────────────────────────────────────────
-const HeroSlider: React.FC<{ images: HeroSliderImage[] }> = ({ images }) => {
-  const [current, setCurrent] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval>>();
-
-  useEffect(() => {
-    if (images.length <= 1) return;
-    timerRef.current = setInterval(() => setCurrent(p => (p + 1) % images.length), 3500);
-    return () => clearInterval(timerRef.current);
-  }, [images.length]);
-
-  return (
-    <div className="mt-6 overflow-hidden rounded-xl relative" style={{ height: 80 }}>
-      <div
-        className="flex transition-transform duration-700 ease-in-out h-full"
-        style={{ width: `${images.length * 100}%`, transform: `translateX(-${(current * 100) / images.length}%)` }}
-      >
-        {images.map(img => (
-          <img key={img.id} src={img.url} alt={img.alt} className="h-full object-cover flex-shrink-0" style={{ width: `${100 / images.length}%` }} />
-        ))}
-      </div>
-      <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex gap-1.5">
-        {images.map((_, i) => (
-          <button key={i} onClick={() => setCurrent(i)}
-            className={`w-1.5 h-1.5 rounded-full transition-all ${i === current ? 'bg-pink-500 w-4' : 'bg-white/50'}`} />
-        ))}
-      </div>
-    </div>
-  );
-};
-
 // ── HERO SLIDER (Full Height) ────────────────────────────────────────────────
 const HeroSliderFullHeight: React.FC<{ images: HeroSliderImage[]; onLinkClick?: (link: string) => boolean }> = ({ images, onLinkClick }) => {
   const navigate = useNavigate();
@@ -352,34 +321,37 @@ const HeroSliderFullHeight: React.FC<{ images: HeroSliderImage[]; onLinkClick?: 
         ))}
       </div>
 
-      {/* Navigation Arrows */}
-      <button
-        onClick={goToPrev}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all hover:scale-110 backdrop-blur-sm"
-      >
-        <ChevronRight className="w-5 h-5 rotate-180" />
-      </button>
-      <button
-        onClick={goToNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all hover:scale-110 backdrop-blur-sm"
-      >
-        <ChevronRight className="w-5 h-5" />
-      </button>
-
-      {/* Indicators */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-        {images.map((_, i) => (
+      {/* Navigation Arrows y puntos: solo si hay más de una imagen configurada */}
+      {images.length > 1 && (
+        <>
           <button
-            key={i}
-            onClick={() => setCurrent(i)}
-            className={`transition-all backdrop-blur-sm rounded-full ${
-              i === current
-                ? 'bg-pink-500 w-8 h-2'
-                : 'bg-white/40 hover:bg-white/60 w-2 h-2'
-            }`}
-          />
-        ))}
-      </div>
+            onClick={goToPrev}
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all hover:scale-110 backdrop-blur-sm"
+          >
+            <ChevronRight className="w-5 h-5 rotate-180" />
+          </button>
+          <button
+            onClick={goToNext}
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all hover:scale-110 backdrop-blur-sm"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {images.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setCurrent(i)}
+                className={`transition-all backdrop-blur-sm rounded-full ${
+                  i === current
+                    ? 'bg-pink-500 w-8 h-2'
+                    : 'bg-white/40 hover:bg-white/60 w-2 h-2'
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
 
       {/* CTA del slide activo (si tiene enlace configurado) */}
       {images[current]?.link && (
@@ -1573,12 +1545,11 @@ const HomePage: React.FC = () => {
       <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden relative h-[380px] sm:h-[420px] bg-brand-black">
         <div className="absolute inset-0">
           <HeroSliderFullHeight onLinkClick={handleHeroLinkClick} images={
-            // Radio y TV tienen su acceso directo superpuesto en el propio hero — se excluyen aquí
-            // aunque sigan guardados en site_config, para no duplicar el acceso.
+            // Un único fondo fijo, sin carrusel: el hero es un mensaje + CTAs, no un
+            // slider de banners. Radio y TV tienen su acceso directo superpuesto arriba.
             (heroSliderImages.length > 0 ? heroSliderImages : [
               { id: '1', url: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=1400&h=500&fit=crop&q=80', alt: 'BailaNow - Todo lo que amas del baile latino' },
-              { id: '2', url: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1400&h=500&fit=crop&q=80', alt: 'BailaNow - Encuentra todo el mundo del baile en tus manos' },
-            ]).filter(s => s.link !== '/radio' && s.link !== '/tv')
+            ]).filter(s => s.link !== '/radio' && s.link !== '/tv').slice(0, 1)
           } />
         </div>
         {/* Overlay oscuro elegante, un solo degradado */}
