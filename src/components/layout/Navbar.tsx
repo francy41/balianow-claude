@@ -45,9 +45,9 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
   const roleLabel = user ? (ROLE_LABELS[user.role] || user.role) : '';
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-14 bg-white/90 border-b border-gray-200/80 z-50 flex items-center px-3 sm:px-4 gap-2 sm:gap-3 backdrop-blur-xl shadow-sm">
+    <header className="fixed top-0 left-0 right-0 h-14 bg-surface/90 border-b border-hairline/10 z-50 flex items-center px-3 sm:px-4 gap-2 sm:gap-3 backdrop-blur-xl shadow-elevation-1">
       {/* Hamburger (mobile) */}
-      <button onClick={onMenuToggle} className="lg:hidden p-2 rounded-xl hover:bg-gray-100 text-gray-600 flex-shrink-0">
+      <button onClick={onMenuToggle} className="lg:hidden p-2 rounded-xl hover:bg-surface-elevated-2 text-ink-secondary flex-shrink-0">
         <Menu className="w-5 h-5" />
       </button>
 
@@ -57,7 +57,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
           <img src={siteLogo} alt="BailaNow" className="h-8 max-w-[150px] object-contain" />
         ) : (
           <>
-            <span className="text-gray-900">Baila</span>
+            <span className="text-ink-primary">Baila</span>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-fuchsia-600">Now</span>
           </>
         )}
@@ -66,28 +66,28 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
       {/* City selector (Airbnb style) */}
       <button
         onClick={() => navigate('/venues')}
-        className="hidden sm:flex items-center gap-1.5 flex-shrink-0 pl-3 pr-2.5 py-2 rounded-full border border-gray-200 hover:shadow-md hover:border-gray-300 text-gray-700 transition-all"
+        className="hidden sm:flex items-center gap-1.5 flex-shrink-0 pl-3 pr-2.5 py-2 rounded-full border border-hairline/15 hover:shadow-md hover:border-hairline/25 text-ink-secondary transition-all"
         title="Cambiar ciudad"
       >
         <MapPin className="w-4 h-4 text-pink-500" />
         <span className="text-sm font-semibold">Madrid, España</span>
-        <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+        <ChevronDown className="w-3.5 h-3.5 text-ink-tertiary" />
       </button>
 
       {/* Superbuscador (GlobalSearch) — abre el modal que busca en locales, eventos, artistas, ciudades... */}
       <button
         onClick={() => window.dispatchEvent(new Event('bn:open-search'))}
-        className="flex-1 min-w-0 max-w-xl flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full bg-gradient-to-r from-pink-50 to-orange-50 dark:from-pink-950/30 dark:to-orange-950/20 border border-pink-200/70 dark:border-pink-900/40 hover:shadow-lg hover:shadow-pink-500/10 hover:border-pink-300 text-gray-500 transition-all"
+        className="flex-1 min-w-0 max-w-xl flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full bg-gradient-to-r from-pink-50 to-orange-50 dark:from-pink-950/30 dark:to-orange-950/20 border border-pink-200/70 dark:border-pink-900/40 hover:shadow-lg hover:shadow-pink-500/10 hover:border-pink-300 text-ink-tertiary transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
         title="Buscar (Ctrl+K)"
       >
         <span className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-sm">
           <Search className="w-3.5 h-3.5 text-white" />
         </span>
         <span className="flex-1 min-w-0 text-left leading-tight">
-          <span className="block text-sm text-gray-700 dark:text-gray-200 font-semibold truncate">¿Qué quieres hacer hoy?</span>
-          <span className="hidden sm:block text-[10px] text-gray-400 truncate">Locales, eventos, artistas, ciudades…</span>
+          <span className="block text-sm text-ink-primary font-semibold truncate">¿Qué quieres hacer hoy?</span>
+          <span className="hidden sm:block text-[10px] text-ink-tertiary truncate">Locales, eventos, artistas, ciudades…</span>
         </span>
-        <span className="ml-auto text-[10px] hidden md:inline bg-white/80 dark:bg-gray-800 px-1.5 py-0.5 rounded font-mono text-gray-400 flex-shrink-0 border border-gray-200 dark:border-gray-700">Ctrl K</span>
+        <span className="ml-auto text-[10px] hidden md:inline bg-surface-elevated-2 px-1.5 py-0.5 rounded font-mono text-ink-tertiary flex-shrink-0 border border-hairline/10">Ctrl K</span>
       </button>
 
       <div className="hidden lg:block flex-shrink-0">
@@ -99,7 +99,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
           {/* Messages */}
           <button
             onClick={() => navigate('/chat')}
-            className="p-2 rounded-full hover:bg-gray-100 text-gray-600 hover:text-pink-500 transition-colors"
+            className="p-2 rounded-full hover:bg-surface-elevated-2 text-ink-secondary hover:text-pink-500 transition-colors"
             title="Mensajes"
           >
             <MessageCircle className="w-5 h-5" />
@@ -108,7 +108,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
           {/* Cart */}
           <button
             onClick={() => navigate('/promocionate')}
-            className="relative p-2 rounded-full hover:bg-gray-100 text-gray-600 hover:text-fuchsia-500 transition-colors"
+            className="relative p-2 rounded-full hover:bg-surface-elevated-2 text-ink-secondary hover:text-fuchsia-500 transition-colors"
             title="Mi carrito"
           >
             <ShoppingCart className="w-5 h-5" />
@@ -124,25 +124,25 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
 
           {/* Profile */}
           <div className="relative group">
-            <button className="flex items-center gap-1.5 hover:bg-gray-100 rounded-full p-1 sm:pl-2 transition-all">
+            <button className="flex items-center gap-1.5 hover:bg-surface-elevated-2 rounded-full p-1 sm:pl-2 transition-all">
               <Avatar src={user.avatar} name={user.name} size="sm" />
-              <ChevronDown className="w-3.5 h-3.5 text-gray-400 hidden sm:block" />
+              <ChevronDown className="w-3.5 h-3.5 text-ink-tertiary hidden sm:block" />
             </button>
 
             {/* Dropdown */}
-            <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
-              <div className="p-3 border-b border-gray-100 bg-gradient-to-r from-pink-500/10 to-fuchsia-500/10">
-                <p className="text-gray-900 font-bold text-sm">{user.name}</p>
+            <div className="absolute right-0 top-full mt-2 w-56 bg-surface-elevated border border-hairline/10 rounded-2xl shadow-elevation-3 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
+              <div className="p-3 border-b border-hairline/10 bg-gradient-to-r from-pink-500/10 to-fuchsia-500/10">
+                <p className="text-ink-primary font-bold text-sm">{user.name}</p>
                 <p className="text-pink-500 text-xs capitalize">{roleLabel}</p>
               </div>
               <div className="p-2">
-                <Link to="/dashboard" className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 text-sm transition-colors">
+                <Link to="/dashboard" className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-surface-elevated-2 text-ink-secondary text-sm transition-colors">
                   <LayoutDashboard className="w-4 h-4" /> Mi Dashboard
                 </Link>
-                <button onClick={() => setShowEdit(true)} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 text-sm transition-colors text-left">
+                <button onClick={() => setShowEdit(true)} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-surface-elevated-2 text-ink-secondary text-sm transition-colors text-left">
                   <Edit3 className="w-4 h-4" /> Editar mi perfil
                 </button>
-                <Link to="/wallet" className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 text-sm transition-colors">
+                <Link to="/wallet" className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-surface-elevated-2 text-ink-secondary text-sm transition-colors">
                   💳 Wallet — €{user.wallet.toFixed(0)}
                 </Link>
                 {isAdmin && (
@@ -159,7 +159,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
         </div>
       ) : (
         <div className="flex items-center gap-2 flex-shrink-0">
-          <Link to="/auth" className="text-gray-600 text-sm font-semibold hover:text-pink-500 transition-colors px-3 py-2 hidden sm:block">
+          <Link to="/auth" className="text-ink-secondary text-sm font-semibold hover:text-pink-500 transition-colors px-3 py-2 hidden sm:block">
             Entrar
           </Link>
           <Link to="/auth?tab=register" className="bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-sm font-bold py-2 px-4 rounded-full hover:shadow-lg hover:shadow-pink-500/30 transition-all">
