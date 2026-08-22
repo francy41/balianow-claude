@@ -162,12 +162,12 @@ export const SectionHeader: React.FC<{ title: string; subtitle?: string; action?
 // ── TABS ───────────────────────────────────────────────────────────────────
 interface TabsProps { tabs: { id: string; label: string; count?: number }[]; active: string; onChange: (id: string) => void; className?: string; }
 export const Tabs: React.FC<TabsProps> = ({ tabs, active, onChange, className = '' }) => (
-  <div className={`flex gap-1 bg-gray-100 rounded-xl p-1 ${className}`}>
+  <div className={`flex gap-1 bg-surface-elevated-2 rounded-xl p-1 ${className}`}>
     {tabs.map(tab => (
       <button key={tab.id} onClick={() => onChange(tab.id)}
-        className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-semibold transition-all ${active === tab.id ? 'bg-white text-brand-orange shadow-card' : 'text-gray-500 hover:text-gray-700'}`}>
+        className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${active === tab.id ? 'bg-surface-elevated text-accent shadow-elevation-1' : 'text-ink-tertiary hover:text-ink-primary'}`}>
         {tab.label}
-        {tab.count !== undefined && <span className={`text-xs px-1.5 py-0.5 rounded-full ${active === tab.id ? 'bg-brand-orange/10 text-brand-orange' : 'bg-gray-200 text-gray-500'}`}>{tab.count}</span>}
+        {tab.count !== undefined && <span className={`text-xs px-1.5 py-0.5 rounded-full ${active === tab.id ? 'bg-accent/10 text-accent' : 'bg-surface-elevated text-ink-tertiary'}`}>{tab.count}</span>}
       </button>
     ))}
   </div>
@@ -180,7 +180,7 @@ export const FilterChips: React.FC<{ options: string[]; selected: string[]; onCh
       const isSel = selected.includes(opt);
       return (
         <button key={opt} onClick={() => { if (multi) onChange(isSel ? selected.filter(s => s !== opt) : [...selected, opt]); else onChange(isSel ? [] : [opt]); }}
-          className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${isSel ? 'bg-brand-orange text-white border-brand-orange' : 'bg-white text-gray-600 border-gray-200 hover:border-brand-orange hover:text-brand-orange'}`}>
+          className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${isSel ? 'bg-accent text-white border-accent shadow-elevation-1' : 'bg-surface-elevated text-ink-secondary border-hairline/10 hover:border-accent hover:text-accent'}`}>
           {opt}
         </button>
       );
