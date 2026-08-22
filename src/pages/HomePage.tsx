@@ -1104,7 +1104,9 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
 // ── MÁS PARA TI (6 accesos destacados, estilo premium) ──
 const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
   // Data-driven: lee de `home_modules` (Supabase) con fallback a la semilla local.
-  const modules = useHomeModules('mas-para-ti');
+  // "planes"/"parejas" se filtran siempre: ya viven en el cintillo de arriba (QuickAccessRibbon),
+  // sin importar si las filas siguen publicadas en la BD.
+  const modules = useHomeModules('mas-para-ti').filter(m => m.slug !== 'planes' && m.slug !== 'parejas');
   return (
     <section className="mx-3 sm:mx-4 mt-8">
       <div className="flex items-center justify-between mb-4 px-1">
