@@ -1557,16 +1557,14 @@ const HomePage: React.FC = () => {
 
         {/* Dos zonas grandes clicables: la mitad izquierda del hero abre TV, la derecha abre Radio */}
         <button onClick={() => setTvWidgetOpen(true)} aria-label="Ver BailaNow TV"
-          className="absolute inset-y-0 left-0 w-1/2 hover:bg-white/5 transition-colors">
-          <span className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold rounded-full pl-2.5 pr-3 py-1.5 text-xs">
-            <Tv className="w-3.5 h-3.5" /> TV
-          </span>
+          className="absolute inset-y-0 left-0 w-1/2 hover:bg-white/5 transition-colors flex flex-col items-center justify-start gap-1.5 pt-6 sm:pt-8">
+          <Tv className="w-8 h-8 sm:w-10 sm:h-10 text-white drop-shadow-lg" />
+          <span className="font-display font-black text-2xl sm:text-4xl text-white tracking-wide drop-shadow-lg">TV</span>
         </button>
         <button onClick={() => setRadioWidgetOpen(true)} aria-label="Escuchar Radio Online"
-          className="absolute inset-y-0 right-0 w-1/2 hover:bg-white/5 transition-colors">
-          <span className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold rounded-full pl-2.5 pr-3 py-1.5 text-xs">
-            <Radio className="w-3.5 h-3.5" /> Radio
-          </span>
+          className="absolute inset-y-0 right-0 w-1/2 hover:bg-white/5 transition-colors flex flex-col items-center justify-start gap-1.5 pt-6 sm:pt-8">
+          <Radio className="w-8 h-8 sm:w-10 sm:h-10 text-white drop-shadow-lg" />
+          <span className="font-display font-black text-2xl sm:text-4xl text-white tracking-wide drop-shadow-lg">Radio</span>
         </button>
 
         <div className="relative h-full flex items-end sm:items-center pointer-events-none">
