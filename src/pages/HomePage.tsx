@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket } from 'lucide-react';
 import { ARTISTS, EVENTS } from '../data/mockData';
-import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_TV, type HeroSliderImage, type HomeCategory } from '../store/appStore';
+import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_TV, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
 import { Avatar, StarRating, SearchBar, AppImage } from '../components/ui';
 import { supabase } from '../lib/supabase';
@@ -275,99 +275,6 @@ const PLAYLISTS = [
   { id: 'p4', name: 'Kizomba Chill', tracks: 20, duration: '1h 25m', img: 'https://picsum.photos/seed/playlist-kizomba/120/120', color: 'bg-indigo-500' },
   { id: 'p5', name: 'Reggaeton Party', tracks: 22, duration: '1h 18m', img: 'https://picsum.photos/seed/playlist-reggaeton/120/120', color: 'bg-yellow-500' },
 ];
-
-// ── HERO SLIDER (Full Height) ────────────────────────────────────────────────
-const HeroSliderFullHeight: React.FC<{ images: HeroSliderImage[]; onLinkClick?: (link: string) => boolean }> = ({ images, onLinkClick }) => {
-  const navigate = useNavigate();
-  const [current, setCurrent] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setInterval>>();
-
-  useEffect(() => {
-    if (images.length <= 1) return;
-    timerRef.current = setInterval(() => setCurrent(p => (p + 1) % images.length), 5000);
-    return () => clearInterval(timerRef.current);
-  }, [images.length]);
-
-  const goToPrev = () => setCurrent(p => (p - 1 + images.length) % images.length);
-  const goToNext = () => setCurrent(p => (p + 1) % images.length);
-  const goToLink = (link?: string) => {
-    if (!link) return;
-    // onLinkClick puede "capturar" el enlace (ej. abrir un widget flotante) devolviendo true;
-    // si devuelve false o no está definido, se navega normalmente.
-    if (onLinkClick?.(link)) return;
-    if (/^https?:\/\//.test(link)) window.open(link, '_blank', 'noopener,noreferrer');
-    else navigate(link);
-  };
-
-  return (
-    <div className="relative w-full h-full overflow-hidden">
-      <div
-        className="flex transition-transform duration-1000 ease-in-out h-full"
-        style={{ width: `${images.length * 100}%`, transform: `translateX(-${(current * 100) / images.length}%)` }}
-      >
-        {images.map(img => (
-          <img key={img.id} src={img.url} alt={img.alt}
-            className={`h-full object-cover flex-shrink-0 ${img.link ? 'cursor-pointer' : ''}`}
-            style={{ width: `${100 / images.length}%` }}
-            loading="eager"
-            onClick={() => goToLink(img.link)}
-            onError={e => {
-              const el = e.target as HTMLImageElement;
-              if (!el.src.includes('unsplash')) {
-                el.src = `https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=1400&h=500&fit=crop&q=80`;
-              }
-            }}
-          />
-        ))}
-      </div>
-
-      {/* Navigation Arrows y puntos: solo si hay más de una imagen configurada */}
-      {images.length > 1 && (
-        <>
-          <button
-            onClick={goToPrev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all hover:scale-110 backdrop-blur-sm"
-          >
-            <ChevronRight className="w-5 h-5 rotate-180" />
-          </button>
-          <button
-            onClick={goToNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center transition-all hover:scale-110 backdrop-blur-sm"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-            {images.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrent(i)}
-                className={`transition-all backdrop-blur-sm rounded-full ${
-                  i === current
-                    ? 'bg-pink-500 w-8 h-2'
-                    : 'bg-white/40 hover:bg-white/60 w-2 h-2'
-                }`}
-              />
-            ))}
-          </div>
-        </>
-      )}
-
-      {/* CTA del slide activo (si tiene enlace configurado) */}
-      {images[current]?.link && (
-        <button
-          onClick={() => goToLink(images[current].link)}
-          className="absolute bottom-14 sm:bottom-16 right-4 sm:right-8 z-10 bg-white/95 hover:bg-white text-gray-900 text-xs sm:text-sm font-black px-4 py-2.5 rounded-full shadow-xl flex items-center gap-1.5 transition-transform hover:scale-105"
-        >
-          {images[current].alt} <ChevronRight className="w-4 h-4" />
-        </button>
-      )}
-
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-    </div>
-  );
-};
 
 // ── DYNAMIC CATEGORIES SECTION (reads from store, managed by superadmin) ──
 // Category interface with images — kept for search autocomplete compatibility
@@ -1371,7 +1278,6 @@ const HomePage: React.FC = () => {
   useJsonLd(organizationLd(), websiteLd());
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
-  const { heroMedia, heroSliderImages } = useSiteConfigStore();
   const cmsModules = useCMSStore(s => s.modules);
   const cmsCategories = useCMSStore(s => s.categories);
   const enabled = visibleHomeModules(cmsModules);
@@ -1427,12 +1333,6 @@ const HomePage: React.FC = () => {
   const [playlistsOpen, setPlaylistsOpen] = useState(false);
   const [radioWidgetOpen, setRadioWidgetOpen] = useState(false);
   const [tvWidgetOpen, setTvWidgetOpen] = useState(false);
-  // Banners del slider hero: Radio y TV abren un widget flotante sin salir del home.
-  const handleHeroLinkClick = (link: string): boolean => {
-    if (link === '/radio') { setRadioWidgetOpen(true); return true; }
-    if (link === '/tv') { setTvWidgetOpen(true); return true; }
-    return false;
-  };
 
   // ── Radio: carga desde Supabase; fallback a radio-browser API ──
   const [radioStations, setRadioStations] = useState(RADIO_STATIONS);
@@ -1541,61 +1441,45 @@ const HomePage: React.FC = () => {
       {/* Fondo flotante decorativo en toda la home */}
       <HomeBackground />
 
-      {/* ── HERO (simplificado: un mensaje, dos CTA, un buscador — sin elementos compitiendo) ── */}
-      <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden relative h-[380px] sm:h-[420px] bg-brand-black">
-        <div className="absolute inset-0">
-          <HeroSliderFullHeight onLinkClick={handleHeroLinkClick} images={
-            // Un único fondo fijo, sin carrusel: el hero es un mensaje + CTAs, no un
-            // slider de banners. Radio y TV tienen su acceso directo superpuesto arriba.
-            (heroSliderImages.length > 0 ? heroSliderImages : [
-              { id: '1', url: 'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=1400&h=500&fit=crop&q=80', alt: 'BailaNow - Todo lo que amas del baile latino' },
-            ]).filter(s => s.link !== '/radio' && s.link !== '/tv').slice(0, 1)
-          } />
-        </div>
-        {/* Overlay oscuro elegante, un solo degradado */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/25" />
-
-        {/* Dos zonas grandes clicables: la mitad izquierda del hero abre TV, la derecha abre Radio */}
+      {/* ── HERO: banner limpio dividido en dos, TV y Radio en vivo (sin foto de fondo, sin texto de más) ── */}
+      <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden relative h-[300px] sm:h-[340px] grid grid-cols-2">
         <button onClick={() => setTvWidgetOpen(true)} aria-label="Ver BailaNow TV"
-          className="absolute inset-y-0 left-0 w-1/2 hover:bg-white/5 transition-colors flex flex-col items-center justify-start gap-1.5 pt-6 sm:pt-8">
-          <Tv className="w-8 h-8 sm:w-10 sm:h-10 text-white drop-shadow-lg" />
-          <span className="font-display font-black text-2xl sm:text-4xl text-white tracking-wide drop-shadow-lg">TV</span>
-        </button>
-        <button onClick={() => setRadioWidgetOpen(true)} aria-label="Escuchar Radio Online"
-          className="absolute inset-y-0 right-0 w-1/2 hover:bg-white/5 transition-colors flex flex-col items-center justify-start gap-1.5 pt-6 sm:pt-8">
-          <Radio className="w-8 h-8 sm:w-10 sm:h-10 text-white drop-shadow-lg" />
-          <span className="font-display font-black text-2xl sm:text-4xl text-white tracking-wide drop-shadow-lg">Radio</span>
-        </button>
-
-        <div className="relative h-full flex items-end sm:items-center pointer-events-none">
-          <div className="w-full px-5 sm:px-10 pb-7 sm:pb-0 max-w-xl">
-            <span className="text-[11px] font-black uppercase tracking-[0.18em] text-pink-300">Bienvenido a BailaNow</span>
-            <h1 className="font-display font-black text-3xl sm:text-5xl leading-[1.02] tracking-tight mt-3 text-white">
-              Todo lo que amas del <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-pink-200">baile</span>, en un solo lugar.
-            </h1>
-            <p className="text-white/75 text-sm sm:text-base mt-3 max-w-md">
-              Descubre dónde bailar, encuentra eventos, aprende nuevos pasos y conecta con la comunidad.
-            </p>
-            <div className="flex flex-wrap gap-3 mt-5 pointer-events-auto">
-              <button onClick={() => navigate('/explorar')} className="bg-gradient-to-r from-pink-500 to-pink-600 text-white font-black rounded-full px-6 py-3.5 shadow-lg shadow-pink-500/40 hover:scale-[1.03] active:scale-95 transition">
-                Explorar ahora →
-              </button>
-              <button onClick={() => navigate('/eventos')} className="bg-white/10 border border-white/20 text-white font-bold rounded-full px-6 py-3.5 hover:bg-white/20 transition backdrop-blur-sm">
-                Ver eventos
-              </button>
-            </div>
-
-            {/* Buscador — un único punto de entrada, no un formulario de varios campos */}
-            <button onClick={() => window.dispatchEvent(new Event('bn:open-search'))}
-              className="hidden sm:flex items-center gap-2.5 bg-white rounded-full pl-4 pr-1.5 py-1.5 shadow-2xl max-w-sm mt-5 hover:shadow-pink-500/20 transition-shadow pointer-events-auto">
-              <Search className="w-4 h-4 text-pink-500 flex-shrink-0" />
-              <span className="text-gray-500 text-sm flex-1 text-left">¿Qué quieres hacer hoy?</span>
-              <span className="w-9 h-9 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white flex items-center justify-center flex-shrink-0">
-                <Search className="w-3.5 h-3.5" />
-              </span>
-            </button>
+          className="relative flex flex-col items-center justify-center gap-3 px-3 py-6 bg-gradient-to-br from-indigo-900 via-purple-900 to-fuchsia-950 hover:brightness-110 transition-all overflow-hidden">
+          <div className="absolute -right-10 -top-10 w-40 h-40 bg-fuchsia-500/20 rounded-full blur-3xl pointer-events-none" />
+          {/* Pantalla de ejemplo: contenido en directo */}
+          <div className="relative w-36 sm:w-52 aspect-video rounded-lg bg-black/50 border border-white/15 flex items-center justify-center">
+            <span className="absolute top-1.5 left-1.5 flex items-center gap-1 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> EN VIVO
+            </span>
+            <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white/80" fill="currentColor" />
           </div>
-        </div>
+          <p className="text-white font-display font-black text-base sm:text-xl leading-tight flex items-center gap-1.5">
+            <Tv className="w-4 h-4 sm:w-5 sm:h-5" /> BailaNow TV
+          </p>
+          <p className="text-white/60 text-[11px] sm:text-xs font-semibold -mt-2">Mira ahora →</p>
+        </button>
+
+        <button onClick={() => setRadioWidgetOpen(true)} aria-label="Escuchar Radio Online"
+          className="relative flex flex-col items-center justify-center gap-3 px-3 py-6 bg-gradient-to-bl from-orange-600 via-pink-600 to-fuchsia-800 hover:brightness-110 transition-all overflow-hidden">
+          <div className="absolute -left-10 -top-10 w-40 h-40 bg-orange-400/20 rounded-full blur-3xl pointer-events-none" />
+          {/* 4 locutores de ejemplo */}
+          <div className="flex -space-x-2.5">
+            {[0, 1, 2, 3].map(i => (
+              <span key={i} className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/15 border-2 border-white/40 flex items-center justify-center">
+                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              </span>
+            ))}
+          </div>
+          {/* Chat de peticiones de ejemplo */}
+          <div className="w-36 sm:w-52 bg-black/25 rounded-lg px-2.5 py-2 space-y-1">
+            <p className="text-white/85 text-[10px] leading-tight truncate">🎵 ¿Ponéis bachata?</p>
+            <p className="text-white/85 text-[10px] leading-tight truncate">🔥 ¡Menudo temazo!</p>
+          </div>
+          <p className="text-white font-display font-black text-base sm:text-xl leading-tight flex items-center gap-1.5">
+            <Radio className="w-4 h-4 sm:w-5 sm:h-5" /> Radio Online
+          </p>
+          <p className="text-white/60 text-[11px] sm:text-xs font-semibold -mt-2">Escucha en vivo →</p>
+        </button>
       </section>
 
       {/* ── CATEGORÍAS (subidas justo bajo el hero, como el diseño objetivo) ── */}
