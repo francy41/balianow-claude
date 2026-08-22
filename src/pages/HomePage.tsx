@@ -1564,6 +1564,9 @@ const HomePage: React.FC = () => {
       {/* ── CINTILLO DE ACCESOS DESTACADOS: Planes, Pareja, Abierto ahora, Eventos en vivo ── */}
       <QuickAccessRibbon navigate={navigate} />
 
+      {/* ── SPONSORS SLIDER ── */}
+      <FeaturedSlider navigate={navigate} />
+
       {/* ── CATEGORÍAS ── */}
       <DynamicCategoriesSection navigate={navigate} />
 
@@ -1601,9 +1604,6 @@ const HomePage: React.FC = () => {
           </button>
         </div>
       )}
-
-      {/* ── SPONSORS SLIDER ── */}
-      <FeaturedSlider navigate={navigate} />
 
       {/* ── PANEL SUPERADMIN ── */}
       {isAdmin && adminStats && isModuleOn('admin-panel') && (
