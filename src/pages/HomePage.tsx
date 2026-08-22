@@ -679,16 +679,6 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
 
   return (
     <section className="mt-4 px-2 sm:px-4">
-      {/* Header */}
-      <div className="text-center mb-5">
-        <h2 className="font-display font-black text-xl sm:text-2xl text-gray-900 dark:text-white mb-1">
-          💃 <span className="text-pink-600">Baila</span> Now
-        </h2>
-        <p className="text-gray-400 text-xs sm:text-sm max-w-lg mx-auto">
-          Todo lo que amas del baile, en un solo lugar
-        </p>
-      </div>
-
       {/* Main Categories Grid */}
       <div className="space-y-6 pb-6">
         {visibleCats.length > 0 && (
@@ -1127,33 +1117,25 @@ const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
           Ver todas <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+      {/* Tarjetas de icono + degradado (sin fotos) — mismo lenguaje visual que el cintillo de arriba */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {modules.map(m => (
           <button key={m.id} onClick={() => navigate(m.route)}
-            className={`group relative overflow-hidden rounded-3xl h-52 sm:h-60 text-left shadow-lg hover:shadow-2xl ${m.glow} hover:-translate-y-1.5 transition-all duration-300`}>
-            {/* Fondo: degradado de marca siempre; imagen encima si está configurada */}
+            className={`group relative overflow-hidden rounded-3xl h-40 sm:h-44 text-left shadow-lg hover:shadow-2xl ${m.glow} hover:-translate-y-1.5 transition-all duration-300`}>
             <div className={`absolute inset-0 bg-gradient-to-br ${m.gradient}`} />
-            {m.imageUrl && (
-              <img src={m.imageUrl} alt="" loading="lazy"
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-            )}
-            {/* Velo para legibilidad */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/5" />
-            {/* Icono */}
-            <span className={`absolute top-3.5 left-3.5 w-11 h-11 rounded-full ${m.iconBg} text-white grid place-items-center text-xl shadow-lg ring-2 ring-white/30`}>{m.icon}</span>
-            {/* Badge */}
+            <div className="absolute -right-8 -top-8 w-28 h-28 bg-white/10 rounded-full blur-2xl pointer-events-none" />
             {m.badge && (
-              <span className="absolute top-3.5 right-3.5 bg-white text-pink-600 text-[10px] font-black uppercase tracking-wide px-2.5 py-1 rounded-full shadow">{m.badge}</span>
+              <span className="absolute top-3 right-3 bg-white text-pink-600 text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full shadow">{m.badge}</span>
             )}
-            {/* Texto */}
-            <div className="absolute bottom-3.5 left-4 right-16">
-              <p className="text-white font-black text-base sm:text-lg leading-tight drop-shadow">{m.title}</p>
-              <p className="text-white/85 text-[11px] sm:text-xs mt-1 leading-snug line-clamp-2">{m.subtitle}</p>
+            <div className="relative h-full flex flex-col justify-between p-4">
+              <span className={`w-11 h-11 rounded-2xl ${m.iconBg} text-white grid place-items-center text-xl shadow-lg ring-2 ring-white/20`}>{m.icon}</span>
+              <div>
+                <p className="text-white font-display font-black text-sm sm:text-base leading-tight">{m.title}</p>
+                <p className="text-white/75 text-[11px] mt-1 leading-snug line-clamp-2">{m.subtitle}</p>
+              </div>
             </div>
-            {/* Flecha */}
-            <span className="absolute bottom-3.5 right-3.5 w-11 h-11 rounded-full bg-white/95 grid place-items-center text-gray-900 shadow-lg group-hover:bg-white group-hover:scale-110 transition-all">
-              <ArrowRight className="w-5 h-5" />
+            <span className="absolute bottom-3.5 right-3.5 w-8 h-8 rounded-full bg-white/15 grid place-items-center text-white group-hover:bg-white group-hover:text-gray-900 group-hover:scale-110 transition-all">
+              <ArrowRight className="w-4 h-4" />
             </span>
           </button>
         ))}
@@ -1567,10 +1549,20 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* ── Título de marca, justo bajo el hero ── */}
+      <div className="text-center mt-6 px-4">
+        <h2 className="font-display font-black text-xl sm:text-2xl text-gray-900 dark:text-white mb-1">
+          💃 <span className="text-pink-600">Baila</span> Now
+        </h2>
+        <p className="text-gray-400 text-xs sm:text-sm max-w-lg mx-auto">
+          Todo lo que amas del baile, en un solo lugar
+        </p>
+      </div>
+
       {/* ── CINTILLO DE ACCESOS DESTACADOS: Planes, Pareja, Abierto ahora, Eventos en vivo ── */}
       <QuickAccessRibbon navigate={navigate} />
 
-      {/* ── CATEGORÍAS (subidas justo bajo el hero, como el diseño objetivo) ── */}
+      {/* ── CATEGORÍAS ── */}
       <DynamicCategoriesSection navigate={navigate} />
 
       {/* ── MÁS PARA TI (justo bajo el escaparate, segun brief) ── */}
