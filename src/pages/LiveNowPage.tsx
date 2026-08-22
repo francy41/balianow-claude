@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 import { useAuthStore, useUIStore } from '../store/appStore';
 import { Avatar } from '../components/ui';
 import LiveFab from '../components/LiveFab';
+import GoLiveModal from '../components/GoLiveModal';
 
 type CategoryFilter = 'all' | 'dj' | 'dancer' | 'instructor' | 'band';
 
@@ -94,6 +95,7 @@ const LiveNowPage: React.FC = () => {
   [filter, liveStreams]);
 
   const canGoLive = isAuthenticated && user && ['dj', 'artist', 'dancer'].includes(user.role);
+  const [goLiveOpen, setGoLiveOpen] = useState(false);
 
   const handleGoLive = () => {
     if (!isAuthenticated) {
@@ -105,7 +107,7 @@ const LiveNowPage: React.FC = () => {
       addToast({ message: 'Necesitas perfil de artista/DJ/bailarín para emitir', type: 'warning' });
       return;
     }
-    addToast({ message: '🎥 Preparando tu stream...', type: 'info' });
+    setGoLiveOpen(true);
   };
 
   const handleSendMessage = () => {
@@ -373,6 +375,7 @@ const LiveNowPage: React.FC = () => {
       </div>
 
       <LiveFab defaultCategory="show" label="Iniciar Live" />
+      <GoLiveModal isOpen={goLiveOpen} onClose={() => setGoLiveOpen(false)} defaultCategory="show" />
     </div>
   );
 };
