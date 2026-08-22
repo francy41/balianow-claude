@@ -592,6 +592,20 @@ const planPinIcon = L.divIcon({
   iconSize: [14, 14], iconAnchor: [7, 7],
 });
 
+// Un pin distinto (color + alarma parpadeante) por categoría, para el mapa de "Planes de baile"
+// del Home — mismos colores que las insignias de las tarjetas, para que se reconozcan a simple vista.
+const discoverPin = (ringClass: string, gradClass: string) => L.divIcon({
+  className: '',
+  html: `<div class="relative w-4 h-4"><span class="animate-ping absolute inline-flex h-full w-full rounded-full ${ringClass} opacity-80"></span><span class="relative inline-flex rounded-full h-4 w-4 bg-gradient-to-br ${gradClass} ring-2 ring-white shadow-lg"></span></div>`,
+  iconSize: [16, 16], iconAnchor: [8, 8],
+});
+const DISCOVER_PIN_ICON: Record<'plan' | 'venue' | 'evento' | 'vivo', L.DivIcon> = {
+  plan:   discoverPin('bg-pink-300', 'from-pink-500 to-fuchsia-600'),
+  venue:  discoverPin('bg-emerald-300', 'from-emerald-500 to-emerald-700'),
+  evento: discoverPin('bg-violet-300', 'from-violet-500 to-purple-700'),
+  vivo:   discoverPin('bg-orange-300', 'from-orange-500 to-red-600'),
+};
+
 // Mini-mapa decorativo (sin interacción: solo panea/zoom visual) con las ubicaciones
 // reales de los planes de baile activos — nunca ejemplos inventados, si no hay planes
 // reales con coordenadas simplemente no se renderiza.
@@ -740,7 +754,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
         supabase.from('venues').select('id,name,city,cover,image_url,rating,open_time,close_time,is_open,lat,lng').is('deleted_at', null),
         supabase.from('partner_profiles').select('user_id,name,avatar,city,level,styles').eq('active', true).limit(8),
         supabase.from('events').select('id,title,city,date,cover,image_url,lat,lng').is('deleted_at', null).gte('date', today).order('date', { ascending: true }).limit(8),
-        supabase.from('live_sessions').select('id,title,category,viewers_count,city,cover_url').eq('status', 'live').limit(8),
+        supabase.from('live_sessions').select('id,title,category,viewers_count,city,cover_url,lat,lng').eq('status', 'live').limit(8),
       ]);
       if (cancelled) return;
 
@@ -809,6 +823,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
         id: `vivo-${s.id}`, kind: 'vivo', title: s.title, city: s.city || '',
         meta: s.viewers_count > 0 ? `${s.viewers_count} viendo ahora` : 'En directo ahora',
         cover: s.cover_url || null, rating: 0, route: `/live/session/${s.id}`,
+        ...withCoords(s.lat, s.lng),
       }));
 
       setItems([...planItems, ...venueItems, ...parejaItems, ...eventoItems, ...vivoItems]);
@@ -825,8 +840,11 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     ? DISCOVER_ORDER.map(k => items.find(it => it.kind === k)).filter((it): it is DiscoverItem => !!it)
     : items.filter(it => it.kind === tab).slice(0, 8);
 
-  // El mapa refleja siempre la pestaña activa: cambia de pines al cambiar de categoría.
-  const pins = shown.filter((it): it is DiscoverItem & { lat: number; lng: number } => it.lat !== undefined && it.lng !== undefined);
+  // El mapa siempre muestra las 4 categorías con ubicación real (Planes/Abiertos/Eventos/En directo),
+  // cada una con su propio color y alarma parpadeante — independiente de la pestaña activa.
+  const MAPPABLE: DiscoverKind[] = ['plan', 'venue', 'evento', 'vivo'];
+  const pins = items.filter((it): it is DiscoverItem & { lat: number; lng: number; kind: 'plan' | 'venue' | 'evento' | 'vivo' } =>
+    MAPPABLE.includes(it.kind) && it.lat !== undefined && it.lng !== undefined);
   const mapCenter: [number, number] = pins.length
     ? [pins.reduce((s, p) => s + p.lat, 0) / pins.length, pins.reduce((s, p) => s + p.lng, 0) / pins.length]
     : [40.4168, -3.7038];
@@ -870,15 +888,22 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
           </button>
         </div>
 
-        {/* Mapa real e interactivo — cambia de pines según la pestaña activa */}
+        {/* Mapa real e interactivo — Planes/Abiertos ahora/Eventos/En directo a la vez, cada uno con su color y alarma */}
         {pins.length > 0 && (
           <div className="relative mt-3 h-36 sm:h-44 rounded-2xl overflow-hidden border border-white/10">
             <MapErrorBoundary fallback={<div className="absolute inset-0 bg-white/5" />}>
-              <MapContainer key={tab} center={mapCenter} zoom={pins.length > 1 ? 6 : 12} style={{ width: '100%', height: '100%' }} attributionControl={false}>
+              <MapContainer center={mapCenter} zoom={pins.length > 1 ? 6 : 12} style={{ width: '100%', height: '100%' }} attributionControl={false}>
                 <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
-                {pins.map(p => <Marker key={p.id} position={[p.lat, p.lng]} icon={planPinIcon} />)}
+                {pins.map(p => <Marker key={p.id} position={[p.lat, p.lng]} icon={DISCOVER_PIN_ICON[p.kind]} />)}
               </MapContainer>
             </MapErrorBoundary>
+            {/* Leyenda: qué representa cada color de pin */}
+            <div className="absolute bottom-2 left-2 right-2 flex flex-wrap gap-x-3 gap-y-1 bg-black/40 backdrop-blur-sm rounded-lg px-2.5 py-1.5">
+              <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="w-2 h-2 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600" /> Planes</span>
+              <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="w-2 h-2 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700" /> Abiertos</span>
+              <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="w-2 h-2 rounded-full bg-gradient-to-br from-violet-500 to-purple-700" /> Eventos</span>
+              <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="w-2 h-2 rounded-full bg-gradient-to-br from-orange-500 to-red-600" /> En directo</span>
+            </div>
           </div>
         )}
 
