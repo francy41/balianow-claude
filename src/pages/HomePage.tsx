@@ -1555,19 +1555,21 @@ const HomePage: React.FC = () => {
         {/* Overlay oscuro elegante, un solo degradado */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/25" />
 
-        {/* Acceso directo a TV y Radio, superpuesto en el hero */}
-        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 flex gap-2 z-10">
-          <button onClick={() => setTvWidgetOpen(true)}
-            className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold rounded-full pl-2.5 pr-3 py-1.5 text-xs hover:bg-white/20 transition">
+        {/* Dos zonas grandes clicables: la mitad izquierda del hero abre TV, la derecha abre Radio */}
+        <button onClick={() => setTvWidgetOpen(true)} aria-label="Ver BailaNow TV"
+          className="absolute inset-y-0 left-0 w-1/2 hover:bg-white/5 transition-colors">
+          <span className="absolute top-4 left-4 sm:top-6 sm:left-6 flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold rounded-full pl-2.5 pr-3 py-1.5 text-xs">
             <Tv className="w-3.5 h-3.5" /> TV
-          </button>
-          <button onClick={() => setRadioWidgetOpen(true)}
-            className="flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold rounded-full pl-2.5 pr-3 py-1.5 text-xs hover:bg-white/20 transition">
+          </span>
+        </button>
+        <button onClick={() => setRadioWidgetOpen(true)} aria-label="Escuchar Radio Online"
+          className="absolute inset-y-0 right-0 w-1/2 hover:bg-white/5 transition-colors">
+          <span className="absolute top-4 right-4 sm:top-6 sm:right-6 flex items-center gap-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold rounded-full pl-2.5 pr-3 py-1.5 text-xs">
             <Radio className="w-3.5 h-3.5" /> Radio
-          </button>
-        </div>
+          </span>
+        </button>
 
-        <div className="relative h-full flex items-end sm:items-center">
+        <div className="relative h-full flex items-end sm:items-center pointer-events-none">
           <div className="w-full px-5 sm:px-10 pb-7 sm:pb-0 max-w-xl">
             <span className="text-[11px] font-black uppercase tracking-[0.18em] text-pink-300">Bienvenido a BailaNow</span>
             <h1 className="font-display font-black text-3xl sm:text-5xl leading-[1.02] tracking-tight mt-3 text-white">
@@ -1576,7 +1578,7 @@ const HomePage: React.FC = () => {
             <p className="text-white/75 text-sm sm:text-base mt-3 max-w-md">
               Descubre dónde bailar, encuentra eventos, aprende nuevos pasos y conecta con la comunidad.
             </p>
-            <div className="flex flex-wrap gap-3 mt-5">
+            <div className="flex flex-wrap gap-3 mt-5 pointer-events-auto">
               <button onClick={() => navigate('/explorar')} className="bg-gradient-to-r from-pink-500 to-pink-600 text-white font-black rounded-full px-6 py-3.5 shadow-lg shadow-pink-500/40 hover:scale-[1.03] active:scale-95 transition">
                 Explorar ahora →
               </button>
@@ -1587,7 +1589,7 @@ const HomePage: React.FC = () => {
 
             {/* Buscador — un único punto de entrada, no un formulario de varios campos */}
             <button onClick={() => window.dispatchEvent(new Event('bn:open-search'))}
-              className="hidden sm:flex items-center gap-2.5 bg-white rounded-full pl-4 pr-1.5 py-1.5 shadow-2xl max-w-sm mt-5 hover:shadow-pink-500/20 transition-shadow">
+              className="hidden sm:flex items-center gap-2.5 bg-white rounded-full pl-4 pr-1.5 py-1.5 shadow-2xl max-w-sm mt-5 hover:shadow-pink-500/20 transition-shadow pointer-events-auto">
               <Search className="w-4 h-4 text-pink-500 flex-shrink-0" />
               <span className="text-gray-500 text-sm flex-1 text-left">¿Qué quieres hacer hoy?</span>
               <span className="w-9 h-9 rounded-full bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white flex items-center justify-center flex-shrink-0">
