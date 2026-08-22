@@ -3436,19 +3436,34 @@ const SeoTextsCard: React.FC = () => {
 
 const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const [colors, setColors] = useState({ primary: '#EC4899', secondary: '#111111', accent: '#DB2777' });
+  const [savingColors, setSavingColors] = useState(false);
   const { siteLogo, setSiteLogo } = useSiteConfigStore();
   const logoFileRef = React.useRef<HTMLInputElement>(null);
   const [logoUrl, setLogoUrl] = useState('');
 
-  // Load logo from Supabase on mount (cross-device)
+  // Load logo + colores de marca desde Supabase (cross-device)
   useEffect(() => {
     (async () => {
       try {
         const { data } = await supabase.from('site_config').select('value').eq('key', 'site_logo').maybeSingle();
         if (data?.value?.url) { setSiteLogo(data.value.url); if (import.meta.env.DEV) console.log('[Admin] Logo cargado de BD'); }
       } catch (e) { console.error('[Admin] Error cargando logo:', e); }
+      try {
+        const { data } = await supabase.from('site_config').select('value').eq('key', 'brand_colors').maybeSingle();
+        if (data?.value) setColors(prev => ({ ...prev, ...data.value }));
+      } catch (e) { console.error('[Admin] Error cargando colores:', e); }
     })();
   }, []);
+
+  const saveColors = async () => {
+    setSavingColors(true);
+    const { error } = await saveSiteConfigKey('brand_colors', colors);
+    setSavingColors(false);
+    addToast({
+      message: error ? `❌ ${error}` : '✅ Colores guardados. Aún no se aplican al tema en vivo — próximamente.',
+      type: error ? 'error' : 'success',
+    });
+  };
 
   const handleLogoFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -3476,7 +3491,7 @@ const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   return (
     <div>
       <PageHeader title="Diseño Web" subtitle="Personaliza la apariencia de la plataforma" action={
-        <Button variant="orange" onClick={() => addToast({ message: 'Cambios guardados y aplicados', type: 'success' })}>Guardar cambios</Button>
+        <Button variant="orange" onClick={saveColors} disabled={savingColors}>{savingColors ? 'Guardando…' : 'Guardar cambios'}</Button>
       } />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card-white p-6">
@@ -3734,9 +3749,7 @@ const RolesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 
   return (
     <div>
-      <PageHeader title="Roles y Permisos" subtitle="Gestiona los roles de acceso a la plataforma" action={
-        <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={() => addToast({ message: 'Nuevo rol creado', type: 'success' })}>Nuevo rol</Button>
-      } />
+      <PageHeader title="Roles y Permisos" subtitle="Gestiona los roles de acceso a la plataforma" />
 
       {loading ? (
         <div className="text-center py-12"><div className="animate-spin w-8 h-8 border-4 border-brand-orange border-t-transparent rounded-full mx-auto" /><p className="text-gray-400 mt-3">Cargando usuarios de Supabase...</p></div>
