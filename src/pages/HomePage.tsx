@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2 } from 'lucide-react';
+import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2 } from 'lucide-react';
 import { ARTISTS, EVENTS } from '../data/mockData';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_TV, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
@@ -579,6 +579,69 @@ const CHIP_TINTS = [
   'from-emerald-500/20 to-teal-500/10 ring-emerald-400/40 group-hover:shadow-emerald-500/25',
   'from-amber-500/20 to-yellow-500/10 ring-amber-400/40 group-hover:shadow-amber-500/25',
 ];
+
+// ── CINTILLO DE ACCESOS DESTACADOS: Planes, Pareja, Abierto ahora, Eventos en vivo ──
+const QuickAccessRibbon: React.FC<{ navigate: any }> = ({ navigate }) => {
+  const [counts, setCounts] = React.useState({ rutas: 0, parejas: 0, abiertos: 0, vivo: 0 });
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const [rutasRes, parejasRes, venuesRes, liveRes] = await Promise.all([
+        supabase.from('rutas').select('id', { count: 'exact', head: true }).eq('status', 'open').or(`end_date.is.null,end_date.gte.${today}`),
+        supabase.from('partner_profiles').select('id', { count: 'exact', head: true }).eq('active', true),
+        supabase.from('venues').select('open_time,close_time,is_open').is('deleted_at', null),
+        supabase.from('live_sessions_enriched').select('id', { count: 'exact', head: true }).eq('status', 'live'),
+      ]);
+      if (cancelled) return;
+      const toMin = (s: string) => { const [h, m] = String(s).split(':').map(Number); return (h || 0) * 60 + (m || 0); };
+      const now = new Date(); const cur = now.getHours() * 60 + now.getMinutes();
+      const abiertos = (venuesRes.data || []).filter((v: any) => {
+        if (v.is_open === true) return true;
+        if (v.open_time && v.close_time) {
+          const o = toMin(v.open_time), c = toMin(v.close_time);
+          return c > o ? (cur >= o && cur <= c) : (cur >= o || cur <= c);
+        }
+        return false;
+      }).length;
+      setCounts({ rutas: rutasRes.count || 0, parejas: parejasRes.count || 0, abiertos, vivo: liveRes.count || 0 });
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const TILES = [
+    { key: 'rutas', label: 'Planes de baile', sub: counts.rutas > 0 ? `${counts.rutas} activos` : 'Crea el tuyo', icon: RouteIcon, grad: 'from-violet-600 to-purple-700', to: '/rutas', alert: counts.rutas > 0 },
+    { key: 'parejas', label: 'Pareja de baile', sub: counts.parejas > 0 ? `${counts.parejas} disponibles` : 'Encuentra la tuya', icon: Heart, grad: 'from-rose-500 to-pink-600', to: '/parejas', alert: counts.parejas > 0 },
+    { key: 'abiertos', label: 'Abierto ahora', sub: counts.abiertos > 0 ? `${counts.abiertos} locales` : 'Ver locales', icon: Building2, grad: 'from-emerald-500 to-teal-600', to: '/venues?open=true', alert: counts.abiertos > 0 },
+    { key: 'vivo', label: 'Eventos en vivo', sub: counts.vivo > 0 ? `${counts.vivo} en directo` : 'Ver eventos', icon: Calendar, grad: 'from-red-500 to-orange-600', to: counts.vivo > 0 ? '/live' : '/eventos', alert: counts.vivo > 0 },
+  ] as const;
+
+  return (
+    <section className="mx-3 sm:mx-4 mt-2.5 sm:mt-3 grid grid-cols-4 gap-1.5 sm:gap-2.5">
+      {TILES.map(t => {
+        const Icon = t.icon;
+        return (
+          <button key={t.key} onClick={() => navigate(t.to)}
+            className={`relative flex flex-col items-center gap-1 sm:gap-1.5 rounded-2xl bg-gradient-to-br ${t.grad} px-1.5 sm:px-2 py-2.5 sm:py-3.5 shadow-md hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all overflow-hidden`}>
+            <div className="absolute -right-4 -top-4 w-16 h-16 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+            {t.alert && (
+              <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
+              </span>
+            )}
+            <span className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/15 flex items-center justify-center">
+              <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+            </span>
+            <span className="text-white font-display font-black text-[10px] sm:text-xs leading-tight text-center">{t.label}</span>
+            <span className="text-white/70 text-[8px] sm:text-[10px] font-semibold text-center truncate w-full">{t.sub}</span>
+          </button>
+        );
+      })}
+    </section>
+  );
+};
 
 const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => {
   const { homeCategories } = useSiteConfigStore();
@@ -1499,6 +1562,9 @@ const HomePage: React.FC = () => {
           )}
         </div>
       </section>
+
+      {/* ── CINTILLO DE ACCESOS DESTACADOS: Planes, Pareja, Abierto ahora, Eventos en vivo ── */}
+      <QuickAccessRibbon navigate={navigate} />
 
       {/* ── CATEGORÍAS (subidas justo bajo el hero, como el diseño objetivo) ── */}
       <DynamicCategoriesSection navigate={navigate} />
