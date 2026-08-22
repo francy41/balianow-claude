@@ -73,15 +73,20 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
         <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
       </button>
 
-      {/* Search (Airbnb pill) — abre el GlobalSearch (Ctrl+K) */}
+      {/* Superbuscador (GlobalSearch) — abre el modal que busca en locales, eventos, artistas, ciudades... */}
       <button
         onClick={() => window.dispatchEvent(new Event('bn:open-search'))}
-        className="flex-1 max-w-xl flex items-center gap-2.5 px-4 py-2 rounded-full border border-gray-200 hover:shadow-md hover:border-gray-300 text-gray-500 transition-all"
+        className="flex-1 max-w-xl flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full bg-gradient-to-r from-pink-50 to-orange-50 dark:from-pink-950/30 dark:to-orange-950/20 border border-pink-200/70 dark:border-pink-900/40 hover:shadow-lg hover:shadow-pink-500/10 hover:border-pink-300 text-gray-500 transition-all"
         title="Buscar (Ctrl+K)"
       >
-        <Search className="w-4 h-4 text-pink-500 flex-shrink-0" />
-        <span className="text-sm truncate">¿Qué quieres hacer hoy?</span>
-        <span className="ml-auto text-[10px] hidden md:inline bg-gray-100 px-1.5 py-0.5 rounded font-mono text-gray-400 flex-shrink-0">Ctrl K</span>
+        <span className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+          <Search className="w-3.5 h-3.5 text-white" />
+        </span>
+        <span className="flex-1 min-w-0 text-left leading-tight">
+          <span className="block text-sm text-gray-700 dark:text-gray-200 font-semibold truncate">¿Qué quieres hacer hoy?</span>
+          <span className="hidden sm:block text-[10px] text-gray-400 truncate">Locales, eventos, artistas, ciudades…</span>
+        </span>
+        <span className="ml-auto text-[10px] hidden md:inline bg-white/80 dark:bg-gray-800 px-1.5 py-0.5 rounded font-mono text-gray-400 flex-shrink-0 border border-gray-200 dark:border-gray-700">Ctrl K</span>
       </button>
 
       <div className="hidden lg:block flex-shrink-0">
