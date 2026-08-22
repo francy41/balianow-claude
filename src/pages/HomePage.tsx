@@ -706,11 +706,13 @@ interface DiscoverItem {
 
 const DISCOVER_TABS: { key: DiscoverKind | 'todos'; label: string; icon: React.FC<any> }[] = [
   { key: 'todos', label: 'Todos', icon: Grid3x3 },
+  { key: 'plan', label: 'Planes de baile', icon: RouteIcon },
   { key: 'venue', label: 'Abiertos ahora', icon: Building2 },
   { key: 'pareja', label: 'Pareja de baile', icon: Heart },
   { key: 'clase', label: 'Clases', icon: GraduationCap },
   { key: 'vivo', label: 'Eventos en vivo', icon: Calendar },
 ];
+const DISCOVER_ORDER: DiscoverKind[] = ['plan', 'venue', 'vivo', 'clase', 'pareja'];
 
 const DISCOVER_BADGE: Record<DiscoverKind, { label: string; className: string; cta: string }> = {
   plan:   { label: 'PLAN',          className: 'bg-pink-600',    cta: 'border-pink-400 text-pink-300' },
@@ -814,7 +816,10 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
 
   if (loaded && items.length === 0) return null;
 
-  const shown = tab === 'todos' ? items.slice(0, 8) : items.filter(it => it.kind === tab).slice(0, 8);
+  // "Todos" = un único ejemplo real por categoría (nunca varias tarjetas del mismo tipo seguidas).
+  const shown = tab === 'todos'
+    ? DISCOVER_ORDER.map(k => items.find(it => it.kind === k)).filter((it): it is DiscoverItem => !!it)
+    : items.filter(it => it.kind === tab).slice(0, 8);
   const mapCenter: [number, number] = pins.length
     ? [pins.reduce((s, p) => s + p.lat, 0) / pins.length, pins.reduce((s, p) => s + p.lng, 0) / pins.length]
     : [40.4168, -3.7038];
