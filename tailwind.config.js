@@ -27,6 +27,25 @@ export default {
           'orange-light': '#FBCFE8',
         },
         sidebar: '#0A0A0A',
+        // ── Design tokens (ver DESIGN_AUDIT.md / DESIGN_CHANGELOG.md) ──
+        // Resuelven a variables CSS definidas en src/index.css, con valores
+        // distintos bajo `.dark` — así una sola clase (`bg-surface`,
+        // `text-ink-secondary`...) funciona en ambos modos sin `dark:`.
+        surface: {
+          DEFAULT: 'rgb(var(--surface) / <alpha-value>)',
+          elevated: 'rgb(var(--surface-elevated) / <alpha-value>)',
+          'elevated-2': 'rgb(var(--surface-elevated-2) / <alpha-value>)',
+        },
+        ink: {
+          primary: 'rgb(var(--ink-primary) / <alpha-value>)',
+          secondary: 'rgb(var(--ink-secondary) / <alpha-value>)',
+          tertiary: 'rgb(var(--ink-tertiary) / <alpha-value>)',
+        },
+        hairline: 'rgb(var(--hairline) / <alpha-value>)',
+        accent: {
+          DEFAULT: 'rgb(var(--accent) / <alpha-value>)',
+          warm: 'rgb(var(--accent-warm) / <alpha-value>)',
+        },
       },
       backgroundImage: {
         'gradient-orange': 'linear-gradient(#EC4899, #EC4899)',
@@ -59,7 +78,26 @@ export default {
         'orange': '0 4px 14px rgba(236,72,153,0.35)',
         'pink': '0 4px 14px rgba(236,72,153,0.35)',
         'neon': '0 0 20px rgba(236,72,153,0.5), 0 0 40px rgba(236,72,153,0.2)',
-      }
+        // ── Escala de elevación premium (3 niveles, tintada, nunca negro puro) ──
+        'elevation-1': '0 1px 2px rgb(var(--shadow-tint) / 0.06), 0 1px 1px rgb(var(--shadow-tint) / 0.04)',
+        'elevation-2': '0 4px 16px rgb(var(--shadow-tint) / 0.10), 0 2px 6px rgb(var(--shadow-tint) / 0.06)',
+        'elevation-3': '0 12px 32px rgb(var(--shadow-tint) / 0.16), 0 4px 12px rgb(var(--shadow-tint) / 0.08)',
+      },
+      fontSize: {
+        // ── Escala tipográfica fija — nada fuera de esta escala ──
+        xs: ['0.75rem', { lineHeight: '1.5' }],     // 12
+        sm: ['0.875rem', { lineHeight: '1.5' }],    // 14
+        base: ['1rem', { lineHeight: '1.6' }],      // 16
+        lg: ['1.25rem', { lineHeight: '1.4' }],     // 20
+        xl: ['1.5rem', { lineHeight: '1.3', letterSpacing: '-0.01em' }],   // 24
+        '2xl': ['2rem', { lineHeight: '1.2', letterSpacing: '-0.015em' }], // 32
+        '3xl': ['2.75rem', { lineHeight: '1.1', letterSpacing: '-0.02em' }], // 44
+        '4xl': ['3.75rem', { lineHeight: '1.05', letterSpacing: '-0.02em' }], // 60
+      },
+      // Nota: la escala de espaciado base-4 de Tailwind por defecto (4/8/12/16/24/32/48/64/96px)
+      // ya cumple el requisito del brief — no se sobreescribe. El trabajo pendiente es eliminar,
+      // componente a componente, los valores arbitrarios sueltos (`p-[13px]`, `gap-[18px]`, etc.)
+      // detectados en DESIGN_AUDIT.md y sustituirlos por esta escala.
     },
   },
   plugins: [],

@@ -4,6 +4,48 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Design tokens (color) — ver DESIGN_AUDIT.md / DESIGN_CHANGELOG.md ──
+   Tríos RGB (sin rgb()) para que Tailwind pueda aplicar opacidad: bg-surface/50, etc.
+   Mismo nombre de token en claro y oscuro — los componentes no necesitan `dark:`. */
+:root {
+  /* Superficie: neutro cálido, no gris puro */
+  --surface: 250 250 249;            /* #FAFAF9 */
+  --surface-elevated: 255 255 255;   /* #FFFFFF */
+  --surface-elevated-2: 245 243 246; /* #F5F3F6 */
+
+  /* Texto: 3 niveles, contraste AA real sobre --surface */
+  --ink-primary: 17 17 19;     /* #111113 */
+  --ink-secondary: 82 82 91;   /* #52525B */
+  --ink-tertiary: 113 113 122; /* #71717A — AA 4.5:1 sobre #FAFAF9 */
+
+  --hairline: 0 0 0;           /* usado con /8 de opacidad → rgba(0,0,0,.08) */
+
+  /* Acento: rosa de marca reservado para la acción principal por pantalla */
+  --accent: 236 72 153;        /* #EC4899 */
+  --accent-warm: 255 140 66;   /* #FF8C42 — ya en uso de facto en la app, formalizado aquí */
+
+  /* Tinte de sombra: gris cálido, nunca negro puro */
+  --shadow-tint: 82 60 74;
+}
+
+.dark {
+  /* Superficie oscura con temperatura (violeta/magenta en vez de negro puro) */
+  --surface: 13 10 16;             /* #0D0A10 */
+  --surface-elevated: 23 18 27;    /* #17121B */
+  --surface-elevated-2: 34 28 41;  /* #221C29 */
+
+  --ink-primary: 245 245 247;   /* #F5F5F7 */
+  --ink-secondary: 184 179 190; /* #B8B3BE — AA 4.5:1 sobre #0D0A10 */
+  --ink-tertiary: 138 132 148;  /* #8A8494 — AA 3:1, solo texto grande/terciario */
+
+  --hairline: 255 255 255;     /* rgba(255,255,255,.08) */
+
+  --accent: 236 72 153;        /* #EC4899 — mismo en ambos modos, ya tiene contraste suficiente */
+  --accent-warm: 255 140 66;   /* #FF8C42 */
+
+  --shadow-tint: 0 0 0;
+}
+
 /* ── GameHUD animations ─────────────────────────────────────────── */
 @keyframes hudBannerIn {
   0%   { opacity: 0; transform: scale(0.4) translateY(-20px); }
@@ -143,15 +185,10 @@ body {
 
   /* ── GLASS / CARD ── */
   .card-white {
-    background: #ffffff;
+    background: rgb(var(--surface-elevated));
     border-radius: 18px;
-    border: 1px solid rgba(23,17,28,0.05);
-    box-shadow: 0 2px 8px rgba(23,17,28,0.06), 0 1px 3px rgba(23,17,28,0.05);
-  }
-  html.dark .card-white {
-    background: #1a1a2e;
-    border-color: rgba(255,255,255,0.06);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+    border: 1px solid rgb(var(--hairline) / 0.06);
+    box-shadow: 0 2px 8px rgb(var(--shadow-tint) / 0.06), 0 1px 3px rgb(var(--shadow-tint) / 0.05);
   }
 
   /* ── PREMIUM BUTTONS ── */

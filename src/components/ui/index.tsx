@@ -16,12 +16,12 @@ export const Button: React.FC<ButtonProps> = ({
   children, variant = 'orange', size = 'md', loading = false,
   icon, className = '', disabled, ...props
 }) => {
-  const base = 'inline-flex items-center justify-center gap-2 font-semibold rounded-lg transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed select-none';
+  const base = 'inline-flex items-center justify-center gap-2 font-semibold rounded-lg transition-all duration-200 ease-out active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface';
   const variants = {
-    orange:  'bg-brand-orange text-white hover:bg-brand-orange-dark shadow-orange',
-    outline: 'border-2 border-brand-orange text-brand-orange hover:bg-brand-orange hover:text-white',
+    orange:  'bg-accent text-white hover:bg-brand-pink-dark shadow-elevation-2 hover:shadow-elevation-3',
+    outline: 'border-2 border-accent text-accent hover:bg-accent hover:text-white',
     dark:    'bg-gray-900 text-white hover:bg-gray-800',
-    ghost:   'text-gray-500 hover:bg-gray-100 hover:text-gray-800',
+    ghost:   'text-ink-secondary hover:bg-surface-elevated-2 hover:text-ink-primary',
     danger:  'bg-red-600 text-white hover:bg-red-700',
   };
   const sizes = { xs: 'px-2.5 py-1 text-xs', sm: 'px-3 py-1.5 text-sm', md: 'px-5 py-2.5 text-sm', lg: 'px-7 py-3.5 text-base' };
@@ -42,7 +42,7 @@ export const Badge: React.FC<BadgeProps> = ({ children, variant = 'gray', classN
     orange: 'bg-brand-orange text-white',
     green:  'bg-green-100 text-green-700',
     red:    'bg-red-100 text-red-600',
-    gray:   'bg-gray-100 text-gray-500',
+    gray:   'bg-surface-elevated-2 text-ink-secondary',
     blue:   'bg-blue-100 text-blue-700',
     live:   'bg-red-600 text-white animate-pulse',
   };
@@ -129,10 +129,10 @@ export const ToastContainer: React.FC = () => {
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> { label?: string; error?: string; icon?: React.ReactNode; }
 export const Input: React.FC<InputProps> = ({ label, error, icon, className = '', ...props }) => (
   <div className="w-full space-y-1">
-    {label && <label className="text-gray-600 text-sm font-medium">{label}</label>}
+    {label && <label className="text-ink-secondary text-sm font-medium">{label}</label>}
     <div className="relative">
-      {icon && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">{icon}</span>}
-      <input className={`w-full bg-gray-50 border ${error ? 'border-red-400' : 'border-gray-200'} rounded-xl ${icon ? 'pl-10' : 'pl-4'} pr-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 transition-all ${className}`} {...props} />
+      {icon && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-tertiary">{icon}</span>}
+      <input className={`w-full bg-surface-elevated-2 border ${error ? 'border-red-400' : 'border-hairline/10'} rounded-xl ${icon ? 'pl-10' : 'pl-4'} pr-4 py-3 text-ink-primary placeholder-ink-tertiary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all duration-200 ${className}`} {...props} />
     </div>
     {error && <p className="text-red-500 text-xs">{error}</p>}
   </div>
@@ -162,12 +162,12 @@ export const SectionHeader: React.FC<{ title: string; subtitle?: string; action?
 // ── TABS ───────────────────────────────────────────────────────────────────
 interface TabsProps { tabs: { id: string; label: string; count?: number }[]; active: string; onChange: (id: string) => void; className?: string; }
 export const Tabs: React.FC<TabsProps> = ({ tabs, active, onChange, className = '' }) => (
-  <div className={`flex gap-1 bg-gray-100 rounded-xl p-1 ${className}`}>
+  <div className={`flex gap-1 bg-surface-elevated-2 rounded-xl p-1 ${className}`}>
     {tabs.map(tab => (
       <button key={tab.id} onClick={() => onChange(tab.id)}
-        className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-semibold transition-all ${active === tab.id ? 'bg-white text-brand-orange shadow-card' : 'text-gray-500 hover:text-gray-700'}`}>
+        className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${active === tab.id ? 'bg-surface-elevated text-accent shadow-elevation-1' : 'text-ink-tertiary hover:text-ink-primary'}`}>
         {tab.label}
-        {tab.count !== undefined && <span className={`text-xs px-1.5 py-0.5 rounded-full ${active === tab.id ? 'bg-brand-orange/10 text-brand-orange' : 'bg-gray-200 text-gray-500'}`}>{tab.count}</span>}
+        {tab.count !== undefined && <span className={`text-xs px-1.5 py-0.5 rounded-full ${active === tab.id ? 'bg-accent/10 text-accent' : 'bg-surface-elevated text-ink-tertiary'}`}>{tab.count}</span>}
       </button>
     ))}
   </div>
@@ -180,7 +180,7 @@ export const FilterChips: React.FC<{ options: string[]; selected: string[]; onCh
       const isSel = selected.includes(opt);
       return (
         <button key={opt} onClick={() => { if (multi) onChange(isSel ? selected.filter(s => s !== opt) : [...selected, opt]); else onChange(isSel ? [] : [opt]); }}
-          className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${isSel ? 'bg-brand-orange text-white border-brand-orange' : 'bg-white text-gray-600 border-gray-200 hover:border-brand-orange hover:text-brand-orange'}`}>
+          className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold border transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${isSel ? 'bg-accent text-white border-accent shadow-elevation-1' : 'bg-surface-elevated text-ink-secondary border-hairline/10 hover:border-accent hover:text-accent'}`}>
           {opt}
         </button>
       );
@@ -192,8 +192,8 @@ export const FilterChips: React.FC<{ options: string[]; selected: string[]; onCh
 export const EmptyState: React.FC<{ icon: string; title: string; description: string; action?: React.ReactNode }> = ({ icon, title, description, action }) => (
   <div className="flex flex-col items-center justify-center py-16 text-center px-6">
     <div className="text-6xl mb-4">{icon}</div>
-    <h3 className="text-xl font-display font-bold text-gray-800 mb-2">{title}</h3>
-    <p className="text-gray-400 text-sm max-w-xs mb-6">{description}</p>
+    <h3 className="text-xl font-display font-bold text-ink-primary mb-2">{title}</h3>
+    <p className="text-ink-tertiary text-sm max-w-xs mb-6">{description}</p>
     {action}
   </div>
 );
