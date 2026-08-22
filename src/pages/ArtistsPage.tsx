@@ -397,14 +397,14 @@ const ArtistCard: React.FC<{ artist: DbArtist; onClick: () => void }> = ({ artis
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           {artist.rating > 0 && <StarRating rating={artist.rating} count={artist.reviews} />}
-          <div className="flex items-center gap-3 text-gray-400 text-xs">
+          <div className="flex items-center gap-3 text-ink-tertiary text-xs">
             {artist.city && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{artist.city}</span>}
             {artist.followers > 0 && <span className="flex items-center gap-1"><Users className="w-3 h-3" />{artist.followers.toLocaleString()}</span>}
           </div>
         </div>
         {artist.priceFrom > 0 && (
           <div className="text-right">
-            <p className="text-xs text-gray-400">Desde</p>
+            <p className="text-xs text-ink-tertiary">Desde</p>
             <p className="text-brand-orange font-bold">€{artist.priceFrom}</p>
           </div>
         )}

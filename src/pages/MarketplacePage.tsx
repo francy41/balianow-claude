@@ -192,8 +192,8 @@ const MarketplacePage: React.FC = () => {
 };
 
 const ServiceCard: React.FC<{ service: SvcRow; onClick: () => void; onQuickBuy: (e: React.MouseEvent) => void }> = ({ service, onClick, onQuickBuy }) => (
-  <div onClick={onClick} className="group bg-white rounded-3xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-pink-500/10 hover:-translate-y-1 transition-all duration-300 border border-gray-100">
-    <div className="relative h-44 overflow-hidden bg-gray-100">
+  <div onClick={onClick} className="group bg-surface-elevated rounded-3xl overflow-hidden cursor-pointer shadow-elevation-1 hover:shadow-elevation-3 hover:-translate-y-1 transition-all duration-300 border border-hairline/10">
+    <div className="relative h-44 overflow-hidden bg-surface-elevated-2">
       <img src={service.cover} alt={service.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
       <span className="absolute top-3 left-3 bg-white/90 text-gray-700 text-[10px] px-2.5 py-1 rounded-full font-bold">{service.category}</span>
@@ -202,17 +202,17 @@ const ServiceCard: React.FC<{ service: SvcRow; onClick: () => void; onQuickBuy: 
     <div className="p-4">
       <div className="flex items-center gap-2 mb-2.5">
         <Avatar src={service.artistAvatar} name={service.artistName} size="xs" />
-        <span className="text-gray-500 text-xs font-semibold">{service.artistName}</span>
+        <span className="text-ink-secondary text-xs font-semibold">{service.artistName}</span>
       </div>
 
-      <h3 className="text-gray-900 font-black text-sm line-clamp-2 mb-2">{service.title}</h3>
+      <h3 className="text-ink-primary font-black text-sm line-clamp-2 mb-2">{service.title}</h3>
 
       <div className="flex items-center gap-3 mb-3">
         <span className="inline-flex items-center gap-1 text-amber-500 font-bold text-sm">
           <Star className="w-4 h-4 fill-amber-400" />{service.rating}
-          <span className="text-gray-400 font-normal text-xs">({service.reviews})</span>
+          <span className="text-ink-tertiary font-normal text-xs">({service.reviews})</span>
         </span>
-        <span className="text-gray-400 text-xs flex items-center gap-1">
+        <span className="text-ink-tertiary text-xs flex items-center gap-1">
           <ShoppingBag className="w-3 h-3" />{service.orders}
         </span>
       </div>
@@ -223,13 +223,13 @@ const ServiceCard: React.FC<{ service: SvcRow; onClick: () => void; onQuickBuy: 
         ))}
       </div>
 
-      <div className="border-t border-gray-100 pt-3 flex items-center justify-between">
-        <div className="flex items-center gap-1 text-gray-400 text-xs">
+      <div className="border-t border-hairline/10 pt-3 flex items-center justify-between">
+        <div className="flex items-center gap-1 text-ink-tertiary text-xs">
           <Clock className="w-3 h-3" />
           <span>{service.deliveryDays === 1 ? 'Entrega hoy' : `${service.deliveryDays} días`}</span>
         </div>
         <div className="text-right">
-          <p className="text-gray-400 text-[10px]">Desde</p>
+          <p className="text-ink-tertiary text-[10px]">Desde</p>
           <p className="text-brand-orange font-bold text-lg">€{service.price}</p>
         </div>
       </div>
