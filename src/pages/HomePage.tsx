@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import L from 'leaflet';
 import MapErrorBoundary from '../components/MapErrorBoundary';
+import CategoryIcon from '../components/CategoryIcon';
 import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2 } from 'lucide-react';
 import { ARTISTS, EVENTS } from '../data/mockData';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_TV, type HomeCategory } from '../store/appStore';
@@ -422,7 +423,7 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
                           : 'hover:bg-gray-50 border-transparent'
                       }`}
                     >
-                      <span className="text-lg">{cat.icon}</span>
+                      <CategoryIcon name={cat.name} fallback={cat.icon} className="text-lg w-5 h-5 flex-shrink-0 text-gray-500 [&_svg]:w-5 [&_svg]:h-5" />
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-gray-900 text-sm">{cat.name}</p>
                         <p className="text-gray-500 text-xs capitalize">{cat.section}</p>
@@ -717,7 +718,8 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
         className="group relative bg-white dark:bg-gray-800/70 rounded-2xl p-3 flex flex-col items-center justify-start gap-2 border border-gray-100 dark:border-white/10 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-transparent active:scale-95 transition-all duration-300"
       >
         <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${tint} ring-1 flex items-center justify-center shadow-sm group-hover:shadow-lg group-hover:scale-110 transition-all duration-300`}>
-          <span className="text-2xl sm:text-[26px] leading-none">{cat.icon}</span>
+          <CategoryIcon name={cat.name} fallback={cat.icon}
+            className="text-2xl sm:text-[26px] leading-none text-white [&_svg]:w-6 [&_svg]:h-6 sm:[&_svg]:w-7 sm:[&_svg]:h-7" />
         </div>
         <span className="text-gray-700 dark:text-gray-200 text-[11px] sm:text-xs font-bold leading-tight text-center line-clamp-2 group-hover:text-brand-orange transition-colors">{cat.name}</span>
       </button>
