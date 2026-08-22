@@ -819,7 +819,7 @@ const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
   const allVenues: any[] = dbVenues.map((v: any) => ({
     id: v.id, name: v.name, city: v.city || '',
     cover: v.cover || v.image_url || v.avatar || '',
-    rating: Number(v.rating) || 4.5,
+    rating: Number(v.rating) || 0,
     isOpen: isOpenNow(v), isPremium: !!v.is_premium,
     openHours: v.open_hours || (v.open_time && v.close_time ? `${String(v.open_time).slice(0,5)}–${String(v.close_time).slice(0,5)}` : '24/7'),
   }));
@@ -868,8 +868,12 @@ const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
               <p className="text-white font-black text-sm truncate">{v.name}</p>
               <p className="text-white/50 text-[11px] mt-0.5 capitalize truncate">{v.type || 'Local'}</p>
               <div className="flex items-center gap-2 mt-2 text-[11px]">
-                <span className="inline-flex items-center gap-1 text-amber-400 font-bold"><Star className="w-3.5 h-3.5 fill-amber-400" />{v.rating}</span>
-                <span className="text-white/30">·</span>
+                {v.rating > 0 && (
+                  <>
+                    <span className="inline-flex items-center gap-1 text-amber-400 font-bold"><Star className="w-3.5 h-3.5 fill-amber-400" />{v.rating}</span>
+                    <span className="text-white/30">·</span>
+                  </>
+                )}
                 <span className="text-white/60 flex items-center gap-1"><MapPin className="w-3 h-3" />{v.city}</span>
               </div>
             </div>

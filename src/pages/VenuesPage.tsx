@@ -7,7 +7,6 @@ import { fixText } from '../lib/text';
 import { CardGridSkeleton } from '../components/Skeleton';
 import ClaimProfileButton from '../components/ClaimProfileButton';
 import { isClaimed, UNCLAIMED_TOAST } from '../lib/ownership';
-import { VENUES } from '../data/mockData';
 import type { Venue } from '../data/mockData';
 import { Badge, StarRating, EmptyState, Button, Avatar } from '../components/ui';
 import { FilterFacet, ActiveFilterBar, FilterPanel } from '../components/SmartFilters';
@@ -41,7 +40,7 @@ function mapDbVenue(v: any): Venue {
     address:     v.address || '',
     cover:       v.cover || v.image_url || v.avatar || '',
     avatar:      v.avatar || v.image_url || '',
-    rating:      Number(v.rating) || 4.5,
+    rating:      Number(v.rating) || 0,
     reviews:     Number(v.reviews) || 0,
     capacity:    Number(v.capacity) || 0,
     isOpen:      venueIsOpenNowDb(v),
@@ -242,10 +241,12 @@ const VenueCard: React.FC<{ venue: Venue; onClick: () => void }> = ({ venue, onC
         <span className="font-bold text-gray-500">{'€'.repeat(venue.priceRange)}</span>
       </div>
       <div className="flex items-center justify-between gap-2 mt-2.5">
-        <span className="inline-flex items-center gap-1 text-amber-500 font-bold text-sm">
-          <Star className="w-4 h-4 fill-amber-400" />{venue.rating}
-          <span className="text-gray-400 font-normal text-xs">({venue.reviews})</span>
-        </span>
+        {venue.rating > 0 ? (
+          <span className="inline-flex items-center gap-1 text-amber-500 font-bold text-sm">
+            <Star className="w-4 h-4 fill-amber-400" />{venue.rating}
+            <span className="text-gray-400 font-normal text-xs">({venue.reviews})</span>
+          </span>
+        ) : <span />}
         <span className="text-gray-400 text-[11px] flex items-center gap-1 truncate"><Clock className="w-3 h-3 flex-shrink-0" /> {venue.openHours}</span>
       </div>
       {!venue.userId && (
@@ -256,27 +257,6 @@ const VenueCard: React.FC<{ venue: Venue; onClick: () => void }> = ({ venue, onC
     </div>
   </div>
 );
-
-/* ── Venue social data (mock) ── */
-const VENUE_SOCIALS: Record<string, Record<string, string>> = {
-  v1: { instagram: 'clubtropicana_madrid', facebook: 'ClubTropicanaMadrid', youtube: 'ClubTropicana' },
-  v2: { instagram: 'lasalalatina', tiktok: 'lasalalatina', facebook: 'LaSalaLatinaBCN' },
-  v3: { instagram: 'studiolatinobcn', youtube: 'StudioLatinoBCN' },
-  v4: { instagram: 'rooftop360sevilla', facebook: 'Rooftop360' },
-  v5: { instagram: 'parcforum_events', youtube: 'ParcForumEvents', facebook: 'ParcForum' },
-  v6: { instagram: 'azucarclubvlc', tiktok: 'azucarclub', facebook: 'AzucarClubValencia' },
-  v7: { instagram: 'laclaveparis', youtube: 'LaClaveParis', facebook: 'LaClaveClubParis' },
-};
-
-const VENUE_VIDEOS: Record<string, { url: string; title: string }> = {
-  v1: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Noche de Bachata — Club Tropicana Madrid' },
-  v2: { url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', title: 'Salsa Social Night — La Sala Latina BCN' },
-  v3: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Workshop Bachata Sensual — Studio Latino' },
-  v4: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Sunset Salsa Party — Rooftop 360 Sevilla' },
-  v5: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Festival Latino 2026 — Parc del Fòrum' },
-  v6: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Reggaeton Night — Azúcar Club Valencia' },
-  v7: { url: 'https://www.youtube.com/watch?v=kBRWBfKVkkw', title: 'Latin Groove Friday — La Clave Paris' },
-};
 
 const SOCIAL_COLORS: Record<string, string> = {
   instagram:  'bg-purple-500',
@@ -325,32 +305,20 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
   const [callOpen, setCallOpen] = useState(false);
   const [following, setFollowing] = useState(false);
   const [liked, setLiked] = useState(false);
-  const [lightbox, setLightbox] = useState<string | null>(null);
   const [bioExpanded, setBioExpanded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     let done = false;
-    const fallbackMock = () => {
+    const finish = (v: Venue | null) => {
       if (cancelled || done) return; done = true;
-      const mock = VENUES.find(v => String(v.id) === String(venueId));
-      setVenue(mock ? ({ ...mock, userId: '' } as any) : null);
-      setLoadingVenue(false);
+      setVenue(v); setLoadingVenue(false);
     };
-    // Safety-timeout: si la consulta se cuelga/rechaza, cae al ejemplo en vez de spinner infinito.
-    const timer = setTimeout(fallbackMock, 8000);
+    // Safety-timeout: si la consulta se cuelga/rechaza, deja de mostrar el spinner (venue no encontrado).
+    const timer = setTimeout(() => finish(null), 8000);
     supabase.from('venues').select('*').eq('id', venueId).maybeSingle().then(
-      ({ data }) => {
-        clearTimeout(timer);
-        if (cancelled || done) return; done = true;
-        if (data) setVenue(mapDbVenue(data));
-        else {
-          const mock = VENUES.find(v => String(v.id) === String(venueId));
-          setVenue(mock ? ({ ...mock, userId: '' } as any) : null);
-        }
-        setLoadingVenue(false);
-      },
-      () => { clearTimeout(timer); fallbackMock(); }
+      ({ data }) => { clearTimeout(timer); finish(data ? mapDbVenue(data) : null); },
+      () => { clearTimeout(timer); finish(null); }
     );
     return () => { cancelled = true; clearTimeout(timer); };
   }, [venueId]);
@@ -362,6 +330,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
   const [ownerSocials, setOwnerSocials] = useState<Record<string, string>>({});
   const [realEvents, setRealEvents] = useState<any[]>([]);
   const [dayHours, setDayHours] = useState<any[]>([]);
+  const [venueReviews, setVenueReviews] = useState<{ id: string; rating: number; comment: string; created_at: string; userName: string; avatar: string }[]>([]);
   useEffect(() => {
     if (!venue) return;
     const ownerId = String(venue.userId || '');
@@ -393,7 +362,22 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
         setRealEvents(list.sort((a: any, b: any) => (a.date || '').localeCompare(b.date || '')));
       }, () => {});
     supabase.from('venue_hours').select('*').eq('venue_id', venue.id).then(({ data }) => { if (data) setDayHours(data); }, () => {});
+    supabase.from('reviews').select('id,user_id,rating,comment,created_at').eq('target_type', 'venue').eq('target_id', String(venue.id)).order('created_at', { ascending: false }).then(
+      async ({ data }) => {
+        const rows = data || [];
+        if (rows.length === 0) { setVenueReviews([]); return; }
+        const ids = [...new Set(rows.map((r: any) => r.user_id))];
+        const { data: profs } = await supabase.from('profiles').select('id,full_name,avatar_url').in('id', ids);
+        const profMap = new Map((profs || []).map((p: any) => [p.id, p]));
+        setVenueReviews(rows.map((r: any) => ({
+          id: r.id, rating: Number(r.rating) || 0, comment: r.comment || '', created_at: r.created_at,
+          userName: profMap.get(r.user_id)?.full_name || 'Usuario', avatar: profMap.get(r.user_id)?.avatar_url || '',
+        })));
+      }, () => setVenueReviews([])
+    );
   }, [venue?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const avgRating = venueReviews.length ? venueReviews.reduce((s, r) => s + r.rating, 0) / venueReviews.length : 0;
 
   const handleReserve = () => {
     if (!isClaimed(venue?.userId as string)) { addToast({ message: UNCLAIMED_TOAST, type: 'warning' }); return; }
@@ -411,12 +395,8 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
     </div>
   );
 
-  // El propio local tiene prioridad; si no tiene redes propias, usa las de la cuenta
-  // del dueño; si no hay ninguna (venue sin dueño real / mock), cae al ejemplo.
-  const realSocials = { ...ownerSocials, ...(venue.socials || {}) };
-  const socials = Object.keys(realSocials).length > 0
-    ? realSocials
-    : (VENUE_SOCIALS[venue.id] || { instagram: venue.name.toLowerCase().replace(/\s+/g, '') });
+  // El propio local tiene prioridad; si no tiene redes propias, usa las de la cuenta del dueño.
+  const socials = { ...ownerSocials, ...(venue.socials || {}) };
   const socialHref = (key: string, value: string) => value.startsWith('http') ? value : `https://${key}.com/${value}`;
 
   return (
@@ -455,8 +435,9 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
               <div className="flex items-center gap-3 mt-2 text-white/80 text-sm flex-wrap">
                 <span className="flex items-center gap-1"><MapPin className="w-4 h-4" /> {venue.city}, España</span>
                 <span className="flex items-center gap-1"><Users className="w-4 h-4" /> Aforo {venue.capacity}</span>
-                <span className="flex items-center gap-1"><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /> {venue.rating} ({venue.reviews})</span>
-                <span className="flex items-center gap-1"><Clock className="w-4 h-4" /> Responde ~ 1 hora</span>
+                {venueReviews.length > 0 && (
+                  <span className="flex items-center gap-1"><Star className="w-4 h-4 fill-yellow-400 text-yellow-400" /> {avgRating.toFixed(1)} ({venueReviews.length})</span>
+                )}
               </div>
             </div>
           </div>
@@ -619,9 +600,9 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                 )}
               </div>
 
-              {/* Featured YouTube Video — del dueño (perfil) o ejemplo */}
+              {/* Featured YouTube Video — del dueño (perfil) */}
               {(() => {
-                const vid = ownerVideo || VENUE_VIDEOS[venue.id];
+                const vid = ownerVideo;
                 if (!vid) return null;
                 const ytId = getYouTubeId(vid.url);
                 if (!ytId) return null;
@@ -771,66 +752,55 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
         })()}
 
         {activeTab === 'gallery' && (
-          <div className="columns-2 sm:columns-3 gap-3">
-            {Array.from({ length: 14 }, (_, i) => {
-              const h = [320, 240, 400, 260, 340, 220, 380][i % 7];
-              return (
-                <button key={i} onClick={() => setLightbox(`https://picsum.photos/seed/${venue.id}gal${i}/1000/${h * 2}`)}
-                  className="mb-3 w-full block overflow-hidden rounded-2xl group relative break-inside-avoid">
-                  <img src={`https://picsum.photos/seed/${venue.id}gal${i}/500/${h}`} alt="" loading="lazy"
-                    className="w-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                </button>
-              );
-            })}
-          </div>
+          <EmptyState icon="📸" title="Aún no hay fotos" description="Este local todavía no ha subido fotos a su galería." />
         )}
 
         {activeTab === 'reviews' && (
-          <div className="space-y-4">
-            <div className="card-white rounded-2xl p-5 flex items-center gap-6">
-              <div className="text-center">
-                <p className="font-black text-4xl text-gray-900 dark:text-white">{venue.rating}</p>
-                <StarRating rating={venue.rating} count={venue.reviews} size="md" className="mt-1" />
-              </div>
-              <div className="flex-1 space-y-1.5">
-                {[5, 4, 3, 2, 1].map(s => {
-                  const pct = s === 5 ? 68 : s === 4 ? 22 : s === 3 ? 7 : s === 2 ? 2 : 1;
-                  return (
-                    <div key={s} className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-3">{s}</span>
-                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                      <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${pct}%` }} />
-                      </div>
-                      <span className="text-xs text-gray-400 w-8 text-right">{pct}%</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            {[
-              { name: 'María G.', rating: 5, text: 'Increíble ambiente, la mejor pista de salsa de la ciudad. El DJ es espectacular.', time: 'Hace 2 días' },
-              { name: 'Carlos R.', rating: 4, text: 'Muy buen local, buena música y cocktails. A veces se llena demasiado los sábados.', time: 'Hace 1 semana' },
-              { name: 'Ana P.', rating: 5, text: 'El mejor lugar para bailar bachata. Personal muy amable y precios razonables.', time: 'Hace 2 semanas' },
-            ].map((r, i) => (
-              <div key={i} className="card-white rounded-2xl p-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="w-10 h-10 bg-brand-orange/10 rounded-full flex items-center justify-center text-brand-orange font-bold">{r.name[0]}</div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900 dark:text-white text-sm">{r.name}</p>
-                    <p className="text-gray-400 text-xs">{r.time}</p>
-                  </div>
-                  <div className="flex items-center gap-0.5">
-                    {Array.from({ length: r.rating }).map((_, j) => (
-                      <Star key={j} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
+          venueReviews.length === 0 ? (
+            <EmptyState icon="⭐" title="Aún no hay reseñas" description="Sé el primero en valorar este local." />
+          ) : (
+            <div className="space-y-4">
+              <div className="card-white rounded-2xl p-5 flex items-center gap-6">
+                <div className="text-center">
+                  <p className="font-black text-4xl text-gray-900 dark:text-white">{avgRating.toFixed(1)}</p>
+                  <StarRating rating={avgRating} count={venueReviews.length} size="md" className="mt-1" />
                 </div>
-                <p className="text-gray-600 text-sm">{r.text}</p>
+                <div className="flex-1 space-y-1.5">
+                  {[5, 4, 3, 2, 1].map(s => {
+                    const count = venueReviews.filter(r => Math.round(r.rating) === s).length;
+                    const pct = Math.round((count / venueReviews.length) * 100);
+                    return (
+                      <div key={s} className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400 w-3">{s}</span>
+                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${pct}%` }} />
+                        </div>
+                        <span className="text-xs text-gray-400 w-8 text-right">{pct}%</span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            ))}
-          </div>
+              {venueReviews.map(r => (
+                <div key={r.id} className="card-white rounded-2xl p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Avatar src={r.avatar} name={r.userName} size="sm" />
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900 dark:text-white text-sm">{r.userName}</p>
+                      <p className="text-gray-400 text-xs">{new Date(r.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                    </div>
+                    <div className="flex items-center gap-0.5">
+                      {Array.from({ length: r.rating }).map((_, j) => (
+                        <Star key={j} className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+                      ))}
+                    </div>
+                  </div>
+                  {r.comment && <p className="text-gray-600 text-sm">{r.comment}</p>}
+                </div>
+              ))}
+            </div>
+          )
         )}
       </div>
 
@@ -841,14 +811,6 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
         venueName={venue.name}
       />
       <CallBookingModal open={callOpen} onClose={() => setCallOpen(false)} />
-
-      {/* Lightbox de galería */}
-      {lightbox && (
-        <div className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4" onClick={() => setLightbox(null)}>
-          <img src={lightbox} alt="" className="max-w-full max-h-full rounded-2xl object-contain" />
-          <button onClick={() => setLightbox(null)} className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/15 text-white grid place-items-center hover:bg-white/25">✕</button>
-        </div>
-      )}
 
       <EntityAdminPanel kind="venue" id={venueId} ownerUserId={venue?.userId as string} />
       <div className="fixed z-[60] bottom-24 right-4 sm:bottom-8 sm:right-8">

@@ -138,7 +138,7 @@ const MapPage: React.FC = () => {
               city: v.city || v.location || '', country: v.country || '',
               lat: baseCoord[0], lng: baseCoord[1],
               genre: v.genre || v.style || 'Latin',
-              rating: v.rating || 4.5,
+              rating: v.rating || undefined,
               open: v.status === 'active' || v.is_open !== false,
               img: v.cover_image || v.image || `https://images.unsplash.com/photo-1566737236500-c8ac43014a67?w=400&h=200&fit=crop`,
               color: '#EC4899', emoji: '💃',
