@@ -7,7 +7,7 @@ import { fixText } from '../lib/text';
 // Etiqueta del tipo de artista en español (la BD guarda el valor en inglés)
 const TYPE_LABELS: Record<string, string> = {
   dj: 'DJ', dancer: 'Bailarín/a', singer: 'Cantante', musician: 'Músico/a',
-  band: 'Banda', instructor: 'Instructor/a', artist: 'Artista',
+  band: 'Banda', instructor: 'Instructor/a', artist: 'Artista', animador: 'Animador/a',
   choreographer: 'Coreógrafo/a', 'event-organizer': 'Organizador/a',
   promoter: 'Promotor/a', videographer: 'Videógrafo/a', photographer: 'Fotógrafo/a',
 };
@@ -24,7 +24,7 @@ import { useDanceStyles } from '../lib/danceStyles';
 interface DbArtist {
   id: string;
   name: string;
-  type: 'dj' | 'dancer' | 'singer' | 'musician' | 'band' | 'instructor' | 'artist';
+  type: 'dj' | 'dancer' | 'singer' | 'musician' | 'band' | 'instructor' | 'artist' | 'animador';
   city: string;
   country?: string;
   cover?: string;
@@ -42,7 +42,7 @@ interface DbArtist {
   userId?: string;
 }
 
-const TYPES = ['Todos', 'Artista', 'DJ', 'Bailarín/a', 'Músico/a', 'Banda', 'Instructor/a'];
+const TYPES = ['Todos', 'Artista', 'DJ', 'Bailarín/a', 'Músico/a', 'Banda', 'Instructor/a', 'Animador/a'];
 
 const normalizeRoleToType = (role: string): DbArtist['type'] | null => {
   const r = String(role || '').toLowerCase();
@@ -52,6 +52,7 @@ const normalizeRoleToType = (role: string): DbArtist['type'] | null => {
   if (r === 'musician')                            return 'musician';
   if (r === 'band')                                return 'band';
   if (r === 'instructor' || r === 'teacher')       return 'instructor';
+  if (r === 'animador')                            return 'animador';
   if (['artist','performer','choreographer','event-organizer','promoter','videographer','photographer'].includes(r)) return 'artist';
   // 'user' y 'vendor' NO son artistas → no aparecen en /artistas (antes se colaban).
   return null;
@@ -102,6 +103,7 @@ const ArtistsPage: React.FC = () => {
     tp === 'singer' ? 'Artista' :   // Cantantes se fusionan en "Artistas"
     tp === 'musician' ? 'Músico/a' :
     tp === 'instructor' ? 'Instructor/a' :
+    tp === 'animador' ? 'Animador/a' :
     tp === 'band' ? 'Banda' : 'Todos';
   const [selectedType, setSelectedType] = useState([tipoToLabel(initialType)]);
   // Al navegar entre categorías (DJs, Bailarines…) solo cambia el ?tipo= de la URL,
@@ -216,7 +218,8 @@ const ArtistsPage: React.FC = () => {
         (t === 'Bailarín/a' && a.type === 'dancer') ||
         (t === 'Músico/a' && (a.type as any) === 'musician') ||
         (t === 'Banda' && a.type === 'band') ||
-        (t === 'Instructor/a' && a.type === 'instructor')
+        (t === 'Instructor/a' && a.type === 'instructor') ||
+        (t === 'Animador/a' && a.type === 'animador')
       );
       const matchGenre = selectedGenre.includes('Todos') || selectedGenre.some(g => a.genre.includes(g));
       const matchCity = selectedCity.includes('Todas') || selectedCity.includes(a.city);
