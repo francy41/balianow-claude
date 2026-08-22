@@ -458,7 +458,7 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
 
               {filteredCategories.length === 0 && filteredCities.length === 0 && (
                 <div className="px-6 py-8 text-center">
-                  <p className="text-gray-500 text-sm">No encontramos categorías ni ciudades que coincidan</p>
+                  <p className="text-ink-tertiary text-sm">No encontramos categorías ni ciudades que coincidan</p>
                 </div>
               )}
             </div>
@@ -1803,7 +1803,7 @@ const HomePage: React.FC = () => {
               {searchQ && filtered.length === 0 && (
                 <div className="col-span-full text-center py-8">
                   <p className="text-3xl mb-2">🔍</p>
-                  <p className="text-gray-400 text-sm">No encontramos artistas para "{searchQ}"</p>
+                  <p className="text-ink-tertiary text-sm">No encontramos artistas para "{searchQ}"</p>
                 </div>
               )}
             </div>
@@ -1835,7 +1835,7 @@ const HomePage: React.FC = () => {
               {searchQ && filtered.length === 0 && (
                 <div className="col-span-full text-center py-8">
                   <p className="text-3xl mb-2">🔍</p>
-                  <p className="text-gray-400 text-sm">No encontramos eventos para "{searchQ}"</p>
+                  <p className="text-ink-tertiary text-sm">No encontramos eventos para "{searchQ}"</p>
                 </div>
               )}
             </div>
