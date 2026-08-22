@@ -9,6 +9,7 @@ const ROLE_OPTS = [
   { v: 'artist', emoji: '🎺', label: 'Artista / Banda' },
   { v: 'dancer', emoji: '💃', label: 'Bailarín/a' },
   { v: 'dj', emoji: '🎧', label: 'DJ / Músico' },
+  { v: 'animador', emoji: '🎤', label: 'Animador/a de eventos' },
   { v: 'venue', emoji: '🏛️', label: 'Dueño de local' },
   { v: 'promoter', emoji: '📣', label: 'Promotor' },
 ];

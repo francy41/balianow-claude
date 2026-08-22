@@ -49,7 +49,7 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode; module?: string }
   { id: 'offers',   label: 'Ofertas',       icon: <Briefcase className="w-4 h-4" />, module: 'offers' },
 ];
 
-const PERFORMER_ROLES = ['artist', 'musician', 'band', 'dj', 'dancer', 'venue', 'instructor', 'admin', 'superadmin', 'business', 'promoter'];
+const PERFORMER_ROLES = ['artist', 'musician', 'band', 'dj', 'dancer', 'animador', 'venue', 'instructor', 'admin', 'superadmin', 'business', 'promoter'];
 
 const DashboardPage: React.FC = () => {
   const navigate = useNavigate();

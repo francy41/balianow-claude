@@ -94,7 +94,7 @@ const LiveNowPage: React.FC = () => {
     filter === 'all' ? liveStreams : liveStreams.filter(s => s.category === filter),
   [filter, liveStreams]);
 
-  const canGoLive = isAuthenticated && user && ['dj', 'artist', 'dancer'].includes(user.role);
+  const canGoLive = isAuthenticated && user && ['dj', 'artist', 'dancer', 'animador'].includes(user.role);
   const [goLiveOpen, setGoLiveOpen] = useState(false);
 
   const handleGoLive = () => {

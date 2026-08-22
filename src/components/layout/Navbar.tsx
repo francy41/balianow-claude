@@ -17,6 +17,7 @@ const ROLE_LABELS: Record<string, string> = {
   artist:    'Artista',
   musician:  'Músico/a',
   band:      'Banda',
+  animador:  'Animador/a',
   dancer:    'Bailarín/a',
   instructor:'Profesor/a',
   venue:     'Local',

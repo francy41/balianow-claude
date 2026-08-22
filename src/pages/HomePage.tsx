@@ -1338,7 +1338,7 @@ const HomePage: React.FC = () => {
   const isModuleOn = (type: string) => enabled.some(m => m.type === type);
   const dynamicCats = activeCategories(cmsCategories);
   const { balanceFor, offers, classes, transactions, withdrawals, platformTotals } = usePerformerStore();
-  const PERFORMER_ROLES = ['artist', 'musician', 'band', 'dj', 'dancer', 'venue', 'instructor', 'business', 'promoter'];
+  const PERFORMER_ROLES = ['artist', 'musician', 'band', 'dj', 'dancer', 'animador', 'venue', 'instructor', 'business', 'promoter'];
   const isAdmin = !!user && (user.role === 'admin' || user.role === 'superadmin');
   const isPerformer = !!user && PERFORMER_ROLES.includes(user.role);
   const isBuyer = !!user && user.role === 'user';
