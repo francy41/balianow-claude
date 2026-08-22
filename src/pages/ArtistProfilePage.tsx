@@ -65,7 +65,7 @@ function mapDbArtist(a: any): Artist {
     cover:      a.cover || a.avatar || '',
     city:       a.city || '',
     country:    a.country || '',
-    rating:     Number(a.rating) || 4.5,
+    rating:     Number(a.rating) || 0,
     reviews:    Number(a.reviews) || 0,
     followers:  Number(a.followers) || 0,
     priceFrom:  Number(a.price_from) || 0,

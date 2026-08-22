@@ -169,7 +169,7 @@ const NearMePage: React.FC = () => {
             lat: c.lat, lng: c.lng,
             img: v.image_url || v.cover || v.avatar,
             genre: Array.isArray(v.style) ? v.style.join(', ') : v.style,
-            rating: Number(v.rating) || 4.5,
+            rating: Number(v.rating) || undefined,
             isOpenNow: venueIsOpenNow(v),
             openHoursText: v.open_hours || (v.open_time && v.close_time ? `${String(v.open_time).slice(0,5)}–${String(v.close_time).slice(0,5)}` : undefined),
           });

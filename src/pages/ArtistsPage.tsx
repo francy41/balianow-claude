@@ -20,7 +20,6 @@ import { FilterFacet, ActiveFilterBar, FilterPanel } from '../components/SmartFi
 import LiveFab from '../components/LiveFab';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { useDanceStyles } from '../lib/danceStyles';
-import { ARTISTS } from '../data/mockData';
 
 interface DbArtist {
   id: string;
@@ -42,17 +41,6 @@ interface DbArtist {
   source: 'artist' | 'profile';
   userId?: string;
 }
-
-// Ejemplos de fallback (sin dueño = "Ejemplo") cuando la BD no devuelve artistas.
-const FALLBACK_ARTISTS: DbArtist[] = ARTISTS.slice(0, 10).map((a: any) => ({
-  id: a.id, name: a.name, type: (a.type || 'artist'),
-  city: a.city || '', country: a.country, cover: a.cover, avatar: a.avatar,
-  genre: Array.isArray(a.genre) ? a.genre : [], rating: Number(a.rating) || 4.5,
-  reviews: Number(a.reviews) || 0, followers: Number(a.followers) || 0,
-  priceFrom: Number(a.priceFrom) || 0, isVerified: !!a.isVerified,
-  isPremium: !!a.isPremium, isLive: !!a.isLive, bio: a.bio,
-  userId: '', source: 'artist',
-}));
 
 const TYPES = ['Todos', 'Artista', 'DJ', 'Bailarín/a', 'Músico/a', 'Banda', 'Instructor/a'];
 
@@ -152,7 +140,7 @@ const ArtistsPage: React.FC = () => {
             cover:      a.cover || a.avatar,
             avatar:     a.avatar,
             genre:      Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : []),
-            rating:     Number(a.rating) || 4.5,
+            rating:     Number(a.rating) || 0,
             reviews:    Number(a.reviews) || 0,
             followers:  Number(a.followers) || 0,
             priceFrom:  Number(a.price_from || a.priceFrom) || 0,
