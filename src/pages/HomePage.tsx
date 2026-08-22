@@ -1499,7 +1499,7 @@ const HomePage: React.FC = () => {
       <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 grid grid-cols-2 gap-2.5 sm:gap-3">
         {/* TV: se ve el contenido en directo, no hace falta pulsar para verlo */}
         <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-fuchsia-950 flex flex-col">
-          <div className="relative w-full h-24 sm:h-32 bg-black">
+          <div className="relative w-full h-24 sm:h-32 lg:h-52 bg-black">
             {heroYtId ? (
               <iframe
                 src={`https://www.youtube.com/embed/${heroYtId}?autoplay=1&mute=1&loop=1&playlist=${heroYtId}&controls=0&modestbranding=1&rel=0`}
@@ -1516,35 +1516,35 @@ const HomePage: React.FC = () => {
             </span>
           </div>
           <button onClick={() => setTvWidgetOpen(true)}
-            className="flex items-center justify-center gap-1.5 py-1.5 sm:py-2 text-white font-display font-black text-xs sm:text-base hover:bg-white/10 transition-colors">
-            <Tv className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> BailaNow TV
+            className="flex items-center justify-center gap-1.5 py-1.5 sm:py-2 lg:py-3.5 text-white font-display font-black text-xs sm:text-base lg:text-lg hover:bg-white/10 transition-colors">
+            <Tv className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5" /> BailaNow TV
           </button>
         </div>
 
         {/* Radio: emisoras reales visibles, cada una se pulsa para escucharla directamente */}
-        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-bl from-orange-600 via-pink-600 to-fuchsia-800 flex flex-col justify-center p-2 sm:p-3">
-          <p className="text-white font-display font-black text-xs sm:text-base flex items-center gap-1.5 mb-1.5">
-            <Radio className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Radio Online
+        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-bl from-orange-600 via-pink-600 to-fuchsia-800 flex flex-col justify-center p-2 sm:p-3 lg:p-5">
+          <p className="text-white font-display font-black text-xs sm:text-base lg:text-lg flex items-center gap-1.5 mb-1.5 lg:mb-3">
+            <Radio className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5" /> Radio Online
           </p>
-          <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 lg:gap-3">
             {radioStations.slice(0, 4).map((s, i) => {
               const isPlaying = playing === i;
               return (
                 <button key={s.id} onClick={() => setPlaying(p => p === i ? null : i)}
-                  className={`flex items-center gap-1.5 rounded-lg sm:rounded-xl px-1.5 sm:px-2 py-1.5 text-left transition-colors ${isPlaying ? 'bg-white/25' : 'bg-white/10 hover:bg-white/15'}`}>
-                  <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-full overflow-hidden flex-shrink-0 bg-white/20">
+                  className={`flex items-center gap-1.5 rounded-lg sm:rounded-xl px-1.5 sm:px-2 lg:px-3 py-1.5 lg:py-2.5 text-left transition-colors ${isPlaying ? 'bg-white/25' : 'bg-white/10 hover:bg-white/15'}`}>
+                  <span className="w-6 h-6 sm:w-7 sm:h-7 lg:w-9 lg:h-9 rounded-full overflow-hidden flex-shrink-0 bg-white/20">
                     <img src={s.img} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }} />
                   </span>
-                  <span className="min-w-0 flex-1 text-white text-[9px] sm:text-[11px] font-bold truncate">{s.name}</span>
+                  <span className="min-w-0 flex-1 text-white text-[9px] sm:text-[11px] lg:text-sm font-bold truncate">{s.name}</span>
                   {isPlaying
-                    ? (radioStatus === 'loading' ? <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white flex-shrink-0 animate-spin" /> : <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white flex-shrink-0" />)
-                    : <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white flex-shrink-0" />}
+                    ? (radioStatus === 'loading' ? <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 text-white flex-shrink-0 animate-spin" /> : <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 text-white flex-shrink-0" />)
+                    : <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 text-white flex-shrink-0" />}
                 </button>
               );
             })}
           </div>
           {radioStations.length > 4 && (
-            <button onClick={() => setRadioWidgetOpen(true)} className="text-white/70 hover:text-white text-[10px] sm:text-xs font-bold text-center mt-1.5">
+            <button onClick={() => setRadioWidgetOpen(true)} className="text-white/70 hover:text-white text-[10px] sm:text-xs lg:text-sm font-bold text-center mt-1.5 lg:mt-3">
               Ver todas las emisoras →
             </button>
           )}
