@@ -185,15 +185,10 @@ body {
 
   /* ── GLASS / CARD ── */
   .card-white {
-    background: #ffffff;
+    background: rgb(var(--surface-elevated));
     border-radius: 18px;
-    border: 1px solid rgba(23,17,28,0.05);
-    box-shadow: 0 2px 8px rgba(23,17,28,0.06), 0 1px 3px rgba(23,17,28,0.05);
-  }
-  html.dark .card-white {
-    background: #1a1a2e;
-    border-color: rgba(255,255,255,0.06);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+    border: 1px solid rgb(var(--hairline) / 0.06);
+    box-shadow: 0 2px 8px rgb(var(--shadow-tint) / 0.06), 0 1px 3px rgb(var(--shadow-tint) / 0.05);
   }
 
   /* ── PREMIUM BUTTONS ── */

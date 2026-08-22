@@ -16,12 +16,12 @@ export const Button: React.FC<ButtonProps> = ({
   children, variant = 'orange', size = 'md', loading = false,
   icon, className = '', disabled, ...props
 }) => {
-  const base = 'inline-flex items-center justify-center gap-2 font-semibold rounded-lg transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed select-none';
+  const base = 'inline-flex items-center justify-center gap-2 font-semibold rounded-lg transition-all duration-200 ease-out active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-surface';
   const variants = {
-    orange:  'bg-brand-orange text-white hover:bg-brand-orange-dark shadow-orange',
-    outline: 'border-2 border-brand-orange text-brand-orange hover:bg-brand-orange hover:text-white',
+    orange:  'bg-accent text-white hover:bg-brand-pink-dark shadow-elevation-2 hover:shadow-elevation-3',
+    outline: 'border-2 border-accent text-accent hover:bg-accent hover:text-white',
     dark:    'bg-gray-900 text-white hover:bg-gray-800',
-    ghost:   'text-gray-500 hover:bg-gray-100 hover:text-gray-800',
+    ghost:   'text-ink-secondary hover:bg-surface-elevated-2 hover:text-ink-primary',
     danger:  'bg-red-600 text-white hover:bg-red-700',
   };
   const sizes = { xs: 'px-2.5 py-1 text-xs', sm: 'px-3 py-1.5 text-sm', md: 'px-5 py-2.5 text-sm', lg: 'px-7 py-3.5 text-base' };
@@ -129,10 +129,10 @@ export const ToastContainer: React.FC = () => {
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> { label?: string; error?: string; icon?: React.ReactNode; }
 export const Input: React.FC<InputProps> = ({ label, error, icon, className = '', ...props }) => (
   <div className="w-full space-y-1">
-    {label && <label className="text-gray-600 text-sm font-medium">{label}</label>}
+    {label && <label className="text-ink-secondary text-sm font-medium">{label}</label>}
     <div className="relative">
-      {icon && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">{icon}</span>}
-      <input className={`w-full bg-gray-50 border ${error ? 'border-red-400' : 'border-gray-200'} rounded-xl ${icon ? 'pl-10' : 'pl-4'} pr-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 transition-all ${className}`} {...props} />
+      {icon && <span className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-tertiary">{icon}</span>}
+      <input className={`w-full bg-surface-elevated-2 border ${error ? 'border-red-400' : 'border-hairline/10'} rounded-xl ${icon ? 'pl-10' : 'pl-4'} pr-4 py-3 text-ink-primary placeholder-ink-tertiary focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all duration-200 ${className}`} {...props} />
     </div>
     {error && <p className="text-red-500 text-xs">{error}</p>}
   </div>
