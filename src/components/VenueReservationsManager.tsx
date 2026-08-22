@@ -32,7 +32,7 @@ const VenueReservationsManager: React.FC<Props> = ({ userId, addToast }) => {
   // que se registraron como usuario y no tienen aún su local en la tabla venues).
   const createVenue = async () => {
     setCreating(true);
-    const { data: p } = await supabase.from('profiles')
+    const { data: p } = await supabase.from('profiles_self')
       .select('full_name, city, location, country, avatar_url, cover_photo, lat, lng, whatsapp, email')
       .eq('id', userId).maybeSingle();
     const body: any = {

@@ -112,8 +112,11 @@ const EntityAdminPanel: React.FC<Props> = ({ kind, id, onSaved, ownerUserId }) =
     }
 
     // 2) Artista sin ficha en `artists` → editar su PERFIL (tabla profiles)
+    // Vista según quién pregunta: dueño solo su fila (profiles_self), admin
+    // cualquiera (profiles_admin) — incluyen columnas sensibles que la tabla
+    // base ya no expone a `authenticated` en general.
     if (kind === 'artist') {
-      const prof = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
+      const prof = await supabase.from(isAdmin ? 'profiles_admin' : 'profiles_self').select('*').eq('id', id).maybeSingle();
       if (prof.data) {
         const pf = isAdmin ? PROFILE_ARTIST_EDIT.fields : PROFILE_ARTIST_EDIT.fields.filter(f => !['role', 'verified'].includes(f.key));
         setResolved({ table: PROFILE_ARTIST_EDIT.table, fields: pf });

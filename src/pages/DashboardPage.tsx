@@ -340,7 +340,7 @@ const OverviewTab: React.FC<{ performerId: string; onNavigate: (t: TabId) => voi
     (async () => {
       const [escRes, profRes, artRes, coursesRes] = await Promise.all([
         supabase.from('escrows').select('amount,commission,status,created_at').eq('payee_id', performerId),
-        supabase.from('profiles').select('*').eq('id', performerId).maybeSingle(),
+        supabase.from('profiles_self').select('*').eq('id', performerId).maybeSingle(),
         supabase.from('artists').select('id').eq('user_id', performerId).maybeSingle(),
         supabase.from('class_offerings').select('id', { count: 'exact', head: true }).eq('vendor_id', performerId),
       ]);
