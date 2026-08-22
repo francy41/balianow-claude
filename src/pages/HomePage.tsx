@@ -1448,7 +1448,7 @@ const HomePage: React.FC = () => {
       <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 grid grid-cols-2 gap-2.5 sm:gap-3">
         {/* TV: se ve el contenido en directo, no hace falta pulsar para verlo */}
         <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-fuchsia-950 flex flex-col">
-          <div className="relative w-full aspect-video bg-black">
+          <div className="relative w-full h-24 sm:h-32 bg-black">
             {heroYtId ? (
               <iframe
                 src={`https://www.youtube.com/embed/${heroYtId}?autoplay=1&mute=1&loop=1&playlist=${heroYtId}&controls=0&modestbranding=1&rel=0`}
@@ -1465,17 +1465,17 @@ const HomePage: React.FC = () => {
             </span>
           </div>
           <button onClick={() => setTvWidgetOpen(true)}
-            className="flex items-center justify-center gap-1.5 py-2 sm:py-2.5 text-white font-display font-black text-xs sm:text-base hover:bg-white/10 transition-colors">
+            className="flex items-center justify-center gap-1.5 py-1.5 sm:py-2 text-white font-display font-black text-xs sm:text-base hover:bg-white/10 transition-colors">
             <Tv className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> BailaNow TV
           </button>
         </div>
 
         {/* Radio: emisoras reales visibles, cada una se pulsa para escucharla directamente */}
-        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-bl from-orange-600 via-pink-600 to-fuchsia-800 flex flex-col p-2.5 sm:p-3.5">
-          <p className="text-white font-display font-black text-xs sm:text-base flex items-center gap-1.5 mb-2">
+        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-bl from-orange-600 via-pink-600 to-fuchsia-800 flex flex-col justify-center p-2 sm:p-3">
+          <p className="text-white font-display font-black text-xs sm:text-base flex items-center gap-1.5 mb-1.5">
             <Radio className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Radio Online
           </p>
-          <div className="flex-1 grid grid-cols-2 gap-1.5 sm:gap-2 content-start">
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
             {radioStations.slice(0, 4).map((s, i) => {
               const isPlaying = playing === i;
               return (
