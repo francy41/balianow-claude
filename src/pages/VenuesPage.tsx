@@ -209,8 +209,8 @@ const VenuesList: React.FC = () => {
 };
 
 const VenueCard: React.FC<{ venue: Venue; onClick: () => void }> = ({ venue, onClick }) => (
-  <div onClick={onClick} className="group bg-white dark:bg-gray-900 rounded-3xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-pink-500/10 hover:-translate-y-1 transition-all duration-300 border border-gray-100 dark:border-gray-800">
-    <div className="relative h-44 overflow-hidden bg-gray-100">
+  <div onClick={onClick} className="group bg-surface-elevated rounded-3xl overflow-hidden cursor-pointer shadow-elevation-1 hover:shadow-elevation-3 hover:-translate-y-1 transition-all duration-300 border border-hairline/10">
+    <div className="relative h-44 overflow-hidden bg-surface-elevated-2">
       <img src={venue.cover} alt={venue.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
       <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
 
@@ -234,20 +234,20 @@ const VenueCard: React.FC<{ venue: Venue; onClick: () => void }> = ({ venue, onC
       <DemoBadge ownerId={venue.userId as string} className="absolute bottom-3 right-3 z-10" />
     </div>
     <div className="p-4">
-      <h3 className="text-gray-900 dark:text-white font-black text-base line-clamp-1">{venue.name}</h3>
-      <div className="flex items-center gap-1.5 text-gray-400 text-xs mt-1">
+      <h3 className="text-ink-primary font-black text-base line-clamp-1">{venue.name}</h3>
+      <div className="flex items-center gap-1.5 text-ink-tertiary text-xs mt-1">
         <MapPin className="w-3.5 h-3.5 text-pink-500 flex-shrink-0" /> {venue.city}
-        <span className="text-gray-300">·</span>
-        <span className="font-bold text-gray-500">{'€'.repeat(venue.priceRange)}</span>
+        <span className="text-ink-tertiary">·</span>
+        <span className="font-bold text-ink-secondary">{'€'.repeat(venue.priceRange)}</span>
       </div>
       <div className="flex items-center justify-between gap-2 mt-2.5">
         {venue.rating > 0 ? (
           <span className="inline-flex items-center gap-1 text-amber-500 font-bold text-sm">
             <Star className="w-4 h-4 fill-amber-400" />{venue.rating}
-            <span className="text-gray-400 font-normal text-xs">({venue.reviews})</span>
+            <span className="text-ink-tertiary font-normal text-xs">({venue.reviews})</span>
           </span>
         ) : <span />}
-        <span className="text-gray-400 text-[11px] flex items-center gap-1 truncate"><Clock className="w-3 h-3 flex-shrink-0" /> {venue.openHours}</span>
+        <span className="text-ink-tertiary text-[11px] flex items-center gap-1 truncate"><Clock className="w-3 h-3 flex-shrink-0" /> {venue.openHours}</span>
       </div>
       {!venue.userId && (
         <div className="mt-3" onClick={e => e.stopPropagation()}>

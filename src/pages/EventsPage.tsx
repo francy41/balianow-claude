@@ -226,8 +226,8 @@ const EventCard: React.FC<{
   const linkedArtists = ARTISTS.filter(a => event.artists.includes(a.id));
 
   return (
-    <div onClick={onClick} className="group bg-white rounded-3xl overflow-hidden cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-pink-500/10 hover:-translate-y-1 transition-all duration-300 border border-gray-100">
-      <div className="relative h-44 overflow-hidden bg-gray-100">
+    <div onClick={onClick} className="group bg-surface-elevated rounded-3xl overflow-hidden cursor-pointer shadow-elevation-1 hover:shadow-elevation-3 hover:-translate-y-1 transition-all duration-300 border border-hairline/10">
+      <div className="relative h-44 overflow-hidden bg-surface-elevated-2">
         <img src={event.cover} alt={event.title} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         <DemoBadge ownerId={(event as any).userId} className="absolute top-3 left-3 z-10" />
@@ -247,8 +247,8 @@ const EventCard: React.FC<{
         </div>
       </div>
       <div className="p-4">
-        <h3 className="text-gray-900 font-black line-clamp-2 text-sm">{event.title}</h3>
-        <div className="flex items-center gap-1 text-gray-400 text-xs mt-1">
+        <h3 className="text-ink-primary font-black line-clamp-2 text-sm">{event.title}</h3>
+        <div className="flex items-center gap-1 text-ink-tertiary text-xs mt-1">
           <MapPin className="w-3 h-3" /> {event.isOnline ? 'Online' : event.city}
           <span className="mx-1">·</span>
           <Clock className="w-3 h-3" /> {event.time}
@@ -262,7 +262,7 @@ const EventCard: React.FC<{
                   className="w-6 h-6 rounded-full border-2 border-white object-cover" />
               ))}
             </div>
-            <span className="text-[10px] text-gray-400 ml-1">
+            <span className="text-[10px] text-ink-tertiary ml-1">
               {linkedArtists.length <= 2
                 ? linkedArtists.map(a => a.name).join(', ')
                 : `${linkedArtists[0].name} +${linkedArtists.length - 1}`}
@@ -278,8 +278,8 @@ const EventCard: React.FC<{
           <span className="text-brand-orange font-bold text-lg">€{event.price}</span>
           <button
             onClick={onBuy}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
-              pct >= 100 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-brand-orange text-white hover:bg-brand-orange-dark hover:scale-105'
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50 ${
+              pct >= 100 ? 'bg-surface-elevated-2 text-ink-tertiary cursor-not-allowed' : 'bg-brand-orange text-white hover:bg-brand-orange-dark hover:scale-105 shadow-elevation-1'
             }`}
             disabled={pct >= 100}
           >

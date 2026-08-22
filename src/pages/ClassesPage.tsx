@@ -277,7 +277,7 @@ const ClassCard: React.FC<{ cls: ClassOffering; onClick: () => void; onPractice?
   };
   return (
     <article onClick={onClick}
-      className="bg-white dark:bg-gray-900 rounded-3xl overflow-hidden shadow-md hover:shadow-2xl border border-gray-100 dark:border-gray-800 cursor-pointer active:scale-[0.99] transition-all">
+      className="bg-surface-elevated rounded-3xl overflow-hidden shadow-elevation-2 hover:shadow-elevation-3 border border-hairline/10 cursor-pointer active:scale-[0.99] transition-all duration-200">
       {/* Cover */}
       <div className="relative aspect-[16/10] bg-brand-orange">
         {cls.cover_image && <img src={cls.cover_image} alt={cls.title} className="w-full h-full object-cover" loading="lazy" />}
@@ -296,7 +296,7 @@ const ClassCard: React.FC<{ cls: ClassOffering; onClick: () => void; onPractice?
       {/* Body */}
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="font-black text-sm text-gray-900 dark:text-white leading-tight line-clamp-2">{cls.title}</h3>
+          <h3 className="font-black text-sm text-ink-primary leading-tight line-clamp-2">{cls.title}</h3>
         </div>
 
         {cls.vendor_name && (
@@ -305,11 +305,11 @@ const ClassCard: React.FC<{ cls: ClassOffering; onClick: () => void; onPractice?
               ? <img src={cls.vendor_avatar} alt="" className="w-6 h-6 rounded-full object-cover" />
               : <div className="w-6 h-6 rounded-full bg-brand-orange flex items-center justify-center text-white text-[10px] font-black">{cls.vendor_name[0]}</div>
             }
-            <span className="text-xs font-bold text-gray-700 dark:text-gray-300 truncate">{cls.vendor_name}</span>
+            <span className="text-xs font-bold text-ink-secondary truncate">{cls.vendor_name}</span>
           </div>
         )}
 
-        <div className="flex items-center gap-3 text-[11px] text-gray-500 mb-3">
+        <div className="flex items-center gap-3 text-[11px] text-ink-tertiary mb-3">
           <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{cls.duration_minutes}min</span>
           <span className="flex items-center gap-1"><Users className="w-3 h-3" />Max {cls.max_students}</span>
           <span className="flex items-center gap-1">🎯 {cls.level}</span>
@@ -319,13 +319,13 @@ const ClassCard: React.FC<{ cls: ClassOffering; onClick: () => void; onPractice?
           <div className="bg-brand-orange dark:from-pink-900/20 dark:to-purple-900/20 rounded-xl px-3 py-2 flex items-center justify-between">
             <div>
               <p className="text-[10px] uppercase font-black text-pink-600 dark:text-pink-300">Próxima clase</p>
-              <p className="text-xs font-bold text-gray-900 dark:text-white">{fmtDate(cls.next_slot.starts_at)}</p>
+              <p className="text-xs font-bold text-ink-primary">{fmtDate(cls.next_slot.starts_at)}</p>
             </div>
             <ChevronRight className="w-4 h-4 text-pink-500" />
           </div>
         ) : (
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2 text-center">
-            <p className="text-xs text-gray-500">Disponibilidad bajo demanda</p>
+          <div className="bg-surface-elevated-2 rounded-xl px-3 py-2 text-center">
+            <p className="text-xs text-ink-tertiary">Disponibilidad bajo demanda</p>
           </div>
         )}
 
