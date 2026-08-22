@@ -280,6 +280,8 @@ const RutasPage: React.FC = () => {
   const [creating, setCreating] = useState(false);
   const [cityFilter, setCityFilter] = useState('');
   const [closing, setClosing] = useState(false);
+  // Participantes por plan (reales) para pintar la pila de avatares en cada tarjeta.
+  const [crowd, setCrowd] = useState<Record<string, { count: number; avatars: (string | null)[] }>>({});
 
   const load = useCallback(async () => {
     const safety = setTimeout(() => setLoading(false), 8000);
@@ -294,6 +296,24 @@ const RutasPage: React.FC = () => {
     setRutas(list);
     setLoading(false);
     setSelected(prev => prev ? (list.find(r => r.id === prev.id) || list[0] || null) : (list[0] || null));
+
+    // Una sola consulta para todos los planes visibles: cuántos van y sus caras.
+    if (list.length) {
+      const { data: mem } = await supabase.from('ruta_members')
+        .select('ruta_id, user_id').in('ruta_id', list.map(r => r.id));
+      const rows = mem || [];
+      const { data: profs } = rows.length
+        ? await supabase.from('profiles').select('id, avatar_url').in('id', [...new Set(rows.map((m: any) => m.user_id))])
+        : { data: [] as any[] };
+      const avatarOf = new Map((profs || []).map((p: any) => [p.id, p.avatar_url]));
+      const grouped: Record<string, { count: number; avatars: (string | null)[] }> = {};
+      for (const m of rows as any[]) {
+        const g = grouped[m.ruta_id] || (grouped[m.ruta_id] = { count: 0, avatars: [] });
+        g.count++;
+        if (g.avatars.length < 3) g.avatars.push(avatarOf.get(m.user_id) || null);
+      }
+      setCrowd(grouped);
+    } else setCrowd({});
   }, []);
 
   useEffect(() => { load().catch(() => setLoading(false)); }, [load]);
@@ -327,6 +347,15 @@ const RutasPage: React.FC = () => {
 
   const cities = useMemo(() => [...new Set(rutas.map(r => r.city))], [rutas]);
   const filtered = useMemo(() => cityFilter ? rutas.filter(r => r.city === cityFilter) : rutas, [rutas, cityFilter]);
+
+  // Métricas de cabecera — todas calculadas de los planes reales ya cargados.
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const stats = useMemo(() => ({
+    total: rutas.length,
+    hoy: rutas.filter(r => r.date === todayIso).length,
+    ciudades: cities.length,
+    gente: Object.values(crowd).reduce((s, g) => s + g.count, 0),
+  }), [rutas, cities, crowd, todayIso]);
   // Mantén siempre una ruta seleccionada dentro del filtro (para que el mapa nunca quede vacío en móvil).
   useEffect(() => {
     if (filtered.length && (!selected || !filtered.some(r => r.id === selected.id))) setSelected(filtered[0]);
@@ -360,16 +389,65 @@ const RutasPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-20 overflow-x-hidden">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-pink-600 via-fuchsia-600 to-purple-700 px-4 py-6 sm:py-8">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3 flex-wrap">
-          <div>
-            <h1 className="font-display font-black text-2xl sm:text-3xl text-white flex items-center gap-2">❤️ Planes Para Bailar</h1>
-            <p className="text-white/80 text-sm mt-1">Crea el plan de esta noche y que el grupo se una en el mapa.</p>
+      {/* Header — noche latina: mapa tenue de fondo, métricas reales y aviso de planes de hoy */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#2E1440] via-[#1B0E29] to-[#0F0818] px-4 py-6 sm:py-8">
+        {/* Retícula/avenidas decorativas, evocan el mapa sin competir con el mapa real de abajo */}
+        <svg aria-hidden="true" className="absolute inset-0 w-full h-full opacity-[0.18] pointer-events-none" preserveAspectRatio="none" viewBox="0 0 1440 300">
+          <path d="M-20 90 L 1460 60" stroke="#F9A8D4" strokeWidth="3" />
+          <path d="M-20 210 L 1460 180" stroke="#F9A8D4" strokeWidth="3" />
+          <path d="M340 -20 L 420 320" stroke="#F9A8D4" strokeWidth="2.5" />
+          <path d="M980 -20 L 900 320" stroke="#F9A8D4" strokeWidth="2.5" />
+        </svg>
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-pink-500/20 blur-3xl pointer-events-none" />
+
+        <div className="relative max-w-6xl mx-auto flex items-start justify-between gap-4 flex-wrap">
+          <div className="min-w-0">
+            <span className="inline-flex items-center gap-1.5 bg-white/10 border border-white/15 rounded-full pl-2.5 pr-3.5 py-1.5">
+              <MapPin className="w-3.5 h-3.5 text-pink-300" />
+              <span className="text-white text-xs font-extrabold tracking-wide">{cityFilter || (cities.length === 1 ? cities[0] : 'Todas las ciudades')}</span>
+            </span>
+            <h1 className="font-display font-black text-2xl sm:text-3xl text-white mt-3">Planes Para Bailar</h1>
+            <p className="text-purple-200/80 text-sm mt-1">Crea el plan de esta noche y que el grupo se una en el mapa.</p>
+
+            <div className="flex flex-wrap gap-2 mt-4">
+              <div className="flex items-center gap-2.5 bg-white/[0.06] border border-white/10 rounded-2xl px-3.5 py-2">
+                <span className="w-8 h-8 rounded-xl bg-pink-500/20 grid place-items-center flex-shrink-0"><RouteIcon className="w-4 h-4 text-pink-300" /></span>
+                <span className="leading-tight"><span className="block text-white font-extrabold text-sm">{stats.total}</span><span className="block text-purple-200/70 text-[10px]">planes abiertos</span></span>
+              </div>
+              <div className="flex items-center gap-2.5 bg-white/[0.06] border border-white/10 rounded-2xl px-3.5 py-2">
+                <span className="w-8 h-8 rounded-xl bg-emerald-500/20 grid place-items-center flex-shrink-0"><Users className="w-4 h-4 text-emerald-300" /></span>
+                <span className="leading-tight"><span className="block text-white font-extrabold text-sm">{stats.gente}</span><span className="block text-purple-200/70 text-[10px]">personas apuntadas</span></span>
+              </div>
+              <div className="flex items-center gap-2.5 bg-white/[0.06] border border-white/10 rounded-2xl px-3.5 py-2">
+                <span className="w-8 h-8 rounded-xl bg-violet-500/20 grid place-items-center flex-shrink-0"><Building2 className="w-4 h-4 text-violet-300" /></span>
+                <span className="leading-tight"><span className="block text-white font-extrabold text-sm">{stats.ciudades}</span><span className="block text-purple-200/70 text-[10px]">{stats.ciudades === 1 ? 'ciudad' : 'ciudades'}</span></span>
+              </div>
+            </div>
           </div>
-          <button onClick={() => (isAuthenticated ? setCreating(true) : navigate('/auth'))} className="bg-white text-gray-900 font-bold rounded-xl px-5 py-2.5 text-sm hover:bg-gray-100 transition-all flex items-center gap-1.5">
-            <Plus className="w-4 h-4" /> Crear ruta
-          </button>
+
+          {/* Aviso: planes de hoy (real). Sin planes hoy, la tarjeta invita a crear el primero. */}
+          <div className="w-full sm:w-[290px] rounded-2xl p-4 bg-gradient-to-br from-pink-500 to-pink-700 shadow-xl shadow-pink-900/40 flex-shrink-0">
+            <div className="flex items-start gap-3">
+              <span className="relative w-9 h-9 rounded-xl bg-white/20 grid place-items-center flex-shrink-0">
+                <Calendar className="w-4 h-4 text-white" />
+                {stats.hoy > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-white text-pink-600 text-[10px] font-black grid place-items-center">{stats.hoy}</span>
+                )}
+              </span>
+              <div className="min-w-0">
+                <p className="text-white font-extrabold text-sm">{stats.hoy > 0 ? 'Planes para hoy' : 'Sin planes para hoy'}</p>
+                <p className="text-white/85 text-xs mt-0.5">
+                  {stats.hoy > 0
+                    ? `${stats.hoy} ${stats.hoy === 1 ? 'plan sale' : 'planes salen'} hoy. ¡Únete al grupo!`
+                    : 'Monta el de esta noche y que se apunte la gente.'}
+                </p>
+              </div>
+            </div>
+            <button onClick={() => (isAuthenticated ? setCreating(true) : navigate('/auth'))}
+              className="w-full mt-3 bg-white/15 hover:bg-white/25 border border-white/30 rounded-xl py-2.5 text-white text-xs font-extrabold transition-colors flex items-center justify-center gap-1.5">
+              <Plus className="w-3.5 h-3.5" /> Crear tu plan
+            </button>
+          </div>
         </div>
       </div>
 
@@ -377,9 +455,17 @@ const RutasPage: React.FC = () => {
         {/* Filtro de ciudad */}
         {cities.length > 0 && (
           <div className="flex gap-2 overflow-x-auto pb-2 mb-3" style={{ scrollbarWidth: 'none' }}>
-            <button onClick={() => setCityFilter('')} className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold ${!cityFilter ? 'bg-pink-500 text-white' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800'}`}>Todas</button>
+            <button onClick={() => setCityFilter('')}
+              className={`flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-[13px] font-extrabold transition-all ${!cityFilter ? 'bg-gradient-to-br from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30' : 'bg-surface-elevated text-ink-secondary border border-hairline/10 hover:border-pink-300'}`}>
+              <RouteIcon className="w-3.5 h-3.5" /> Todos
+              <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${!cityFilter ? 'bg-white/25' : 'bg-surface-elevated-2'}`}>{rutas.length}</span>
+            </button>
             {cities.map(c => (
-              <button key={c} onClick={() => setCityFilter(c)} className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold ${cityFilter === c ? 'bg-pink-500 text-white' : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-800'}`}>📍 {c}</button>
+              <button key={c} onClick={() => setCityFilter(c)}
+                className={`flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-[13px] font-extrabold transition-all ${cityFilter === c ? 'bg-gradient-to-br from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30' : 'bg-surface-elevated text-ink-secondary border border-hairline/10 hover:border-pink-300'}`}>
+                <MapPin className="w-3.5 h-3.5" /> {c}
+                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${cityFilter === c ? 'bg-white/25' : 'bg-surface-elevated-2'}`}>{rutas.filter(r => r.city === c).length}</span>
+              </button>
             ))}
           </div>
         )}
@@ -397,18 +483,52 @@ const RutasPage: React.FC = () => {
           <div className="grid lg:grid-cols-[360px_1fr] gap-4 min-w-0">
             {/* Lista de rutas */}
             <div className="space-y-3 order-2 lg:order-1 min-w-0">
-              {filtered.map(r => (
-                <button key={r.id} onClick={() => setSelected(r)} className={`w-full text-left card-white rounded-2xl p-4 transition-all ${selected?.id === r.id ? 'ring-2 ring-pink-500' : 'hover:shadow-lg'}`}>
-                  <p className="font-bold text-gray-900 dark:text-white text-sm">{r.title}</p>
-                  <div className="flex items-center gap-3 text-[11px] text-gray-400 mt-1 flex-wrap">
-                    <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {r.city}</span>
-                    {r.date && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {r.date}</span>}
-                    {r.time && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {r.time}</span>}
-                    <span className="flex items-center gap-1"><RouteIcon className="w-3 h-3" /> {r.stops.length} paradas</span>
+              {filtered.map(r => {
+                const isToday = r.date === todayIso;
+                const g = crowd[r.id];
+                return (
+                <button key={r.id} onClick={() => setSelected(r)}
+                  className={`w-full text-left card-white rounded-2xl p-4 transition-all ${selected?.id === r.id ? 'ring-2 ring-pink-500 shadow-elevation-2' : 'hover:shadow-elevation-2 hover:-translate-y-0.5'}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-bold text-ink-primary text-sm min-w-0">{r.title}</p>
+                    {isToday && (
+                      <span className="flex-shrink-0 inline-flex items-center gap-1 bg-pink-500 text-white text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full">
+                        <span className="relative flex h-1.5 w-1.5">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
+                        </span>
+                        Hoy
+                      </span>
+                    )}
                   </div>
-                  {r.creator_name && <p className="text-[10px] text-gray-400 mt-1">por {r.creator_name}</p>}
+                  <div className="flex items-center gap-3 text-[11px] text-ink-tertiary mt-1.5 flex-wrap">
+                    <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {r.city}</span>
+                    {r.date && !isToday && <span className="flex items-center gap-1"><Calendar className="w-3 h-3" /> {r.date}</span>}
+                    {r.time && <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {r.time}</span>}
+                    <span className="flex items-center gap-1"><RouteIcon className="w-3 h-3" /> {r.stops.length} {r.stops.length === 1 ? 'parada' : 'paradas'}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2 mt-3">
+                    {g && g.count > 0 ? (
+                      <span className="flex items-center">
+                        <span className="flex">
+                          {g.avatars.map((a, i) => (
+                            <span key={i} className="-mr-2 last:mr-0 ring-2 ring-white dark:ring-gray-900 rounded-full">
+                              <Avatar src={a || ''} name="?" size="xs" />
+                            </span>
+                          ))}
+                        </span>
+                        <span className="text-[11px] font-bold text-ink-secondary ml-3">
+                          {g.count} {g.count === 1 ? 'va' : 'van'}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-ink-tertiary">Sé el primero en unirte</span>
+                    )}
+                    {r.creator_name && <span className="text-[10px] text-ink-tertiary truncate max-w-[45%]">por {r.creator_name}</span>}
+                  </div>
                 </button>
-              ))}
+                );
+              })}
             </div>
 
             {/* Mapa + detalle */}
