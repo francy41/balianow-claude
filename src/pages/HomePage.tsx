@@ -588,7 +588,7 @@ const CHIP_TINTS = [
 // visual que el punto de alerta de las tarjetas (animate-ping + punto sólido).
 const planPinIcon = L.divIcon({
   className: '',
-  html: `<div class="relative w-3.5 h-3.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-80"></span><span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-gradient-to-br from-fuchsia-300 to-purple-400 ring-2 ring-white shadow"></span></div>`,
+  html: `<div class="relative w-3.5 h-3.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-300 opacity-90"></span><span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-gradient-to-br from-pink-400 to-fuchsia-500 ring-2 ring-white shadow"></span></div>`,
   iconSize: [14, 14], iconAnchor: [7, 7],
 });
 
@@ -646,7 +646,7 @@ const QuickAccessRibbon: React.FC<{ navigate: any }> = ({ navigate }) => {
   }, []);
 
   const TILES = [
-    { key: 'rutas', label: 'Planes de baile', sub: counts.rutas > 0 ? `${counts.rutas} activos` : 'Crea el tuyo', icon: RouteIcon, grad: 'from-violet-600 to-purple-700', to: '/rutas', alert: counts.rutas > 0 },
+    { key: 'rutas', label: 'Planes de baile', sub: counts.rutas > 0 ? `${counts.rutas} activos` : 'Crea el tuyo', icon: RouteIcon, grad: 'from-pink-600 to-fuchsia-700', to: '/rutas', alert: counts.rutas > 0 },
     { key: 'parejas', label: 'Pareja de baile', sub: counts.parejas > 0 ? `${counts.parejas} disponibles` : 'Encuentra la tuya', icon: Heart, grad: 'from-rose-500 to-pink-600', to: '/parejas', alert: counts.parejas > 0 },
     { key: 'abiertos', label: 'Abierto ahora', sub: counts.abiertos > 0 ? `${counts.abiertos} locales` : 'Ver locales', icon: Building2, grad: 'from-emerald-500 to-teal-600', to: '/venues?open=true', alert: counts.abiertos > 0 },
     { key: 'vivo', label: 'Eventos en vivo', sub: counts.vivo > 0 ? `${counts.vivo} en directo` : 'Ver eventos', icon: Calendar, grad: 'from-red-500 to-orange-600', to: counts.vivo > 0 ? '/live' : '/eventos', alert: counts.vivo > 0 },
@@ -659,15 +659,15 @@ const QuickAccessRibbon: React.FC<{ navigate: any }> = ({ navigate }) => {
         const isMapTile = t.key === 'rutas' && planPins.length > 0;
         return (
           <button key={t.key} onClick={() => navigate(t.to)}
-            className={`relative flex flex-col items-center gap-1 sm:gap-1.5 rounded-2xl ${isMapTile ? 'bg-violet-950' : `bg-gradient-to-br ${t.grad}`} px-1.5 sm:px-2 py-2.5 sm:py-3.5 shadow-md hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all overflow-hidden`}>
+            className={`group relative flex flex-col items-center gap-1 sm:gap-1.5 rounded-2xl ${isMapTile ? 'bg-pink-950' : `bg-gradient-to-br ${t.grad}`} px-1.5 sm:px-2 py-2.5 sm:py-3.5 shadow-md hover:shadow-xl hover:shadow-pink-500/30 hover:-translate-y-0.5 active:scale-95 transition-all overflow-hidden`}>
             {isMapTile ? (
               <>
-                <div className="absolute inset-0 pointer-events-none opacity-80">
+                <div className="absolute inset-0 pointer-events-none scale-110 group-hover:scale-125 transition-transform duration-500 ease-out">
                   <MapErrorBoundary fallback={<div className={`absolute inset-0 bg-gradient-to-br ${t.grad}`} />}>
                     <MiniPlansMap pins={planPins} />
                   </MapErrorBoundary>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-violet-950/90 via-violet-950/25 to-violet-950/10 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-pink-950/75 via-pink-900/15 to-transparent pointer-events-none" />
               </>
             ) : (
               <div className="absolute -right-4 -top-4 w-16 h-16 bg-white/10 rounded-full blur-2xl pointer-events-none" />
