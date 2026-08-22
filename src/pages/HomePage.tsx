@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import L from 'leaflet';
 import MapErrorBoundary from '../components/MapErrorBoundary';
-import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2 } from 'lucide-react';
+import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2, GraduationCap, Grid3x3 } from 'lucide-react';
 import { ARTISTS, EVENTS } from '../data/mockData';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_TV, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
@@ -690,74 +690,134 @@ const QuickAccessRibbon: React.FC<{ navigate: any }> = ({ navigate }) => {
   );
 };
 
-// ── PLANES DE BAILE (Home) — versión ampliada del cintillo, con mapa real interactivo
-// y hasta 4 planes reales. Si no hay ningún plan abierto, la sección no se muestra
-// (el acceso al cintillo de arriba ya cubre el "crea el tuyo"). ──
+// ── PLANES DE BAILE (Home) — versión ampliada del cintillo, siguiendo el formato
+// aprobado por el usuario: mapa real, 4 métricas reales, pestañas funcionales y
+// tarjetas con fotos reales (locales/clases/directos ya tienen foto propia en la BD;
+// los "planes" no, así que esos usan degradado+icono en vez de una foto inventada). ──
 interface HomeRutaStop { name: string; address?: string; lat: number; lng: number; venue_id?: string; }
 interface HomeRuta { id: string; title: string; city: string; date: string | null; time: string | null; stops: HomeRutaStop[]; }
 
+type DiscoverKind = 'plan' | 'venue' | 'pareja' | 'clase' | 'vivo';
+interface DiscoverItem {
+  id: string; kind: DiscoverKind; title: string; city: string; meta: string;
+  cover: string | null; rating: number; route: string;
+  crowdCount?: number; crowdAvatars?: (string | null)[]; isToday?: boolean;
+}
+
+const DISCOVER_TABS: { key: DiscoverKind | 'todos'; label: string; icon: React.FC<any> }[] = [
+  { key: 'todos', label: 'Todos', icon: Grid3x3 },
+  { key: 'venue', label: 'Abiertos ahora', icon: Building2 },
+  { key: 'pareja', label: 'Pareja de baile', icon: Heart },
+  { key: 'clase', label: 'Clases', icon: GraduationCap },
+  { key: 'vivo', label: 'Eventos en vivo', icon: Calendar },
+];
+
+const DISCOVER_BADGE: Record<DiscoverKind, { label: string; className: string; cta: string }> = {
+  plan:   { label: 'PLAN',          className: 'bg-pink-600',    cta: 'border-pink-400 text-pink-300' },
+  venue:  { label: 'ABIERTO AHORA', className: 'bg-emerald-600', cta: 'border-emerald-400 text-emerald-300' },
+  pareja: { label: 'PAREJA',        className: 'bg-fuchsia-600', cta: 'border-fuchsia-400 text-fuchsia-300' },
+  clase:  { label: 'CLASE',         className: 'bg-violet-600',  cta: 'border-violet-400 text-violet-300' },
+  vivo:   { label: 'EN VIVO',       className: 'bg-red-600',     cta: 'bg-gradient-to-r from-red-600 to-rose-700 text-white border-transparent' },
+};
+
 const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
   const [loaded, setLoaded] = useState(false);
-  const [plans, setPlans] = useState<HomeRuta[]>([]);
-  const [crowd, setCrowd] = useState<Record<string, { count: number; avatars: (string | null)[] }>>({});
-  const [stats, setStats] = useState({ total: 0, gente: 0, ciudades: 0, hoy: 0 });
+  const [items, setItems] = useState<DiscoverItem[]>([]);
+  const [pins, setPins] = useState<{ lat: number; lng: number }[]>([]);
+  const [stats, setStats] = useState({ abiertos: 0, pareja: 0, vivo: 0, rating: 0 });
+  const [tab, setTab] = useState<DiscoverKind | 'todos'>('todos');
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const today = new Date().toISOString().slice(0, 10);
-      const [{ data: allOpen }, { data: top }] = await Promise.all([
-        supabase.from('rutas').select('id, city, date').eq('status', 'open').or(`end_date.is.null,end_date.gte.${today}`),
-        supabase.from('rutas').select('*').eq('status', 'open').or(`end_date.is.null,end_date.gte.${today}`)
-          .order('created_at', { ascending: false }).limit(4),
+      const toMin = (s: string) => { const [h, m] = String(s).split(':').map(Number); return (h || 0) * 60 + (m || 0); };
+      const now = new Date(); const cur = now.getHours() * 60 + now.getMinutes();
+
+      const [rutasRes, venuesRes, parejaRes, claseRes, vivoRes] = await Promise.all([
+        supabase.from('rutas').select('*').eq('status', 'open').or(`end_date.is.null,end_date.gte.${today}`).order('created_at', { ascending: false }).limit(4),
+        supabase.from('venues').select('id,name,city,cover,image_url,rating,open_time,close_time,is_open').is('deleted_at', null),
+        supabase.from('partner_profiles').select('user_id,name,avatar,city,level,styles').eq('active', true).limit(8),
+        supabase.from('class_offerings').select('id,title,level,duration_minutes,cover_image,city').eq('status', 'active').limit(8),
+        supabase.from('live_sessions').select('id,title,category,viewers_count,city,cover_url').eq('status', 'live').limit(8),
       ]);
       if (cancelled) return;
-      const allList = allOpen || [];
-      const ids = allList.map((r: any) => r.id);
-      const topList = (top || []).map((r: any) => ({ ...r, stops: Array.isArray(r.stops) ? r.stops : [] })) as HomeRuta[];
-      setPlans(topList);
-      setStats({
-        total: allList.length,
-        gente: 0,
-        ciudades: new Set(allList.map((r: any) => r.city).filter(Boolean)).size,
-        hoy: allList.filter((r: any) => r.date === today).length,
-      });
 
-      if (ids.length) {
-        const { data: mem } = await supabase.from('ruta_members').select('ruta_id, user_id').in('ruta_id', ids);
-        if (cancelled) return;
+      const plansRaw = (rutasRes.data || []).map((r: any) => ({ ...r, stops: Array.isArray(r.stops) ? r.stops : [] }));
+      const planIds = plansRaw.map((r: any) => r.id);
+      let crowdByPlan: Record<string, { count: number; avatars: (string | null)[] }> = {};
+      if (planIds.length) {
+        const { data: mem } = await supabase.from('ruta_members').select('ruta_id, user_id').in('ruta_id', planIds);
         const rows = mem || [];
-        const topIds = new Set(topList.map(r => r.id));
-        const forCards = rows.filter((m: any) => topIds.has(m.ruta_id));
-        const { data: profs } = forCards.length
-          ? await supabase.from('profiles').select('id, avatar_url').in('id', [...new Set(forCards.map((m: any) => m.user_id))])
+        const { data: profs } = rows.length
+          ? await supabase.from('profiles').select('id, avatar_url').in('id', [...new Set(rows.map((m: any) => m.user_id))])
           : { data: [] as any[] };
         if (cancelled) return;
         const avatarOf = new Map((profs || []).map((p: any) => [p.id, p.avatar_url]));
-        const grouped: Record<string, { count: number; avatars: (string | null)[] }> = {};
-        for (const m of forCards as any[]) {
-          const g = grouped[m.ruta_id] || (grouped[m.ruta_id] = { count: 0, avatars: [] });
+        for (const m of rows as any[]) {
+          const g = crowdByPlan[m.ruta_id] || (crowdByPlan[m.ruta_id] = { count: 0, avatars: [] });
           g.count++;
           if (g.avatars.length < 3) g.avatars.push(avatarOf.get(m.user_id) || null);
         }
-        setCrowd(grouped);
-        setStats(s => ({ ...s, gente: rows.length }));
       }
+
+      const allVenues = venuesRes.data || [];
+      const isOpenNow = (v: any) => {
+        if (v.is_open === true) return true;
+        if (v.open_time && v.close_time) {
+          const o = toMin(v.open_time), c = toMin(v.close_time);
+          return c > o ? (cur >= o && cur <= c) : (cur >= o || cur <= c);
+        }
+        return false;
+      };
+      const openVenues = allVenues.filter(isOpenNow);
+      const ratedVenues = allVenues.filter((v: any) => Number(v.rating) > 0);
+      const avgRating = ratedVenues.length ? ratedVenues.reduce((s: number, v: any) => s + Number(v.rating), 0) / ratedVenues.length : 0;
+
+      const planItems: DiscoverItem[] = plansRaw.slice(0, 4).map((r: any) => ({
+        id: `plan-${r.id}`, kind: 'plan', title: r.title, city: r.city,
+        meta: r.time ? `${r.date === today ? 'Hoy' : r.date} · ${r.time}` : (r.date || ''),
+        cover: null, rating: 0, route: '/rutas',
+        crowdCount: crowdByPlan[r.id]?.count || 0, crowdAvatars: crowdByPlan[r.id]?.avatars || [],
+        isToday: r.date === today,
+      }));
+      const venueItems: DiscoverItem[] = openVenues.slice(0, 6).map((v: any) => ({
+        id: `venue-${v.id}`, kind: 'venue', title: v.name, city: v.city || '',
+        meta: v.close_time ? `Abierto hasta ${String(v.close_time).slice(0, 5)}` : 'Abierto ahora',
+        cover: v.cover || v.image_url || null, rating: Number(v.rating) || 0, route: `/venues/${v.id}`,
+      }));
+      const parejaItems: DiscoverItem[] = (parejaRes.data || []).slice(0, 6).map((p: any) => ({
+        id: `pareja-${p.user_id}`, kind: 'pareja', title: p.name || 'Bailarín/a', city: p.city || '',
+        meta: [p.level, Array.isArray(p.styles) ? p.styles.slice(0, 2).join(', ') : ''].filter(Boolean).join(' · '),
+        cover: p.avatar || null, rating: 0, route: '/parejas',
+      }));
+      const claseItems: DiscoverItem[] = (claseRes.data || []).slice(0, 6).map((c: any) => ({
+        id: `clase-${c.id}`, kind: 'clase', title: c.title, city: c.city || '',
+        meta: [c.level, c.duration_minutes ? `${c.duration_minutes} min` : ''].filter(Boolean).join(' · '),
+        cover: c.cover_image || null, rating: 0, route: '/clases',
+      }));
+      const vivoItems: DiscoverItem[] = (vivoRes.data || []).slice(0, 6).map((s: any) => ({
+        id: `vivo-${s.id}`, kind: 'vivo', title: s.title, city: s.city || '',
+        meta: s.viewers_count > 0 ? `${s.viewers_count} viendo ahora` : 'En directo ahora',
+        cover: s.cover_url || null, rating: 0, route: `/live/session/${s.id}`,
+      }));
+
+      setItems([...planItems, ...venueItems, ...parejaItems, ...claseItems, ...vivoItems]);
+      setPins(plansRaw
+        .map((r: any) => (r.stops[0] ? { lat: Number(r.stops[0].lat), lng: Number(r.stops[0].lng) } : null))
+        .filter((p: any): p is { lat: number; lng: number } => !!p && Number.isFinite(p.lat) && Number.isFinite(p.lng)));
+      setStats({ abiertos: openVenues.length, pareja: (parejaRes.data || []).length, vivo: (vivoRes.data || []).length, rating: avgRating });
       setLoaded(true);
     })();
     return () => { cancelled = true; };
   }, []);
 
-  if (loaded && plans.length === 0) return null;
+  if (loaded && items.length === 0) return null;
 
-  const pins = plans
-    .map(r => (r.stops[0] ? { lat: Number(r.stops[0].lat), lng: Number(r.stops[0].lng) } : null))
-    .filter((p): p is { lat: number; lng: number } => !!p && Number.isFinite(p.lat) && Number.isFinite(p.lng));
+  const shown = tab === 'todos' ? items.slice(0, 8) : items.filter(it => it.kind === tab).slice(0, 8);
   const mapCenter: [number, number] = pins.length
     ? [pins.reduce((s, p) => s + p.lat, 0) / pins.length, pins.reduce((s, p) => s + p.lng, 0) / pins.length]
     : [40.4168, -3.7038];
-
-  const CARD_GRADIENTS = ['from-pink-600 to-fuchsia-800', 'from-violet-600 to-purple-800', 'from-emerald-600 to-teal-800', 'from-orange-600 to-red-800'];
 
   return (
     <section className="mx-3 sm:mx-4 mt-8">
@@ -769,20 +829,27 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
             <h2 className="font-display font-black text-xl sm:text-2xl text-white flex items-center gap-2">
               <RouteIcon className="w-5 h-5 text-pink-300" /> Planes de baile
             </h2>
-            <p className="text-purple-200/80 text-sm mt-1">Planes reales de esta noche, en el mapa.</p>
+            <p className="text-purple-200/80 text-sm mt-1">Descubre experiencias de baile cerca de ti, en tiempo real.</p>
             <div className="flex flex-wrap gap-2 mt-3">
               <div className="flex items-center gap-2 bg-white/[0.06] border border-white/10 rounded-xl px-3 py-1.5">
-                <span className="text-white font-extrabold text-sm">{stats.total}</span>
-                <span className="text-purple-200/70 text-[10px]">abiertos</span>
+                <span className="text-white font-extrabold text-sm">{stats.abiertos}</span>
+                <span className="text-purple-200/70 text-[10px]">abiertos ahora</span>
               </div>
               <div className="flex items-center gap-2 bg-white/[0.06] border border-white/10 rounded-xl px-3 py-1.5">
-                <span className="text-white font-extrabold text-sm">{stats.gente}</span>
-                <span className="text-purple-200/70 text-[10px]">apuntados</span>
+                <span className="text-white font-extrabold text-sm">{stats.pareja}</span>
+                <span className="text-purple-200/70 text-[10px]">pareja de baile</span>
               </div>
               <div className="flex items-center gap-2 bg-white/[0.06] border border-white/10 rounded-xl px-3 py-1.5">
-                <span className="text-white font-extrabold text-sm">{stats.ciudades}</span>
-                <span className="text-purple-200/70 text-[10px]">{stats.ciudades === 1 ? 'ciudad' : 'ciudades'}</span>
+                <span className="text-white font-extrabold text-sm">{stats.vivo}</span>
+                <span className="text-purple-200/70 text-[10px]">eventos en vivo</span>
               </div>
+              {stats.rating > 0 && (
+                <div className="flex items-center gap-2 bg-white/[0.06] border border-white/10 rounded-xl px-3 py-1.5">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <span className="text-white font-extrabold text-sm">{stats.rating.toFixed(1)}</span>
+                  <span className="text-purple-200/70 text-[10px]">valoración media</span>
+                </div>
+              )}
             </div>
           </div>
           <button onClick={() => navigate('/rutas')}
@@ -791,9 +858,9 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
           </button>
         </div>
 
-        {/* Mapa real e interactivo (arrastrar/zoom) con las ubicaciones reales de los planes mostrados */}
+        {/* Mapa real e interactivo (arrastrar/zoom) con las ubicaciones reales de los planes abiertos */}
         {pins.length > 0 && (
-          <div className="relative mt-5 h-56 sm:h-64 rounded-2xl overflow-hidden border border-white/10">
+          <div className="relative mt-5 h-48 sm:h-56 rounded-2xl overflow-hidden border border-white/10">
             <MapErrorBoundary fallback={<div className="absolute inset-0 bg-white/5" />}>
               <MapContainer center={mapCenter} zoom={pins.length > 1 ? 6 : 12} style={{ width: '100%', height: '100%' }} attributionControl={false}>
                 <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
@@ -803,46 +870,75 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
           </div>
         )}
 
-        {/* Tarjetas de planes reales */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
-          {plans.map((r, i) => {
-            const g = crowd[r.id];
-            const isToday = r.date === new Date().toISOString().slice(0, 10);
+        {/* Pestañas de filtro — funcionales, sobre datos reales ya cargados */}
+        <div className="flex items-center gap-2 mt-5 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+          {DISCOVER_TABS.map(t => {
+            const Icon = t.icon;
+            const isActive = tab === t.key;
+            const count = t.key === 'todos' ? items.length : items.filter(it => it.kind === t.key).length;
+            if (t.key !== 'todos' && count === 0) return null;
             return (
-              <button key={r.id} onClick={() => navigate('/rutas')}
+              <button key={t.key} onClick={() => setTab(t.key)}
+                className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all ${
+                  isActive ? 'bg-gradient-to-br from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-900/40' : 'bg-white/[0.05] text-purple-200/70 border border-white/10 hover:bg-white/10'
+                }`}>
+                <Icon className="w-3.5 h-3.5" /> {t.label}
+                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/25' : 'bg-white/10'}`}>{count}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Tarjetas — fotos reales para locales/clases/directos; degradado+icono para planes (sin foto propia) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+          {shown.map(it => {
+            const badge = DISCOVER_BADGE[it.kind];
+            return (
+              <button key={it.id} onClick={() => navigate(it.route)}
                 className="text-left rounded-2xl overflow-hidden bg-white/[0.05] border border-white/10 hover:border-pink-400/40 hover:-translate-y-1 transition-all duration-300">
-                <div className={`relative h-20 bg-gradient-to-br ${CARD_GRADIENTS[i % CARD_GRADIENTS.length]} flex items-center justify-center`}>
-                  <RouteIcon className="w-8 h-8 text-white/25" />
-                  {isToday && (
-                    <span className="absolute top-2 left-2 inline-flex items-center gap-1 bg-white text-pink-700 text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full">
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-500 opacity-75" />
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-pink-500" />
-                      </span>
-                      Hoy
-                    </span>
+                <div className="relative h-24 bg-gradient-to-br from-pink-700 to-fuchsia-900 overflow-hidden">
+                  {it.cover ? (
+                    <img src={it.cover} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy"
+                      onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center"><RouteIcon className="w-8 h-8 text-white/25" /></div>
                   )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                  <span className={`absolute top-2 left-2 inline-flex items-center gap-1 ${badge.className} text-white text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full`}>
+                    {(it.kind === 'vivo' || it.isToday) && (
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
+                      </span>
+                    )}
+                    {badge.label}
+                  </span>
                 </div>
                 <div className="p-3">
-                  <p className="text-white font-bold text-[13px] leading-tight truncate">{r.title}</p>
+                  <p className="text-white font-bold text-[13px] leading-tight truncate">{it.title}</p>
                   <p className="text-purple-200/70 text-[11px] mt-1 flex items-center gap-1 truncate">
-                    <MapPin className="w-3 h-3 flex-shrink-0" /> {r.city}{r.time ? ` · ${r.time}` : ''}
+                    <MapPin className="w-3 h-3 flex-shrink-0" /> {it.city}{it.meta ? ` · ${it.meta}` : ''}
                   </p>
                   <div className="flex items-center justify-between mt-2.5">
-                    {g && g.count > 0 ? (
+                    {it.rating > 0 ? (
+                      <span className="inline-flex items-center gap-1 text-amber-400 font-bold text-[11px]">
+                        <Star className="w-3 h-3 fill-amber-400" /> {it.rating.toFixed(1)}
+                      </span>
+                    ) : it.kind === 'plan' && it.crowdCount ? (
                       <span className="flex items-center">
                         <span className="flex">
-                          {g.avatars.map((a, ai) => (
+                          {(it.crowdAvatars || []).map((a, ai) => (
                             <span key={ai} className="-mr-2 last:mr-0 ring-2 ring-[#1B0E29] rounded-full">
                               <Avatar src={a || ''} name="?" size="xs" />
                             </span>
                           ))}
                         </span>
-                        <span className="text-[10px] font-bold text-purple-200/80 ml-2.5">{g.count} {g.count === 1 ? 'va' : 'van'}</span>
+                        <span className="text-[10px] font-bold text-purple-200/80 ml-2.5">{it.crowdCount} {it.crowdCount === 1 ? 'va' : 'van'}</span>
                       </span>
                     ) : (
-                      <span className="text-[10px] text-purple-200/60">Sé el primero</span>
+                      <span className="text-[10px] text-purple-200/60">{it.kind === 'plan' ? 'Sé el primero' : 'Ver más'}</span>
                     )}
+                    <span className={`text-[10px] font-black border rounded-full px-2 py-0.5 ${badge.cta}`}>Ver</span>
                   </div>
                 </div>
               </button>
