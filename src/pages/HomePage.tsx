@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2 } from 'lucide-react';
 import { ARTISTS, EVENTS } from '../data/mockData';
-import { useAuthStore, useSiteConfigStore, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_TV, type HomeCategory } from '../store/appStore';
+import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_TV, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
 import { Avatar, StarRating, SearchBar, AppImage } from '../components/ui';
 import { supabase } from '../lib/supabase';
@@ -569,15 +569,15 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
 };
 
 // ── DYNAMIC CATEGORIES SECTION ────────────────────────────────────────
-// Bloques de color sólido tipo Uber Eats/Glovo — el icono es el protagonista,
-// no una insignia pastel pequeña dentro de una tarjeta blanca genérica.
+// Tintes rotativos para los chips de categoría — dan variedad tipo escaparate
+// (Glovo/Fever) manteniendo la identidad BailaNow. Clases literales para el JIT.
 const CHIP_TINTS = [
-  'from-pink-500 to-fuchsia-600',
-  'from-violet-600 to-purple-700',
-  'from-amber-500 to-orange-600',
-  'from-cyan-500 to-blue-600',
-  'from-emerald-500 to-teal-600',
-  'from-rose-500 to-pink-600',
+  'from-rose-500/20 to-pink-500/10 ring-rose-400/40 group-hover:shadow-rose-500/25',
+  'from-orange-500/20 to-amber-500/10 ring-orange-400/40 group-hover:shadow-orange-500/25',
+  'from-violet-500/20 to-fuchsia-500/10 ring-violet-400/40 group-hover:shadow-violet-500/25',
+  'from-cyan-500/20 to-blue-500/10 ring-cyan-400/40 group-hover:shadow-cyan-500/25',
+  'from-emerald-500/20 to-teal-500/10 ring-emerald-400/40 group-hover:shadow-emerald-500/25',
+  'from-amber-500/20 to-yellow-500/10 ring-amber-400/40 group-hover:shadow-amber-500/25',
 ];
 
 // ── CINTILLO DE ACCESOS DESTACADOS: Planes, Pareja, Abierto ahora, Eventos en vivo ──
@@ -667,11 +667,12 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     return (
       <button
         onClick={() => navigate(cat.route)}
-        className={`group relative overflow-hidden rounded-2xl h-24 sm:h-28 flex flex-col items-center justify-center gap-1 bg-gradient-to-br ${tint} shadow-md hover:shadow-xl hover:-translate-y-1 active:scale-95 transition-all duration-300`}
+        className="group relative bg-white dark:bg-gray-800/70 rounded-2xl p-3 flex flex-col items-center justify-start gap-2 border border-gray-100 dark:border-white/10 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-transparent active:scale-95 transition-all duration-300"
       >
-        <div className="absolute -right-3 -top-3 w-16 h-16 bg-white/10 rounded-full blur-xl pointer-events-none" />
-        <span className="text-4xl sm:text-[42px] leading-none drop-shadow-sm group-hover:scale-110 transition-transform duration-300">{cat.icon}</span>
-        <span className="relative text-white text-[11px] sm:text-xs font-black leading-tight text-center line-clamp-1 px-1.5 drop-shadow-sm">{cat.name}</span>
+        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${tint} ring-1 flex items-center justify-center shadow-sm group-hover:shadow-lg group-hover:scale-110 transition-all duration-300`}>
+          <span className="text-2xl sm:text-[26px] leading-none">{cat.icon}</span>
+        </div>
+        <span className="text-gray-700 dark:text-gray-200 text-[11px] sm:text-xs font-bold leading-tight text-center line-clamp-2 group-hover:text-brand-orange transition-colors">{cat.name}</span>
       </button>
     );
   };
@@ -696,7 +697,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
                 Ver todas →
               </button>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5 sm:gap-3">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5 sm:gap-3">
               {shown.map((cat, idx) => (
                 <CategoryButton key={cat.id} cat={cat} index={idx} />
               ))}
@@ -1100,16 +1101,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
   );
 };
 
-// Fotografía real de baile latino (verificada, ya en uso en producción en esta app)
-// curada por módulo — composición tipo flyer/campaña, no icono+degradado plano.
-const MORE_FOR_YOU_PHOTOS: Record<string, string> = {
-  danceflow:     'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=900&h=1000&fit=crop&q=80',
-  clases:        'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=900&h=1000&fit=crop&q=80',
-  bailarines:    'https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=900&h=1000&fit=crop&q=80',
-  promocionate:  'https://images.unsplash.com/photo-1566737236500-c8ac43014a67?w=900&h=1000&fit=crop&q=80',
-};
-
-// ── MÁS PARA TI (tarjetas tipo flyer/campaña premium, foto real protagonista) ──
+// ── MÁS PARA TI (6 accesos destacados, estilo premium) ──
 const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
   // Data-driven: lee de `home_modules` (Supabase) con fallback a la semilla local.
   // "planes"/"parejas" se filtran siempre: ya viven en el cintillo de arriba (QuickAccessRibbon),
@@ -1127,35 +1119,28 @@ const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
           Ver todas <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
+      {/* Tarjetas de icono + degradado (sin fotos) — mismo lenguaje visual que el cintillo de arriba */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {modules.map(m => {
-          const photo = m.imageUrl || MORE_FOR_YOU_PHOTOS[m.slug];
-          return (
-            <button key={m.id} onClick={() => navigate(m.route)}
-              className={`group relative overflow-hidden rounded-3xl h-52 sm:h-60 text-left shadow-lg hover:shadow-2xl ${m.glow} hover:-translate-y-1.5 transition-all duration-300`}>
-              {/* Fondo: foto real cuando existe, degradado de marca en cualquier caso */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${m.gradient}`} />
-              {photo && (
-                <img src={photo} alt="" loading="lazy"
-                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-              )}
-              {/* Velo para legibilidad del texto sobre la foto */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10" />
-              <span className={`absolute top-3.5 left-3.5 w-11 h-11 rounded-2xl ${m.iconBg} text-white grid place-items-center text-xl shadow-lg ring-2 ring-white/30`}>{m.icon}</span>
-              {m.badge && (
-                <span className="absolute top-3.5 right-3.5 bg-white text-pink-600 text-[10px] font-black uppercase tracking-wide px-2.5 py-1 rounded-full shadow">{m.badge}</span>
-              )}
-              <div className="absolute bottom-3.5 left-4 right-16">
-                <p className="text-white font-display font-black text-base sm:text-lg leading-tight drop-shadow">{m.title}</p>
-                <p className="text-white/85 text-[11px] sm:text-xs mt-1 leading-snug line-clamp-2">{m.subtitle}</p>
+        {modules.map(m => (
+          <button key={m.id} onClick={() => navigate(m.route)}
+            className={`group relative overflow-hidden rounded-3xl h-40 sm:h-44 text-left shadow-lg hover:shadow-2xl ${m.glow} hover:-translate-y-1.5 transition-all duration-300`}>
+            <div className={`absolute inset-0 bg-gradient-to-br ${m.gradient}`} />
+            <div className="absolute -right-8 -top-8 w-28 h-28 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+            {m.badge && (
+              <span className="absolute top-3 right-3 bg-white text-pink-600 text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full shadow">{m.badge}</span>
+            )}
+            <div className="relative h-full flex flex-col justify-between p-4">
+              <span className={`w-11 h-11 rounded-2xl ${m.iconBg} text-white grid place-items-center text-xl shadow-lg ring-2 ring-white/20`}>{m.icon}</span>
+              <div>
+                <p className="text-white font-display font-black text-sm sm:text-base leading-tight">{m.title}</p>
+                <p className="text-white/75 text-[11px] mt-1 leading-snug line-clamp-2">{m.subtitle}</p>
               </div>
-              <span className="absolute bottom-3.5 right-3.5 w-11 h-11 rounded-full bg-white/95 grid place-items-center text-gray-900 shadow-lg group-hover:bg-white group-hover:scale-110 transition-all">
-                <ArrowRight className="w-5 h-5" />
-              </span>
-            </button>
-          );
-        })}
+            </div>
+            <span className="absolute bottom-3.5 right-3.5 w-8 h-8 rounded-full bg-white/15 grid place-items-center text-white group-hover:bg-white group-hover:text-gray-900 group-hover:scale-110 transition-all">
+              <ArrowRight className="w-4 h-4" />
+            </span>
+          </button>
+        ))}
       </div>
     </section>
   );
@@ -1344,6 +1329,9 @@ const HomePage: React.FC = () => {
   useJsonLd(organizationLd(), websiteLd());
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
+  const { heroMedia } = useSiteConfigStore();
+  const heroYtId = heroMedia.type === 'youtube' ? getYouTubeId(heroMedia.url) : null;
+  const heroHasVideoFile = heroMedia.type === 'video' && !!heroMedia.url;
   const cmsModules = useCMSStore(s => s.modules);
   const cmsCategories = useCMSStore(s => s.categories);
   const enabled = visibleHomeModules(cmsModules);
@@ -1507,45 +1495,70 @@ const HomePage: React.FC = () => {
       {/* Fondo flotante decorativo en toda la home */}
       <HomeBackground />
 
-      {/* ── HERO: mensaje de valor claro en &lt;3s + foto de baile latino + CTA ── */}
-      <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden relative h-[340px] sm:h-[440px] bg-brand-black">
-        <img
-          src="https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=1600&h=1000&fit=crop&q=80"
-          alt="Bailarines latinos en una pista de baile"
-          className="absolute inset-0 w-full h-full object-cover kenburns"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/20" />
-        <div className="relative h-full flex items-end sm:items-center">
-          <div className="w-full px-5 sm:px-10 pb-7 sm:pb-0 max-w-xl">
-            <span className="text-[11px] font-black uppercase tracking-[0.18em] text-pink-300">El ecosistema del baile latino</span>
-            <h1 className="font-display font-black text-3xl sm:text-5xl leading-[1.02] tracking-tight mt-3 text-white">
-              Todo lo que necesitas para <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-pink-200">vivir el baile latino</span>.
-            </h1>
-            <p className="text-white/75 text-sm sm:text-base mt-3 max-w-md">
-              Encuentra dónde bailar, eventos, artistas, clases y personas que comparten tu pasión.
-            </p>
-            <div className="flex flex-wrap gap-3 mt-5">
-              <button onClick={() => navigate('/explorar')} className="bg-gradient-to-r from-pink-500 to-pink-600 text-white font-black rounded-full px-6 py-3.5 shadow-lg shadow-pink-500/40 hover:scale-[1.03] active:scale-95 transition">
-                Explorar ahora →
-              </button>
-              <button onClick={() => navigate('/cerca')} className="bg-white/10 border border-white/20 text-white font-bold rounded-full px-6 py-3.5 hover:bg-white/20 transition backdrop-blur-sm">
-                Cerca de mí
-              </button>
-            </div>
+      {/* ── HERO: TV con el vídeo real visible sin pulsar, Radio con emisoras reales clicables ── */}
+      <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 grid grid-cols-2 gap-2.5 sm:gap-3">
+        {/* TV: se ve el contenido en directo, no hace falta pulsar para verlo */}
+        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-fuchsia-950 flex flex-col">
+          <div className="relative w-full h-24 sm:h-32 bg-black">
+            {heroYtId ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${heroYtId}?autoplay=1&mute=1&loop=1&playlist=${heroYtId}&controls=0&modestbranding=1&rel=0`}
+                title="BailaNow TV" allow="autoplay; encrypted-media" className="w-full h-full pointer-events-none" style={{ border: 0 }} />
+            ) : heroHasVideoFile ? (
+              <video src={heroMedia.url} autoPlay muted loop playsInline className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Tv className="w-9 h-9 sm:w-11 sm:h-11 text-white/25" />
+              </div>
+            )}
+            <span className="absolute top-2 left-2 flex items-center gap-1 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> EN VIVO
+            </span>
           </div>
+          <button onClick={() => setTvWidgetOpen(true)}
+            className="flex items-center justify-center gap-1.5 py-1.5 sm:py-2 text-white font-display font-black text-xs sm:text-base hover:bg-white/10 transition-colors">
+            <Tv className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> BailaNow TV
+          </button>
+        </div>
+
+        {/* Radio: emisoras reales visibles, cada una se pulsa para escucharla directamente */}
+        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-bl from-orange-600 via-pink-600 to-fuchsia-800 flex flex-col justify-center p-2 sm:p-3">
+          <p className="text-white font-display font-black text-xs sm:text-base flex items-center gap-1.5 mb-1.5">
+            <Radio className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Radio Online
+          </p>
+          <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
+            {radioStations.slice(0, 4).map((s, i) => {
+              const isPlaying = playing === i;
+              return (
+                <button key={s.id} onClick={() => setPlaying(p => p === i ? null : i)}
+                  className={`flex items-center gap-1.5 rounded-lg sm:rounded-xl px-1.5 sm:px-2 py-1.5 text-left transition-colors ${isPlaying ? 'bg-white/25' : 'bg-white/10 hover:bg-white/15'}`}>
+                  <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-full overflow-hidden flex-shrink-0 bg-white/20">
+                    <img src={s.img} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }} />
+                  </span>
+                  <span className="min-w-0 flex-1 text-white text-[9px] sm:text-[11px] font-bold truncate">{s.name}</span>
+                  {isPlaying
+                    ? (radioStatus === 'loading' ? <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white flex-shrink-0 animate-spin" /> : <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white flex-shrink-0" />)
+                    : <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white flex-shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
+          {radioStations.length > 4 && (
+            <button onClick={() => setRadioWidgetOpen(true)} className="text-white/70 hover:text-white text-[10px] sm:text-xs font-bold text-center mt-1.5">
+              Ver todas las emisoras →
+            </button>
+          )}
         </div>
       </section>
 
-      {/* ── Acceso rápido a TV y Radio (compacto, no compite con el hero) ── */}
-      <div className="mx-3 sm:mx-4 mt-2.5 sm:mt-3 grid grid-cols-2 gap-2.5 sm:gap-3">
-        <button onClick={() => setTvWidgetOpen(true)}
-          className="flex items-center justify-center gap-2 rounded-xl px-3 py-3 bg-gradient-to-br from-indigo-900 to-purple-900 text-white shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all">
-          <Tv className="w-4 h-4 flex-shrink-0" /> <span className="text-xs sm:text-sm font-black">BailaNow TV</span>
-        </button>
-        <button onClick={() => setRadioWidgetOpen(true)}
-          className="flex items-center justify-center gap-2 rounded-xl px-3 py-3 bg-gradient-to-br from-orange-600 to-pink-700 text-white shadow-sm hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all">
-          <Radio className="w-4 h-4 flex-shrink-0" /> <span className="text-xs sm:text-sm font-black">Radio Online</span>
-        </button>
+      {/* ── Título de marca, justo bajo el hero ── */}
+      <div className="text-center mt-6 px-4">
+        <h2 className="font-display font-black text-xl sm:text-2xl text-gray-900 dark:text-white mb-1">
+          💃 <span className="text-pink-600">Baila</span> Now
+        </h2>
+        <p className="text-gray-400 text-xs sm:text-sm max-w-lg mx-auto">
+          Todo lo que amas del baile, en un solo lugar
+        </p>
       </div>
 
       {/* ── CINTILLO DE ACCESOS DESTACADOS: Planes, Pareja, Abierto ahora, Eventos en vivo ── */}
