@@ -2731,12 +2731,12 @@ const RetirosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const load = async () => {
     setLoading(true);
     const { data } = await supabase
-      .from('withdrawals')
+      .from('partner_withdrawals')
       .select('*')
       .order('requested_at', { ascending: false });
     const list = data ?? [];
     setWithdrawals(list);
-    const ids = list.map((w: any) => w.performer_id).filter(Boolean);
+    const ids = list.map((w: any) => w.partner_id).filter(Boolean);
     if (ids.length) {
       const { data: profs } = await supabase.from('profiles').select('id, full_name').in('id', ids);
       const map: Record<string, string> = {};
@@ -2751,7 +2751,7 @@ const RetirosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const handle = async (id: string, status: 'paid' | 'rejected') => {
     setProcessing(id);
     const { data: { session } } = await supabase.auth.getSession();
-    const { error } = await supabase.from('withdrawals').update({
+    const { error } = await supabase.from('partner_withdrawals').update({
       status,
       reviewed_at: new Date().toISOString(),
       reviewed_by: session?.user?.id,
@@ -2791,7 +2791,7 @@ const RetirosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
             <tbody>
               {withdrawals.map(w => (
                 <tr key={w.id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-900">{names[w.performer_id] || w.performer_id?.slice(0, 8) || '—'}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900">{names[w.partner_id] || w.partner_id?.slice(0, 8) || '—'}</td>
                   <td className="px-4 py-3 text-gray-500">{w.method}</td>
                   <td className="px-4 py-3 text-right font-bold text-gray-900">€{Number(w.amount).toFixed(2)}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs">{new Date(w.requested_at).toLocaleString('es-ES')}</td>
