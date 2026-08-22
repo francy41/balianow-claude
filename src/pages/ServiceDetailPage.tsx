@@ -231,7 +231,7 @@ const ServiceDetailPage: React.FC = () => {
       />
 
       <EntityAdminPanel kind="service" id={id} ownerUserId={service?.userId} />
-      <div className="fixed z-[60] bottom-24 right-4 sm:bottom-8 sm:right-8">
+      <div className="fixed z-[60] bottom-48 right-4 sm:bottom-8 sm:right-8">
         <ClaimProfileButton
           targetTable="services"
           targetId={id!}

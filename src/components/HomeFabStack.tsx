@@ -90,7 +90,7 @@ const HomeFabStack: React.FC = () => {
             className={`flex items-center gap-3 transition-all duration-300 ${open ? 'opacity-100 translate-x-0 pointer-events-auto' : 'opacity-0 translate-x-8 pointer-events-none'}`}
             style={{ transitionDelay: open ? `${i * 40}ms` : '0ms' }}
           >
-            <span className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap">
+            <span className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg whitespace-nowrap max-w-[70vw] truncate">
               {action.label}
             </span>
             <button

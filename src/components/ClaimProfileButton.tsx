@@ -118,7 +118,7 @@ const ClaimProfileButton: React.FC<Props> = ({ targetTable, targetId, targetName
           <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75 animate-ping" />
           <span className="relative inline-flex h-3.5 w-3.5 rounded-full bg-amber-400 ring-2 ring-white" />
         </span>
-        <Flag className="w-3.5 h-3.5" /> ¿Es tu perfil? Reclamarlo
+        <Flag className="w-3.5 h-3.5 flex-shrink-0" /> <span className="truncate max-w-[60vw]">¿Es tu perfil? Reclamarlo</span>
       </button>
 
       {open && (

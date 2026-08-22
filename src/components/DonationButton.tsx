@@ -53,7 +53,7 @@ const DonationButton: React.FC = () => {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} aria-label="Donar a BailaNow" className="fixed left-3 bottom-28 lg:bottom-6 z-[45] flex items-center gap-2 group">
+      <button onClick={() => setOpen(true)} aria-label="Donar a BailaNow" className="fixed left-3 bottom-44 lg:bottom-6 z-[45] flex items-center gap-2 group">
         <span className="relative flex items-center justify-center">
           <span className="absolute inline-flex h-full w-full rounded-full bg-pink-500 opacity-60 animate-ping" />
           <span className="relative w-12 h-12 rounded-full bg-brand-orange shadow-lg shadow-fuchsia-600/40 flex items-center justify-center animate-pulse group-hover:animate-none">

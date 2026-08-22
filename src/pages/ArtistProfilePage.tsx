@@ -590,7 +590,7 @@ const ArtistProfilePage: React.FC = () => {
       <ArtistAdminPanel id={id} ownerUserId={(artist as any).userId} autoOpen={wantEdit} onSaved={() => window.location.reload()} />
 
       {/* Reclamar perfil — solo visible si no tiene dueño */}
-      <div className="fixed z-[60] bottom-24 right-4 sm:bottom-8 sm:right-8">
+      <div className="fixed z-[60] bottom-48 right-4 sm:bottom-8 sm:right-8">
         <ClaimProfileButton
           targetTable="artists"
           targetId={id!}

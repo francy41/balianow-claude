@@ -1085,7 +1085,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
       <LiveFab defaultCategory="event" label="Iniciar Evento Live" />
 
       <EventAdminPanel eventId={eventId} onSaved={loadEvent} ownerUserId={event?.userId} />
-      <div className="fixed z-[60] bottom-24 right-4 sm:bottom-8 sm:right-8">
+      <div className="fixed z-[60] bottom-48 right-4 sm:bottom-8 sm:right-8">
         <ClaimProfileButton
           targetTable="events"
           targetId={eventId}
