@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket } from 'lucide-react';
+import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2 } from 'lucide-react';
 import { ARTISTS, EVENTS } from '../data/mockData';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_TV, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
@@ -1278,6 +1278,9 @@ const HomePage: React.FC = () => {
   useJsonLd(organizationLd(), websiteLd());
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
+  const { heroMedia } = useSiteConfigStore();
+  const heroYtId = heroMedia.type === 'youtube' ? getYouTubeId(heroMedia.url) : null;
+  const heroHasVideoFile = heroMedia.type === 'video' && !!heroMedia.url;
   const cmsModules = useCMSStore(s => s.modules);
   const cmsCategories = useCMSStore(s => s.categories);
   const enabled = visibleHomeModules(cmsModules);
@@ -1441,45 +1444,60 @@ const HomePage: React.FC = () => {
       {/* Fondo flotante decorativo en toda la home */}
       <HomeBackground />
 
-      {/* ── HERO: banner limpio dividido en dos, TV y Radio en vivo (sin foto de fondo, sin texto de más) ── */}
-      <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 rounded-2xl sm:rounded-3xl overflow-hidden relative h-[300px] sm:h-[340px] grid grid-cols-2">
-        <button onClick={() => setTvWidgetOpen(true)} aria-label="Ver BailaNow TV"
-          className="relative flex flex-col items-center justify-center gap-3 px-3 py-6 bg-gradient-to-br from-indigo-900 via-purple-900 to-fuchsia-950 hover:brightness-110 transition-all overflow-hidden">
-          <div className="absolute -right-10 -top-10 w-40 h-40 bg-fuchsia-500/20 rounded-full blur-3xl pointer-events-none" />
-          {/* Pantalla de ejemplo: contenido en directo */}
-          <div className="relative w-36 sm:w-52 aspect-video rounded-lg bg-black/50 border border-white/15 flex items-center justify-center">
-            <span className="absolute top-1.5 left-1.5 flex items-center gap-1 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded">
+      {/* ── HERO: TV con el vídeo real visible sin pulsar, Radio con emisoras reales clicables ── */}
+      <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 grid grid-cols-2 gap-2.5 sm:gap-3">
+        {/* TV: se ve el contenido en directo, no hace falta pulsar para verlo */}
+        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-fuchsia-950 flex flex-col">
+          <div className="relative w-full aspect-video bg-black">
+            {heroYtId ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${heroYtId}?autoplay=1&mute=1&loop=1&playlist=${heroYtId}&controls=0&modestbranding=1&rel=0`}
+                title="BailaNow TV" allow="autoplay; encrypted-media" className="w-full h-full pointer-events-none" style={{ border: 0 }} />
+            ) : heroHasVideoFile ? (
+              <video src={heroMedia.url} autoPlay muted loop playsInline className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Tv className="w-9 h-9 sm:w-11 sm:h-11 text-white/25" />
+              </div>
+            )}
+            <span className="absolute top-2 left-2 flex items-center gap-1 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> EN VIVO
             </span>
-            <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white/80" fill="currentColor" />
           </div>
-          <p className="text-white font-display font-black text-base sm:text-xl leading-tight flex items-center gap-1.5">
-            <Tv className="w-4 h-4 sm:w-5 sm:h-5" /> BailaNow TV
-          </p>
-          <p className="text-white/60 text-[11px] sm:text-xs font-semibold -mt-2">Mira ahora →</p>
-        </button>
+          <button onClick={() => setTvWidgetOpen(true)}
+            className="flex items-center justify-center gap-1.5 py-2 sm:py-2.5 text-white font-display font-black text-xs sm:text-base hover:bg-white/10 transition-colors">
+            <Tv className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> BailaNow TV
+          </button>
+        </div>
 
-        <button onClick={() => setRadioWidgetOpen(true)} aria-label="Escuchar Radio Online"
-          className="relative flex flex-col items-center justify-center gap-3 px-3 py-6 bg-gradient-to-bl from-orange-600 via-pink-600 to-fuchsia-800 hover:brightness-110 transition-all overflow-hidden">
-          <div className="absolute -left-10 -top-10 w-40 h-40 bg-orange-400/20 rounded-full blur-3xl pointer-events-none" />
-          {/* 4 locutores de ejemplo */}
-          <div className="flex -space-x-2.5">
-            {[0, 1, 2, 3].map(i => (
-              <span key={i} className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/15 border-2 border-white/40 flex items-center justify-center">
-                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-              </span>
-            ))}
-          </div>
-          {/* Chat de peticiones de ejemplo */}
-          <div className="w-36 sm:w-52 bg-black/25 rounded-lg px-2.5 py-2 space-y-1">
-            <p className="text-white/85 text-[10px] leading-tight truncate">🎵 ¿Ponéis bachata?</p>
-            <p className="text-white/85 text-[10px] leading-tight truncate">🔥 ¡Menudo temazo!</p>
-          </div>
-          <p className="text-white font-display font-black text-base sm:text-xl leading-tight flex items-center gap-1.5">
-            <Radio className="w-4 h-4 sm:w-5 sm:h-5" /> Radio Online
+        {/* Radio: emisoras reales visibles, cada una se pulsa para escucharla directamente */}
+        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-bl from-orange-600 via-pink-600 to-fuchsia-800 flex flex-col p-2.5 sm:p-3.5">
+          <p className="text-white font-display font-black text-xs sm:text-base flex items-center gap-1.5 mb-2">
+            <Radio className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Radio Online
           </p>
-          <p className="text-white/60 text-[11px] sm:text-xs font-semibold -mt-2">Escucha en vivo →</p>
-        </button>
+          <div className="flex-1 grid grid-cols-2 gap-1.5 sm:gap-2 content-start">
+            {radioStations.slice(0, 4).map((s, i) => {
+              const isPlaying = playing === i;
+              return (
+                <button key={s.id} onClick={() => setPlaying(p => p === i ? null : i)}
+                  className={`flex items-center gap-1.5 rounded-lg sm:rounded-xl px-1.5 sm:px-2 py-1.5 text-left transition-colors ${isPlaying ? 'bg-white/25' : 'bg-white/10 hover:bg-white/15'}`}>
+                  <span className="w-6 h-6 sm:w-7 sm:h-7 rounded-full overflow-hidden flex-shrink-0 bg-white/20">
+                    <img src={s.img} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }} />
+                  </span>
+                  <span className="min-w-0 flex-1 text-white text-[9px] sm:text-[11px] font-bold truncate">{s.name}</span>
+                  {isPlaying
+                    ? (radioStatus === 'loading' ? <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white flex-shrink-0 animate-spin" /> : <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white flex-shrink-0" />)
+                    : <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white flex-shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
+          {radioStations.length > 4 && (
+            <button onClick={() => setRadioWidgetOpen(true)} className="text-white/70 hover:text-white text-[10px] sm:text-xs font-bold text-center mt-1.5">
+              Ver todas las emisoras →
+            </button>
+          )}
+        </div>
       </section>
 
       {/* ── CATEGORÍAS (subidas justo bajo el hero, como el diseño objetivo) ── */}
