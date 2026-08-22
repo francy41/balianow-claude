@@ -813,7 +813,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
       <CallBookingModal open={callOpen} onClose={() => setCallOpen(false)} />
 
       <EntityAdminPanel kind="venue" id={venueId} ownerUserId={venue?.userId as string} />
-      <div className="fixed z-[60] bottom-24 right-4 sm:bottom-8 sm:right-8">
+      <div className="fixed z-[60] bottom-48 right-4 sm:bottom-8 sm:right-8">
         <ClaimProfileButton
           targetTable="venues"
           targetId={venueId!}

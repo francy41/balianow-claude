@@ -77,7 +77,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
       {/* Superbuscador (GlobalSearch) — abre el modal que busca en locales, eventos, artistas, ciudades... */}
       <button
         onClick={() => window.dispatchEvent(new Event('bn:open-search'))}
-        className="flex-1 max-w-xl flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full bg-gradient-to-r from-pink-50 to-orange-50 dark:from-pink-950/30 dark:to-orange-950/20 border border-pink-200/70 dark:border-pink-900/40 hover:shadow-lg hover:shadow-pink-500/10 hover:border-pink-300 text-gray-500 transition-all"
+        className="flex-1 min-w-0 max-w-xl flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full bg-gradient-to-r from-pink-50 to-orange-50 dark:from-pink-950/30 dark:to-orange-950/20 border border-pink-200/70 dark:border-pink-900/40 hover:shadow-lg hover:shadow-pink-500/10 hover:border-pink-300 text-gray-500 transition-all"
         title="Buscar (Ctrl+K)"
       >
         <span className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-sm">

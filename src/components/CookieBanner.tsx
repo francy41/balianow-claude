@@ -43,7 +43,7 @@ const CookieBanner: React.FC = () => {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-[100] lg:bottom-4 lg:left-4 lg:right-auto lg:max-w-sm">
-      <div className="bg-gray-950 border border-pink-500/30 rounded-t-2xl lg:rounded-2xl shadow-2xl shadow-black/50 overflow-hidden">
+      <div className="bg-gray-950 border border-pink-500/30 rounded-t-2xl lg:rounded-2xl shadow-2xl shadow-black/50 overflow-y-auto max-h-[65vh]">
 
         {!showCustom ? (
           <div className="p-5">
