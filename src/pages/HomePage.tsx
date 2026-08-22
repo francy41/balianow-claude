@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import L from 'leaflet';
+import MapErrorBoundary from '../components/MapErrorBoundary';
 import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2 } from 'lucide-react';
 import { ARTISTS, EVENTS } from '../data/mockData';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_TV, type HomeCategory } from '../store/appStore';
@@ -581,18 +584,46 @@ const CHIP_TINTS = [
 ];
 
 // ── CINTILLO DE ACCESOS DESTACADOS: Planes, Pareja, Abierto ahora, Eventos en vivo ──
+// Icono pulsante para las señales de "plan activo" en el mini-mapa — mismo lenguaje
+// visual que el punto de alerta de las tarjetas (animate-ping + punto sólido).
+const planPinIcon = L.divIcon({
+  className: '',
+  html: `<div class="relative w-3.5 h-3.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-80"></span><span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-gradient-to-br from-fuchsia-300 to-purple-400 ring-2 ring-white shadow"></span></div>`,
+  iconSize: [14, 14], iconAnchor: [7, 7],
+});
+
+// Mini-mapa decorativo (sin interacción: solo panea/zoom visual) con las ubicaciones
+// reales de los planes de baile activos — nunca ejemplos inventados, si no hay planes
+// reales con coordenadas simplemente no se renderiza.
+const MiniPlansMap: React.FC<{ pins: { lat: number; lng: number }[] }> = ({ pins }) => {
+  if (pins.length === 0) return null;
+  const center: [number, number] = pins.length === 1
+    ? [pins[0].lat, pins[0].lng]
+    : [pins.reduce((s, p) => s + p.lat, 0) / pins.length, pins.reduce((s, p) => s + p.lng, 0) / pins.length];
+  return (
+    <MapContainer center={center} zoom={pins.length > 1 ? 5 : 12} style={{ width: '100%', height: '100%' }}
+      zoomControl={false} attributionControl={false} dragging={false} scrollWheelZoom={false}
+      doubleClickZoom={false} touchZoom={false} boxZoom={false} keyboard={false}>
+      <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+      {pins.map((p, i) => <Marker key={i} position={[p.lat, p.lng]} icon={planPinIcon} />)}
+    </MapContainer>
+  );
+};
+
 const QuickAccessRibbon: React.FC<{ navigate: any }> = ({ navigate }) => {
   const [counts, setCounts] = React.useState({ rutas: 0, parejas: 0, abiertos: 0, vivo: 0 });
+  const [planPins, setPlanPins] = React.useState<{ lat: number; lng: number }[]>([]);
 
   React.useEffect(() => {
     let cancelled = false;
     (async () => {
       const today = new Date().toISOString().slice(0, 10);
-      const [rutasRes, parejasRes, venuesRes, liveRes] = await Promise.all([
+      const [rutasRes, parejasRes, venuesRes, liveRes, planesRes] = await Promise.all([
         supabase.from('rutas').select('id', { count: 'exact', head: true }).eq('status', 'open').or(`end_date.is.null,end_date.gte.${today}`),
         supabase.from('partner_profiles').select('id', { count: 'exact', head: true }).eq('active', true),
         supabase.from('venues').select('open_time,close_time,is_open').is('deleted_at', null),
         supabase.from('live_sessions_enriched').select('id', { count: 'exact', head: true }).eq('status', 'live'),
+        supabase.from('rutas').select('stops').eq('status', 'open').or(`end_date.is.null,end_date.gte.${today}`).limit(8),
       ]);
       if (cancelled) return;
       const toMin = (s: string) => { const [h, m] = String(s).split(':').map(Number); return (h || 0) * 60 + (m || 0); };
@@ -606,6 +637,10 @@ const QuickAccessRibbon: React.FC<{ navigate: any }> = ({ navigate }) => {
         return false;
       }).length;
       setCounts({ rutas: rutasRes.count || 0, parejas: parejasRes.count || 0, abiertos, vivo: liveRes.count || 0 });
+      const pins = (planesRes.data || [])
+        .map((r: any) => (Array.isArray(r.stops) && r.stops[0]) ? { lat: Number(r.stops[0].lat), lng: Number(r.stops[0].lng) } : null)
+        .filter((p: any): p is { lat: number; lng: number } => !!p && Number.isFinite(p.lat) && Number.isFinite(p.lng));
+      setPlanPins(pins);
     })();
     return () => { cancelled = true; };
   }, []);
@@ -621,21 +656,33 @@ const QuickAccessRibbon: React.FC<{ navigate: any }> = ({ navigate }) => {
     <section className="mx-3 sm:mx-4 mt-2.5 sm:mt-3 grid grid-cols-4 gap-1.5 sm:gap-2.5">
       {TILES.map(t => {
         const Icon = t.icon;
+        const isMapTile = t.key === 'rutas' && planPins.length > 0;
         return (
           <button key={t.key} onClick={() => navigate(t.to)}
-            className={`relative flex flex-col items-center gap-1 sm:gap-1.5 rounded-2xl bg-gradient-to-br ${t.grad} px-1.5 sm:px-2 py-2.5 sm:py-3.5 shadow-md hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all overflow-hidden`}>
-            <div className="absolute -right-4 -top-4 w-16 h-16 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+            className={`relative flex flex-col items-center gap-1 sm:gap-1.5 rounded-2xl ${isMapTile ? 'bg-violet-950' : `bg-gradient-to-br ${t.grad}`} px-1.5 sm:px-2 py-2.5 sm:py-3.5 shadow-md hover:shadow-xl hover:-translate-y-0.5 active:scale-95 transition-all overflow-hidden`}>
+            {isMapTile ? (
+              <>
+                <div className="absolute inset-0 pointer-events-none opacity-80">
+                  <MapErrorBoundary fallback={<div className={`absolute inset-0 bg-gradient-to-br ${t.grad}`} />}>
+                    <MiniPlansMap pins={planPins} />
+                  </MapErrorBoundary>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-violet-950/90 via-violet-950/25 to-violet-950/10 pointer-events-none" />
+              </>
+            ) : (
+              <div className="absolute -right-4 -top-4 w-16 h-16 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+            )}
             {t.alert && (
-              <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+              <span className="absolute top-1.5 right-1.5 flex h-2 w-2 z-10">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
               </span>
             )}
-            <span className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/15 flex items-center justify-center">
+            <span className="relative z-10 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/15 flex items-center justify-center">
               <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </span>
-            <span className="text-white font-display font-black text-[10px] sm:text-xs leading-tight text-center">{t.label}</span>
-            <span className="text-white/70 text-[8px] sm:text-[10px] font-semibold text-center truncate w-full">{t.sub}</span>
+            <span className="relative z-10 text-white font-display font-black text-[10px] sm:text-xs leading-tight text-center">{t.label}</span>
+            <span className="relative z-10 text-white/70 text-[8px] sm:text-[10px] font-semibold text-center truncate w-full">{t.sub}</span>
           </button>
         );
       })}
