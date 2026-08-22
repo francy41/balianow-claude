@@ -203,7 +203,8 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
       }
 
       // Releer desde la BD para sincronizar el estado local con lo realmente guardado
-      const { data: fresh } = await supabase.from('profiles').select('*').eq('id', realId).maybeSingle();
+      // (vista profiles_self: incluye email/whatsapp, solo de tu propia fila)
+      const { data: fresh } = await supabase.from('profiles_self').select('*').eq('id', realId).maybeSingle();
       updateUser({
         ...form,
         id: realId,

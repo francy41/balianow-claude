@@ -50,7 +50,7 @@ const ServicesAdminSection: React.FC<Props> = ({ addToast }) => {
       setOrders(ord);
       const ids = Array.from(new Set(ord.map((o: any) => o.buyer_id).filter(Boolean)));
       if (ids.length) {
-        const { data: profs } = await supabase.from('profiles').select('id, full_name, email').in('id', ids);
+        const { data: profs } = await supabase.from('profiles_admin').select('id, full_name, email').in('id', ids);
         const map: Record<string, string> = {};
         (profs || []).forEach((p: any) => { map[p.id] = p.full_name || p.email || String(p.id).slice(0, 8); });
         setProfiles(map);

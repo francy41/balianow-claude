@@ -114,7 +114,11 @@ const ArtistAdminPanel: React.FC<Props> = ({ id, onSaved, ownerUserId, autoOpen 
       setLoading(false);
       return true;
     }
-    const prof = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
+    // Vista según quién pregunta: el propio dueño solo puede ver su fila
+    // (profiles_self); el admin puede ver cualquiera (profiles_admin) — ambas
+    // incluyen columnas sensibles (email/whatsapp) que la tabla base ya no
+    // expone a `authenticated` en general.
+    const prof = await supabase.from(isAdmin ? 'profiles_admin' : 'profiles_self').select('*').eq('id', id).maybeSingle();
     if (prof.data) {
       // Dueño no-admin: ocultar campos protegidos por el trigger anti-escalada (role/verified)
       const pf = isAdmin ? FIELDS_PROFILE_ARTIST : FIELDS_PROFILE_ARTIST.filter(f => !['role', 'verified'].includes(f.key));

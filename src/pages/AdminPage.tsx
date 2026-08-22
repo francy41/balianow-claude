@@ -1087,7 +1087,7 @@ const UsuariosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('profiles')
+        .from('profiles_admin')
         .select('id, full_name, email, role, status, city, location, avatar_url, created_at, verified')
         .order('created_at', { ascending: false })
         .limit(200);
@@ -1615,7 +1615,7 @@ const ArtistasSection: React.FC<{ addToast: Function; navigate: Function }> = ({
     setLoading(false);
     // 2) Profiles en segundo plano (si la consulta tarda/cuelga, no bloquea la lista)
     try {
-      const { data } = await supabase.from('profiles').select('*').in('role', ['artist','dj','singer','band','musician','promoter']);
+      const { data } = await supabase.from('profiles_admin').select('*').in('role', ['artist','dj','singer','band','musician','promoter']);
       const profs = (data || []).map((p: any) => ({
         id: p.id, name: p.full_name || p.email, type: p.role,
         city: p.city || p.location, avatar: p.avatar_url,
@@ -1890,7 +1890,7 @@ const BailarinasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     setLoading(false);
     // 2) Profiles en segundo plano (si tarda/cuelga, no bloquea la lista)
     try {
-      const { data } = await supabase.from('profiles').select('*').in('role', ['dancer','instructor']);
+      const { data } = await supabase.from('profiles_admin').select('*').in('role', ['dancer','instructor']);
       const profs = (data || []).map((p: any) => ({
         id: p.id, name: p.full_name || p.email, type: p.role,
         city: p.city || p.location, avatar: p.avatar_url,
@@ -2429,7 +2429,7 @@ const AfiliadosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     setItems(list);
     const ids = Array.from(new Set(list.map((a: any) => a.user_id).filter(Boolean)));
     if (ids.length) {
-      const { data: profs } = await supabase.from('profiles').select('id, full_name, email').in('id', ids);
+      const { data: profs } = await supabase.from('profiles_admin').select('id, full_name, email').in('id', ids);
       const map: Record<string, string> = {};
       (profs || []).forEach((p: any) => { map[p.id] = p.full_name || p.email || String(p.id).slice(0, 8); });
       setNames(map);
@@ -2639,7 +2639,7 @@ const CreatorsSection: React.FC = () => {
   useEffect(() => {
     (async () => {
       const [{ data: profs }, { data: esc }] = await Promise.all([
-        supabase.from('profiles')
+        supabase.from('profiles_admin')
           .select('id, full_name, email, avatar_url, role, city')
           .in('role', ['artist', 'musician', 'band', 'dj', 'dancer', 'venue', 'instructor', 'promoter', 'business'])
           .order('full_name'),
@@ -3675,7 +3675,7 @@ const RolesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     (async () => {
       try {
         const { supabase } = await import('../lib/supabase');
-        const { data, error } = await supabase.from('profiles').select('id, full_name, email, role, whatsapp, avatar_url, verified, location, created_at').order('created_at', { ascending: false });
+        const { data, error } = await supabase.from('profiles_admin').select('id, full_name, email, role, whatsapp, avatar_url, verified, location, created_at').order('created_at', { ascending: false });
         if (error) throw error;
         setProfiles(data || []);
       } catch (e: any) {
@@ -4623,7 +4623,7 @@ const AdministradoresSection: React.FC<{ addToast: Function; isSuperAdmin: boole
   const load = async () => {
     setLoading(true);
     const [{ data: adminData, error: adminErr }, { data: invData }] = await Promise.all([
-      supabase.from('profiles').select('id,full_name,email,avatar_url,role,created_at').in('role', ['admin','superadmin']).order('role', { ascending: false }),
+      supabase.from('profiles_admin').select('id,full_name,email,avatar_url,role,created_at').in('role', ['admin','superadmin']).order('role', { ascending: false }),
       supabase.from('admin_invitations').select('id,email,role,expires_at,used_at,created_at').order('created_at', { ascending: false }).limit(20),
     ]);
     if (adminErr) console.error('[admin] load admins error:', adminErr);
@@ -4645,7 +4645,7 @@ const AdministradoresSection: React.FC<{ addToast: Function; isSuperAdmin: boole
     setSending(true);
     try {
       // 1) Si el usuario YA existe → directamente le subimos el rol
-      const { data: existing } = await supabase.from('profiles').select('id,full_name').eq('email', email).maybeSingle();
+      const { data: existing } = await supabase.from('profiles_admin').select('id,full_name').eq('email', email).maybeSingle();
       if (existing) {
         const { error: upErr } = await supabase.from('profiles').update({ role: inviteRole }).eq('id', existing.id);
         if (upErr) throw upErr;

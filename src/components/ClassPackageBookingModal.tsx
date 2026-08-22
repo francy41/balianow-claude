@@ -48,10 +48,13 @@ const ClassPackageBookingModal: React.FC<Props> = ({ artist, onClose }) => {
   const search = useCallback(async (q: string) => {
     if (!q.trim()) { setResults([]); return; }
     setSearching(true);
+    // Búsqueda solo por nombre — buscar por email permitiría a cualquier usuario
+    // enumerar los emails de otras personas probando fragmentos ("gmail.com"...).
+    // Invitar por email conocido sigue disponible aparte, vía addEmail().
     const { data } = await supabase
       .from('profiles')
-      .select('id, full_name, email, avatar_url')
-      .or(`full_name.ilike.%${q}%,email.ilike.%${q}%`)
+      .select('id, full_name, avatar_url')
+      .ilike('full_name', `%${q}%`)
       .limit(6);
     setSearching(false);
     setResults((data || []).filter(p => p.id !== user?.id));
@@ -262,12 +265,12 @@ const ClassPackageBookingModal: React.FC<Props> = ({ artist, onClose }) => {
                   {results.length > 0 && (
                     <div className="mt-2 border border-gray-200 rounded-xl divide-y divide-gray-100 overflow-hidden">
                       {results.map(r => (
-                        <button key={r.id} onClick={() => addParticipant({ user_id: r.id, name: r.full_name || r.email, email: r.email })}
+                        <button key={r.id} onClick={() => addParticipant({ user_id: r.id, name: r.full_name || 'Usuario' })}
                           className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-pink-50 text-left">
                           <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
-                            {r.avatar_url ? <img src={r.avatar_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-bold">{(r.full_name || r.email || '?')[0]}</div>}
+                            {r.avatar_url ? <img src={r.avatar_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs font-bold">{(r.full_name || '?')[0]}</div>}
                           </div>
-                          <span className="flex-1 text-sm font-semibold text-gray-800 truncate">{r.full_name || r.email}</span>
+                          <span className="flex-1 text-sm font-semibold text-gray-800 truncate">{r.full_name || 'Usuario'}</span>
                           <Plus className="w-4 h-4 text-pink-500" />
                         </button>
                       ))}

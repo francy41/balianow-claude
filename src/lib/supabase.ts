@@ -114,8 +114,12 @@ export const authService = {
     return data.session;
   },
 
+  // Lee la fila propia completa (incluye email/whatsapp/wallet) vía la vista
+  // `profiles_self`, que solo puede devolver la fila del usuario que pregunta
+  // — esas columnas ya no son legibles para cualquier `authenticated` en la
+  // tabla base (ver supabase/security-fixes-2.sql).
   getProfile: async (userId: string) => {
-    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
+    const { data, error } = await supabase.from('profiles_self').select('*').eq('id', userId).maybeSingle();
     return { data, error };
   },
 
