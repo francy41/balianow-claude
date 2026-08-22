@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 import {
   LayoutDashboard, Wallet, BookOpen, Calendar as CalIcon, Video, Briefcase,
   Plus, Trash2, Edit3, CheckCircle, X, Check, ExternalLink, Clock,
-  TrendingUp, Users, Star, DollarSign, Eye, Play, AlertCircle, CreditCard, Shield
+  TrendingUp, TrendingDown, Users, Star, DollarSign, Eye, Play, AlertCircle, CreditCard, Shield, ArrowRight, Sparkles
 } from 'lucide-react';
 import {
   useAuthStore, useUIStore, usePerformerStore, useSiteConfigStore, useOrdersStore,
@@ -314,74 +314,174 @@ const EventsManagerTab: React.FC<{ performerId: string }> = ({ performerId }) =>
 };
 
 // ── OVERVIEW ──────────────────────────────────────────────────────────────
+// Campos reales de `profiles` que determinan si el perfil está completo — nada
+// inventado: cada casilla corresponde a una columna real que ya se edita desde
+// ProfileEditModal.
+const PROFILE_COMPLETION_ITEMS = (p: any) => [
+  { key: 'avatar_url', label: 'Añade una foto de perfil', done: !!p?.avatar_url },
+  { key: 'cover_photo', label: 'Añade una foto de portada', done: !!p?.cover_photo },
+  { key: 'bio', label: 'Completa tu descripción', done: !!(p?.bio && p.bio.trim().length > 10) },
+  { key: 'city', label: 'Indica tu ciudad', done: !!p?.city },
+  { key: 'whatsapp', label: 'Añade un contacto (WhatsApp)', done: !!p?.whatsapp },
+  { key: 'social', label: 'Añade al menos una red social', done: !!(p?.instagram_url || p?.tiktok_url || p?.youtube_url || p?.facebook_url || p?.website_url) },
+  { key: 'verified', label: 'Verifica tu perfil', done: !!p?.verified },
+];
+
 const OverviewTab: React.FC<{ performerId: string; onNavigate: (t: TabId) => void }> = ({ performerId, onNavigate }) => {
-  const { totalsFor, courses, offers, classes } = usePerformerStore();
-  const totals = totalsFor(performerId);
-  const myCourses = courses.filter(c => c.performerId === performerId);
-  const pendingOffers = offers.filter(o => o.performerId === performerId && o.status === 'pending');
-  const upcoming = classes.filter(c => c.performerId === performerId && c.status === 'scheduled');
+  const { user } = useAuthStore();
+  const [loading, setLoading] = useState(true);
+  const [escrows, setEscrows] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [coursesCount, setCoursesCount] = useState(0);
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const [escRes, profRes, artRes, coursesRes] = await Promise.all([
+        supabase.from('escrows').select('amount,commission,status,created_at').eq('payee_id', performerId),
+        supabase.from('profiles').select('*').eq('id', performerId).maybeSingle(),
+        supabase.from('artists').select('id').eq('user_id', performerId).maybeSingle(),
+        supabase.from('class_offerings').select('id', { count: 'exact', head: true }).eq('vendor_id', performerId),
+      ]);
+      if (cancelled) return;
+      setEscrows(escRes.data || []);
+      setProfile(profRes.data || null);
+      setCoursesCount(coursesRes.count || 0);
+      if (artRes.data?.id) {
+        const { data: revData } = await supabase.from('reviews').select('rating,comment,created_at')
+          .eq('target_type', 'artist').eq('target_id', String(artRes.data.id)).order('created_at', { ascending: false });
+        if (!cancelled) setReviews(revData || []);
+      }
+      setLoading(false);
+    })().catch(() => setLoading(false));
+    return () => { cancelled = true; };
+  }, [performerId]);
+
+  const now = new Date();
+  const inMonth = (iso: string, monthsAgo: number) => {
+    const d = new Date(iso);
+    const target = new Date(now.getFullYear(), now.getMonth() - monthsAgo, 1);
+    return d.getFullYear() === target.getFullYear() && d.getMonth() === target.getMonth();
+  };
+  const sumAmount = (rows: any[]) => rows.reduce((s, e) => s + (Number(e.amount) || 0), 0);
+  const thisMonth = escrows.filter(e => inMonth(e.created_at, 0));
+  const lastMonth = escrows.filter(e => inMonth(e.created_at, 1));
+  const revenueThisMonth = sumAmount(thisMonth.filter(e => ['released', 'completed'].includes(e.status)));
+  const revenueLastMonth = sumAmount(lastMonth.filter(e => ['released', 'completed'].includes(e.status)));
+  const trendPct = revenueLastMonth > 0 ? Math.round(((revenueThisMonth - revenueLastMonth) / revenueLastMonth) * 100) : null;
+  const inEscrow = sumAmount(escrows.filter(e => ['pending', 'held', 'escrow'].includes(e.status)));
+  const commissionPaid = escrows.reduce((s, e) => s + (Number(e.commission) || 0), 0);
+  const avgRating = reviews.length ? (reviews.reduce((s, r) => s + (Number(r.rating) || 0), 0) / reviews.length) : 0;
+
+  const completion = PROFILE_COMPLETION_ITEMS(profile);
+  const completionPct = Math.round((completion.filter(c => c.done).length / completion.length) * 100);
+  const firstName = (user?.name || 'ahí').split(' ')[0];
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[0, 1, 2, 3].map(i => <div key={i} className="skeleton h-28 rounded-2xl" />)}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
+      <div>
+        <h2 className="font-display font-black text-2xl text-gray-900">Hola, {firstName} 👋</h2>
+        <p className="text-gray-400 text-sm mt-0.5">
+          {revenueThisMonth > 0 ? 'Tu negocio está en marcha este mes.' : 'Así está tu perfil ahora mismo.'}
+        </p>
+      </div>
+
+      {/* Métricas reales con tendencia mes vs mes anterior */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Neto este mes" value={`€${totals.netThisMonth}`} sub={`Bruto €${totals.grossThisMonth}`} icon={<TrendingUp className="w-5 h-5" />} color="green" />
-        <StatCard label="Comisión 15%" value={`€${totals.commissionThisMonth}`} sub="Pagado a plataforma" icon={<DollarSign className="w-5 h-5" />} color="orange" />
-        <StatCard label="Cursos" value={String(myCourses.length)} sub={`${myCourses.reduce((s, c) => s + c.enrolledCount, 0)} alumnos`} icon={<BookOpen className="w-5 h-5" />} color="purple" />
-        <StatCard label="Ofertas pendientes" value={String(pendingOffers.length)} sub="Por responder" icon={<Briefcase className="w-5 h-5" />} color="pink" />
+        <MetricCard label="Disponible" value={`€${revenueThisMonth.toFixed(2)}`} trendPct={trendPct} icon={<TrendingUp className="w-5 h-5" />} color="green" />
+        <MetricCard label="En proceso" value={`€${inEscrow.toFixed(2)}`} sub="Pendiente de liberar" icon={<Clock className="w-5 h-5" />} color="orange" />
+        <MetricCard label="Cursos publicados" value={String(coursesCount)} icon={<BookOpen className="w-5 h-5" />} color="purple"
+          onClick={() => onNavigate('classes')} />
+        <MetricCard label="Valoración media" value={reviews.length ? avgRating.toFixed(1) : '—'} sub={reviews.length ? `${reviews.length} reseña${reviews.length === 1 ? '' : 's'}` : 'Sin reseñas todavía'} icon={<Star className="w-5 h-5" />} color="pink" />
+      </div>
+
+      {/* Estado del perfil */}
+      <div className="card-white p-5">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="font-bold text-gray-900 flex items-center gap-2">
+            Estado de tu perfil {completionPct >= 80 && <Sparkles className="w-4 h-4 text-amber-500" />}
+          </h3>
+          <span className="font-black text-brand-orange">{completionPct}%</span>
+        </div>
+        <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-4">
+          <div className="h-full bg-gradient-to-r from-pink-500 to-fuchsia-600 rounded-full transition-all" style={{ width: `${completionPct}%` }} />
+        </div>
+        {completionPct === 100 ? (
+          <p className="text-sm text-gray-500">Tu perfil está completo. ¡Sigue publicando contenido para mantenerlo destacado!</p>
+        ) : (
+          <ul className="space-y-1.5 mb-4">
+            {completion.filter(c => !c.done).slice(0, 4).map(c => (
+              <li key={c.key} className="flex items-center gap-2 text-sm text-gray-600">
+                <span className="w-4 h-4 rounded-full border-2 border-gray-300 flex-shrink-0" /> {c.label}
+              </li>
+            ))}
+          </ul>
+        )}
+        {completionPct < 100 && (
+          <Button variant="orange" onClick={() => onNavigate('overview')} className="text-sm">Mejorar mi perfil</Button>
+        )}
       </div>
 
       <RoleManager />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="card-white p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-gray-900">Próximas clases online</h3>
-            <button onClick={() => onNavigate('classes')} className="text-brand-orange text-xs font-semibold">Ver todas →</button>
-          </div>
-          {upcoming.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-6">No tienes clases programadas</p>
-          ) : (
-            <div className="space-y-2">
-              {upcoming.slice(0, 3).map(c => (
-                <div key={c.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                  <div className="w-10 h-10 rounded-lg bg-brand-orange/10 flex items-center justify-center">
-                    <Video className="w-5 h-5 text-brand-orange" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm text-gray-900 truncate">{c.topic}</p>
-                    <p className="text-xs text-gray-400">{c.clientName} · {new Date(c.scheduledAt).toLocaleString('es-ES', { dateStyle: 'short', timeStyle: 'short' })}</p>
-                  </div>
-                  <span className="text-sm font-bold text-brand-orange">€{c.price}</span>
-                </div>
-              ))}
-            </div>
-          )}
+      {/* Reseñas recientes */}
+      <div className="card-white p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-bold text-gray-900">Reseñas recientes</h3>
         </div>
-
-        <div className="card-white p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-bold text-gray-900">Ofertas pendientes</h3>
-            <button onClick={() => onNavigate('offers')} className="text-brand-orange text-xs font-semibold">Ver todas →</button>
+        {reviews.length === 0 ? (
+          <div className="text-center py-8">
+            <Star className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+            <p className="text-gray-400 text-sm">Aún no tienes reseñas. Aparecerán aquí cuando los clientes te valoren.</p>
           </div>
-          {pendingOffers.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-6">No tienes ofertas nuevas</p>
-          ) : (
-            <div className="space-y-2">
-              {pendingOffers.slice(0, 3).map(o => (
-                <div key={o.id} className="flex items-center gap-3 p-3 bg-pink-50 rounded-xl border border-pink-100">
-                  <Avatar src={o.clientAvatar} name={o.clientName} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm text-gray-900 truncate">{o.title}</p>
-                    <p className="text-xs text-gray-400">{o.clientName} · {o.date}</p>
-                  </div>
-                  <span className="text-sm font-black text-brand-orange">€{o.proposedPrice}</span>
+        ) : (
+          <div className="space-y-2">
+            {reviews.slice(0, 3).map((r, i) => (
+              <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl">
+                <div className="flex items-center gap-0.5 flex-shrink-0 mt-0.5">
+                  {Array.from({ length: r.rating || 0 }).map((_, j) => <Star key={j} className="w-3 h-3 fill-amber-400 text-amber-400" />)}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+                <p className="text-sm text-gray-600 flex-1">{r.comment || '(sin comentario)'}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
+  );
+};
+
+const MetricCard: React.FC<{ label: string; value: string; sub?: string; trendPct?: number | null; icon: React.ReactNode; color: 'green' | 'orange' | 'purple' | 'pink'; onClick?: () => void }> = ({ label, value, sub, trendPct, icon, color, onClick }) => {
+  const colors = {
+    green:  'bg-green-50 text-green-600',
+    orange: 'bg-pink-50 text-brand-orange',
+    purple: 'bg-purple-50 text-purple-600',
+    pink:   'bg-pink-50 text-pink-600',
+  };
+  const Comp: any = onClick ? 'button' : 'div';
+  return (
+    <Comp onClick={onClick} className={`card-white p-4 text-left ${onClick ? 'hover:shadow-md hover:-translate-y-0.5 transition-all' : ''}`}>
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2 ${colors[color]}`}>{icon}</div>
+      <p className="text-2xl font-black text-gray-900">{value}</p>
+      <p className="text-xs text-gray-500 font-semibold mt-0.5">{label}</p>
+      {trendPct !== undefined && trendPct !== null ? (
+        <p className={`text-[10px] font-bold mt-1 flex items-center gap-1 ${trendPct >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+          {trendPct >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+          {trendPct >= 0 ? '+' : ''}{trendPct}% vs. mes anterior
+        </p>
+      ) : sub ? (
+        <p className="text-[10px] text-gray-400 mt-1">{sub}</p>
+      ) : null}
+    </Comp>
   );
 };
 
