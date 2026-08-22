@@ -42,7 +42,7 @@ export const Badge: React.FC<BadgeProps> = ({ children, variant = 'gray', classN
     orange: 'bg-brand-orange text-white',
     green:  'bg-green-100 text-green-700',
     red:    'bg-red-100 text-red-600',
-    gray:   'bg-gray-100 text-gray-500',
+    gray:   'bg-surface-elevated-2 text-ink-secondary',
     blue:   'bg-blue-100 text-blue-700',
     live:   'bg-red-600 text-white animate-pulse',
   };
@@ -192,8 +192,8 @@ export const FilterChips: React.FC<{ options: string[]; selected: string[]; onCh
 export const EmptyState: React.FC<{ icon: string; title: string; description: string; action?: React.ReactNode }> = ({ icon, title, description, action }) => (
   <div className="flex flex-col items-center justify-center py-16 text-center px-6">
     <div className="text-6xl mb-4">{icon}</div>
-    <h3 className="text-xl font-display font-bold text-gray-800 mb-2">{title}</h3>
-    <p className="text-gray-400 text-sm max-w-xs mb-6">{description}</p>
+    <h3 className="text-xl font-display font-bold text-ink-primary mb-2">{title}</h3>
+    <p className="text-ink-tertiary text-sm max-w-xs mb-6">{description}</p>
     {action}
   </div>
 );
