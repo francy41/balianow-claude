@@ -75,6 +75,21 @@ const DashboardPage: React.FC = () => {
     if (!visibleTabs.some(t => t.id === tab)) setTab('overview');
   }, [profileModules]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Eventos reales del artista/local logueado, para las pestañas Compradores y Escanear QR.
+  const [myEvents, setMyEvents] = useState<{ id: string; title: string }[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState('');
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    supabase.from('events').select('id,title,owner_id,user_id').is('deleted_at', null).then(({ data }) => {
+      if (cancelled) return;
+      const mine = (data || []).filter((e: any) => e.owner_id === user.id || e.user_id === user.id);
+      setMyEvents(mine);
+      setSelectedEventId(prev => prev || mine[0]?.id || '');
+    }, () => {});
+    return () => { cancelled = true; };
+  }, [user?.id]);
+
   if (!isAuthenticated || !user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -184,20 +199,26 @@ const DashboardPage: React.FC = () => {
               <div>
                 <h2 className="font-display font-black text-xl text-gray-900 mb-1">👥 Compradores y Reservas</h2>
                 <p className="text-gray-400 text-sm mb-4">Gestiona los compradores de tus eventos</p>
-                <div className="mb-4">
-                  <select className="px-3 py-2 rounded-xl border border-gray-200 text-sm bg-white">
-                    <option value="e1">Salsa & Bachata Night — Gran Gala</option>
-                    <option value="e3">Festival Latino BCN 2026</option>
-                  </select>
-                </div>
-                <BuyerTable eventId="e1" />
+                {myEvents.length === 0 ? (
+                  <p className="text-gray-400 text-sm py-8 text-center">Aún no tienes eventos publicados.</p>
+                ) : (
+                  <>
+                    <div className="mb-4">
+                      <select value={selectedEventId} onChange={e => setSelectedEventId(e.target.value)}
+                        className="px-3 py-2 rounded-xl border border-gray-200 text-sm bg-white">
+                        {myEvents.map(e => <option key={e.id} value={e.id}>{e.title}</option>)}
+                      </select>
+                    </div>
+                    <BuyerTable eventId={selectedEventId} />
+                  </>
+                )}
               </div>
             )}
             {tab === 'scanner'  && (
               <div>
                 <h2 className="font-display font-black text-xl text-gray-900 mb-1">📷 Escanear Entradas</h2>
                 <p className="text-gray-400 text-sm mb-4">Valida tickets QR en la puerta del evento</p>
-                <QRScanner eventId="e1" />
+                <QRScanner eventId={selectedEventId} />
               </div>
             )}
             {tab === 'events'   && <EventsManagerTab performerId={performerId} />}

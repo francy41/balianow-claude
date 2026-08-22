@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { Search, Filter, Download, RefreshCw, ChevronLeft, ChevronRight, Eye, QrCode, CheckCircle, XCircle, Clock, AlertTriangle, Shield, Camera, CameraOff, Loader2 } from 'lucide-react';
-import { useTicketStore, type Ticket, type QRStatus, type TicketScanResult } from '../store/ticketStore';
+import { useTicketStore, type QRStatus, type TicketScanResult } from '../store/ticketStore';
 import { QRStatusBadge, ScanResultCard } from './QRTicket';
 import { Badge, Button } from './ui';
 import { supabase } from '../lib/supabase';
@@ -9,7 +9,36 @@ import { supabase } from '../lib/supabase';
    BUYER TABLE — SaaS-style for sellers/organizers
    ══════════════════════════════════════════════════════════════════════════ */
 export const BuyerTable: React.FC<{ eventId: string }> = ({ eventId }) => {
-  const tickets = useTicketStore(s => s.getTicketsByEvent(eventId));
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!eventId) { setRows([]); setLoading(false); return; }
+    let cancelled = false;
+    setLoading(true);
+    supabase.from('tickets').select('*').eq('event_id', eventId).order('created_at', { ascending: false }).then(
+      ({ data }) => { if (!cancelled) { setRows(data || []); setLoading(false); } },
+      () => { if (!cancelled) { setRows([]); setLoading(false); } }
+    );
+    return () => { cancelled = true; };
+  }, [eventId]);
+
+  const tickets = useMemo(() => rows.map((t: any) => ({
+    id: t.id,
+    buyerName: t.buyer_name || 'Comprador',
+    buyerEmail: t.buyer_email || '',
+    buyerPhone: t.buyer_phone || '',
+    sectionName: t.section_name || t.section_type || 'General',
+    ticketType: t.ticket_type || t.section_type || 'general',
+    quantity: Number(t.quantity) || 1,
+    totalPrice: Number(t.price) || 0,
+    paymentMethod: t.payment_method || '—',
+    paymentStatus: (t.status === 'refunded' ? 'refunded' : 'paid') as 'paid' | 'refunded',
+    qrToken: t.qr_token || '',
+    qrStatus: (t.status || 'valid') as QRStatus,
+    purchaseDate: t.created_at ? new Date(t.created_at) : new Date(),
+  })), [rows]);
+
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<QRStatus | 'all'>('all');
   const [page, setPage] = useState(0);
@@ -43,6 +72,8 @@ export const BuyerTable: React.FC<{ eventId: string }> = ({ eventId }) => {
     a.href = url; a.download = `compradores-${eventId}.csv`; a.click();
     URL.revokeObjectURL(url);
   };
+
+  if (loading) return <div className="py-12 text-center text-gray-400 text-sm">Cargando compradores…</div>;
 
   return (
     <div className="space-y-4">
