@@ -727,6 +727,9 @@ const DISCOVER_TABS: { key: DiscoverKind | 'todos'; label: string; icon: React.F
   { key: 'vivo', label: 'Eventos en vivo', icon: Calendar },
 ];
 const DISCOVER_ORDER: DiscoverKind[] = ['plan', 'venue', 'vivo', 'evento', 'pareja'];
+const DISCOVER_TAB_ROUTE: Record<DiscoverKind | 'todos', string> = {
+  todos: '/rutas', plan: '/rutas', venue: '/venues', pareja: '/parejas', evento: '/eventos', vivo: '/live',
+};
 
 const DISCOVER_BADGE: Record<DiscoverKind, { label: string; className: string; cta: string }> = {
   plan:   { label: 'PLAN',          className: 'bg-pink-600',    cta: 'border-pink-400 text-pink-300' },
@@ -882,7 +885,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
               )}
             </div>
           </div>
-          <button onClick={() => navigate('/rutas')}
+          <button onClick={() => navigate(DISCOVER_TAB_ROUTE[tab])}
             className="flex-shrink-0 inline-flex items-center gap-1.5 bg-gradient-to-br from-pink-500 to-fuchsia-700 text-white text-[11px] font-extrabold px-3.5 py-2 rounded-xl shadow-lg shadow-pink-900/40 hover:shadow-xl transition-all">
             Ver todos <ArrowRight className="w-3 h-3" />
           </button>
