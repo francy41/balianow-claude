@@ -690,6 +690,170 @@ const QuickAccessRibbon: React.FC<{ navigate: any }> = ({ navigate }) => {
   );
 };
 
+// ── PLANES DE BAILE (Home) — versión ampliada del cintillo, con mapa real interactivo
+// y hasta 4 planes reales. Si no hay ningún plan abierto, la sección no se muestra
+// (el acceso al cintillo de arriba ya cubre el "crea el tuyo"). ──
+interface HomeRutaStop { name: string; address?: string; lat: number; lng: number; venue_id?: string; }
+interface HomeRuta { id: string; title: string; city: string; date: string | null; time: string | null; stops: HomeRutaStop[]; }
+
+const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
+  const [loaded, setLoaded] = useState(false);
+  const [plans, setPlans] = useState<HomeRuta[]>([]);
+  const [crowd, setCrowd] = useState<Record<string, { count: number; avatars: (string | null)[] }>>({});
+  const [stats, setStats] = useState({ total: 0, gente: 0, ciudades: 0, hoy: 0 });
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const [{ data: allOpen }, { data: top }] = await Promise.all([
+        supabase.from('rutas').select('id, city, date').eq('status', 'open').or(`end_date.is.null,end_date.gte.${today}`),
+        supabase.from('rutas').select('*').eq('status', 'open').or(`end_date.is.null,end_date.gte.${today}`)
+          .order('created_at', { ascending: false }).limit(4),
+      ]);
+      if (cancelled) return;
+      const allList = allOpen || [];
+      const ids = allList.map((r: any) => r.id);
+      const topList = (top || []).map((r: any) => ({ ...r, stops: Array.isArray(r.stops) ? r.stops : [] })) as HomeRuta[];
+      setPlans(topList);
+      setStats({
+        total: allList.length,
+        gente: 0,
+        ciudades: new Set(allList.map((r: any) => r.city).filter(Boolean)).size,
+        hoy: allList.filter((r: any) => r.date === today).length,
+      });
+
+      if (ids.length) {
+        const { data: mem } = await supabase.from('ruta_members').select('ruta_id, user_id').in('ruta_id', ids);
+        if (cancelled) return;
+        const rows = mem || [];
+        const topIds = new Set(topList.map(r => r.id));
+        const forCards = rows.filter((m: any) => topIds.has(m.ruta_id));
+        const { data: profs } = forCards.length
+          ? await supabase.from('profiles').select('id, avatar_url').in('id', [...new Set(forCards.map((m: any) => m.user_id))])
+          : { data: [] as any[] };
+        if (cancelled) return;
+        const avatarOf = new Map((profs || []).map((p: any) => [p.id, p.avatar_url]));
+        const grouped: Record<string, { count: number; avatars: (string | null)[] }> = {};
+        for (const m of forCards as any[]) {
+          const g = grouped[m.ruta_id] || (grouped[m.ruta_id] = { count: 0, avatars: [] });
+          g.count++;
+          if (g.avatars.length < 3) g.avatars.push(avatarOf.get(m.user_id) || null);
+        }
+        setCrowd(grouped);
+        setStats(s => ({ ...s, gente: rows.length }));
+      }
+      setLoaded(true);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  if (loaded && plans.length === 0) return null;
+
+  const pins = plans
+    .map(r => (r.stops[0] ? { lat: Number(r.stops[0].lat), lng: Number(r.stops[0].lng) } : null))
+    .filter((p): p is { lat: number; lng: number } => !!p && Number.isFinite(p.lat) && Number.isFinite(p.lng));
+  const mapCenter: [number, number] = pins.length
+    ? [pins.reduce((s, p) => s + p.lat, 0) / pins.length, pins.reduce((s, p) => s + p.lng, 0) / pins.length]
+    : [40.4168, -3.7038];
+
+  const CARD_GRADIENTS = ['from-pink-600 to-fuchsia-800', 'from-violet-600 to-purple-800', 'from-emerald-600 to-teal-800', 'from-orange-600 to-red-800'];
+
+  return (
+    <section className="mx-3 sm:mx-4 mt-8">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#2E1440] via-[#1B0E29] to-[#0F0818] p-5 sm:p-7">
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-pink-500/20 blur-3xl pointer-events-none" />
+
+        <div className="relative flex items-start justify-between gap-4 flex-wrap">
+          <div className="min-w-0">
+            <h2 className="font-display font-black text-xl sm:text-2xl text-white flex items-center gap-2">
+              <RouteIcon className="w-5 h-5 text-pink-300" /> Planes de baile
+            </h2>
+            <p className="text-purple-200/80 text-sm mt-1">Planes reales de esta noche, en el mapa.</p>
+            <div className="flex flex-wrap gap-2 mt-3">
+              <div className="flex items-center gap-2 bg-white/[0.06] border border-white/10 rounded-xl px-3 py-1.5">
+                <span className="text-white font-extrabold text-sm">{stats.total}</span>
+                <span className="text-purple-200/70 text-[10px]">abiertos</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/[0.06] border border-white/10 rounded-xl px-3 py-1.5">
+                <span className="text-white font-extrabold text-sm">{stats.gente}</span>
+                <span className="text-purple-200/70 text-[10px]">apuntados</span>
+              </div>
+              <div className="flex items-center gap-2 bg-white/[0.06] border border-white/10 rounded-xl px-3 py-1.5">
+                <span className="text-white font-extrabold text-sm">{stats.ciudades}</span>
+                <span className="text-purple-200/70 text-[10px]">{stats.ciudades === 1 ? 'ciudad' : 'ciudades'}</span>
+              </div>
+            </div>
+          </div>
+          <button onClick={() => navigate('/rutas')}
+            className="flex-shrink-0 inline-flex items-center gap-1.5 bg-gradient-to-br from-pink-500 to-fuchsia-700 text-white text-xs font-extrabold px-4 py-2.5 rounded-xl shadow-lg shadow-pink-900/40 hover:shadow-xl transition-all">
+            Ver todos <ArrowRight className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Mapa real e interactivo (arrastrar/zoom) con las ubicaciones reales de los planes mostrados */}
+        {pins.length > 0 && (
+          <div className="relative mt-5 h-56 sm:h-64 rounded-2xl overflow-hidden border border-white/10">
+            <MapErrorBoundary fallback={<div className="absolute inset-0 bg-white/5" />}>
+              <MapContainer center={mapCenter} zoom={pins.length > 1 ? 6 : 12} style={{ width: '100%', height: '100%' }} attributionControl={false}>
+                <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
+                {pins.map((p, i) => <Marker key={i} position={[p.lat, p.lng]} icon={planPinIcon} />)}
+              </MapContainer>
+            </MapErrorBoundary>
+          </div>
+        )}
+
+        {/* Tarjetas de planes reales */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
+          {plans.map((r, i) => {
+            const g = crowd[r.id];
+            const isToday = r.date === new Date().toISOString().slice(0, 10);
+            return (
+              <button key={r.id} onClick={() => navigate('/rutas')}
+                className="text-left rounded-2xl overflow-hidden bg-white/[0.05] border border-white/10 hover:border-pink-400/40 hover:-translate-y-1 transition-all duration-300">
+                <div className={`relative h-20 bg-gradient-to-br ${CARD_GRADIENTS[i % CARD_GRADIENTS.length]} flex items-center justify-center`}>
+                  <RouteIcon className="w-8 h-8 text-white/25" />
+                  {isToday && (
+                    <span className="absolute top-2 left-2 inline-flex items-center gap-1 bg-white text-pink-700 text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full">
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-500 opacity-75" />
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-pink-500" />
+                      </span>
+                      Hoy
+                    </span>
+                  )}
+                </div>
+                <div className="p-3">
+                  <p className="text-white font-bold text-[13px] leading-tight truncate">{r.title}</p>
+                  <p className="text-purple-200/70 text-[11px] mt-1 flex items-center gap-1 truncate">
+                    <MapPin className="w-3 h-3 flex-shrink-0" /> {r.city}{r.time ? ` · ${r.time}` : ''}
+                  </p>
+                  <div className="flex items-center justify-between mt-2.5">
+                    {g && g.count > 0 ? (
+                      <span className="flex items-center">
+                        <span className="flex">
+                          {g.avatars.map((a, ai) => (
+                            <span key={ai} className="-mr-2 last:mr-0 ring-2 ring-[#1B0E29] rounded-full">
+                              <Avatar src={a || ''} name="?" size="xs" />
+                            </span>
+                          ))}
+                        </span>
+                        <span className="text-[10px] font-bold text-purple-200/80 ml-2.5">{g.count} {g.count === 1 ? 'va' : 'van'}</span>
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-purple-200/60">Sé el primero</span>
+                    )}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+};
+
 const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => {
   const { homeCategories } = useSiteConfigStore();
   const active = homeCategories.filter(c => c.active);
@@ -1610,6 +1774,9 @@ const HomePage: React.FC = () => {
 
       {/* ── CINTILLO DE ACCESOS DESTACADOS: Planes, Pareja, Abierto ahora, Eventos en vivo ── */}
       <QuickAccessRibbon navigate={navigate} />
+
+      {/* ── PLANES DE BAILE — versión ampliada, justo debajo del cintillo ── */}
+      <PlanesDeBaileHomeSection navigate={navigate} />
 
       {/* ── SPONSORS SLIDER ── */}
       <FeaturedSlider navigate={navigate} />
