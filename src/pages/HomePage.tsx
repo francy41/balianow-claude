@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import MapErrorBoundary from '../components/MapErrorBoundary';
 import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2, GraduationCap, Grid3x3 } from 'lucide-react';
 import { ARTISTS, EVENTS } from '../data/mockData';
+import { TOP_DANCE_CITIES } from '../data/topDanceCities';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_TV, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
 import { Avatar, StarRating, SearchBar, AppImage } from '../components/ui';
@@ -661,7 +662,23 @@ const CITY_CENTER: Record<string, [number, number]> = {
 };
 const cityCenter = (city?: string) => city ? CITY_CENTER[city.trim().toLowerCase()] : undefined;
 
-const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
+// Encuadra automáticamente TODOS los pines reales en la vista — sin esto, si dos elementos
+// reales están en ciudades lejanas (p.ej. Madrid y La Habana), el centro medio + zoom fijo
+// puede dejar casi todos los pines fuera de la vista visible.
+const FitDiscoverPins: React.FC<{ pins: { lat: number; lng: number }[] }> = ({ pins }) => {
+  const map = useMap();
+  useEffect(() => {
+    const t = setTimeout(() => {
+      map.invalidateSize();
+      if (pins.length === 1) map.setView([pins[0].lat, pins[0].lng], 12);
+      else if (pins.length > 1) map.fitBounds(pins.map(p => [p.lat, p.lng]) as any, { padding: [28, 28], maxZoom: 11 });
+    }, 150);
+    return () => clearTimeout(t);
+  }, [pins, map]);
+  return null;
+};
+
+const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string }> = ({ navigate, cityFilter }) => {
   const [loaded, setLoaded] = useState(false);
   const [items, setItems] = useState<DiscoverItem[]>([]);
   const [stats, setStats] = useState({ abiertos: 0, pareja: 0, vivo: 0, rating: 0, plan: 0, evento: 0 });
@@ -784,15 +801,20 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
 
   if (loaded && items.length === 0) return null;
 
+  // Ciudad elegida en el súper buscador de arriba — filtra las tarjetas y el mapa de esta sección.
+  const scoped = cityFilter?.trim()
+    ? items.filter(it => it.city.toLowerCase().includes(cityFilter.trim().toLowerCase()))
+    : items;
+
   // "Todos" = un único ejemplo real por categoría (nunca varias tarjetas del mismo tipo seguidas).
   const shown = tab === 'todos'
-    ? DISCOVER_ORDER.map(k => items.find(it => it.kind === k)).filter((it): it is DiscoverItem => !!it)
-    : items.filter(it => it.kind === tab).slice(0, 8);
+    ? DISCOVER_ORDER.map(k => scoped.find(it => it.kind === k)).filter((it): it is DiscoverItem => !!it)
+    : scoped.filter(it => it.kind === tab).slice(0, 8);
 
   // El mapa siempre muestra las 4 categorías con ubicación real (Planes/Abiertos/Eventos/En directo),
   // cada una con su propio color y alarma parpadeante — independiente de la pestaña activa.
   const MAPPABLE: DiscoverKind[] = ['plan', 'venue', 'evento', 'vivo'];
-  const pins = items.filter((it): it is DiscoverItem & { lat: number; lng: number; kind: 'plan' | 'venue' | 'evento' | 'vivo' } =>
+  const pins = scoped.filter((it): it is DiscoverItem & { lat: number; lng: number; kind: 'plan' | 'venue' | 'evento' | 'vivo' } =>
     MAPPABLE.includes(it.kind) && it.lat !== undefined && it.lng !== undefined);
   const mapCenter: [number, number] = pins.length
     ? [pins.reduce((s, p) => s + p.lat, 0) / pins.length, pins.reduce((s, p) => s + p.lng, 0) / pins.length]
@@ -811,7 +833,11 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
               <MapContainer center={mapCenter} zoom={pins.length > 1 ? 6 : 12} style={{ width: '100%', height: '100%' }}
                 attributionControl={false} zoomControl={false} scrollWheelZoom={false}>
                 <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
-                {pins.map(p => <Marker key={p.id} position={[p.lat, p.lng]} icon={DISCOVER_PIN_ICON[p.kind]} />)}
+                <FitDiscoverPins pins={pins} />
+                {pins.map(p => (
+                  <Marker key={p.id} position={[p.lat, p.lng]} icon={DISCOVER_PIN_ICON[p.kind]}
+                    eventHandlers={{ click: () => navigate(p.route) }} />
+                ))}
               </MapContainer>
             </MapErrorBoundary>
           ) : (
@@ -922,6 +948,10 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
           })}
         </div>
 
+        {cityFilter?.trim() && shown.length === 0 && (
+          <p className="text-pink-200/70 text-xs text-center py-6">Aún no hay nada real publicado en «{cityFilter}» — prueba con otra ciudad o sé el primero en crear un plan.</p>
+        )}
+
         {/* Tarjetas — fotos reales para locales/eventos/directos; degradado+icono para planes (sin foto propia) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mt-3">
           {shown.map(it => {
@@ -980,6 +1010,90 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
         </div>
       </div>
     </section>
+  );
+};
+
+// ── SÚPER BUSCADOR del Home — ciudad (autocompletar sobre TOP_DANCE_CITIES real) o mi ubicación
+// (geolocalización real del navegador, nunca inventada). Vinculado a "Planes de baile": elegir
+// una ciudad filtra las tarjetas y el mapa de esa sección, justo debajo. ──
+const SuperSearchBar: React.FC<{ cityValue: string; onCitySelect: (city: string) => void }> = ({ cityValue, onCitySelect }) => {
+  const [query, setQuery] = useState(cityValue);
+  const [locating, setLocating] = useState(false);
+  const [locError, setLocError] = useState('');
+  const [showList, setShowList] = useState(false);
+
+  useEffect(() => { setQuery(cityValue); }, [cityValue]);
+
+  const filtered = (query.trim()
+    ? TOP_DANCE_CITIES.filter(c => c.toLowerCase().includes(query.trim().toLowerCase()))
+    : TOP_DANCE_CITIES
+  ).slice(0, 8);
+
+  const pick = (city: string) => { setQuery(city); setShowList(false); onCitySelect(city); };
+
+  const submit = () => {
+    const match = TOP_DANCE_CITIES.find(c => c.toLowerCase() === query.trim().toLowerCase()) || filtered[0];
+    if (match) { pick(match); return; }
+    if (query.trim()) window.dispatchEvent(new CustomEvent('bn:open-search', { detail: { query: query.trim() } }));
+    setShowList(false);
+  };
+
+  const useMyLocation = () => {
+    if (!navigator.geolocation) { setLocError('Tu navegador no soporta geolocalización'); return; }
+    setLocating(true); setLocError('');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        let best: string | null = null; let bestDist = Infinity;
+        for (const [name, [lat, lng]] of Object.entries(CITY_CENTER)) {
+          const d = Math.hypot(lat - latitude, lng - longitude);
+          if (d < bestDist) { bestDist = d; best = name; }
+        }
+        setLocating(false);
+        if (best) pick(TOP_DANCE_CITIES.find(c => c.toLowerCase() === best) || best);
+      },
+      () => { setLocating(false); setLocError('No se pudo acceder a tu ubicación'); },
+      { timeout: 8000 }
+    );
+  };
+
+  return (
+    <div className="relative mx-3 sm:mx-4 mt-4 mb-1">
+      <div className="relative bg-white dark:bg-gray-900 border-2 border-pink-200 dark:border-pink-900/40 rounded-2xl shadow-lg shadow-pink-500/10 flex items-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-3.5">
+        <Search className="w-5 h-5 text-pink-500 flex-shrink-0" />
+        <input
+          value={query}
+          onChange={e => { setQuery(e.target.value); setShowList(true); }}
+          onFocus={() => setShowList(true)}
+          onBlur={() => setTimeout(() => setShowList(false), 150)}
+          onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') setShowList(false); }}
+          placeholder="¿En qué ciudad quieres bailar hoy?"
+          className="flex-1 min-w-0 bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400 text-sm sm:text-base font-bold"
+        />
+        {query && (
+          <button onClick={() => { setQuery(''); onCitySelect(''); }} className="flex-shrink-0 text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+        )}
+        <button onClick={useMyLocation} disabled={locating}
+          className="flex-shrink-0 flex items-center gap-1.5 bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white text-xs sm:text-sm font-bold px-2.5 sm:px-4 py-2 rounded-xl disabled:opacity-60 shadow shadow-pink-500/30">
+          {locating ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
+          <span className="hidden sm:inline">Usar mi ubicación</span>
+        </button>
+      </div>
+      {locError && <p className="text-red-500 text-[11px] mt-1 px-1">{locError}</p>}
+      {showList && (
+        <div className="absolute left-0 right-0 mt-2 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-xl z-20 max-h-64 overflow-y-auto p-2">
+          {filtered.length === 0 ? (
+            <button onMouseDown={submit} className="w-full text-left px-3 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 text-sm text-gray-600 dark:text-gray-300">
+              Buscar "{query}" en toda la plataforma →
+            </button>
+          ) : filtered.map(c => (
+            <button key={c} onMouseDown={() => pick(c)} className="w-full text-left px-3 py-2 rounded-xl hover:bg-pink-50 dark:hover:bg-pink-900/20 text-sm text-gray-700 dark:text-gray-200 flex items-center gap-2">
+              <MapPin className="w-3.5 h-3.5 text-pink-400 flex-shrink-0" /> {c}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -1668,6 +1782,7 @@ const HomePage: React.FC = () => {
   });
   useJsonLd(organizationLd(), websiteLd());
   const navigate = useNavigate();
+  const [homeCity, setHomeCity] = useState('');
   const { isAuthenticated, user } = useAuthStore();
   const { heroMedia } = useSiteConfigStore();
   const heroYtId = heroMedia.type === 'youtube' ? getYouTubeId(heroMedia.url) : null;
@@ -1901,8 +2016,11 @@ const HomePage: React.FC = () => {
         </p>
       </div>
 
+      {/* ── SÚPER BUSCADOR: ciudad (100+ reales) o GPS — vinculado a Planes de baile de justo debajo ── */}
+      <SuperSearchBar cityValue={homeCity} onCitySelect={setHomeCity} />
+
       {/* ── PLANES DE BAILE: mapa + métricas reales + pestañas (Planes/Abiertos ahora/Pareja/Eventos/En vivo) ── */}
-      <PlanesDeBaileHomeSection navigate={navigate} />
+      <PlanesDeBaileHomeSection navigate={navigate} cityFilter={homeCity} />
 
       {/* ── SPONSORS SLIDER ── */}
       <FeaturedSlider navigate={navigate} />
