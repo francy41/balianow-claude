@@ -640,6 +640,27 @@ const DISCOVER_TAB_DOT: Partial<Record<DiscoverKind | 'todos', { ring: string; g
   vivo:   { ring: 'bg-orange-400',  grad: 'from-orange-500 to-red-600' },
 };
 
+// Centro aproximado de las ciudades del baile latino más comunes en la app — se usa SOLO como
+// respaldo cuando un evento/directo/plan real tiene ciudad pero no lat/lng propios guardados en
+// la BD (muchos registros aún no las tienen). Nunca sustituye una coordenada real ya guardada.
+const CITY_CENTER: Record<string, [number, number]> = {
+  'madrid': [40.4168, -3.7038], 'barcelona': [41.3851, 2.1734], 'valencia': [39.4699, -0.3763],
+  'sevilla': [37.3891, -5.9845], 'bilbao': [43.2630, -2.9350], 'málaga': [36.7213, -4.4214],
+  'malaga': [36.7213, -4.4214], 'zaragoza': [41.6488, -0.8891], 'murcia': [37.9922, -1.1307],
+  'palma': [39.5696, 2.6502], 'las palmas': [28.1235, -15.4363], 'alicante': [38.3452, -0.4810],
+  'granada': [37.1773, -3.5986], 'san sebastián': [43.3183, -1.9812], 'gijón': [43.5322, -5.6611],
+  'vigo': [42.2406, -8.7207], 'lisboa': [38.7223, -9.1393], 'lisbon': [38.7223, -9.1393],
+  'ciudad de méxico': [19.4326, -99.1332], 'cdmx': [19.4326, -99.1332], 'méxico df': [19.4326, -99.1332],
+  'guadalajara': [20.6597, -103.3496], 'monterrey': [25.6866, -100.3161], 'bogotá': [4.7110, -74.0721],
+  'bogota': [4.7110, -74.0721], 'medellín': [6.2442, -75.5812], 'medellin': [6.2442, -75.5812],
+  'cali': [3.4516, -76.5320], 'buenos aires': [-34.6037, -58.3816], 'santiago': [-33.4489, -70.6693],
+  'lima': [-12.0464, -77.0428], 'la habana': [23.1136, -82.3666], 'santo domingo': [18.4861, -69.9312],
+  'san juan': [18.4655, -66.1057], 'caracas': [10.4806, -66.9036], 'quito': [-0.1807, -78.4678],
+  'montevideo': [-34.9011, -56.1645], 'panamá': [8.9824, -79.5199], 'panama': [8.9824, -79.5199],
+  'miami': [25.7617, -80.1918], 'new york': [40.7128, -74.0060], 'nueva york': [40.7128, -74.0060],
+};
+const cityCenter = (city?: string) => city ? CITY_CENTER[city.trim().toLowerCase()] : undefined;
+
 const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
   const [loaded, setLoaded] = useState(false);
   const [items, setItems] = useState<DiscoverItem[]>([]);
@@ -697,9 +718,20 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
       const ratedVenues = allVenues.filter((v: any) => Number(v.rating) > 0);
       const avgRating = ratedVenues.length ? ratedVenues.reduce((s: number, v: any) => s + Number(v.rating), 0) / ratedVenues.length : 0;
 
-      const withCoords = (lat: any, lng: any) => {
+      // Coordenada real si existe; si no, el centro de su ciudad real (nunca una ubicación inventada).
+      // Cuando cae por ciudad, se aplica un pequeño desplazamiento determinista (según su id) para
+      // que dos registros reales de la misma ciudad no queden exactamente uno encima del otro.
+      const jitter = (id: string) => {
+        let h = 0; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) | 0;
+        return { dLat: ((h % 200) - 100) / 8000, dLng: (((h >> 8) % 200) - 100) / 8000 };
+      };
+      const withCoords = (lat: any, lng: any, city: string | undefined, id: string) => {
         const la = Number(lat), ln = Number(lng);
-        return Number.isFinite(la) && Number.isFinite(ln) && la !== 0 && ln !== 0 ? { lat: la, lng: ln } : {};
+        if (Number.isFinite(la) && Number.isFinite(ln) && la !== 0 && ln !== 0) return { lat: la, lng: ln };
+        const c = cityCenter(city);
+        if (!c) return {};
+        const { dLat, dLng } = jitter(id);
+        return { lat: c[0] + dLat, lng: c[1] + dLng };
       };
 
       const planItems: DiscoverItem[] = plansRaw.slice(0, 4).map((r: any) => ({
@@ -708,13 +740,13 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
         cover: null, rating: 0, route: '/rutas',
         crowdCount: crowdByPlan[r.id]?.count || 0, crowdAvatars: crowdByPlan[r.id]?.avatars || [],
         isToday: r.date === today,
-        ...(r.stops[0] ? withCoords(r.stops[0].lat, r.stops[0].lng) : {}),
+        ...withCoords(r.stops[0]?.lat, r.stops[0]?.lng, r.city, `plan-${r.id}`),
       }));
       const venueItems: DiscoverItem[] = openVenues.slice(0, 6).map((v: any) => ({
         id: `venue-${v.id}`, kind: 'venue', title: v.name, city: v.city || '',
         meta: v.close_time ? `Abierto hasta ${String(v.close_time).slice(0, 5)}` : 'Abierto ahora',
         cover: v.cover || v.image_url || null, rating: Number(v.rating) || 0, route: `/venues/${v.id}`,
-        ...withCoords(v.lat, v.lng),
+        ...withCoords(v.lat, v.lng, v.city, `venue-${v.id}`),
       }));
       const parejaItems: DiscoverItem[] = (parejaRes.data || []).slice(0, 6).map((p: any) => ({
         id: `pareja-${p.user_id}`, kind: 'pareja', title: p.name || 'Bailarín/a', city: p.city || '',
@@ -725,13 +757,13 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
         id: `evento-${e.id}`, kind: 'evento', title: e.title, city: e.city || '',
         meta: e.date === today ? 'Hoy' : e.date,
         cover: e.cover || e.image_url || null, rating: 0, route: `/eventos/${e.id}`,
-        ...withCoords(e.lat, e.lng),
+        ...withCoords(e.lat, e.lng, e.city, `evento-${e.id}`),
       }));
       const vivoItems: DiscoverItem[] = (vivoRes.data || []).slice(0, 6).map((s: any) => ({
         id: `vivo-${s.id}`, kind: 'vivo', title: s.title, city: s.city || '',
         meta: s.viewers_count > 0 ? `${s.viewers_count} viendo ahora` : 'En directo ahora',
         cover: s.cover_url || null, rating: 0, route: `/live/session/${s.id}`,
-        ...withCoords(s.lat, s.lng),
+        ...withCoords(s.lat, s.lng, s.city, `vivo-${s.id}`),
       }));
 
       setItems([...planItems, ...venueItems, ...parejaItems, ...eventoItems, ...vivoItems]);
