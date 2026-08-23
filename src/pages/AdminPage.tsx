@@ -4161,11 +4161,11 @@ const SeguridadSection: React.FC = () => {
               <div className="space-y-3">
                 {[
                   { label: 'Base de datos',   val: 'Supabase PostgreSQL — Activa', ok: true },
-                  { label: 'CDN / Hosting',   val: 'Vercel Edge Network',          ok: true },
+                  { label: 'CDN / Hosting',   val: 'Cloudflare Workers (bailanow.com)', ok: true },
                   { label: 'SSL/HTTPS',       val: 'Activo (bailanow.com)',         ok: true },
                   { label: 'Auth',            val: 'Supabase Auth — Activo',       ok: true },
-                  { label: 'Backups',         val: 'Gestionados por Supabase',     ok: true },
-                  { label: 'Pagos Stripe',    val: 'Pendiente integración',        ok: false },
+                  { label: 'Backups',         val: 'Sin verificar — revisar en el dashboard de Supabase', ok: false },
+                  { label: 'Pagos Stripe/PayPal', val: 'Simulado — claves no configuradas', ok: false },
                 ].map(r => (
                   <div key={r.label} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
                     <span className="text-gray-500 text-sm">{r.label}</span>
