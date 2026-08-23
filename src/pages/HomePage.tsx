@@ -912,20 +912,20 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
             </h2>
             <p className="hidden sm:block text-pink-200/80 text-xs mt-0.5">Descubre experiencias de baile cerca de ti, en tiempo real.</p>
             <div className="flex flex-wrap gap-1 sm:gap-1.5 mt-1.5 sm:mt-2.5 pointer-events-auto">
-              <div className="flex items-center gap-1 sm:gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-1.5 sm:px-2.5 py-0.5 sm:py-1">
+              <div className="flex items-center gap-1 sm:gap-1.5 bg-white/15 border border-white/25 shadow-md shadow-black/10 rounded-lg px-1.5 sm:px-2.5 py-0.5 sm:py-1">
                 <span className="text-white font-extrabold text-[10px] sm:text-xs">{stats.abiertos}</span>
                 <span className="text-pink-200/70 text-[8px] sm:text-[9px]">abiertos</span>
               </div>
-              <div className="flex items-center gap-1 sm:gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-1.5 sm:px-2.5 py-0.5 sm:py-1">
+              <div className="flex items-center gap-1 sm:gap-1.5 bg-white/15 border border-white/25 shadow-md shadow-black/10 rounded-lg px-1.5 sm:px-2.5 py-0.5 sm:py-1">
                 <span className="text-white font-extrabold text-[10px] sm:text-xs">{stats.pareja}</span>
                 <span className="text-pink-200/70 text-[8px] sm:text-[9px]">pareja</span>
               </div>
-              <div className="flex items-center gap-1 sm:gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-1.5 sm:px-2.5 py-0.5 sm:py-1">
+              <div className="flex items-center gap-1 sm:gap-1.5 bg-white/15 border border-white/25 shadow-md shadow-black/10 rounded-lg px-1.5 sm:px-2.5 py-0.5 sm:py-1">
                 <span className="text-white font-extrabold text-[10px] sm:text-xs">{stats.vivo}</span>
                 <span className="text-pink-200/70 text-[8px] sm:text-[9px]">en vivo</span>
               </div>
               {stats.rating > 0 && (
-                <div className="hidden sm:flex items-center gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-2.5 py-1">
+                <div className="hidden sm:flex items-center gap-1.5 bg-white/15 border border-white/25 shadow-md shadow-black/10 rounded-lg px-2.5 py-1">
                   <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                   <span className="text-white font-extrabold text-xs">{stats.rating.toFixed(1)}</span>
                   <span className="text-pink-200/70 text-[9px]">valoración media</span>
@@ -996,7 +996,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={`sm:flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-[11px] font-extrabold transition-all ${
-                  isActive ? 'bg-gradient-to-br from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-900/40' : 'bg-white/[0.05] text-pink-200/70 border border-white/10 hover:bg-white/10'
+                  isActive ? 'bg-gradient-to-br from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-900/40' : 'bg-white/15 text-pink-100 border border-white/25 shadow-md shadow-black/10 hover:bg-white/20'
                 }`}>
                 {dot && (
                   <span className="relative flex h-2 w-2 flex-shrink-0">
@@ -1020,7 +1020,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
                 <Plus className="w-3.5 h-3.5" /> Crear un plan en {cityFilter}
               </button>
               <a href="mailto:hola@bailanow.com?subject=Quiero%20BailaNow%20en%20mi%20ciudad"
-                className="inline-flex items-center gap-1.5 bg-white/[0.08] border border-white/15 text-white text-[11px] font-extrabold px-3.5 py-2 rounded-xl hover:bg-white/15 transition-colors">
+                className="inline-flex items-center gap-1.5 bg-white/15 border border-white/25 shadow-md shadow-black/10 text-white text-[11px] font-extrabold px-3.5 py-2 rounded-xl hover:bg-white/25 transition-colors">
                 Contacta con nosotros
               </a>
             </div>
@@ -1033,7 +1033,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
             const badge = DISCOVER_BADGE[it.kind];
             return (
               <button key={it.id} onClick={() => navigate(it.route)}
-                className="text-left rounded-2xl overflow-hidden bg-white/[0.05] border border-white/10 hover:border-pink-400/40 hover:-translate-y-1 transition-all duration-300">
+                className="text-left rounded-2xl overflow-hidden bg-white/12 border border-white/25 shadow-lg shadow-black/15 hover:border-pink-200/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <div className="relative h-24 bg-gradient-to-br from-pink-700 to-fuchsia-900 overflow-hidden">
                   {it.cover ? (
                     <img src={it.cover} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy"
@@ -1134,7 +1134,7 @@ const SuperSearchBar: React.FC<{ cityValue: string; onCitySelect: (city: string)
 
   return (
     <div className="relative">
-      <div className="relative bg-white/[0.08] border border-white/15 rounded-2xl shadow-inner flex items-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-3">
+      <div className="relative bg-white/15 border border-white/25 rounded-2xl shadow-xl shadow-black/20 flex items-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-3">
         <Search className="w-5 h-5 text-pink-300 flex-shrink-0" />
         <input
           value={query}
