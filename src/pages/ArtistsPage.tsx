@@ -254,7 +254,7 @@ const ArtistsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-purple-950 to-black p-6 sm:p-8 text-white">
+        <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-fuchsia-950 to-black p-6 sm:p-8 text-white">
           <div className="absolute -top-10 -right-10 w-48 h-48 bg-pink-500/25 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-12 -left-12 w-52 h-52 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
           <div className="relative">

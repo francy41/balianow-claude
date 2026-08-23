@@ -217,7 +217,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
 
             <div className="p-5 space-y-5">
               {/* ── ORDER SUMMARY ── */}
-              <div className="bg-gradient-to-br from-pink-50 via-fuchsia-50 to-purple-50 rounded-2xl p-4 border border-pink-100/60">
+              <div className="bg-gradient-to-br from-pink-50 via-fuchsia-50 to-rose-50 rounded-2xl p-4 border border-pink-100/60">
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <p className="text-xs text-gray-500 font-medium">{items.length} servicio{items.length > 1 ? 's' : ''} de promoción</p>
@@ -246,7 +246,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
 
                 {/* Breakdown toggle */}
                 <button onClick={() => setShowBreakdown(v => !v)}
-                  className="flex items-center gap-1.5 text-[11px] text-purple-600 font-bold hover:text-purple-700 transition-colors">
+                  className="flex items-center gap-1.5 text-[11px] text-fuchsia-600 font-bold hover:text-fuchsia-700 transition-colors">
                   {showBreakdown ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                   {showBreakdown ? 'Ocultar' : 'Ver'} distribución a vendedores
                 </button>
@@ -357,7 +357,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
                           </div>
                         </div>
                         <button onClick={() => handleSuccess('Stripe Demo')}
-                          className="w-full bg-gradient-to-r from-pink-500 via-fuchsia-600 to-purple-600 text-white font-black rounded-2xl py-4 text-sm flex items-center justify-center gap-2 shadow-2xl shadow-pink-500/30 active:scale-95 transition-all">
+                          className="w-full bg-gradient-to-r from-pink-500 via-fuchsia-600 to-rose-600 text-white font-black rounded-2xl py-4 text-sm flex items-center justify-center gap-2 shadow-2xl shadow-pink-500/30 active:scale-95 transition-all">
                           <CreditCard className="w-5 h-5" />
                           <span>Pagar {fmtEur(subtotal)} ahora</span>
                           <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full ml-1">DEMO</span>
@@ -454,7 +454,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
                 {[
                   { icon: <ShieldCheck className="w-3 h-3 text-green-500" />, label: 'SSL 256-bit' },
                   { icon: <Lock className="w-3 h-3 text-blue-500" />, label: 'Escrow seguro' },
-                  { icon: <ShieldCheck className="w-3 h-3 text-purple-500" />, label: 'GDPR' },
+                  { icon: <ShieldCheck className="w-3 h-3 text-pink-500" />, label: 'GDPR' },
                 ].map(b => (
                   <div key={b.label} className="flex items-center gap-1 text-[10px] text-gray-400">
                     {b.icon} {b.label}

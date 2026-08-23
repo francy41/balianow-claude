@@ -131,7 +131,7 @@ const ClassesPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-24">
       {/* Hero */}
-      <div className="bg-gradient-to-br from-pink-500 via-fuchsia-600 to-purple-700 text-white px-4 pt-6 pb-8 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-pink-500 via-fuchsia-600 to-fuchsia-700 text-white px-4 pt-6 pb-8 relative overflow-hidden">
         <div className="max-w-6xl mx-auto relative">
           <div className="flex items-center gap-2 mb-2">
             <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
@@ -176,7 +176,7 @@ const ClassesPage: React.FC = () => {
             <button key={l} onClick={() => setFilterLevel(l)}
               className={`flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-bold transition-all ${
                 filterLevel === l
-                  ? 'bg-purple-600 text-white'
+                  ? 'bg-fuchsia-600 text-white'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
               }`}>
               🎯 {l}
@@ -316,7 +316,7 @@ const ClassCard: React.FC<{ cls: ClassOffering; onClick: () => void; onPractice?
         </div>
 
         {cls.next_slot ? (
-          <div className="bg-brand-orange dark:from-pink-900/20 dark:to-purple-900/20 rounded-xl px-3 py-2 flex items-center justify-between">
+          <div className="bg-brand-orange dark:from-pink-900/20 dark:to-pink-900/20 rounded-xl px-3 py-2 flex items-center justify-between">
             <div>
               <p className="text-[10px] uppercase font-black text-pink-600 dark:text-pink-300">Próxima clase</p>
               <p className="text-xs font-bold text-ink-primary">{fmtDate(cls.next_slot.starts_at)}</p>

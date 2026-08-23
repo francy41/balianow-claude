@@ -178,7 +178,7 @@ const PromoServiceCard: React.FC<{
             className={`flex-1 flex items-center justify-center gap-1.5 font-bold rounded-xl py-2.5 text-xs transition-all border-2 ${
               isInCart
                 ? 'border-green-400 text-green-600 bg-green-50 cursor-default'
-                : 'border-purple-500 text-purple-600 hover:bg-purple-500 hover:text-white'
+                : 'border-fuchsia-500 text-fuchsia-600 hover:bg-fuchsia-500 hover:text-white'
             }`}
           >
             <ShoppingCart className="w-3.5 h-3.5" /> {isInCart ? 'Reservado' : 'Reservar'}
@@ -217,19 +217,19 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
           <div className="absolute top-0 right-0 w-40 h-40 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-brand-orange flex items-center justify-center shadow-lg shadow-purple-500/30">
+              <div className="w-9 h-9 rounded-xl bg-brand-orange flex items-center justify-center shadow-lg shadow-fuchsia-500/30">
                 <ShoppingCart className="w-4.5 h-4.5 text-white" style={{ width: 18, height: 18 }} />
               </div>
               <div>
                 <h2 className="font-black text-lg text-white leading-none">Mi Reserva</h2>
-                <p className="text-[11px] text-purple-300 mt-0.5">
+                <p className="text-[11px] text-fuchsia-300 mt-0.5">
                   {items.length === 0 ? 'Sin servicios aún' : `${items.length} servicio${items.length > 1 ? 's' : ''} seleccionado${items.length > 1 ? 's' : ''}`}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               {items.length > 0 && (
-                <span className="bg-brand-orange text-white text-xs font-black px-2.5 py-1 rounded-full shadow-lg shadow-purple-500/30">
+                <span className="bg-brand-orange text-white text-xs font-black px-2.5 py-1 rounded-full shadow-lg shadow-fuchsia-500/30">
                   {items.length}
                 </span>
               )}
@@ -243,7 +243,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
           </div>
 
           {/* Divider with glow */}
-          <div className="mt-4 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
+          <div className="mt-4 h-px bg-gradient-to-r from-transparent via-fuchsia-500/50 to-transparent" />
         </div>
 
         {/* ── Items List ── */}
@@ -255,7 +255,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
               </div>
               <p className="text-white/60 font-bold text-base">Tu carrito está vacío</p>
               <p className="text-white/30 text-sm mt-2 max-w-[200px] leading-relaxed">Reserva servicios y págalos todos juntos con un solo pago</p>
-              <button onClick={onClose} className="mt-6 bg-brand-orange text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:from-purple-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-purple-500/25">
+              <button onClick={onClose} className="mt-6 bg-brand-orange text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25">
                 Explorar servicios
               </button>
             </div>
@@ -273,7 +273,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
                     {/* Item header */}
                     <div className="flex items-start gap-3 p-3.5">
                       <div className="relative flex-shrink-0">
-                        <img src={item.sellerAvatar} alt={item.sellerName} className="w-11 h-11 rounded-xl object-cover ring-2 ring-purple-500/30" />
+                        <img src={item.sellerAvatar} alt={item.sellerName} className="w-11 h-11 rounded-xl object-cover ring-2 ring-fuchsia-500/30" />
                         <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-brand-orange rounded-full flex items-center justify-center text-[8px] font-black text-white">
                           {idx + 1}
                         </div>
@@ -315,7 +315,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
                                 className={`w-4 h-4 rounded flex items-center justify-center transition-all flex-shrink-0 cursor-pointer border ${
                                   extra.selected
                                     ? 'bg-brand-orange border-transparent shadow-lg shadow-pink-500/30'
-                                    : 'border-white/20 bg-white/5 hover:border-purple-400/50'
+                                    : 'border-white/20 bg-white/5 hover:border-fuchsia-400/50'
                                 }`}
                               >
                                 {extra.selected && (
@@ -343,7 +343,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
               {breakdown.length > 1 && (
                 <button
                   onClick={() => setShowBreakdown(v => !v)}
-                  className="w-full text-[11px] text-purple-300/70 hover:text-purple-300 font-semibold flex items-center justify-center gap-1.5 py-2 rounded-xl border border-white/5 hover:border-white/10 transition-all"
+                  className="w-full text-[11px] text-fuchsia-300/70 hover:text-fuchsia-300 font-semibold flex items-center justify-center gap-1.5 py-2 rounded-xl border border-white/5 hover:border-white/10 transition-all"
                   style={{ background: 'rgba(255,255,255,0.02)' }}
                 >
                   <Users className="w-3 h-3" />
@@ -386,7 +386,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
         {items.length > 0 && (
           <div className="flex-shrink-0 px-4 pb-5 pt-3">
             {/* Divider */}
-            <div className="h-px bg-gradient-to-r from-transparent via-purple-500/40 to-transparent mb-4" />
+            <div className="h-px bg-gradient-to-r from-transparent via-fuchsia-500/40 to-transparent mb-4" />
 
             {/* Totals */}
             <div className="rounded-2xl border border-white/10 p-4 mb-4 space-y-2.5" style={{ background: 'rgba(255,255,255,0.04)' }}>
@@ -532,7 +532,7 @@ const CheckoutModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open,
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-gray-900 truncate">{item.title}</p>
                       <p className="text-[10px] text-gray-400">{item.sellerName}</p>
-                      {extrasTotal > 0 && <p className="text-[10px] text-purple-500">+ extras: €{extrasTotal}</p>}
+                      {extrasTotal > 0 && <p className="text-[10px] text-pink-500">+ extras: €{extrasTotal}</p>}
                     </div>
                     <span className="font-bold text-sm text-gray-900">€{(item.price + extrasTotal).toFixed(2)}</span>
                   </div>
@@ -936,7 +936,7 @@ const PromocionatePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-20 transition-colors">
       {/* Hero */}
-      <div className="relative bg-gradient-to-br from-pink-600 via-fuchsia-600 to-purple-700 overflow-hidden">
+      <div className="relative bg-gradient-to-br from-pink-600 via-fuchsia-600 to-fuchsia-800 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-10 w-40 h-40 bg-white rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-10 w-60 h-60 bg-yellow-300 rounded-full blur-3xl" />
@@ -1058,7 +1058,7 @@ const PromocionatePage: React.FC = () => {
         {cart.items.length > 0 && (
           <button
             onClick={() => setCartOpen(true)}
-            className="mt-4 w-full bg-gradient-to-r from-purple-600 via-fuchsia-600 to-purple-600 text-white rounded-2xl shadow-2xl shadow-purple-500/30 px-5 py-3.5 flex items-center gap-4 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="mt-4 w-full bg-gradient-to-r from-pink-600 via-fuchsia-600 to-pink-600 text-white rounded-2xl shadow-2xl shadow-fuchsia-500/30 px-5 py-3.5 flex items-center gap-4 hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
             {/* Icono + badge */}
             <div className="relative flex-shrink-0">
@@ -1189,7 +1189,7 @@ const PromocionatePage: React.FC = () => {
         <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-[55] px-4 pb-3 lg:hidden pointer-events-none">
           <button
             onClick={() => setCartOpen(true)}
-            className="w-full pointer-events-auto bg-gradient-to-r from-purple-700 via-fuchsia-700 to-purple-700 text-white rounded-2xl shadow-2xl px-5 py-3 flex items-center gap-3"
+            className="w-full pointer-events-auto bg-gradient-to-r from-pink-700 via-fuchsia-700 to-pink-700 text-white rounded-2xl shadow-2xl px-5 py-3 flex items-center gap-3"
             style={{ background: 'linear-gradient(90deg,#4f1e8c,#7c2fc0,#4f1e8c)' }}
           >
             <div className="relative flex-shrink-0">

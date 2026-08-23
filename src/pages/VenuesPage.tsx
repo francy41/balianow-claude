@@ -159,7 +159,7 @@ const VenuesList: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-purple-950 to-black p-6 sm:p-8 text-white">
+        <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-fuchsia-950 to-black p-6 sm:p-8 text-white">
           <div className="absolute -top-10 -right-10 w-48 h-48 bg-pink-500/25 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-12 -left-12 w-52 h-52 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
           <div className="relative">
@@ -701,7 +701,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                     <div className="grid grid-cols-2 gap-2.5">
                       {list.map((ev, i) => (
                         <button key={ev.id} onClick={() => ev.id.startsWith('ex') ? setActiveTab('events') : navigate(`/eventos/${ev.id}`)}
-                          className="relative aspect-[3/4] rounded-xl overflow-hidden text-left group bg-gradient-to-br from-fuchsia-900 via-purple-900 to-gray-950">
+                          className="relative aspect-[3/4] rounded-xl overflow-hidden text-left group bg-gradient-to-br from-fuchsia-900 via-pink-900 to-gray-950">
                           {ev.cover && <img src={ev.cover} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500" onError={(e) => { e.currentTarget.style.display = 'none'; }} />}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/10" />
                           <div className="absolute top-2 left-2 bg-white/95 rounded-lg px-1.5 py-1 text-center leading-none shadow">

@@ -154,7 +154,7 @@ const ParejasPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-20">
-      <div className="bg-gradient-to-br from-pink-600 via-fuchsia-600 to-purple-700 px-4 py-5">
+      <div className="bg-gradient-to-br from-pink-600 via-fuchsia-600 to-fuchsia-700 px-4 py-5">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <h1 className="font-display font-black text-xl text-white flex items-center gap-2">💃 Pareja de baile</h1>
           {myProfile && <button onClick={() => setEditing(true)} className="text-white/80 hover:text-white"><Settings className="w-5 h-5" /></button>}
