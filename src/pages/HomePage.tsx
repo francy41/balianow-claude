@@ -1492,7 +1492,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <p className="mt-5 mb-2 px-1 text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Explora más</p>
           <div className="space-y-2.5">
             <button onClick={() => navigate('/cerca')}
-              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-left hover:shadow-lg transition-all">
+              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-pink-600 to-rose-700 text-white text-left hover:shadow-lg transition-all">
               <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">📍</span>
               <div className="min-w-0 flex-1">
                 <p className="font-black text-sm leading-tight">Cerca de ti</p>
@@ -1501,7 +1501,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
               <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-80" />
             </button>
             <button onClick={() => navigate('/clases')}
-              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-left hover:shadow-lg transition-all">
+              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-rose-500 to-pink-600 text-white text-left hover:shadow-lg transition-all">
               <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">🎓</span>
               <div className="min-w-0 flex-1">
                 <p className="font-black text-sm leading-tight">Clases online</p>
@@ -1510,7 +1510,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
               <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-80" />
             </button>
             <button onClick={() => navigate('/subscripciones')}
-              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-left hover:shadow-lg transition-all">
+              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-fuchsia-600 to-pink-700 text-white text-left hover:shadow-lg transition-all">
               <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">👑</span>
               <div className="min-w-0 flex-1">
                 <p className="font-black text-sm leading-tight">Hazte Premium</p>
@@ -1519,7 +1519,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
               <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-80" />
             </button>
             <button onClick={() => navigate('/promocionate')}
-              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-fuchsia-500 to-purple-600 text-white text-left hover:shadow-lg transition-all">
+              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-left hover:shadow-lg transition-all">
               <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">📢</span>
               <div className="min-w-0 flex-1">
                 <p className="font-black text-sm leading-tight">Promociona tu evento</p>
