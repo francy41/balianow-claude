@@ -742,7 +742,7 @@ const DISCOVER_BADGE: Record<DiscoverKind, { label: string; className: string; c
 const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
   const [loaded, setLoaded] = useState(false);
   const [items, setItems] = useState<DiscoverItem[]>([]);
-  const [stats, setStats] = useState({ abiertos: 0, pareja: 0, vivo: 0, rating: 0 });
+  const [stats, setStats] = useState({ abiertos: 0, pareja: 0, vivo: 0, rating: 0, plan: 0, evento: 0 });
   const [tab, setTab] = useState<DiscoverKind | 'todos'>('todos');
 
   useEffect(() => {
@@ -752,11 +752,15 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
       const toMin = (s: string) => { const [h, m] = String(s).split(':').map(Number); return (h || 0) * 60 + (m || 0); };
       const now = new Date(); const cur = now.getHours() * 60 + now.getMinutes();
 
-      const [rutasRes, venuesRes, parejaRes, eventoRes, vivoRes] = await Promise.all([
+      const [rutasRes, rutasCountRes, venuesRes, parejaRes, parejaCountRes, eventoRes, eventoCountRes, vivoCountRes, vivoRes] = await Promise.all([
         supabase.from('rutas').select('*').eq('status', 'open').or(`end_date.is.null,end_date.gte.${today}`).order('created_at', { ascending: false }).limit(4),
+        supabase.from('rutas').select('id', { count: 'exact', head: true }).eq('status', 'open').or(`end_date.is.null,end_date.gte.${today}`),
         supabase.from('venues').select('id,name,city,cover,image_url,rating,open_time,close_time,is_open,lat,lng').is('deleted_at', null),
         supabase.from('partner_profiles').select('user_id,name,avatar,city,level,styles').eq('active', true).limit(8),
+        supabase.from('partner_profiles').select('id', { count: 'exact', head: true }).eq('active', true),
         supabase.from('events').select('id,title,city,date,cover,image_url,lat,lng').is('deleted_at', null).gte('date', today).order('date', { ascending: true }).limit(8),
+        supabase.from('events').select('id', { count: 'exact', head: true }).is('deleted_at', null).gte('date', today),
+        supabase.from('live_sessions').select('id', { count: 'exact', head: true }).eq('status', 'live'),
         supabase.from('live_sessions').select('id,title,category,viewers_count,city,cover_url,lat,lng').eq('status', 'live').limit(8),
       ]);
       if (cancelled) return;
@@ -830,7 +834,16 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
       }));
 
       setItems([...planItems, ...venueItems, ...parejaItems, ...eventoItems, ...vivoItems]);
-      setStats({ abiertos: openVenues.length, pareja: (parejaRes.data || []).length, vivo: (vivoRes.data || []).length, rating: avgRating });
+      // Totales reales (no el nº de tarjetas cargadas) — el mismo número que se ve en las
+      // cabeceras se usa también en el contador de cada pestaña, para que nunca se contradigan.
+      setStats({
+        abiertos: openVenues.length,
+        pareja: parejaCountRes.count || 0,
+        vivo: vivoCountRes.count || 0,
+        rating: avgRating,
+        plan: rutasCountRes.count || 0,
+        evento: eventoCountRes.count || 0,
+      });
       setLoaded(true);
     })();
     return () => { cancelled = true; };
@@ -915,7 +928,8 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
           {DISCOVER_TABS.map(t => {
             const Icon = t.icon;
             const isActive = tab === t.key;
-            const count = t.key === 'todos' ? items.length : items.filter(it => it.kind === t.key).length;
+            const trueCounts: Record<DiscoverKind, number> = { plan: stats.plan, venue: stats.abiertos, pareja: stats.pareja, evento: stats.evento, vivo: stats.vivo };
+            const count = t.key === 'todos' ? items.length : trueCounts[t.key];
             if (t.key !== 'todos' && count === 0) return null;
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
