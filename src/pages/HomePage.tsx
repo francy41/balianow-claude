@@ -626,11 +626,11 @@ const DISCOVER_TAB_ROUTE: Record<DiscoverKind | 'todos', string> = {
 };
 
 const DISCOVER_BADGE: Record<DiscoverKind, { label: string; className: string; cta: string }> = {
-  plan:   { label: 'PLAN',          className: 'bg-pink-600',    cta: 'border-pink-400 text-pink-300' },
-  venue:  { label: 'ABIERTO AHORA', className: 'bg-emerald-600', cta: 'border-emerald-400 text-emerald-300' },
-  local:  { label: 'LOCAL',         className: 'bg-cyan-600',    cta: 'border-cyan-400 text-cyan-300' },
-  pareja: { label: 'PAREJA',        className: 'bg-fuchsia-600', cta: 'border-fuchsia-400 text-fuchsia-300' },
-  evento: { label: 'EVENTO',        className: 'bg-violet-600',  cta: 'border-violet-400 text-violet-300' },
+  plan:   { label: 'PLAN',          className: 'bg-pink-600',    cta: 'border-pink-500 text-pink-600' },
+  venue:  { label: 'ABIERTO AHORA', className: 'bg-emerald-600', cta: 'border-emerald-500 text-emerald-600' },
+  local:  { label: 'LOCAL',         className: 'bg-cyan-600',    cta: 'border-cyan-500 text-cyan-600' },
+  pareja: { label: 'PAREJA',        className: 'bg-fuchsia-600', cta: 'border-fuchsia-500 text-fuchsia-600' },
+  evento: { label: 'EVENTO',        className: 'bg-violet-600',  cta: 'border-violet-500 text-violet-600' },
   vivo:   { label: 'EN VIVO',       className: 'bg-red-600',     cta: 'bg-gradient-to-r from-red-600 to-rose-700 text-white border-transparent' },
 };
 
@@ -1033,7 +1033,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
             const badge = DISCOVER_BADGE[it.kind];
             return (
               <button key={it.id} onClick={() => navigate(it.route)}
-                className="text-left rounded-2xl overflow-hidden bg-white/12 border border-white/25 shadow-lg shadow-black/15 hover:border-pink-200/60 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                className="text-left rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-lg shadow-black/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <div className="relative h-24 bg-gradient-to-br from-pink-700 to-fuchsia-900 overflow-hidden">
                   {it.cover ? (
                     <img src={it.cover} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy"
@@ -1053,28 +1053,28 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
                   </span>
                 </div>
                 <div className="p-3">
-                  <p className="text-white font-bold text-[13px] leading-tight truncate">{it.title}</p>
-                  <p className="text-pink-200/70 text-[11px] mt-1 flex items-center gap-1 truncate">
+                  <p className="text-gray-900 font-bold text-[13px] leading-tight truncate">{it.title}</p>
+                  <p className="text-gray-500 text-[11px] mt-1 flex items-center gap-1 truncate">
                     <MapPin className="w-3 h-3 flex-shrink-0" /> {it.city}{it.meta ? ` · ${it.meta}` : ''}
                   </p>
                   <div className="flex items-center justify-between mt-2.5">
                     {it.rating > 0 ? (
-                      <span className="inline-flex items-center gap-1 text-amber-400 font-bold text-[11px]">
+                      <span className="inline-flex items-center gap-1 text-amber-500 font-bold text-[11px]">
                         <Star className="w-3 h-3 fill-amber-400" /> {it.rating.toFixed(1)}
                       </span>
                     ) : it.kind === 'plan' && it.crowdCount ? (
                       <span className="flex items-center">
                         <span className="flex">
                           {(it.crowdAvatars || []).map((a, ai) => (
-                            <span key={ai} className="-mr-2 last:mr-0 ring-2 ring-[#1B0E29] rounded-full">
+                            <span key={ai} className="-mr-2 last:mr-0 ring-2 ring-white rounded-full">
                               <Avatar src={a || ''} name="?" size="xs" />
                             </span>
                           ))}
                         </span>
-                        <span className="text-[10px] font-bold text-pink-200/80 ml-2.5">{it.crowdCount} {it.crowdCount === 1 ? 'va' : 'van'}</span>
+                        <span className="text-[10px] font-bold text-gray-600 ml-2.5">{it.crowdCount} {it.crowdCount === 1 ? 'va' : 'van'}</span>
                       </span>
                     ) : (
-                      <span className="text-[10px] text-pink-200/60">{it.kind === 'plan' ? 'Sé el primero' : 'Ver más'}</span>
+                      <span className="text-[10px] text-gray-400">{it.kind === 'plan' ? 'Sé el primero' : 'Ver más'}</span>
                     )}
                     <span className={`text-[10px] font-black border rounded-full px-2 py-0.5 ${badge.cta}`}>Ver</span>
                   </div>
@@ -1134,8 +1134,8 @@ const SuperSearchBar: React.FC<{ cityValue: string; onCitySelect: (city: string)
 
   return (
     <div className="relative">
-      <div className="relative bg-white/15 border border-white/25 rounded-2xl shadow-xl shadow-black/20 flex items-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-3">
-        <Search className="w-5 h-5 text-pink-300 flex-shrink-0" />
+      <div className="relative bg-white border border-white shadow-xl shadow-black/25 rounded-2xl flex items-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-3">
+        <Search className="w-5 h-5 text-pink-500 flex-shrink-0" />
         <input
           value={query}
           onChange={e => { setQuery(e.target.value); setShowList(true); }}
@@ -1143,10 +1143,10 @@ const SuperSearchBar: React.FC<{ cityValue: string; onCitySelect: (city: string)
           onBlur={() => setTimeout(() => setShowList(false), 150)}
           onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') setShowList(false); }}
           placeholder="¿En qué ciudad quieres bailar hoy?"
-          className="flex-1 min-w-0 bg-transparent outline-none text-white placeholder-pink-200/50 text-sm sm:text-base font-bold"
+          className="flex-1 min-w-0 bg-transparent outline-none text-gray-900 placeholder-gray-400 text-sm sm:text-base font-bold"
         />
         {query && (
-          <button onClick={() => { setQuery(''); onCitySelect(''); }} className="flex-shrink-0 text-pink-200/60 hover:text-white"><X className="w-4 h-4" /></button>
+          <button onClick={() => { setQuery(''); onCitySelect(''); }} className="flex-shrink-0 text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
         )}
         <button onClick={useMyLocation} disabled={locating}
           className="flex-shrink-0 flex items-center gap-1.5 bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white text-xs sm:text-sm font-bold px-2.5 sm:px-4 py-2 rounded-xl disabled:opacity-60 shadow shadow-pink-900/40">
