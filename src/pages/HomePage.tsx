@@ -886,7 +886,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         {/* Mapa real de fondo — Planes/Abiertos ahora/Eventos/En directo a la vez, cada uno con su color y alarma */}
         <div className="absolute inset-0">
           {pins.length > 0 ? (
-            <MapErrorBoundary fallback={<div className="absolute inset-0 bg-gradient-to-br from-[#4A0B33] via-[#26071B] to-[#12060E]" />}>
+            <MapErrorBoundary fallback={<div className="absolute inset-0 bg-gradient-to-br from-[#831843] via-[#500724] to-[#1a0510]" />}>
               <MapContainer center={mapCenter} zoom={pins.length > 1 ? 6 : 12} style={{ width: '100%', height: '100%' }}
                 attributionControl={false} zoomControl={false} scrollWheelZoom={false}>
                 <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
@@ -898,12 +898,12 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
               </MapContainer>
             </MapErrorBoundary>
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-[#4A0B33] via-[#26071B] to-[#12060E]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#831843] via-[#500724] to-[#1a0510]" />
           )}
         </div>
         {/* Degradados rosa oscuro para que el texto siempre se lea sobre el mapa */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#12060E] via-[#12060E]/75 to-[#12060E]/10 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#12060E]/85 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#1a0510] via-[#1a0510]/75 to-[#1a0510]/10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1a0510]/85 via-transparent to-transparent pointer-events-none" />
 
         <div className="relative p-3 sm:p-5 flex items-start justify-between gap-2 sm:gap-3 flex-wrap sm:flex-nowrap min-h-[105px] sm:min-h-[240px]">
           <div className="min-w-0 pointer-events-none">
@@ -974,7 +974,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         )}
       </div>
 
-      <div className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-[#4A0B33] via-[#26071B] to-[#12060E] px-4 sm:px-5 pb-4 sm:pb-5 -mt-3">
+      <div className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-[#831843] via-[#500724] to-[#1a0510] px-4 sm:px-5 pb-4 sm:pb-5 -mt-3">
         {/* Súper buscador — justo donde termina el mapa, dentro del mismo panel, para que se lea
             como una sola pieza con "Planes de baile" en vez de un elemento suelto encima. */}
         <div className="pt-4">
@@ -1012,7 +1012,19 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         </div>
 
         {cityFilter?.trim() && shown.length === 0 && (
-          <p className="text-pink-200/70 text-xs text-center py-6">Aún no hay nada real publicado en «{cityFilter}» — prueba con otra ciudad o sé el primero en crear un plan.</p>
+          <div className="text-center py-6">
+            <p className="text-pink-200/70 text-xs">Aún no hay nada real publicado en «{cityFilter}» — sé el primero en crear un plan.</p>
+            <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
+              <button onClick={() => navigate('/rutas')}
+                className="inline-flex items-center gap-1.5 bg-gradient-to-br from-pink-500 to-fuchsia-700 text-white text-[11px] font-extrabold px-3.5 py-2 rounded-xl shadow-lg shadow-pink-900/40">
+                <Plus className="w-3.5 h-3.5" /> Crear un plan en {cityFilter}
+              </button>
+              <a href="mailto:hola@bailanow.com?subject=Quiero%20BailaNow%20en%20mi%20ciudad"
+                className="inline-flex items-center gap-1.5 bg-white/[0.08] border border-white/15 text-white text-[11px] font-extrabold px-3.5 py-2 rounded-xl hover:bg-white/15 transition-colors">
+                Contacta con nosotros
+              </a>
+            </div>
+          </div>
         )}
 
         {/* Tarjetas — fotos reales para locales/eventos/directos; degradado+icono para planes (sin foto propia) */}
