@@ -13,18 +13,20 @@ export default {
       },
       colors: {
         brand: {
-          pink: '#EC4899',
-          'pink-dark': '#DB2777',
-          'pink-light': '#FBCFE8',
+          // Rosa de marca actualizado (referencia: logo "Latineo" aportado por el cliente) —
+          // magenta vivo, un punto más saturado/vibrante que el rosa anterior.
+          pink: '#E5127D',
+          'pink-dark': '#C00E68',
+          'pink-light': '#FAD3E9',
           magenta: '#E91E8C',
           'hot-pink': '#FF1493',
           black: '#0A0A0A',
           'dark': '#111111',
           gray: '#F5F5F5',
           // Legacy aliases for compatibility
-          orange: '#EC4899',
-          'orange-dark': '#DB2777',
-          'orange-light': '#FBCFE8',
+          orange: '#E5127D',
+          'orange-dark': '#C00E68',
+          'orange-light': '#FAD3E9',
         },
         sidebar: '#0A0A0A',
         // ── Design tokens (ver DESIGN_AUDIT.md / DESIGN_CHANGELOG.md) ──
@@ -48,9 +50,9 @@ export default {
         },
       },
       backgroundImage: {
-        'gradient-orange': 'linear-gradient(#EC4899, #EC4899)',
-        'gradient-pink': 'linear-gradient(#EC4899, #EC4899)',
-        'gradient-nightlife': 'linear-gradient(#EC4899, #EC4899)',
+        'gradient-orange': 'linear-gradient(#E5127D, #E5127D)',
+        'gradient-pink': 'linear-gradient(#E5127D, #E5127D)',
+        'gradient-nightlife': 'linear-gradient(#E5127D, #E5127D)',
       },
       animation: {
         'slide-in': 'slideIn 0.2s ease-out',
@@ -75,9 +77,9 @@ export default {
       boxShadow: {
         'card': '0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04)',
         'card-hover': '0 4px 12px rgba(0,0,0,0.12)',
-        'orange': '0 4px 14px rgba(236,72,153,0.35)',
-        'pink': '0 4px 14px rgba(236,72,153,0.35)',
-        'neon': '0 0 20px rgba(236,72,153,0.5), 0 0 40px rgba(236,72,153,0.2)',
+        'orange': '0 4px 14px rgba(229,18,125,0.35)',
+        'pink': '0 4px 14px rgba(229,18,125,0.35)',
+        'neon': '0 0 20px rgba(229,18,125,0.5), 0 0 40px rgba(229,18,125,0.2)',
         // ── Escala de elevación premium (3 niveles, tintada, nunca negro puro) ──
         'elevation-1': '0 1px 2px rgb(var(--shadow-tint) / 0.06), 0 1px 1px rgb(var(--shadow-tint) / 0.04)',
         'elevation-2': '0 4px 16px rgb(var(--shadow-tint) / 0.10), 0 2px 6px rgb(var(--shadow-tint) / 0.06)',

@@ -21,7 +21,7 @@
   --hairline: 0 0 0;           /* usado con /8 de opacidad → rgba(0,0,0,.08) */
 
   /* Acento: rosa de marca reservado para la acción principal por pantalla */
-  --accent: 236 72 153;        /* #EC4899 */
+  --accent: 229 18 125;        /* #E5127D */
   --accent-warm: 255 140 66;   /* #FF8C42 — ya en uso de facto en la app, formalizado aquí */
 
   /* Tinte de sombra: gris cálido, nunca negro puro */
@@ -40,7 +40,7 @@
 
   --hairline: 255 255 255;     /* rgba(255,255,255,.08) */
 
-  --accent: 236 72 153;        /* #EC4899 — mismo en ambos modos, ya tiene contraste suficiente */
+  --accent: 229 18 125;        /* #E5127D — mismo en ambos modos, ya tiene contraste suficiente */
   --accent-warm: 255 140 66;   /* #FF8C42 */
 
   --shadow-tint: 0 0 0;
@@ -171,12 +171,12 @@ body {
     color: #e5e5e5;
   }
   html.dark ::-webkit-scrollbar-track { background: #1a1a1a; }
-  html.dark ::selection { background: rgba(236,72,153,0.3); color: #fff; }
+  html.dark ::selection { background: rgba(229,18,125,0.3); color: #fff; }
 
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: #f1f1f1; }
-  ::-webkit-scrollbar-thumb { background: #EC4899; border-radius: 2px; }
-  ::selection { background: rgba(236,72,153,0.2); color: #111; }
+  ::-webkit-scrollbar-thumb { background: #E5127D; border-radius: 2px; }
+  ::selection { background: rgba(229,18,125,0.2); color: #111; }
 }
 
 @layer components {
