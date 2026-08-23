@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Menu, LogOut, LayoutDashboard, Edit3, ShoppingCart, MapPin, MessageCircle, ChevronDown, Shield } from 'lucide-react';
 import NotificationsBell from '../NotificationsBell';
@@ -7,6 +7,9 @@ import { useAuthStore, useUIStore, useCartStore, useSiteConfigStore } from '../.
 import { supabaseLogout } from '../../hooks/useSupabaseAuth';
 import { Avatar } from '../ui';
 import LanguageSelector from '../LanguageSelector';
+import { TOP_DANCE_CITIES } from '../../data/topDanceCities';
+
+const SELECTED_CITY_KEY = 'bn_selected_city';
 
 interface NavbarProps { onMenuToggle: () => void; }
 
@@ -34,6 +37,27 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
   const { addToast } = useUIStore();
   const cart = useCartStore();
   const [showEdit, setShowEdit] = useState(false);
+  const [selectedCity, setSelectedCity] = useState(() => localStorage.getItem(SELECTED_CITY_KEY) || 'Madrid');
+  const [cityOpen, setCityOpen] = useState(false);
+  const [citySearch, setCitySearch] = useState('');
+  const cityRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!cityOpen) return;
+    const onClick = (e: MouseEvent) => { if (cityRef.current && !cityRef.current.contains(e.target as Node)) setCityOpen(false); };
+    document.addEventListener('mousedown', onClick);
+    return () => document.removeEventListener('mousedown', onClick);
+  }, [cityOpen]);
+
+  const cityMatches = TOP_DANCE_CITIES.filter(c => c.toLowerCase().includes(citySearch.trim().toLowerCase())).slice(0, 8);
+
+  const pickCity = (city: string) => {
+    setSelectedCity(city);
+    localStorage.setItem(SELECTED_CITY_KEY, city);
+    setCityOpen(false);
+    setCitySearch('');
+    navigate(`/venues?city=${encodeURIComponent(city)}`);
+  };
 
   const handleLogout = async () => {
     await supabaseLogout();   // cierra sesión en Supabase (no solo estado local)
@@ -64,15 +88,43 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
       </Link>
 
       {/* City selector (Airbnb style) */}
-      <button
-        onClick={() => navigate('/venues')}
-        className="hidden sm:flex items-center gap-1.5 flex-shrink-0 pl-3 pr-2.5 py-2 rounded-full border border-hairline/15 hover:shadow-md hover:border-hairline/25 text-ink-secondary transition-all"
-        title="Cambiar ciudad"
-      >
-        <MapPin className="w-4 h-4 text-pink-500" />
-        <span className="text-sm font-semibold">Madrid, España</span>
-        <ChevronDown className="w-3.5 h-3.5 text-ink-tertiary" />
-      </button>
+      <div ref={cityRef} className="relative hidden sm:block flex-shrink-0">
+        <button
+          onClick={() => setCityOpen(v => !v)}
+          className="flex items-center gap-1.5 pl-3 pr-2.5 py-2 rounded-full border border-hairline/15 hover:shadow-md hover:border-hairline/25 text-ink-secondary transition-all"
+          title="Cambiar ciudad"
+        >
+          <MapPin className="w-4 h-4 text-pink-500" />
+          <span className="text-sm font-semibold">{selectedCity}</span>
+          <ChevronDown className="w-3.5 h-3.5 text-ink-tertiary" />
+        </button>
+        {cityOpen && (
+          <div className="absolute left-0 top-full mt-2 w-64 bg-surface-elevated border border-hairline/10 rounded-2xl shadow-elevation-3 overflow-hidden z-50">
+            <div className="p-2 border-b border-hairline/10">
+              <input
+                autoFocus
+                value={citySearch}
+                onChange={e => setCitySearch(e.target.value)}
+                placeholder="Buscar ciudad..."
+                className="w-full px-3 py-2 rounded-xl bg-surface-elevated-2 text-sm text-ink-primary placeholder-ink-tertiary focus:outline-none focus:ring-2 focus:ring-pink-500/40"
+              />
+            </div>
+            <div className="max-h-64 overflow-y-auto py-1">
+              {cityMatches.length === 0 ? (
+                <p className="px-3.5 py-3 text-sm text-ink-tertiary">Sin resultados</p>
+              ) : cityMatches.map(c => (
+                <button
+                  key={c}
+                  onClick={() => pickCity(c)}
+                  className={`w-full flex items-center gap-2 px-3.5 py-2.5 text-sm text-left hover:bg-pink-50 dark:hover:bg-pink-950/30 transition-colors ${c === selectedCity ? 'text-pink-600 font-semibold' : 'text-ink-secondary'}`}
+                >
+                  <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-pink-400" /> {c}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Superbuscador (GlobalSearch) — abre el modal que busca en locales, eventos, artistas, ciudades... */}
       <button
