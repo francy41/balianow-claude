@@ -90,7 +90,12 @@ const VenuesList: React.FC = () => {
     return match ? [match] : ['Todos'];
   })();
   const [selectedType, setSelectedType] = useState(initialType);
-  const [selectedCity, setSelectedCity] = useState(['Todas']);
+  // Permite entrar filtrado por ciudad desde el selector de la cabecera (ej. /venues?city=Miami)
+  const initialCity = (() => {
+    const c = params.get('city');
+    return c ? [c] : ['Todas'];
+  })();
+  const [selectedCity, setSelectedCity] = useState(initialCity);
   const [onlyOpen, setOnlyOpen] = useState(false);
   const [dbVenues, setDbVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
