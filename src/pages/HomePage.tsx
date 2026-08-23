@@ -1308,101 +1308,6 @@ const HScroll: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   );
 };
 
-// ── OPEN VENUES NOW SECTION (Supabase) ──────────────
-const OpenVenuesNowSection: React.FC<{ navigate: any }> = ({ navigate }) => {
-  const [dbVenues, setDbVenues] = React.useState<any[]>([]);
-
-  React.useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data } = await supabase.from('venues').select('*').is('deleted_at', null);
-        if (cancelled) return;
-        setDbVenues(data || []);
-      } catch (e) { console.warn('[home] venues', e); }
-    })();
-    return () => { cancelled = true; };
-  }, []);
-
-  const isOpenNow = (v: any): boolean => {
-    if (v.is_open === true || v.isOpen === true) return true;
-    if (v.open_time && v.close_time) {
-      const toMin = (s: string) => { const [h, m] = String(s).split(':').map(Number); return (h || 0) * 60 + (m || 0); };
-      const o = toMin(v.open_time), c = toMin(v.close_time);
-      const now = new Date(); const cur = now.getHours() * 60 + now.getMinutes();
-      return c > o ? (cur >= o && cur <= c) : (cur >= o || cur <= c);
-    }
-    return false;
-  };
-
-  const allVenues: any[] = dbVenues.map((v: any) => ({
-    id: v.id, name: v.name, city: v.city || '',
-    cover: v.cover || v.image_url || v.avatar || '',
-    rating: Number(v.rating) || 0,
-    isOpen: isOpenNow(v), isPremium: !!v.is_premium,
-    openHours: v.open_hours || (v.open_time && v.close_time ? `${String(v.open_time).slice(0,5)}–${String(v.close_time).slice(0,5)}` : '24/7'),
-  }));
-
-  const openVenues = allVenues.filter(v => v.isOpen).sort((a: any, b: any) => {
-    if (a.isPremium && !b.isPremium) return -1;
-    if (!a.isPremium && b.isPremium) return 1;
-    return b.rating - a.rating;
-  });
-
-  if (openVenues.length === 0) return null;
-
-  return (
-    <section className="mx-3 sm:mx-4 mt-5 sm:mt-8">
-      <div className="flex items-center justify-between mb-3 sm:mb-4">
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
-          </span>
-          <h2 className="font-display font-black text-base sm:text-lg text-gray-900 dark:text-white">Locales Abiertos Ahora</h2>
-        </div>
-        <button onClick={() => navigate('/venues?open=true')} className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform">
-          <div className="w-9 h-9 rounded-full bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-            <ArrowRight className="w-4 h-4 text-white" />
-          </div>
-          <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">Ver Todos</span>
-        </button>
-      </div>
-      <HScroll>
-        {openVenues.slice(0, 6).map(v => (
-          <button key={v.id} onClick={() => navigate(`/venues/${v.id}`)}
-            className="flex-shrink-0 w-56 sm:w-60 bg-gray-900 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 transition-all hover:-translate-y-1.5 group text-left">
-            <div className="relative h-32">
-              <AppImage src={v.cover} alt={v.name} fallback="landscape" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/20 to-transparent" />
-              <div className="absolute top-2.5 left-2.5 bg-emerald-500 text-white text-[10px] font-black px-2.5 py-1 rounded-full flex items-center gap-1 shadow">
-                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> Abierto
-              </div>
-              <span className="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm border border-white/20 grid place-items-center text-white text-base leading-none group-hover:bg-pink-500 transition">♡</span>
-              {v.isPremium && (
-                <div className="absolute bottom-2.5 right-2.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">👑 PRO</div>
-              )}
-            </div>
-            <div className="p-3.5">
-              <p className="text-white font-black text-sm truncate">{v.name}</p>
-              <p className="text-white/50 text-[11px] mt-0.5 capitalize truncate">{v.type || 'Local'}</p>
-              <div className="flex items-center gap-2 mt-2 text-[11px]">
-                {v.rating > 0 && (
-                  <>
-                    <span className="inline-flex items-center gap-1 text-amber-400 font-bold"><Star className="w-3.5 h-3.5 fill-amber-400" />{v.rating}</span>
-                    <span className="text-white/30">·</span>
-                  </>
-                )}
-                <span className="text-white/60 flex items-center gap-1"><MapPin className="w-3 h-3" />{v.city}</span>
-              </div>
-            </div>
-          </button>
-        ))}
-      </HScroll>
-    </section>
-  );
-};
-
 // ── LIVE NOW HOME SECTION (datos reales de live_sessions) ────────
 interface LiveCard { id: string; title: string; category: string | null; viewers: number; city: string | null; cover: string | null }
 
@@ -2256,9 +2161,6 @@ const HomePage: React.FC = () => {
           <button onClick={() => navigate('/dashboard')} className="btn-orange text-sm">Ver mis pedidos</button>
         </section>
       )}
-
-      {/* ── LOCALES ABIERTOS AHORA ── */}
-      <OpenVenuesNowSection navigate={navigate} />
 
       {/* ── FILA 3 COLUMNAS: Eventos destacados · Artistas recomendados · BailaNow TV ── */}
       <FeaturedTripleRow navigate={navigate} />
