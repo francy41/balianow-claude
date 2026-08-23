@@ -361,7 +361,7 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
       <div className="relative">
         {/* Search Container */}
         <div className="relative">
-          <div className="bg-gradient-to-r from-pink-500/20 via-fuchsia-500/10 to-purple-500/20 rounded-2xl sm:rounded-3xl p-[2px] border border-pink-500/30 overflow-hidden">
+          <div className="bg-gradient-to-r from-pink-500/20 via-fuchsia-500/10 to-pink-500/20 rounded-2xl sm:rounded-3xl p-[2px] border border-pink-500/30 overflow-hidden">
             <div className="bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl px-3 sm:px-5 py-3 flex items-center gap-2">
               {/* Input */}
               <input
@@ -1521,7 +1521,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <div className="grid grid-cols-2 gap-2.5">
             {events.map(e => (
               <button key={e.id} onClick={() => navigate(`/eventos/${e.id}`)}
-                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-fuchsia-900/60 via-purple-900/40 to-gray-900 text-left group shadow-lg shadow-black/10 border border-gray-100 dark:border-gray-800 hover:-translate-y-0.5 hover:shadow-xl transition-all">
+                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-pink-900/60 via-fuchsia-900/40 to-gray-900 text-left group shadow-lg shadow-black/10 border border-gray-100 dark:border-gray-800 hover:-translate-y-0.5 hover:shadow-xl transition-all">
                 {(e as any).cover && <img src={(e as any).cover} alt="" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                 <div className="absolute top-2 left-2 bg-white/90 text-gray-900 rounded-lg px-1.5 py-0.5 text-center leading-none">
@@ -1563,7 +1563,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
             {tv.map((c, i) => {
               return (
               <button key={i} onClick={() => navigate(c.link || '/tv')}
-                className="relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-indigo-900/60 via-purple-900/40 to-gray-950">
+                className="relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-pink-900/60 via-fuchsia-900/40 to-gray-950">
                 {c.image ? (
                   <img src={c.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
                 ) : (
@@ -1709,7 +1709,7 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
       <HScroll>
         {shows.map(s => (
           <button key={s.id} onClick={() => navigate(`/tv/${s.id}`)}
-            className="flex-shrink-0 w-64 relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-indigo-900/60 via-purple-900/40 to-gray-950 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
+            className="flex-shrink-0 w-64 relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-pink-900/60 via-fuchsia-900/40 to-gray-950 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
             {s.img ? (
               <img src={s.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
             ) : (
@@ -1834,7 +1834,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
       {/* Trabajos para Bailarines (CTA) */}
       <section className="mx-3 sm:mx-4 mt-8">
         <button onClick={() => navigate('/promocionate')}
-          className="relative w-full overflow-hidden rounded-3xl p-6 sm:p-8 text-left text-white bg-gradient-to-br from-gray-900 via-purple-950 to-black hover:shadow-2xl hover:shadow-pink-500/20 transition-all">
+          className="relative w-full overflow-hidden rounded-3xl p-6 sm:p-8 text-left text-white bg-gradient-to-br from-gray-900 via-fuchsia-950 to-black hover:shadow-2xl hover:shadow-pink-500/20 transition-all">
           <div className="absolute -top-10 -right-10 w-48 h-48 bg-pink-500/30 rounded-full blur-3xl pointer-events-none" />
           <div className="relative flex items-center justify-between gap-4 flex-wrap">
             <div>
@@ -2141,7 +2141,7 @@ const HomePage: React.FC = () => {
       {isAdmin && adminStats && isModuleOn('admin-panel') && (
         <section className="mx-4 mt-4 bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-3xl p-5 sm:p-6 text-white shadow-card relative overflow-hidden">
           <div className="absolute -top-12 -right-12 w-40 h-40 bg-brand-orange/20 rounded-full blur-3xl" />
-          <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl" />
+          <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-fuchsia-600/20 rounded-full blur-3xl" />
           <div className="relative">
             <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
               <div className="flex items-center gap-3">
@@ -2185,7 +2185,7 @@ const HomePage: React.FC = () => {
                 <p className="text-[10px] text-white/50 mt-0.5">Sin confirmar</p>
               </button>
               <button onClick={() => navigate('/admin')} className="bg-white/10 hover:bg-white/20 rounded-2xl p-3 text-left transition-all border border-white/10">
-                <Users className="w-4 h-4 text-purple-400 mb-1" />
+                <Users className="w-4 h-4 text-fuchsia-400 mb-1" />
                 <p className="text-[10px] text-white/60 uppercase font-bold">Creators activos</p>
                 <p className="text-xl font-black">{creatorCount}</p>
                 <p className="text-[10px] text-white/50 mt-0.5">Con transacciones</p>

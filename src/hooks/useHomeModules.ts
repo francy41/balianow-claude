@@ -26,9 +26,9 @@ export interface HomeModuleCard {
 // "Planes Para Bailar" y "Pareja de baile" se eliminaron de aquí — ahora viven
 // en el cintillo de accesos destacados (QuickAccessRibbon), justo bajo el hero.
 export const FALLBACK_MORE_FOR_YOU: HomeModuleCard[] = [
-  { id: 'f-danceflow',slug: 'danceflow',   title: 'DanceFlow IA',          subtitle: 'Entrena con inteligencia artificial',    icon: '🤖', iconBg: 'bg-blue-500',    gradient: 'from-indigo-600 to-blue-700',    glow: 'hover:shadow-blue-500/40',    badge: null,    route: '/danceflow',    imageUrl: null },
-  { id: 'f-clases',   slug: 'clases',      title: 'Clases Online',         subtitle: 'Aprende desde cualquier lugar',          icon: '🎓', iconBg: 'bg-orange-500',  gradient: 'from-amber-500 to-orange-600',   glow: 'hover:shadow-amber-500/40',   badge: null,    route: '/clases',       imageUrl: null },
-  { id: 'f-bailarines',slug: 'bailarines', title: 'Bailarines',            subtitle: 'Contrata bailarines · reserva clases',   icon: '🕺', iconBg: 'bg-teal-500',    gradient: 'from-emerald-500 to-teal-600',   glow: 'hover:shadow-emerald-500/40', badge: null,    route: '/artistas',     imageUrl: null },
+  { id: 'f-danceflow',slug: 'danceflow',   title: 'DanceFlow IA',          subtitle: 'Entrena con inteligencia artificial',    icon: '🤖', iconBg: 'bg-pink-500',    gradient: 'from-pink-600 to-fuchsia-700',   glow: 'hover:shadow-pink-500/40',    badge: null,    route: '/danceflow',    imageUrl: null },
+  { id: 'f-clases',   slug: 'clases',      title: 'Clases Online',         subtitle: 'Aprende desde cualquier lugar',          icon: '🎓', iconBg: 'bg-fuchsia-500', gradient: 'from-fuchsia-500 to-pink-600',   glow: 'hover:shadow-fuchsia-500/40', badge: null,    route: '/clases',       imageUrl: null },
+  { id: 'f-bailarines',slug: 'bailarines', title: 'Bailarines',            subtitle: 'Contrata bailarines · reserva clases',   icon: '🕺', iconBg: 'bg-rose-500',    gradient: 'from-rose-500 to-pink-600',      glow: 'hover:shadow-rose-500/40',    badge: null,    route: '/artistas',     imageUrl: null },
   { id: 'f-promo',    slug: 'promocionate',title: 'Promociona tu negocio', subtitle: 'Publicidad, flyers, vídeos y más',       icon: '🎤', iconBg: 'bg-pink-500',    gradient: 'from-pink-500 to-rose-600',      glow: 'hover:shadow-pink-500/40',    badge: null,    route: '/promocionate', imageUrl: null },
 ];
 
