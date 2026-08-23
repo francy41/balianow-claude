@@ -105,7 +105,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
 // ── STAT CARDS DATA ────────────────────────────────────────────────────────
 const STATS = [
   { label: 'Usuarios totales',    value: '1,247',  change: '+12%', up: true,  icon: <Users className="w-6 h-6 text-blue-500" />,   color: 'bg-blue-50' },
-  { label: 'Artistas activos',    value: '523',    change: '+8%',  up: true,  icon: <Music2 className="w-6 h-6 text-purple-500" />, color: 'bg-purple-50' },
+  { label: 'Artistas activos',    value: '523',    change: '+8%',  up: true,  icon: <Music2 className="w-6 h-6 text-pink-500" />, color: 'bg-pink-50' },
   { label: 'Eventos este mes',    value: '204',    change: '+31%', up: true,  icon: <Calendar className="w-6 h-6 text-green-500" />, color: 'bg-green-50' },
   { label: 'Revenue total',       value: '€48.2k', change: '+22%', up: true,  icon: <DollarSign className="w-6 h-6 text-brand-orange" />, color: 'bg-pink-50' },
   { label: 'Suscripciones activas', value: '312', change: '+19%', up: true,  icon: <Crown className="w-6 h-6 text-yellow-500" />,  color: 'bg-yellow-50' },
@@ -453,7 +453,7 @@ const OverviewSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 
   const cards = [
     { label: 'Usuarios totales', value: counts.users.toLocaleString(), icon: <Users className="w-6 h-6 text-blue-500" />, color: 'bg-blue-50' },
-    { label: 'Artistas / perfiles', value: counts.artists.toLocaleString(), icon: <Music2 className="w-6 h-6 text-purple-500" />, color: 'bg-purple-50' },
+    { label: 'Artistas / perfiles', value: counts.artists.toLocaleString(), icon: <Music2 className="w-6 h-6 text-pink-500" />, color: 'bg-pink-50' },
     { label: 'Eventos', value: counts.events.toLocaleString(), icon: <Calendar className="w-6 h-6 text-green-500" />, color: 'bg-green-50' },
     { label: 'Locales', value: counts.venues.toLocaleString(), icon: <MapPin className="w-6 h-6 text-pink-500" />, color: 'bg-pink-50' },
     { label: 'Directos ahora', value: counts.lives.toLocaleString(), icon: <Radio className="w-6 h-6 text-red-500" />, color: 'bg-red-50' },
@@ -1864,7 +1864,7 @@ const AnaliticasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const cards = [
     { label: 'Visitas hoy',          value: viewsToday,  icon: <Eye className="w-6 h-6 text-blue-500" />,        color: 'bg-blue-50' },
     { label: 'Visitas (7 días)',     value: views7,      icon: <TrendingUp className="w-6 h-6 text-green-500" />, color: 'bg-green-50' },
-    { label: 'Visitantes únicos 7d', value: uniques7,    icon: <Users className="w-6 h-6 text-purple-500" />,    color: 'bg-purple-50' },
+    { label: 'Visitantes únicos 7d', value: uniques7,    icon: <Users className="w-6 h-6 text-pink-500" />,    color: 'bg-pink-50' },
     { label: 'Visitas registradas',  value: totalWindow, icon: <Eye className="w-6 h-6 text-brand-orange" />,    color: 'bg-pink-50' },
   ];
 
@@ -2427,8 +2427,8 @@ const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
             <input type="number" step="0.5" min="0" max="100"
               value={(commissions.premiumDiscount * 100).toFixed(1)}
               onChange={e => onSetPremiumDiscount((parseFloat(e.target.value) || 0) / 100)}
-              className="input-field text-3xl font-black text-purple-600 w-32" />
-            <span className="text-3xl font-black text-purple-600">%</span>
+              className="input-field text-3xl font-black text-fuchsia-600 w-32" />
+            <span className="text-3xl font-black text-fuchsia-600">%</span>
           </div>
           <p className="text-xs text-gray-400 mt-2">
             Sellers 👑 PRO pagan {((commissions.default - commissions.premiumDiscount) * 100).toFixed(1)}% en lugar de {(commissions.default * 100).toFixed(1)}%
@@ -2439,7 +2439,7 @@ const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           <p className="text-xs text-gray-400 font-semibold uppercase">Vista rápida</p>
           <div className="mt-2 space-y-1.5 text-sm">
             <div className="flex justify-between"><span className="text-gray-600">Default:</span><span className="font-black text-brand-orange">{(commissions.default * 100).toFixed(1)}%</span></div>
-            <div className="flex justify-between"><span className="text-gray-600">Premium:</span><span className="font-black text-purple-600">{((commissions.default - commissions.premiumDiscount) * 100).toFixed(1)}%</span></div>
+            <div className="flex justify-between"><span className="text-gray-600">Premium:</span><span className="font-black text-fuchsia-600">{((commissions.default - commissions.premiumDiscount) * 100).toFixed(1)}%</span></div>
             <div className="flex justify-between text-xs text-gray-400 pt-1 border-t border-gray-100"><span>Diferencia</span><span>-{(commissions.premiumDiscount * 100).toFixed(1)} pp</span></div>
           </div>
         </div>
@@ -2468,7 +2468,7 @@ const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
                     className="input-field w-24 text-center font-bold text-brand-orange" />
                   <span className="font-bold text-gray-700">%</span>
                   <div className="ml-3 text-right hidden sm:block">
-                    <p className="text-[10px] text-purple-600 font-bold">Premium {(premiumRate * 100).toFixed(1)}%</p>
+                    <p className="text-[10px] text-fuchsia-600 font-bold">Premium {(premiumRate * 100).toFixed(1)}%</p>
                     <p className="text-[10px] text-gray-400">€100 → recibe €{(100 - 100 * rate).toFixed(0)}</p>
                   </div>
                 </div>
@@ -2565,7 +2565,7 @@ const AfiliadosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
         <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Activos</p><p className="font-black text-2xl text-green-600 mt-1">{activeCount}</p></div>
         <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Pendientes</p><p className="font-black text-2xl text-yellow-600 mt-1">{pendingCount}</p></div>
         <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Comisión generada</p><p className="font-black text-2xl text-brand-orange mt-1">€{totalEarnings.toLocaleString('es-ES')}</p></div>
-        <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Por pagar</p><p className="font-black text-2xl text-purple-600 mt-1">€{totalPending.toLocaleString('es-ES')}</p></div>
+        <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Por pagar</p><p className="font-black text-2xl text-fuchsia-600 mt-1">€{totalPending.toLocaleString('es-ES')}</p></div>
       </div>
 
       {loading ? (
@@ -2587,7 +2587,7 @@ const AfiliadosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
               <span className="font-semibold text-sm">{((Number(a.commission_rate) || 0) * 100).toFixed(1)}%</span>,
               <span className="text-sm text-gray-600">{a.total_referrals || 0}</span>,
               <span className="font-bold text-sm">€{Number(a.total_earnings) || 0}</span>,
-              <span className="text-sm text-purple-600 font-semibold">€{Number(a.pending_payout) || 0}</span>,
+              <span className="text-sm text-fuchsia-600 font-semibold">€{Number(a.pending_payout) || 0}</span>,
               <Badge variant={a.status === 'active' ? 'green' : a.status === 'pending' ? 'orange' : 'red'}>
                 {a.status === 'active' ? 'Activo' : a.status === 'pending' ? 'Pendiente' : 'Suspendido'}
               </Badge>,
@@ -3855,7 +3855,7 @@ const RolesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
               <p className="text-gray-400 text-xs mt-1">Con WhatsApp</p>
             </div>
             <div className="card-white p-4 text-center">
-              <p className="text-3xl font-black text-purple-600">{profiles.filter(p => p.email).length}</p>
+              <p className="text-3xl font-black text-fuchsia-600">{profiles.filter(p => p.email).length}</p>
               <p className="text-gray-400 text-xs mt-1">Con email</p>
             </div>
           </div>
@@ -4133,7 +4133,7 @@ const SeguridadSection: React.FC = () => {
             {[
               { label: 'Usuarios registrados',   val: stats.users.toLocaleString(),       icon: <Users className="w-5 h-5 text-blue-500" />,    color: 'bg-blue-50' },
               { label: 'Nuevos esta semana',      val: `+${stats.newThisWeek}`,            icon: <TrendingUp className="w-5 h-5 text-green-500" />, color: 'bg-green-50' },
-              { label: 'Administradores activos', val: String(stats.admins),               icon: <Shield className="w-5 h-5 text-purple-500" />, color: 'bg-purple-50' },
+              { label: 'Administradores activos', val: String(stats.admins),               icon: <Shield className="w-5 h-5 text-pink-500" />, color: 'bg-pink-50' },
               { label: 'Acciones pendientes',     val: String(stats.pendingActions),       icon: <AlertTriangle className="w-5 h-5 text-red-500" />, color: 'bg-red-50' },
             ].map(s => (
               <div key={s.label} className="card-white p-4 flex items-center gap-3">
@@ -5019,8 +5019,8 @@ const IntegracionesSection: React.FC<{ addToast: Function }> = ({ addToast }) =>
           saving={saving}
         />
 
-        <div className="text-xs text-gray-500 bg-purple-50 border border-purple-200 rounded-lg p-3 mt-4">
-          <p className="font-bold text-purple-700 mb-1">Opción B — Webhook Inbound de GHL (recomendado)</p>
+        <div className="text-xs text-gray-500 bg-pink-50 border border-pink-200 rounded-lg p-3 mt-4">
+          <p className="font-bold text-fuchsia-700 mb-1">Opción B — Webhook Inbound de GHL (recomendado)</p>
           <p>GHL → Automation → Workflows → New → Trigger: <b>Webhook</b> → "Inbound Webhook" → copia la URL.</p>
           <p className="mt-1">Crea un workflow que: añada el contacto, le ponga tag "newsletter", envíe email de bienvenida, etc.</p>
         </div>
@@ -5063,8 +5063,8 @@ const IntegracionesSection: React.FC<{ addToast: Function }> = ({ addToast }) =>
             <p className="text-xs text-gray-500">Requiere un token de GHL guardado como secret en Supabase</p>
           </div>
         </div>
-        <div className="text-xs text-gray-500 bg-purple-50 border border-purple-200 rounded-lg p-3 space-y-2">
-          <p className="font-bold text-purple-700">Cómo activarlo (5 minutos)</p>
+        <div className="text-xs text-gray-500 bg-pink-50 border border-pink-200 rounded-lg p-3 space-y-2">
+          <p className="font-bold text-fuchsia-700">Cómo activarlo (5 minutos)</p>
           <ol className="space-y-1.5 list-decimal list-inside">
             <li>En GHL Agency → <b>Settings → API Keys → Private Integrations</b></li>
             <li>Click <b>"New"</b> → ponle nombre "BailaNow Bulk" → marca scopes:
@@ -5220,7 +5220,7 @@ const ReclamacionesSection: React.FC<{ addToast: Function; onCountChange?: (n: n
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-black text-2xl text-gray-900 flex items-center gap-2">
-            <Flag className="w-6 h-6 text-purple-500" /> Reclamaciones de perfil
+            <Flag className="w-6 h-6 text-pink-500" /> Reclamaciones de perfil
           </h2>
           <p className="text-gray-400 text-sm mt-1">Usuarios que solicitan ser reconocidos como dueños de un perfil</p>
         </div>
@@ -5235,7 +5235,7 @@ const ReclamacionesSection: React.FC<{ addToast: Function; onCountChange?: (n: n
           <Clock className="w-4 h-4 text-amber-500" /> Pendientes ({pending.length})
         </h3>
         {loading ? (
-          <div className="flex items-center justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-purple-400" /></div>
+          <div className="flex items-center justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-fuchsia-400" /></div>
         ) : pending.length === 0 ? (
           <div className="bg-gray-50 rounded-2xl p-8 text-center">
             <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
@@ -5259,7 +5259,7 @@ const ReclamacionesSection: React.FC<{ addToast: Function; onCountChange?: (n: n
                     </div>
                     <p className="text-sm text-gray-600 mt-0.5">
                       Solicita el {c.target_table === 'artists' ? 'artista' : c.target_table === 'events' ? 'evento' : c.target_table === 'venues' ? 'local' : 'servicio'}:
-                      {' '}<a href={`${TABLE_ROUTES[c.target_table]}/${c.target_id}`} target="_blank" rel="noreferrer" className="text-purple-600 font-bold hover:underline inline-flex items-center gap-1">
+                      {' '}<a href={`${TABLE_ROUTES[c.target_table]}/${c.target_id}`} target="_blank" rel="noreferrer" className="text-fuchsia-600 font-bold hover:underline inline-flex items-center gap-1">
                         {c.target_name || c.target_id.slice(0, 10)}… <ExternalLink className="w-3 h-3" />
                       </a>
                     </p>
@@ -5525,7 +5525,7 @@ const PlanificadorSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
             onChange={e => setUrls(e.target.value)}
             rows={3}
             placeholder={'https://.../video1.mp4\nhttps://.../video2.mp4'}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-purple-300 resize-none"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-fuchsia-300 resize-none"
           />
         </div>
 
@@ -5536,7 +5536,7 @@ const PlanificadorSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
             <div className="flex gap-1 flex-wrap justify-end">
               {CAPTION_TEMPLATES.map(t => (
                 <button key={t.id} onClick={() => setCaption(t.text)}
-                  className="text-[11px] font-semibold px-2 py-1 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200">
+                  className="text-[11px] font-semibold px-2 py-1 rounded-lg bg-pink-50 text-fuchsia-700 hover:bg-pink-100 border border-pink-200">
                   {t.label}
                 </button>
               ))}
@@ -5551,7 +5551,7 @@ const PlanificadorSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
             onChange={e => setCaption(e.target.value)}
             rows={5}
             placeholder="Escribe el caption o usa un template de arriba..."
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 resize-none"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300 resize-none"
           />
           <p className="text-xs text-gray-400 mt-1 text-right">{caption.length} caracteres</p>
         </div>
@@ -5562,7 +5562,7 @@ const PlanificadorSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
           <div className="flex gap-2 flex-wrap">
             {PLATFORMS_CFG.map(p => (
               <button key={p.id} onClick={() => togglePlatform(p.id)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${platforms.includes(p.id) ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-200 hover:border-purple-400'}`}>
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${platforms.includes(p.id) ? 'bg-fuchsia-600 text-white border-fuchsia-600' : 'bg-white text-gray-600 border-gray-200 hover:border-fuchsia-400'}`}>
                 {p.emoji} {p.label}
               </button>
             ))}
@@ -5576,7 +5576,7 @@ const PlanificadorSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
             <div className="flex gap-2">
               {POST_TYPES.map(t => (
                 <button key={t.id} onClick={() => setPostType(t.id as any)}
-                  className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-all ${postType === t.id ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-200 hover:border-purple-400'}`}>
+                  className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-all ${postType === t.id ? 'bg-fuchsia-600 text-white border-fuchsia-600' : 'bg-white text-gray-600 border-gray-200 hover:border-fuchsia-400'}`}>
                   {t.label}
                 </button>
               ))}
@@ -5589,7 +5589,7 @@ const PlanificadorSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
               value={scheduleDate}
               min={minSchedule}
               onChange={e => setScheduleDate(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
             />
           </div>
         </div>

@@ -407,20 +407,20 @@ const RutasPage: React.FC = () => {
               <span className="text-white text-xs font-extrabold tracking-wide">{cityFilter || (cities.length === 1 ? cities[0] : 'Todas las ciudades')}</span>
             </span>
             <h1 className="font-display font-black text-2xl sm:text-3xl text-white mt-3">Planes Para Bailar</h1>
-            <p className="text-purple-200/80 text-sm mt-1">Crea el plan de esta noche y que el grupo se una en el mapa.</p>
+            <p className="text-pink-200/80 text-sm mt-1">Crea el plan de esta noche y que el grupo se una en el mapa.</p>
 
             <div className="flex flex-wrap gap-2 mt-4">
               <div className="flex items-center gap-2.5 bg-white/[0.06] border border-white/10 rounded-2xl px-3.5 py-2">
                 <span className="w-8 h-8 rounded-xl bg-pink-500/20 grid place-items-center flex-shrink-0"><RouteIcon className="w-4 h-4 text-pink-300" /></span>
-                <span className="leading-tight"><span className="block text-white font-extrabold text-sm">{stats.total}</span><span className="block text-purple-200/70 text-[10px]">planes abiertos</span></span>
+                <span className="leading-tight"><span className="block text-white font-extrabold text-sm">{stats.total}</span><span className="block text-pink-200/70 text-[10px]">planes abiertos</span></span>
               </div>
               <div className="flex items-center gap-2.5 bg-white/[0.06] border border-white/10 rounded-2xl px-3.5 py-2">
                 <span className="w-8 h-8 rounded-xl bg-emerald-500/20 grid place-items-center flex-shrink-0"><Users className="w-4 h-4 text-emerald-300" /></span>
-                <span className="leading-tight"><span className="block text-white font-extrabold text-sm">{stats.gente}</span><span className="block text-purple-200/70 text-[10px]">personas apuntadas</span></span>
+                <span className="leading-tight"><span className="block text-white font-extrabold text-sm">{stats.gente}</span><span className="block text-pink-200/70 text-[10px]">personas apuntadas</span></span>
               </div>
               <div className="flex items-center gap-2.5 bg-white/[0.06] border border-white/10 rounded-2xl px-3.5 py-2">
-                <span className="w-8 h-8 rounded-xl bg-violet-500/20 grid place-items-center flex-shrink-0"><Building2 className="w-4 h-4 text-violet-300" /></span>
-                <span className="leading-tight"><span className="block text-white font-extrabold text-sm">{stats.ciudades}</span><span className="block text-purple-200/70 text-[10px]">{stats.ciudades === 1 ? 'ciudad' : 'ciudades'}</span></span>
+                <span className="w-8 h-8 rounded-xl bg-fuchsia-500/20 grid place-items-center flex-shrink-0"><Building2 className="w-4 h-4 text-fuchsia-300" /></span>
+                <span className="leading-tight"><span className="block text-white font-extrabold text-sm">{stats.ciudades}</span><span className="block text-pink-200/70 text-[10px]">{stats.ciudades === 1 ? 'ciudad' : 'ciudades'}</span></span>
               </div>
             </div>
           </div>

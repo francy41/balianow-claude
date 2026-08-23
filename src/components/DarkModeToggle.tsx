@@ -31,7 +31,7 @@ const DarkModeToggle: React.FC = () => {
     >
       {darkMode
         ? <Sun className="w-4 h-4 text-yellow-400" />
-        : <Moon className="w-4 h-4 text-purple-500" />
+        : <Moon className="w-4 h-4 text-fuchsia-400" />
       }
     </button>
   );

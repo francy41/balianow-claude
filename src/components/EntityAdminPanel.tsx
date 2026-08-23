@@ -54,7 +54,7 @@ const ImageInput: React.FC<{
           ? <img src={value} alt={label} className="w-20 h-20 rounded-xl object-cover border border-gray-200 flex-shrink-0" />
           : <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0"><Upload className="w-5 h-5" /></div>}
         <div className="flex-1 space-y-2">
-          <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 text-purple-600 text-sm font-semibold hover:bg-purple-100">
+          <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-pink-50 text-fuchsia-600 text-sm font-semibold hover:bg-pink-100">
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
             {uploading ? 'Subiendo…' : 'Subir imagen'}
             <input type="file" accept="image/*" hidden onChange={e => handleFile(e.target.files?.[0])} />
@@ -64,7 +64,7 @@ const ImageInput: React.FC<{
             value={value}
             onChange={e => onChange(e.target.value)}
             placeholder="o pega una URL https://…"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-purple-300"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
           />
         </div>
       </div>
@@ -261,13 +261,13 @@ const EntityAdminPanel: React.FC<Props> = ({ kind, id, onSaved, ownerUserId }) =
             onChange={e => setVal(f.key, e.target.value)}
             rows={4}
             placeholder={f.placeholder}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 resize-y"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300 resize-y"
           />
         ) : f.type === 'select' ? (
           <select
             value={v || ''}
             onChange={e => setVal(f.key, e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300 bg-white"
           >
             <option value="">— selecciona —</option>
             {f.options?.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -276,7 +276,7 @@ const EntityAdminPanel: React.FC<Props> = ({ kind, id, onSaved, ownerUserId }) =
           <button
             type="button"
             onClick={() => setVal(f.key, !v)}
-            className={`relative w-12 h-6 rounded-full transition-colors mt-1 ${v ? 'bg-purple-600' : 'bg-gray-200'}`}
+            className={`relative w-12 h-6 rounded-full transition-colors mt-1 ${v ? 'bg-fuchsia-600' : 'bg-gray-200'}`}
           >
             <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${v ? 'translate-x-7' : 'translate-x-1'}`} />
           </button>
@@ -285,7 +285,7 @@ const EntityAdminPanel: React.FC<Props> = ({ kind, id, onSaved, ownerUserId }) =
             value={Array.isArray(v) ? v.join(', ') : (v || '')}
             onChange={e => setVal(f.key, e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
             placeholder={f.placeholder || 'separados por comas'}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
           />
         ) : (
           <input
@@ -293,7 +293,7 @@ const EntityAdminPanel: React.FC<Props> = ({ kind, id, onSaved, ownerUserId }) =
             value={v ?? ''}
             onChange={e => setVal(f.key, f.type === 'number' ? (e.target.value === '' ? '' : Number(e.target.value)) : e.target.value)}
             placeholder={f.placeholder}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
           />
         )}
         {f.helper && <p className="text-[10px] text-gray-400 mt-1">{f.helper}</p>}
@@ -340,7 +340,7 @@ const EntityAdminPanel: React.FC<Props> = ({ kind, id, onSaved, ownerUserId }) =
                   <button
                     key={t.id}
                     onClick={() => setActiveTab(t.id)}
-                    className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-bold border-b-2 transition-all -mb-px ${activeTab === t.id ? 'border-purple-600 text-purple-700' : 'border-transparent text-gray-400 hover:text-gray-700'}`}>
+                    className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-bold border-b-2 transition-all -mb-px ${activeTab === t.id ? 'border-fuchsia-600 text-fuchsia-700' : 'border-transparent text-gray-400 hover:text-gray-700'}`}>
                     {t.icon}{t.label}
                   </button>
                 ))}

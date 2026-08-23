@@ -149,7 +149,7 @@ const DevRoleSwitcher: React.FC = () => {
       >
         {darkMode
           ? <Sun className="w-5 h-5 text-yellow-400" />
-          : <Moon className="w-5 h-5 text-purple-500" />
+          : <Moon className="w-5 h-5 text-fuchsia-500" />
         }
       </button>
 

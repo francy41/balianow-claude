@@ -128,7 +128,7 @@ const DashboardPage: React.FC = () => {
                   <h1 className="font-display font-black text-2xl text-gray-900">{user.name}</h1>
                   {user.isVerified && <CheckCircle className="w-5 h-5 text-blue-500" />}
                   {user.isPremium && <Badge variant="orange">👑 PRO</Badge>}
-                  {isPerformer && <span className="text-[10px] bg-purple-100 text-purple-600 px-2 py-0.5 rounded-full font-bold uppercase">Panel Creator</span>}
+                  {isPerformer && <span className="text-[10px] bg-fuchsia-100 text-fuchsia-600 px-2 py-0.5 rounded-full font-bold uppercase">Panel Creator</span>}
                 </div>
                 <p className="text-gray-400 capitalize">{user.role} · {user.city}{user.country ? `, ${user.country}` : ''}</p>
                 {user.socials && Object.values(user.socials).some(v => v) && (
@@ -464,7 +464,7 @@ const MetricCard: React.FC<{ label: string; value: string; sub?: string; trendPc
   const colors = {
     green:  'bg-green-50 text-green-600',
     orange: 'bg-pink-50 text-brand-orange',
-    purple: 'bg-purple-50 text-purple-600',
+    purple: 'bg-fuchsia-50 text-fuchsia-600',
     pink:   'bg-pink-50 text-pink-600',
   };
   const Comp: any = onClick ? 'button' : 'div';
@@ -489,7 +489,7 @@ const StatCard: React.FC<{ label: string; value: string; sub?: string; icon: Rea
   const colors = {
     green:  'bg-green-50 text-green-600',
     orange: 'bg-pink-50 text-brand-orange',
-    purple: 'bg-purple-50 text-purple-600',
+    purple: 'bg-fuchsia-50 text-fuchsia-600',
     pink:   'bg-pink-50 text-pink-600',
   };
   return (
