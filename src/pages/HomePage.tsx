@@ -725,7 +725,7 @@ const FitDiscoverPins: React.FC<{ pins: { lat: number; lng: number }[] }> = ({ p
   return null;
 };
 
-const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string }> = ({ navigate, cityFilter }) => {
+const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; onCityChange: (city: string) => void }> = ({ navigate, cityFilter, onCityChange }) => {
   const [loaded, setLoaded] = useState(false);
   const [items, setItems] = useState<DiscoverItem[]>([]);
   const [stats, setStats] = useState({ abiertos: 0, pareja: 0, vivo: 0, rating: 0, plan: 0, evento: 0 });
@@ -965,11 +965,17 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string }>
       </div>
 
       <div className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-[#4A0B33] via-[#26071B] to-[#12060E] px-4 sm:px-5 pb-4 sm:pb-5 -mt-3">
+        {/* Súper buscador — justo donde termina el mapa, dentro del mismo panel, para que se lea
+            como una sola pieza con "Planes de baile" en vez de un elemento suelto encima. */}
+        <div className="pt-4">
+          <SuperSearchBar cityValue={cityFilter || ''} onCitySelect={onCityChange} />
+        </div>
+
         {/* Pestañas de filtro — funcionales, sobre datos reales ya cargados; también controlan el mapa de arriba.
             En móvil: cuadrícula de 2 columnas (2 líneas) para que quepan enteras sin scroll horizontal.
             En escritorio: fila con scroll, como antes. Cada pestaña lleva el mismo punto de alarma
             parpadeante y color que su pin en el mapa, para reconocer la categoría de un vistazo. */}
-        <div className="grid grid-cols-2 sm:flex sm:items-center gap-1.5 pt-4 sm:overflow-x-auto sm:pb-1" style={{ scrollbarWidth: 'none' }}>
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-1.5 pt-3 sm:overflow-x-auto sm:pb-1" style={{ scrollbarWidth: 'none' }}>
           {DISCOVER_TABS.map(t => {
             const Icon = t.icon;
             const isActive = tab === t.key;
@@ -1105,9 +1111,9 @@ const SuperSearchBar: React.FC<{ cityValue: string; onCitySelect: (city: string)
   };
 
   return (
-    <div className="relative mx-3 sm:mx-4 mt-4 mb-1">
-      <div className="relative bg-white dark:bg-gray-900 border-2 border-pink-200 dark:border-pink-900/40 rounded-2xl shadow-lg shadow-pink-500/10 flex items-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-3.5">
-        <Search className="w-5 h-5 text-pink-500 flex-shrink-0" />
+    <div className="relative">
+      <div className="relative bg-white/[0.08] border border-white/15 rounded-2xl shadow-inner flex items-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-3">
+        <Search className="w-5 h-5 text-pink-300 flex-shrink-0" />
         <input
           value={query}
           onChange={e => { setQuery(e.target.value); setShowList(true); }}
@@ -1115,18 +1121,18 @@ const SuperSearchBar: React.FC<{ cityValue: string; onCitySelect: (city: string)
           onBlur={() => setTimeout(() => setShowList(false), 150)}
           onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') setShowList(false); }}
           placeholder="¿En qué ciudad quieres bailar hoy?"
-          className="flex-1 min-w-0 bg-transparent outline-none text-gray-900 dark:text-white placeholder-gray-400 text-sm sm:text-base font-bold"
+          className="flex-1 min-w-0 bg-transparent outline-none text-white placeholder-pink-200/50 text-sm sm:text-base font-bold"
         />
         {query && (
-          <button onClick={() => { setQuery(''); onCitySelect(''); }} className="flex-shrink-0 text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+          <button onClick={() => { setQuery(''); onCitySelect(''); }} className="flex-shrink-0 text-pink-200/60 hover:text-white"><X className="w-4 h-4" /></button>
         )}
         <button onClick={useMyLocation} disabled={locating}
-          className="flex-shrink-0 flex items-center gap-1.5 bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white text-xs sm:text-sm font-bold px-2.5 sm:px-4 py-2 rounded-xl disabled:opacity-60 shadow shadow-pink-500/30">
+          className="flex-shrink-0 flex items-center gap-1.5 bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white text-xs sm:text-sm font-bold px-2.5 sm:px-4 py-2 rounded-xl disabled:opacity-60 shadow shadow-pink-900/40">
           {locating ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
           <span className="hidden sm:inline">Usar mi ubicación</span>
         </button>
       </div>
-      {locError && <p className="text-red-500 text-[11px] mt-1 px-1">{locError}</p>}
+      {locError && <p className="text-red-300 text-[11px] mt-1 px-1">{locError}</p>}
       {showList && (
         <div className="absolute left-0 right-0 mt-2 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-xl z-20 max-h-64 overflow-y-auto p-2">
           {filtered.length === 0 ? (
@@ -2063,12 +2069,9 @@ const HomePage: React.FC = () => {
         </p>
       </div>
 
-      {/* ── SÚPER BUSCADOR + PLANES DE BAILE — módulo "Planes Para Bailar" (Admin → Constructor Home) ── */}
+      {/* ── PLANES DE BAILE (con el súper buscador integrado dentro) — módulo "Planes Para Bailar" (Admin → Constructor Home) ── */}
       {isModuleOn('ruta') && (
-        <>
-          <SuperSearchBar cityValue={homeCity} onCitySelect={setHomeCity} />
-          <PlanesDeBaileHomeSection navigate={navigate} cityFilter={homeCity} />
-        </>
+        <PlanesDeBaileHomeSection navigate={navigate} cityFilter={homeCity} onCityChange={setHomeCity} />
       )}
 
       {/* ── SPONSORS SLIDER ── */}
