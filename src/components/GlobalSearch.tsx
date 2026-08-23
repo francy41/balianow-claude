@@ -7,6 +7,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X, MapPin, Calendar, Music, Loader2, TrendingUp } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { TOP_DANCE_CITIES } from '../data/topDanceCities';
 
 interface Result {
   id: string;
@@ -28,15 +29,16 @@ const TYPE_META = {
   profile: { label: 'Perfil',    emoji: '👤', color: 'bg-fuchsia-500' },
 };
 
-const POPULAR_CITIES = ['Madrid','Barcelona','Valencia','Sevilla','Paris','Miami','New York','Cali','Medellín','La Habana','Berlín','Roma','Londres'];
+const POPULAR_CITIES = TOP_DANCE_CITIES;
 const POPULAR_QUERIES = ['Bachata','Salsa','Kizomba','Reggaeton','Festival 2026','DJ Madrid','Romeo Santos','Bilbao'];
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  initialQuery?: string;
 }
 
-const GlobalSearch: React.FC<Props> = ({ open, onClose }) => {
+const GlobalSearch: React.FC<Props> = ({ open, onClose, initialQuery }) => {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -48,6 +50,7 @@ const GlobalSearch: React.FC<Props> = ({ open, onClose }) => {
   useEffect(() => {
     if (open) {
       try { setRecent(JSON.parse(localStorage.getItem('bn-search-recent') || '[]')); } catch {}
+      if (initialQuery) setQuery(initialQuery);
       setTimeout(() => inputRef.current?.focus(), 100);
     } else {
       setQuery(''); setResults([]);

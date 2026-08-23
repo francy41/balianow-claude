@@ -121,6 +121,7 @@ const App: React.FC = () => {
   useSiteConfigLoader();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchInitialQuery, setSearchInitialQuery] = useState('');
 
   // Initialize dark mode from localStorage on mount
   useEffect(() => {
@@ -135,7 +136,7 @@ const App: React.FC = () => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setSearchOpen(true); }
       if (e.key === 'Escape' && searchOpen) setSearchOpen(false);
     };
-    const onOpen = () => setSearchOpen(true);
+    const onOpen = (e: Event) => { setSearchInitialQuery((e as CustomEvent).detail?.query || ''); setSearchOpen(true); };
     window.addEventListener('keydown', onKey);
     window.addEventListener('bn:open-search', onOpen);
     return () => {
@@ -254,7 +255,7 @@ const App: React.FC = () => {
           <BottomNav />
           <ToastContainer />
           <CookieBanner />
-          <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
+          <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} initialQuery={searchInitialQuery} />
           <DarkModeToggle />
           <DonationButton />
           <GhlChatWidget />
