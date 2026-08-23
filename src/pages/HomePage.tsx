@@ -2028,7 +2028,7 @@ const HomePage: React.FC = () => {
       {/* ── HERO: TV con el vídeo real visible sin pulsar, Radio con emisoras reales clicables ── */}
       <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 grid grid-cols-2 gap-2.5 sm:gap-3">
         {/* TV: se ve el contenido en directo, no hace falta pulsar para verlo */}
-        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-fuchsia-950 flex flex-col">
+        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-[#4A0530] via-[#C00E68] to-[#E5127D] flex flex-col">
           <div className="relative w-full h-24 sm:h-32 lg:h-52 bg-black">
             {heroYtId ? (
               <iframe
@@ -2052,7 +2052,7 @@ const HomePage: React.FC = () => {
         </div>
 
         {/* Radio: emisoras reales visibles, cada una se pulsa para escucharla directamente */}
-        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-bl from-orange-600 via-pink-600 to-fuchsia-800 flex flex-col justify-center p-2 sm:p-3 lg:p-5">
+        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-bl from-[#E5127D] via-[#C00E68] to-[#4A0530] flex flex-col justify-center p-2 sm:p-3 lg:p-5">
           <p className="text-white font-display font-black text-xs sm:text-base lg:text-lg flex items-center gap-1.5 mb-1.5 lg:mb-3">
             <Radio className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5" /> Radio Online
           </p>
