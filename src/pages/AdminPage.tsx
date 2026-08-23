@@ -47,7 +47,7 @@ type AdminSection =
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms' | 'home-destacados'
   | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter' | 'danceavatares' | 'afiliados' | 'promocionate'
   | 'reclamaciones' | 'planificador' | 'soporte'
-  | 'tv' | 'rutas' | 'parejas' | 'retos' | 'partner' | 'publicidad' | 'donaciones' | 'membresias' | 'solicitudes-creador' | 'tv-monetizacion' | 'modulos' | 'app-builder' | 'servicios';
+  | 'tv' | 'rutas' | 'parejas' | 'retos' | 'partner' | 'publicidad' | 'donaciones' | 'membresias' | 'solicitudes-creador' | 'tv-monetizacion' | 'modulos' | 'app-builder' | 'servicios' | 'en-directo';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
   { id: 'overview',       label: 'Dashboard',               icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -78,6 +78,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'tv',             label: 'BailaNow TV',             icon: <Tv className="w-4 h-4" />, badge: 'NEW' },
   { id: 'rutas',          label: 'Planes Para Bailar',      icon: <MapPin className="w-4 h-4" />, badge: 'NEW' },
   { id: 'parejas',        label: 'Pareja de baile',         icon: <Heart className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'en-directo',     label: 'Eventos en directo',      icon: <Wifi className="w-4 h-4" />, badge: 'LIVE' },
   { id: 'retos',          label: 'Retos de baile',          icon: <Trophy className="w-4 h-4" />, badge: 'NEW' },
   { id: 'partner',        label: 'Partners de ciudad',      icon: <Globe className="w-4 h-4" />, badge: 'NEW' },
   { id: 'publicidad',     label: 'Publicidad (Vídeo)',      icon: <TrendingUp className="w-4 h-4" />, badge: 'NEW' },
@@ -308,6 +309,7 @@ const AdminPage: React.FC = () => {
         {active === 'tv'             && <TVAdminSection addToast={addToast} />}
         {active === 'rutas'          && <RutasAdminSection addToast={addToast} />}
         {active === 'parejas'        && <ParejasAdminSection addToast={addToast} />}
+        {active === 'en-directo'     && <LiveSessionsAdminSection addToast={addToast} />}
         {active === 'retos'          && <RetosAdminSection addToast={addToast} />}
         {active === 'partner'        && <PartnerAdminSection addToast={addToast} />}
         {active === 'publicidad'     && <VideoAdsAdminSection addToast={addToast} />}
@@ -1364,6 +1366,88 @@ const ParejasAdminSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
             <button onClick={() => toggleActive(p)} title={p.active ? 'Ocultar' : 'Activar'} className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-pink-500">{p.active ? <Eye className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}</button>
             <button onClick={() => remove(p)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
           </div>
+        ])}
+      />
+    )}
+  </div>
+  );
+};
+
+// ── EVENTOS EN DIRECTO (moderación de live_sessions) ────────────────────────
+const LiveSessionsAdminSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const navigate = useNavigate();
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('live_sessions_enriched')
+      .select('*')
+      .order('started_at', { ascending: false, nullsFirst: false })
+      .order('scheduled_at', { ascending: false, nullsFirst: false });
+    if (error) {
+      // Fallback si la vista enriquecida no existe todavía en esta BD
+      const { data: raw } = await supabase.from('live_sessions').select('*').order('created_at', { ascending: false });
+      setSessions(raw || []);
+    } else {
+      setSessions(data || []);
+    }
+    setLoading(false);
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const endSession = async (s: any) => {
+    if (!confirm(`¿Finalizar la sesión en directo "${s.title}"? Se cortará para todos los espectadores.`)) return;
+    const { error } = await supabase.from('live_sessions').update({ status: 'ended', ended_at: new Date().toISOString() }).eq('id', s.id);
+    if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
+    addToast({ message: '✅ Sesión finalizada', type: 'success' }); load();
+  };
+  const remove = async (s: any) => {
+    if (!confirm(`¿Eliminar la sesión "${s.title}"? Se borran también sus tickets y donaciones.`)) return;
+    const { error } = await supabase.from('live_sessions').delete().eq('id', s.id);
+    if (error) { addToast({ message: `Error: ${error.message}`, type: 'error' }); return; }
+    addToast({ message: '✅ Sesión eliminada', type: 'success' }); load();
+  };
+
+  const live = sessions.filter(s => s.status === 'live').length;
+  const scheduled = sessions.filter(s => s.status === 'scheduled').length;
+
+  const statusBadge: Record<string, { label: string; variant: any }> = {
+    live: { label: 'EN DIRECTO', variant: 'live' },
+    scheduled: { label: 'Programada', variant: 'blue' },
+    ended: { label: 'Finalizada', variant: 'gray' },
+    cancelled: { label: 'Cancelada', variant: 'gray' },
+  };
+
+  return (
+  <div>
+    <PageHeader title="Eventos en directo" subtitle={`${sessions.length} sesiones · ${live} en directo ahora`} action={
+      <Button variant="dark" icon={<Eye className="w-4 h-4" />} onClick={() => navigate('/live')}>Ver módulo</Button>
+    } />
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 mb-6">
+      {[{ label: 'Total sesiones', val: sessions.length }, { label: 'En directo ahora', val: live }, { label: 'Programadas', val: scheduled }].map(s => (
+        <div key={s.label} className="card-white p-4 text-center"><p className="text-3xl font-black text-brand-orange">{s.val}</p><p className="text-gray-400 text-sm mt-1">{s.label}</p></div>
+      ))}
+    </div>
+    {loading ? <div className="py-12 text-center text-gray-400">Cargando…</div> : sessions.length === 0 ? (
+      <div className="card-white p-10 text-center text-gray-400"><Wifi className="w-10 h-10 mx-auto mb-2 opacity-40" /><p>Aún no hay sesiones en directo creadas por los usuarios.</p></div>
+    ) : (
+      <AdminTable
+        headers={['Título', 'Anfitrión', 'Ciudad', 'Categoría', 'Estado', 'Espectadores', 'Acciones']}
+        rows={sessions.map(s => [
+          <span className="font-semibold">{s.title}</span>,
+          <span>{s.host_name || '—'}</span>,
+          <span>{s.city || '—'}</span>,
+          <Badge variant="gray">{s.category || '—'}</Badge>,
+          <Badge variant={statusBadge[s.status]?.variant || 'gray'}>{statusBadge[s.status]?.label || s.status}</Badge>,
+          <span>{s.viewers_count ?? 0}</span>,
+          <div className="flex gap-1">
+            {(s.status === 'live' || s.status === 'scheduled') && (
+              <button onClick={() => endSession(s)} title="Finalizar sesión" className="p-1.5 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500"><XCircle className="w-4 h-4" /></button>
+            )}
+            <button onClick={() => remove(s)} title="Eliminar" className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
+          </div>,
         ])}
       />
     )}
