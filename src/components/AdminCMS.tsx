@@ -5,8 +5,18 @@ import {
   Save, Upload, FolderPlus, X, Edit3, ExternalLink
 } from 'lucide-react';
 import { useCMSStore, type CMSCategory, type HomeModule, type CMSMenuItem, type MediaAsset } from '../store/cmsStore';
-import { useUIStore } from '../store/appStore';
+import { useUIStore, type Toast } from '../store/appStore';
 import { Button } from './ui';
+import { saveSiteConfigKey } from '../hooks/useSiteConfig';
+
+// Los toggles de "Constructor Home" vivían solo en localStorage (useCMSStore con persist):
+// cada admin veía su propio interruptor, pero el resto de visitantes de la web nunca se
+// enteraba del cambio. Esto persiste la lista real en Supabase para que sea un control
+// de verdad, igual que el resto de ajustes del sitio.
+const persistModules = async (addToast: (t: Omit<Toast, 'id'>) => void) => {
+  const { error } = await saveSiteConfigKey('home_cms_modules', useCMSStore.getState().modules);
+  if (error) addToast({ message: `⚠ Guardado local, BD falló: ${error}`, type: 'warning' });
+};
 
 type CMSTab = 'categories' | 'menu' | 'modules' | 'media' | 'history';
 
@@ -270,7 +280,7 @@ const ModulesPanel: React.FC = () => {
     <div className="space-y-4">
       <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-xs text-gray-700 flex items-start gap-2">
         <LayoutDashboard className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
-        <p>Cada bloque corresponde a una sección de la home. Reordena con las flechas, activa/desactiva con el toggle y los cambios se aplican en vivo en <code className="bg-blue-100 px-1 rounded">/</code>.</p>
+        <p>Cada bloque corresponde a una sección de la home. Reordena con las flechas, activa/desactiva con el toggle y los cambios se aplican en vivo para todos los visitantes de <code className="bg-blue-100 px-1 rounded">/</code>.</p>
       </div>
 
       <div className="card-white overflow-hidden">
@@ -278,16 +288,16 @@ const ModulesPanel: React.FC = () => {
           <div key={m.id} className="flex items-center gap-3 px-4 py-3 border-b border-gray-50">
             <span className="text-xs font-bold text-gray-400 w-6">#{i + 1}</span>
             <div className="flex flex-col">
-              <button disabled={i === 0} onClick={() => cms.moveModuleUp(m.id)} className="disabled:opacity-30"><ChevronUp className="w-4 h-4 text-gray-500" /></button>
-              <button disabled={i === arr.length - 1} onClick={() => cms.moveModuleDown(m.id)} className="disabled:opacity-30"><ChevronDown className="w-4 h-4 text-gray-500" /></button>
+              <button disabled={i === 0} onClick={() => { cms.moveModuleUp(m.id); persistModules(addToast); }} className="disabled:opacity-30"><ChevronUp className="w-4 h-4 text-gray-500" /></button>
+              <button disabled={i === arr.length - 1} onClick={() => { cms.moveModuleDown(m.id); persistModules(addToast); }} className="disabled:opacity-30"><ChevronDown className="w-4 h-4 text-gray-500" /></button>
             </div>
             <div className="flex-1">
-              <input value={m.title} onChange={e => cms.updateModuleTitle(m.id, e.target.value)}
+              <input value={m.title} onChange={e => cms.updateModuleTitle(m.id, e.target.value)} onBlur={() => persistModules(addToast)}
                 className="font-bold text-gray-900 bg-transparent border-b border-transparent hover:border-gray-200 focus:border-brand-orange focus:outline-none w-full" />
               <p className="text-[10px] text-gray-400 font-mono">type: {m.type}</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" checked={m.enabled} onChange={() => cms.toggleModule(m.id)} className="sr-only peer" />
+              <input type="checkbox" checked={m.enabled} onChange={() => { cms.toggleModule(m.id); persistModules(addToast); }} className="sr-only peer" />
               <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-brand-orange transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-transform peer-checked:after:translate-x-5"></div>
             </label>
             <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase w-16 text-center ${m.enabled ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
@@ -297,7 +307,7 @@ const ModulesPanel: React.FC = () => {
         ))}
       </div>
       <div className="text-right">
-        <button onClick={() => { cms.snapshot('modules', 'Reset módulos home'); cms.resetModules(); addToast({ message: 'Módulos reseteados', type: 'info' }); }}
+        <button onClick={() => { cms.snapshot('modules', 'Reset módulos home'); cms.resetModules(); persistModules(addToast); addToast({ message: 'Módulos reseteados', type: 'info' }); }}
           className="text-xs text-gray-500 hover:text-gray-800 font-semibold">↺ Resetear orden default</button>
       </div>
     </div>

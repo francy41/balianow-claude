@@ -645,20 +645,67 @@ const DISCOVER_TAB_DOT: Partial<Record<DiscoverKind | 'todos', { ring: string; g
 // respaldo cuando un evento/directo/plan real tiene ciudad pero no lat/lng propios guardados en
 // la BD (muchos registros aún no las tienen). Nunca sustituye una coordenada real ya guardada.
 const CITY_CENTER: Record<string, [number, number]> = {
+  // España
   'madrid': [40.4168, -3.7038], 'barcelona': [41.3851, 2.1734], 'valencia': [39.4699, -0.3763],
   'sevilla': [37.3891, -5.9845], 'bilbao': [43.2630, -2.9350], 'málaga': [36.7213, -4.4214],
   'malaga': [36.7213, -4.4214], 'zaragoza': [41.6488, -0.8891], 'murcia': [37.9922, -1.1307],
-  'palma': [39.5696, 2.6502], 'las palmas': [28.1235, -15.4363], 'alicante': [38.3452, -0.4810],
-  'granada': [37.1773, -3.5986], 'san sebastián': [43.3183, -1.9812], 'gijón': [43.5322, -5.6611],
-  'vigo': [42.2406, -8.7207], 'lisboa': [38.7223, -9.1393], 'lisbon': [38.7223, -9.1393],
+  'palma de mallorca': [39.5696, 2.6502], 'palma': [39.5696, 2.6502],
+  'las palmas de gran canaria': [28.1235, -15.4363], 'las palmas': [28.1235, -15.4363],
+  'alicante': [38.3452, -0.4810], 'granada': [37.1773, -3.5986], 'san sebastián': [43.3183, -1.9812],
+  'gijón': [43.5322, -5.6611], 'vigo': [42.2406, -8.7207], 'santa cruz de tenerife': [28.4636, -16.2518],
+  'córdoba': [37.8882, -4.7794], 'valladolid': [41.6523, -4.7245], 'marbella': [36.5099, -4.8863],
+  'ibiza': [38.9067, 1.4206],
+  // México y Centroamérica
   'ciudad de méxico': [19.4326, -99.1332], 'cdmx': [19.4326, -99.1332], 'méxico df': [19.4326, -99.1332],
-  'guadalajara': [20.6597, -103.3496], 'monterrey': [25.6866, -100.3161], 'bogotá': [4.7110, -74.0721],
-  'bogota': [4.7110, -74.0721], 'medellín': [6.2442, -75.5812], 'medellin': [6.2442, -75.5812],
-  'cali': [3.4516, -76.5320], 'buenos aires': [-34.6037, -58.3816], 'santiago': [-33.4489, -70.6693],
-  'lima': [-12.0464, -77.0428], 'la habana': [23.1136, -82.3666], 'santo domingo': [18.4861, -69.9312],
-  'san juan': [18.4655, -66.1057], 'caracas': [10.4806, -66.9036], 'quito': [-0.1807, -78.4678],
-  'montevideo': [-34.9011, -56.1645], 'panamá': [8.9824, -79.5199], 'panama': [8.9824, -79.5199],
-  'miami': [25.7617, -80.1918], 'new york': [40.7128, -74.0060], 'nueva york': [40.7128, -74.0060],
+  'guadalajara': [20.6597, -103.3496], 'monterrey': [25.6866, -100.3161], 'cancún': [21.1619, -86.8515],
+  'puebla': [19.0414, -98.2063], 'tijuana': [32.5149, -117.0382], 'mérida': [20.9674, -89.5926],
+  'playa del carmen': [20.6296, -87.0739], 'guatemala': [14.6349, -90.5069], 'tegucigalpa': [14.0723, -87.1921],
+  'san salvador': [13.6929, -89.2182], 'managua': [12.1364, -86.2514], 'san josé': [9.9281, -84.0907],
+  'ciudad de panamá': [8.9824, -79.5199], 'panamá': [8.9824, -79.5199], 'panama': [8.9824, -79.5199],
+  // Caribe
+  'la habana': [23.1136, -82.3666], 'santiago de cuba': [20.0247, -75.8219],
+  'santo domingo': [18.4861, -69.9312], 'santiago de los caballeros': [19.4517, -70.6970],
+  'san juan': [18.4655, -66.1057], 'kingston': [17.9712, -76.7936], 'puerto españa': [10.6549, -61.5019],
+  'willemstad': [12.1091, -68.9316],
+  // Sudamérica
+  'bogotá': [4.7110, -74.0721], 'bogota': [4.7110, -74.0721], 'medellín': [6.2442, -75.5812],
+  'medellin': [6.2442, -75.5812], 'cali': [3.4516, -76.5320], 'barranquilla': [10.9639, -74.7964],
+  'cartagena': [10.3910, -75.4794], 'bucaramanga': [7.1193, -73.1227],
+  'buenos aires': [-34.6037, -58.3816], 'córdoba (argentina)': [-31.4201, -64.1888],
+  'rosario': [-32.9442, -60.6505], 'mendoza': [-32.8895, -68.8458],
+  'santiago': [-33.4489, -70.6693], 'santiago de chile': [-33.4489, -70.6693],
+  'valparaíso': [-33.0472, -71.6127], 'concepción': [-36.8201, -73.0444],
+  'lima': [-12.0464, -77.0428], 'arequipa': [-16.4090, -71.5375], 'cusco': [-13.5320, -71.9675],
+  'montevideo': [-34.9011, -56.1645], 'punta del este': [-34.9670, -54.9500],
+  'caracas': [10.4806, -66.9036], 'maracaibo': [10.6427, -71.6125], 'valencia (venezuela)': [10.1621, -68.0077],
+  'quito': [-0.1807, -78.4678], 'guayaquil': [-2.1894, -79.8890],
+  'la paz': [-16.5000, -68.1500], 'santa cruz de la sierra': [-17.7833, -63.1821],
+  'asunción': [-25.2637, -57.5759],
+  'são paulo': [-23.5505, -46.6333], 'rio de janeiro': [-22.9068, -43.1729], 'río de janeiro': [-22.9068, -43.1729],
+  'recife': [-8.0476, -34.8770], 'salvador de bahía': [-12.9777, -38.5016],
+  // Estados Unidos
+  'miami': [25.7617, -80.1918], 'nueva york': [40.7128, -74.0060], 'new york': [40.7128, -74.0060],
+  'los ángeles': [34.0522, -118.2437], 'chicago': [41.8781, -87.6298], 'houston': [29.7604, -95.3698],
+  'orlando': [28.5383, -81.3792], 'las vegas': [36.1699, -115.1398], 'san francisco': [37.7749, -122.4194],
+  'boston': [42.3601, -71.0589], 'washington d.c.': [38.9072, -77.0369], 'dallas': [32.7767, -96.7970],
+  'atlanta': [33.7490, -84.3880], 'san antonio': [29.4241, -98.4936],
+  // Europa occidental
+  'lisboa': [38.7223, -9.1393], 'lisbon': [38.7223, -9.1393], 'oporto': [41.1579, -8.6291],
+  'roma': [41.9028, 12.4964], 'milán': [45.4642, 9.1900], 'parís': [48.8566, 2.3522],
+  'londres': [51.5074, -0.1278], 'berlín': [52.5200, 13.4050], 'múnich': [48.1351, 11.5820],
+  'ámsterdam': [52.3676, 4.9041], 'bruselas': [50.8503, 4.3517], 'zúrich': [47.3769, 8.5417],
+  'viena': [48.2082, 16.3738], 'ginebra': [46.2044, 6.1432], 'estocolmo': [59.3293, 18.0686],
+  'copenhague': [55.6761, 12.5683], 'oslo': [59.9139, 10.7522], 'dublín': [53.3498, -6.2603],
+  // Europa del Este
+  'varsovia': [52.2297, 21.0122], 'cracovia': [50.0647, 19.9450], 'praga': [50.0755, 14.4378],
+  'budapest': [47.4979, 19.0402], 'bucarest': [44.4268, 26.1025], 'kiev': [50.4501, 30.5234],
+  'moscú': [55.7558, 37.6173], 'san petersburgo': [59.9311, 30.3609], 'sofía': [42.6977, 23.3219],
+  'belgrado': [44.7866, 20.4489], 'zagreb': [45.8150, 15.9819],
+  // Asia y Oceanía
+  'tokio': [35.6762, 139.6503], 'seúl': [37.5665, 126.9780], 'shanghái': [31.2304, 121.4737],
+  'pekín': [39.9042, 116.4074], 'singapur': [1.3521, 103.8198], 'bangkok': [13.7563, 100.5018],
+  'manila': [14.5995, 120.9842], 'hong kong': [22.3193, 114.1694], 'dubái': [25.2048, 55.2708],
+  'tel aviv': [32.0853, 34.7818], 'sídney': [-33.8688, 151.2093], 'melbourne': [-37.8136, 144.9631],
 };
 const cityCenter = (city?: string) => city ? CITY_CENTER[city.trim().toLowerCase()] : undefined;
 
@@ -2016,11 +2063,13 @@ const HomePage: React.FC = () => {
         </p>
       </div>
 
-      {/* ── SÚPER BUSCADOR: ciudad (100+ reales) o GPS — vinculado a Planes de baile de justo debajo ── */}
-      <SuperSearchBar cityValue={homeCity} onCitySelect={setHomeCity} />
-
-      {/* ── PLANES DE BAILE: mapa + métricas reales + pestañas (Planes/Abiertos ahora/Pareja/Eventos/En vivo) ── */}
-      <PlanesDeBaileHomeSection navigate={navigate} cityFilter={homeCity} />
+      {/* ── SÚPER BUSCADOR + PLANES DE BAILE — módulo "Planes Para Bailar" (Admin → Constructor Home) ── */}
+      {isModuleOn('ruta') && (
+        <>
+          <SuperSearchBar cityValue={homeCity} onCitySelect={setHomeCity} />
+          <PlanesDeBaileHomeSection navigate={navigate} cityFilter={homeCity} />
+        </>
+      )}
 
       {/* ── SPONSORS SLIDER ── */}
       <FeaturedSlider navigate={navigate} />
