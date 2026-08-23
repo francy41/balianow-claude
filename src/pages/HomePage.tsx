@@ -886,7 +886,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         {/* Mapa real de fondo — Planes/Abiertos ahora/Eventos/En directo a la vez, cada uno con su color y alarma */}
         <div className="absolute inset-0">
           {pins.length > 0 ? (
-            <MapErrorBoundary fallback={<div className="absolute inset-0 bg-gradient-to-br from-[#831843] via-[#500724] to-[#1a0510]" />}>
+            <MapErrorBoundary fallback={<div className="absolute inset-0 bg-gradient-to-br from-[#EC4899] via-[#BE185D] to-[#831843]" />}>
               <MapContainer center={mapCenter} zoom={pins.length > 1 ? 6 : 12} style={{ width: '100%', height: '100%' }}
                 attributionControl={false} zoomControl={false} scrollWheelZoom={false}>
                 <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
@@ -898,12 +898,12 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
               </MapContainer>
             </MapErrorBoundary>
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-[#831843] via-[#500724] to-[#1a0510]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#EC4899] via-[#BE185D] to-[#831843]" />
           )}
         </div>
         {/* Degradados rosa oscuro para que el texto siempre se lea sobre el mapa */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#1a0510] via-[#1a0510]/75 to-[#1a0510]/10 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1a0510]/85 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#831843] via-[#831843]/70 to-[#831843]/15 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#831843]/85 via-transparent to-transparent pointer-events-none" />
 
         <div className="relative p-3 sm:p-5 flex items-start justify-between gap-2 sm:gap-3 flex-wrap sm:flex-nowrap min-h-[105px] sm:min-h-[240px]">
           <div className="min-w-0 pointer-events-none">
@@ -974,7 +974,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         )}
       </div>
 
-      <div className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-[#831843] via-[#500724] to-[#1a0510] px-4 sm:px-5 pb-4 sm:pb-5 -mt-3">
+      <div className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-[#EC4899] via-[#BE185D] to-[#831843] px-4 sm:px-5 pb-4 sm:pb-5 -mt-3">
         {/* Súper buscador — justo donde termina el mapa, dentro del mismo panel, para que se lea
             como una sola pieza con "Planes de baile" en vez de un elemento suelto encima. */}
         <div className="pt-4">
