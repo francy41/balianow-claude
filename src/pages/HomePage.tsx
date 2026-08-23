@@ -762,7 +762,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
 
   return (
     <section className="mx-3 sm:mx-4 mt-8">
-      <div className="relative overflow-hidden rounded-3xl min-h-[210px] sm:min-h-[240px]">
+      <div className="relative overflow-hidden rounded-3xl min-h-[105px] sm:min-h-[240px]">
         {/* Mapa real de fondo — Planes/Abiertos ahora/Eventos/En directo a la vez, cada uno con su color y alarma */}
         <div className="absolute inset-0">
           {pins.length > 0 ? (
@@ -781,27 +781,27 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
         <div className="absolute inset-0 bg-gradient-to-r from-[#12060E] via-[#12060E]/75 to-[#12060E]/10 pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#12060E]/85 via-transparent to-transparent pointer-events-none" />
 
-        <div className="relative p-4 sm:p-5 flex items-start justify-between gap-3 flex-wrap min-h-[210px] sm:min-h-[240px]">
+        <div className="relative p-3 sm:p-5 flex items-start justify-between gap-2 sm:gap-3 flex-wrap sm:flex-nowrap min-h-[105px] sm:min-h-[240px]">
           <div className="min-w-0 pointer-events-none">
-            <h2 className="font-display font-black text-lg sm:text-xl text-white flex items-center gap-2">
-              <RouteIcon className="w-4.5 h-4.5 text-pink-300" /> Planes de baile
+            <h2 className="font-display font-black text-sm sm:text-xl text-white flex items-center gap-1.5 sm:gap-2">
+              <RouteIcon className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-pink-300" /> Planes de baile
             </h2>
-            <p className="text-pink-200/80 text-xs mt-0.5">Descubre experiencias de baile cerca de ti, en tiempo real.</p>
-            <div className="flex flex-wrap gap-1.5 mt-2.5 pointer-events-auto">
-              <div className="flex items-center gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-2.5 py-1">
-                <span className="text-white font-extrabold text-xs">{stats.abiertos}</span>
-                <span className="text-pink-200/70 text-[9px]">abiertos ahora</span>
+            <p className="hidden sm:block text-pink-200/80 text-xs mt-0.5">Descubre experiencias de baile cerca de ti, en tiempo real.</p>
+            <div className="flex flex-wrap gap-1 sm:gap-1.5 mt-1.5 sm:mt-2.5 pointer-events-auto">
+              <div className="flex items-center gap-1 sm:gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-1.5 sm:px-2.5 py-0.5 sm:py-1">
+                <span className="text-white font-extrabold text-[10px] sm:text-xs">{stats.abiertos}</span>
+                <span className="text-pink-200/70 text-[8px] sm:text-[9px]">abiertos</span>
               </div>
-              <div className="flex items-center gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-2.5 py-1">
-                <span className="text-white font-extrabold text-xs">{stats.pareja}</span>
-                <span className="text-pink-200/70 text-[9px]">pareja de baile</span>
+              <div className="flex items-center gap-1 sm:gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-1.5 sm:px-2.5 py-0.5 sm:py-1">
+                <span className="text-white font-extrabold text-[10px] sm:text-xs">{stats.pareja}</span>
+                <span className="text-pink-200/70 text-[8px] sm:text-[9px]">pareja</span>
               </div>
-              <div className="flex items-center gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-2.5 py-1">
-                <span className="text-white font-extrabold text-xs">{stats.vivo}</span>
-                <span className="text-pink-200/70 text-[9px]">eventos en vivo</span>
+              <div className="flex items-center gap-1 sm:gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-1.5 sm:px-2.5 py-0.5 sm:py-1">
+                <span className="text-white font-extrabold text-[10px] sm:text-xs">{stats.vivo}</span>
+                <span className="text-pink-200/70 text-[8px] sm:text-[9px]">en vivo</span>
               </div>
               {stats.rating > 0 && (
-                <div className="flex items-center gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-2.5 py-1">
+                <div className="hidden sm:flex items-center gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-2.5 py-1">
                   <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                   <span className="text-white font-extrabold text-xs">{stats.rating.toFixed(1)}</span>
                   <span className="text-pink-200/70 text-[9px]">valoración media</span>
@@ -810,8 +810,16 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
             </div>
           </div>
 
-          {/* Actividad ahora (real: abiertos + directos + planes de hoy) — no es un sistema de alertas inventado */}
-          <div className="flex-shrink-0 w-full sm:w-[230px] bg-gradient-to-br from-pink-600 to-fuchsia-800 rounded-2xl p-3 shadow-xl shadow-pink-950/50">
+          {/* Actividad ahora (real: abiertos + directos + planes de hoy) — no es un sistema de alertas inventado.
+              En móvil: pastilla compacta clicable de una línea. En escritorio: tarjeta completa. */}
+          <button onClick={() => navigate(DISCOVER_TAB_ROUTE[tab])}
+            className="flex-shrink-0 flex sm:hidden items-center gap-1.5 bg-gradient-to-br from-pink-600 to-fuchsia-800 rounded-full pl-1.5 pr-2.5 py-1 shadow-lg shadow-pink-950/50">
+            <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+              <RouteIcon className="w-2.5 h-2.5 text-white" />
+            </span>
+            <span className="text-white text-[10px] font-extrabold whitespace-nowrap">{activityNow} activos</span>
+          </button>
+          <div className="hidden sm:block flex-shrink-0 w-[230px] bg-gradient-to-br from-pink-600 to-fuchsia-800 rounded-2xl p-3 shadow-xl shadow-pink-950/50">
             <div className="flex items-center gap-2.5">
               <span className="relative w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
                 <RouteIcon className="w-4 h-4 text-white" />
@@ -830,6 +838,16 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
             </button>
           </div>
         </div>
+
+        {/* Leyenda del mapa — qué representa cada color de pin (Planes/Abiertos/Eventos/En directo) */}
+        {pins.length > 0 && (
+          <div className="relative flex flex-wrap gap-x-2.5 gap-y-1 px-3 sm:px-5 pb-2 sm:pb-3">
+            <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75" /><span className="relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600" /></span> Planes</span>
+            <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" /><span className="relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700" /></span> Abiertos ahora</span>
+            <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75" /><span className="relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br from-violet-500 to-purple-700" /></span> Eventos</span>
+            <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" /><span className="relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br from-orange-500 to-red-600" /></span> En directo</span>
+          </div>
+        )}
       </div>
 
       <div className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-[#4A0B33] via-[#26071B] to-[#12060E] px-4 sm:px-5 pb-4 sm:pb-5 -mt-3">
