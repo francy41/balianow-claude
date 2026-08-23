@@ -882,7 +882,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
 
   return (
     <section className="mx-3 sm:mx-4 mt-8">
-      <div className="relative overflow-hidden rounded-3xl min-h-[105px] sm:min-h-[240px]">
+      <div className="relative overflow-hidden rounded-3xl min-h-[80px] sm:min-h-[240px]">
         {/* Mapa real de fondo — Planes/Abiertos ahora/Eventos/En directo a la vez, cada uno con su color y alarma */}
         <div className="absolute inset-0">
           {pins.length > 0 ? (
@@ -905,7 +905,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         <div className="absolute inset-0 bg-gradient-to-r from-[#831843] via-[#831843]/70 to-[#831843]/15 pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#831843]/85 via-transparent to-transparent pointer-events-none" />
 
-        <div className="relative p-3 sm:p-5 flex items-start justify-between gap-2 sm:gap-3 flex-wrap sm:flex-nowrap min-h-[105px] sm:min-h-[240px]">
+        <div className="relative p-2.5 sm:p-5 flex items-start justify-between gap-2 sm:gap-3 flex-wrap sm:flex-nowrap min-h-[80px] sm:min-h-[240px]">
           <div className="min-w-0 pointer-events-none">
             <h2 className="font-display font-black text-sm sm:text-xl text-white flex items-center gap-1.5 sm:gap-2">
               <RouteIcon className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-pink-300" /> Planes de baile
