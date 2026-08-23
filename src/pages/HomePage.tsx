@@ -576,12 +576,12 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
 // Tintes rotativos para los chips de categoría — dan variedad tipo escaparate
 // (Glovo/Fever) manteniendo la identidad BailaNow. Clases literales para el JIT.
 const CHIP_TINTS = [
+  'from-pink-500/20 to-rose-500/10 ring-pink-400/40 group-hover:shadow-pink-500/25',
+  'from-fuchsia-500/20 to-pink-500/10 ring-fuchsia-400/40 group-hover:shadow-fuchsia-500/25',
   'from-rose-500/20 to-pink-500/10 ring-rose-400/40 group-hover:shadow-rose-500/25',
-  'from-orange-500/20 to-amber-500/10 ring-orange-400/40 group-hover:shadow-orange-500/25',
-  'from-violet-500/20 to-fuchsia-500/10 ring-violet-400/40 group-hover:shadow-violet-500/25',
-  'from-cyan-500/20 to-blue-500/10 ring-cyan-400/40 group-hover:shadow-cyan-500/25',
-  'from-emerald-500/20 to-teal-500/10 ring-emerald-400/40 group-hover:shadow-emerald-500/25',
-  'from-amber-500/20 to-yellow-500/10 ring-amber-400/40 group-hover:shadow-amber-500/25',
+  'from-pink-600/20 to-fuchsia-600/10 ring-pink-500/40 group-hover:shadow-pink-600/25',
+  'from-fuchsia-600/20 to-rose-600/10 ring-fuchsia-500/40 group-hover:shadow-fuchsia-600/25',
+  'from-rose-600/20 to-pink-600/10 ring-rose-500/40 group-hover:shadow-rose-600/25',
 ];
 
 // Un pin distinto (color + alarma parpadeante) por categoría, para el mapa de "Planes de baile"
