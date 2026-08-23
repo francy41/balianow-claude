@@ -583,15 +583,6 @@ const CHIP_TINTS = [
   'from-amber-500/20 to-yellow-500/10 ring-amber-400/40 group-hover:shadow-amber-500/25',
 ];
 
-// ── CINTILLO DE ACCESOS DESTACADOS: Planes, Pareja, Abierto ahora, Eventos en vivo ──
-// Icono pulsante para las señales de "plan activo" en el mini-mapa — mismo lenguaje
-// visual que el punto de alerta de las tarjetas (animate-ping + punto sólido).
-const planPinIcon = L.divIcon({
-  className: '',
-  html: `<div class="relative w-3.5 h-3.5"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-300 opacity-90"></span><span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-gradient-to-br from-pink-400 to-fuchsia-500 ring-2 ring-white shadow"></span></div>`,
-  iconSize: [14, 14], iconAnchor: [7, 7],
-});
-
 // Un pin distinto (color + alarma parpadeante) por categoría, para el mapa de "Planes de baile"
 // del Home — mismos colores que las insignias de las tarjetas, para que se reconozcan a simple vista.
 const discoverPin = (ringClass: string, gradClass: string) => L.divIcon({
@@ -606,107 +597,8 @@ const DISCOVER_PIN_ICON: Record<'plan' | 'venue' | 'evento' | 'vivo', L.DivIcon>
   vivo:   discoverPin('bg-orange-300', 'from-orange-500 to-red-600'),
 };
 
-// Mini-mapa decorativo (sin interacción: solo panea/zoom visual) con las ubicaciones
-// reales de los planes de baile activos — nunca ejemplos inventados, si no hay planes
-// reales con coordenadas simplemente no se renderiza.
-const MiniPlansMap: React.FC<{ pins: { lat: number; lng: number }[] }> = ({ pins }) => {
-  if (pins.length === 0) return null;
-  const center: [number, number] = pins.length === 1
-    ? [pins[0].lat, pins[0].lng]
-    : [pins.reduce((s, p) => s + p.lat, 0) / pins.length, pins.reduce((s, p) => s + p.lng, 0) / pins.length];
-  return (
-    <MapContainer center={center} zoom={pins.length > 1 ? 5 : 12} style={{ width: '100%', height: '100%' }}
-      zoomControl={false} attributionControl={false} dragging={false} scrollWheelZoom={false}
-      doubleClickZoom={false} touchZoom={false} boxZoom={false} keyboard={false}>
-      <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
-      {pins.map((p, i) => <Marker key={i} position={[p.lat, p.lng]} icon={planPinIcon} />)}
-    </MapContainer>
-  );
-};
-
-const QuickAccessRibbon: React.FC<{ navigate: any }> = ({ navigate }) => {
-  const [counts, setCounts] = React.useState({ rutas: 0, parejas: 0, abiertos: 0, vivo: 0 });
-  const [planPins, setPlanPins] = React.useState<{ lat: number; lng: number }[]>([]);
-
-  React.useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const today = new Date().toISOString().slice(0, 10);
-      const [rutasRes, parejasRes, venuesRes, liveRes, planesRes] = await Promise.all([
-        supabase.from('rutas').select('id', { count: 'exact', head: true }).eq('status', 'open').or(`end_date.is.null,end_date.gte.${today}`),
-        supabase.from('partner_profiles').select('id', { count: 'exact', head: true }).eq('active', true),
-        supabase.from('venues').select('open_time,close_time,is_open').is('deleted_at', null),
-        supabase.from('live_sessions_enriched').select('id', { count: 'exact', head: true }).eq('status', 'live'),
-        supabase.from('rutas').select('stops').eq('status', 'open').or(`end_date.is.null,end_date.gte.${today}`).limit(8),
-      ]);
-      if (cancelled) return;
-      const toMin = (s: string) => { const [h, m] = String(s).split(':').map(Number); return (h || 0) * 60 + (m || 0); };
-      const now = new Date(); const cur = now.getHours() * 60 + now.getMinutes();
-      const abiertos = (venuesRes.data || []).filter((v: any) => {
-        if (v.is_open === true) return true;
-        if (v.open_time && v.close_time) {
-          const o = toMin(v.open_time), c = toMin(v.close_time);
-          return c > o ? (cur >= o && cur <= c) : (cur >= o || cur <= c);
-        }
-        return false;
-      }).length;
-      setCounts({ rutas: rutasRes.count || 0, parejas: parejasRes.count || 0, abiertos, vivo: liveRes.count || 0 });
-      const pins = (planesRes.data || [])
-        .map((r: any) => (Array.isArray(r.stops) && r.stops[0]) ? { lat: Number(r.stops[0].lat), lng: Number(r.stops[0].lng) } : null)
-        .filter((p: any): p is { lat: number; lng: number } => !!p && Number.isFinite(p.lat) && Number.isFinite(p.lng));
-      setPlanPins(pins);
-    })();
-    return () => { cancelled = true; };
-  }, []);
-
-  const TILES = [
-    { key: 'rutas', label: 'Planes de baile', sub: counts.rutas > 0 ? `${counts.rutas} activos` : 'Crea el tuyo', icon: RouteIcon, grad: 'from-pink-600 to-fuchsia-700', to: '/rutas', alert: counts.rutas > 0 },
-    { key: 'parejas', label: 'Pareja de baile', sub: counts.parejas > 0 ? `${counts.parejas} disponibles` : 'Encuentra la tuya', icon: Heart, grad: 'from-rose-500 to-pink-600', to: '/parejas', alert: counts.parejas > 0 },
-    { key: 'abiertos', label: 'Abierto ahora', sub: counts.abiertos > 0 ? `${counts.abiertos} locales` : 'Ver locales', icon: Building2, grad: 'from-emerald-500 to-teal-600', to: '/venues?open=true', alert: counts.abiertos > 0 },
-    { key: 'vivo', label: 'Eventos en vivo', sub: counts.vivo > 0 ? `${counts.vivo} en directo` : 'Ver eventos', icon: Calendar, grad: 'from-red-500 to-orange-600', to: counts.vivo > 0 ? '/live' : '/eventos', alert: counts.vivo > 0 },
-  ] as const;
-
-  return (
-    <section className="mx-3 sm:mx-4 mt-2.5 sm:mt-3 grid grid-cols-4 gap-1.5 sm:gap-2.5">
-      {TILES.map(t => {
-        const Icon = t.icon;
-        const isMapTile = t.key === 'rutas' && planPins.length > 0;
-        return (
-          <button key={t.key} onClick={() => navigate(t.to)}
-            className={`group relative flex flex-col items-center gap-1 sm:gap-1.5 rounded-2xl ${isMapTile ? 'bg-pink-950' : `bg-gradient-to-br ${t.grad}`} px-1.5 sm:px-2 py-2.5 sm:py-3.5 shadow-md hover:shadow-xl hover:shadow-pink-500/30 hover:-translate-y-0.5 active:scale-95 transition-all overflow-hidden`}>
-            {isMapTile ? (
-              <>
-                <div className="absolute inset-0 pointer-events-none scale-110 group-hover:scale-125 transition-transform duration-500 ease-out">
-                  <MapErrorBoundary fallback={<div className={`absolute inset-0 bg-gradient-to-br ${t.grad}`} />}>
-                    <MiniPlansMap pins={planPins} />
-                  </MapErrorBoundary>
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-pink-950/75 via-pink-900/15 to-transparent pointer-events-none" />
-              </>
-            ) : (
-              <div className="absolute -right-4 -top-4 w-16 h-16 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-            )}
-            {t.alert && (
-              <span className="absolute top-1.5 right-1.5 flex h-2 w-2 z-10">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-              </span>
-            )}
-            <span className="relative z-10 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/15 flex items-center justify-center">
-              <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-            </span>
-            <span className="relative z-10 text-white font-display font-black text-[10px] sm:text-xs leading-tight text-center">{t.label}</span>
-            <span className="relative z-10 text-white/70 text-[8px] sm:text-[10px] font-semibold text-center truncate w-full">{t.sub}</span>
-          </button>
-        );
-      })}
-    </section>
-  );
-};
-
-// ── PLANES DE BAILE (Home) — versión ampliada del cintillo, siguiendo el formato
-// aprobado por el usuario: mapa real, 4 métricas reales, pestañas funcionales y
-// tarjetas con fotos reales (locales/clases/directos ya tienen foto propia en la BD;
+// ── PLANES DE BAILE (Home) — mapa real, 4 métricas reales, pestañas funcionales y
+// tarjetas con fotos reales (locales/eventos/directos ya tienen foto propia en la BD;
 // los "planes" no, así que esos usan degradado+icono en vez de una foto inventada). ──
 interface HomeRutaStop { name: string; address?: string; lat: number; lng: number; venue_id?: string; }
 interface HomeRuta { id: string; title: string; city: string; date: string | null; time: string | null; stops: HomeRutaStop[]; }
@@ -865,66 +757,84 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     ? [pins.reduce((s, p) => s + p.lat, 0) / pins.length, pins.reduce((s, p) => s + p.lng, 0) / pins.length]
     : [40.4168, -3.7038];
 
+  // Actividad real ahora mismo (no "alertas" ficticias): abiertos + directos + planes de hoy.
+  const activityNow = stats.abiertos + stats.vivo + shown.filter(it => it.kind === 'plan' && it.isToday).length;
+
   return (
     <section className="mx-3 sm:mx-4 mt-8">
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#2E1440] via-[#1B0E29] to-[#0F0818] p-4 sm:p-5">
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-pink-500/20 blur-3xl pointer-events-none" />
+      <div className="relative overflow-hidden rounded-3xl min-h-[210px] sm:min-h-[240px]">
+        {/* Mapa real de fondo — Planes/Abiertos ahora/Eventos/En directo a la vez, cada uno con su color y alarma */}
+        <div className="absolute inset-0">
+          {pins.length > 0 ? (
+            <MapErrorBoundary fallback={<div className="absolute inset-0 bg-gradient-to-br from-[#4A0B33] via-[#26071B] to-[#12060E]" />}>
+              <MapContainer center={mapCenter} zoom={pins.length > 1 ? 6 : 12} style={{ width: '100%', height: '100%' }}
+                attributionControl={false} zoomControl={false} scrollWheelZoom={false}>
+                <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+                {pins.map(p => <Marker key={p.id} position={[p.lat, p.lng]} icon={DISCOVER_PIN_ICON[p.kind]} />)}
+              </MapContainer>
+            </MapErrorBoundary>
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-[#4A0B33] via-[#26071B] to-[#12060E]" />
+          )}
+        </div>
+        {/* Degradados rosa oscuro para que el texto siempre se lea sobre el mapa */}
+        <div className="absolute inset-0 bg-gradient-to-r from-[#12060E] via-[#12060E]/75 to-[#12060E]/10 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#12060E]/85 via-transparent to-transparent pointer-events-none" />
 
-        <div className="relative flex items-start justify-between gap-3 flex-wrap">
-          <div className="min-w-0">
+        <div className="relative p-4 sm:p-5 flex items-start justify-between gap-3 flex-wrap min-h-[210px] sm:min-h-[240px]">
+          <div className="min-w-0 pointer-events-none">
             <h2 className="font-display font-black text-lg sm:text-xl text-white flex items-center gap-2">
               <RouteIcon className="w-4.5 h-4.5 text-pink-300" /> Planes de baile
             </h2>
-            <p className="text-purple-200/80 text-xs mt-0.5">Descubre experiencias de baile cerca de ti, en tiempo real.</p>
-            <div className="flex flex-wrap gap-1.5 mt-2.5">
+            <p className="text-pink-200/80 text-xs mt-0.5">Descubre experiencias de baile cerca de ti, en tiempo real.</p>
+            <div className="flex flex-wrap gap-1.5 mt-2.5 pointer-events-auto">
               <div className="flex items-center gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-2.5 py-1">
                 <span className="text-white font-extrabold text-xs">{stats.abiertos}</span>
-                <span className="text-purple-200/70 text-[9px]">abiertos ahora</span>
+                <span className="text-pink-200/70 text-[9px]">abiertos ahora</span>
               </div>
               <div className="flex items-center gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-2.5 py-1">
                 <span className="text-white font-extrabold text-xs">{stats.pareja}</span>
-                <span className="text-purple-200/70 text-[9px]">pareja de baile</span>
+                <span className="text-pink-200/70 text-[9px]">pareja de baile</span>
               </div>
               <div className="flex items-center gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-2.5 py-1">
                 <span className="text-white font-extrabold text-xs">{stats.vivo}</span>
-                <span className="text-purple-200/70 text-[9px]">eventos en vivo</span>
+                <span className="text-pink-200/70 text-[9px]">eventos en vivo</span>
               </div>
               {stats.rating > 0 && (
                 <div className="flex items-center gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-2.5 py-1">
                   <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                   <span className="text-white font-extrabold text-xs">{stats.rating.toFixed(1)}</span>
-                  <span className="text-purple-200/70 text-[9px]">valoración media</span>
+                  <span className="text-pink-200/70 text-[9px]">valoración media</span>
                 </div>
               )}
             </div>
           </div>
-          <button onClick={() => navigate(DISCOVER_TAB_ROUTE[tab])}
-            className="flex-shrink-0 inline-flex items-center gap-1.5 bg-gradient-to-br from-pink-500 to-fuchsia-700 text-white text-[11px] font-extrabold px-3.5 py-2 rounded-xl shadow-lg shadow-pink-900/40 hover:shadow-xl transition-all">
-            Ver todos <ArrowRight className="w-3 h-3" />
-          </button>
-        </div>
 
-        {/* Mapa real e interactivo — Planes/Abiertos ahora/Eventos/En directo a la vez, cada uno con su color y alarma */}
-        {pins.length > 0 && (
-          <div className="relative mt-3 h-36 sm:h-44 rounded-2xl overflow-hidden border border-white/10">
-            <MapErrorBoundary fallback={<div className="absolute inset-0 bg-white/5" />}>
-              <MapContainer center={mapCenter} zoom={pins.length > 1 ? 6 : 12} style={{ width: '100%', height: '100%' }} attributionControl={false}>
-                <TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" />
-                {pins.map(p => <Marker key={p.id} position={[p.lat, p.lng]} icon={DISCOVER_PIN_ICON[p.kind]} />)}
-              </MapContainer>
-            </MapErrorBoundary>
-            {/* Leyenda: qué representa cada color de pin */}
-            <div className="absolute bottom-2 left-2 right-2 flex flex-wrap gap-x-3 gap-y-1 bg-black/40 backdrop-blur-sm rounded-lg px-2.5 py-1.5">
-              <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="w-2 h-2 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600" /> Planes</span>
-              <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="w-2 h-2 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700" /> Abiertos</span>
-              <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="w-2 h-2 rounded-full bg-gradient-to-br from-violet-500 to-purple-700" /> Eventos</span>
-              <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="w-2 h-2 rounded-full bg-gradient-to-br from-orange-500 to-red-600" /> En directo</span>
+          {/* Actividad ahora (real: abiertos + directos + planes de hoy) — no es un sistema de alertas inventado */}
+          <div className="flex-shrink-0 w-full sm:w-[230px] bg-gradient-to-br from-pink-600 to-fuchsia-800 rounded-2xl p-3 shadow-xl shadow-pink-950/50">
+            <div className="flex items-center gap-2.5">
+              <span className="relative w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                <RouteIcon className="w-4 h-4 text-white" />
+                {activityNow > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-white text-pink-600 text-[10px] font-black flex items-center justify-center">{activityNow}</span>
+                )}
+              </span>
+              <div className="min-w-0">
+                <p className="text-white font-extrabold text-xs">Actividad ahora</p>
+                <p className="text-white/80 text-[10px] mt-0.5 leading-tight">{activityNow > 0 ? `${activityNow} cosas pasando cerca de ti` : 'Sé el primero en crear un plan'}</p>
+              </div>
             </div>
+            <button onClick={() => navigate(DISCOVER_TAB_ROUTE[tab])}
+              className="w-full mt-2.5 bg-white/15 hover:bg-white/25 border border-white/25 rounded-lg py-1.5 text-white text-[11px] font-extrabold transition-colors">
+              Ver todos
+            </button>
           </div>
-        )}
+        </div>
+      </div>
 
+      <div className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-[#4A0B33] via-[#26071B] to-[#12060E] px-4 sm:px-5 pb-4 sm:pb-5 -mt-3">
         {/* Pestañas de filtro — funcionales, sobre datos reales ya cargados; también controlan el mapa de arriba */}
-        <div className="flex items-center gap-1.5 mt-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+        <div className="flex items-center gap-1.5 pt-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
           {DISCOVER_TABS.map(t => {
             const Icon = t.icon;
             const isActive = tab === t.key;
@@ -934,7 +844,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-extrabold transition-all ${
-                  isActive ? 'bg-gradient-to-br from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-900/40' : 'bg-white/[0.05] text-purple-200/70 border border-white/10 hover:bg-white/10'
+                  isActive ? 'bg-gradient-to-br from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-900/40' : 'bg-white/[0.05] text-pink-200/70 border border-white/10 hover:bg-white/10'
                 }`}>
                 <Icon className="w-3.5 h-3.5" /> {t.label}
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/25' : 'bg-white/10'}`}>{count}</span>
@@ -970,7 +880,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
                 </div>
                 <div className="p-3">
                   <p className="text-white font-bold text-[13px] leading-tight truncate">{it.title}</p>
-                  <p className="text-purple-200/70 text-[11px] mt-1 flex items-center gap-1 truncate">
+                  <p className="text-pink-200/70 text-[11px] mt-1 flex items-center gap-1 truncate">
                     <MapPin className="w-3 h-3 flex-shrink-0" /> {it.city}{it.meta ? ` · ${it.meta}` : ''}
                   </p>
                   <div className="flex items-center justify-between mt-2.5">
@@ -987,10 +897,10 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
                             </span>
                           ))}
                         </span>
-                        <span className="text-[10px] font-bold text-purple-200/80 ml-2.5">{it.crowdCount} {it.crowdCount === 1 ? 'va' : 'van'}</span>
+                        <span className="text-[10px] font-bold text-pink-200/80 ml-2.5">{it.crowdCount} {it.crowdCount === 1 ? 'va' : 'van'}</span>
                       </span>
                     ) : (
-                      <span className="text-[10px] text-purple-200/60">{it.kind === 'plan' ? 'Sé el primero' : 'Ver más'}</span>
+                      <span className="text-[10px] text-pink-200/60">{it.kind === 'plan' ? 'Sé el primero' : 'Ver más'}</span>
                     )}
                     <span className={`text-[10px] font-black border rounded-full px-2 py-0.5 ${badge.cta}`}>Ver</span>
                   </div>
@@ -1465,7 +1375,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
 // ── MÁS PARA TI (6 accesos destacados, estilo premium) ──
 const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
   // Data-driven: lee de `home_modules` (Supabase) con fallback a la semilla local.
-  // "planes"/"parejas" se filtran siempre: ya viven en el cintillo de arriba (QuickAccessRibbon),
+  // "planes"/"parejas" se filtran siempre: ya viven en la sección "Planes de baile" de arriba,
   // sin importar si las filas siguen publicadas en la BD.
   const modules = useHomeModules('mas-para-ti').filter(m => m.slug !== 'planes' && m.slug !== 'parejas');
   return (
@@ -1922,10 +1832,7 @@ const HomePage: React.FC = () => {
         </p>
       </div>
 
-      {/* ── CINTILLO DE ACCESOS DESTACADOS: Planes, Pareja, Abierto ahora, Eventos en vivo ── */}
-      <QuickAccessRibbon navigate={navigate} />
-
-      {/* ── PLANES DE BAILE — versión ampliada, justo debajo del cintillo ── */}
+      {/* ── PLANES DE BAILE: mapa + métricas reales + pestañas (Planes/Abiertos ahora/Pareja/Eventos/En vivo) ── */}
       <PlanesDeBaileHomeSection navigate={navigate} />
 
       {/* ── SPONSORS SLIDER ── */}
