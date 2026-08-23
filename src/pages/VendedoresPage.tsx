@@ -52,7 +52,7 @@ const VendedoresPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a]">
       {/* Header */}
-      <div className="bg-gradient-to-br from-gray-900 via-purple-900 to-pink-900 px-4 pt-6 pb-8">
+      <div className="bg-gradient-to-br from-gray-900 via-fuchsia-900 to-pink-900 px-4 pt-6 pb-8">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center">
             <Store className="w-5 h-5 text-white" />

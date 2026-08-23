@@ -159,7 +159,7 @@ const EventsList: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-purple-950 to-black p-6 sm:p-8 text-white">
+        <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-fuchsia-950 to-black p-6 sm:p-8 text-white">
           <div className="absolute -top-10 -right-10 w-48 h-48 bg-pink-500/25 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-12 -left-12 w-52 h-52 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
           <div className="relative">
@@ -593,8 +593,8 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                      <Ticket className="w-5 h-5 text-purple-500" />
+                    <div className="w-10 h-10 bg-pink-50 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <Ticket className="w-5 h-5 text-pink-500" />
                     </div>
                     <div>
                       <p className="text-xs text-gray-400 font-medium">Precio</p>
@@ -811,15 +811,15 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                       onClick={() => entry.artist_id ? navigate(`/artistas/${entry.artist_id}`) : undefined}
                       className={`flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-4 shadow-sm ${entry.artist_id ? 'cursor-pointer hover:shadow-md hover:border-brand-orange/30 transition-all' : ''}`}
                     >
-                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-purple-100 flex-shrink-0">
+                      <div className="w-14 h-14 rounded-xl overflow-hidden bg-pink-100 flex-shrink-0">
                         {entry.avatar
                           ? <img src={entry.avatar} alt={entry.name} className="w-full h-full object-cover" />
-                          : <div className="w-full h-full flex items-center justify-center text-purple-600 font-black text-lg">{entry.name[0]}</div>}
+                          : <div className="w-full h-full flex items-center justify-center text-pink-600 font-black text-lg">{entry.name[0]}</div>}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-gray-900">{entry.name}</p>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">{entry.role}</span>
+                          <span className="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full font-semibold">{entry.role}</span>
                           {entry.time_slot && <span className="text-xs text-gray-400">⏰ {entry.time_slot}</span>}
                         </div>
                         {entry.genre && <p className="text-xs text-gray-400 mt-0.5">{entry.genre}</p>}

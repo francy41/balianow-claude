@@ -251,7 +251,7 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
         className="bg-white dark:bg-gray-900 sm:rounded-3xl rounded-t-3xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col">
 
         {/* Header */}
-        <div className="relative h-32 bg-gradient-to-br from-pink-500 via-fuchsia-600 to-purple-700 overflow-hidden flex-shrink-0">
+        <div className="relative h-32 bg-gradient-to-br from-pink-500 via-fuchsia-600 to-rose-700 overflow-hidden flex-shrink-0">
           {offering.cover_image && <img src={offering.cover_image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />}
           <button onClick={onClose}
             className="absolute top-3 right-3 w-9 h-9 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white z-10">

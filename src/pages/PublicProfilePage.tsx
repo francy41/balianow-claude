@@ -177,7 +177,7 @@ const PublicProfilePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20">
       {/* COVER */}
-      <div className="relative h-48 sm:h-64 bg-gradient-to-br from-pink-500 via-fuchsia-600 to-purple-700 overflow-hidden">
+      <div className="relative h-48 sm:h-64 bg-gradient-to-br from-pink-500 via-fuchsia-600 to-fuchsia-800 overflow-hidden">
         {profile.cover_photo && (
           <img src={profile.cover_photo} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70" />
         )}
@@ -292,7 +292,7 @@ const PublicProfilePage: React.FC = () => {
         {/* CTA grande: Reservar / Bookear */}
         {['artist','dancer','dj','instructor'].includes(profile.role) && (
           <button onClick={() => navigate(`/clases?vendor=${profile.id}`)}
-            className="w-full bg-gradient-to-r from-pink-500 via-fuchsia-600 to-purple-600 text-white font-black py-4 rounded-2xl shadow-2xl shadow-pink-500/30 flex items-center justify-center gap-2 active:scale-95 mb-4">
+            className="w-full bg-gradient-to-r from-pink-500 via-fuchsia-600 to-pink-600 text-white font-black py-4 rounded-2xl shadow-2xl shadow-pink-500/30 flex items-center justify-center gap-2 active:scale-95 mb-4">
             <Calendar className="w-5 h-5" /> Reservar una clase
           </button>
         )}

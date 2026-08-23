@@ -188,7 +188,7 @@ const TeacherClassesPanel: React.FC = () => {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         {[
           { label: 'Mis clases', val: stats.activeOfferings, icon: '🎓', color: 'bg-pink-500' },
-          { label: 'Horarios libres', val: stats.availableSlots, icon: '📅', color: 'bg-purple-500' },
+          { label: 'Horarios libres', val: stats.availableSlots, icon: '📅', color: 'bg-fuchsia-500' },
           { label: 'Reservas', val: stats.totalBookings, icon: '👥', color: 'bg-blue-500' },
           { label: 'Ganado (85%)', val: `€${stats.totalEarnings.toFixed(0)}`, icon: '💰', color: 'bg-green-500' },
         ].map(s => (
@@ -257,7 +257,7 @@ const TeacherClassesPanel: React.FC = () => {
                         {o.style?.slice(0, 3).map(s => (
                           <span key={s} className="text-[10px] bg-pink-50 text-pink-600 font-bold px-2 py-0.5 rounded-full">{s}</span>
                         ))}
-                        <span className="text-[10px] bg-purple-50 text-purple-600 font-bold px-2 py-0.5 rounded-full">{o.level}</span>
+                        <span className="text-[10px] bg-fuchsia-50 text-fuchsia-600 font-bold px-2 py-0.5 rounded-full">{o.level}</span>
                       </div>
                       <div className="text-[11px] text-gray-500 flex items-center gap-2 mb-3">
                         <span><Clock className="w-3 h-3 inline" /> {o.duration_minutes}min</span>
@@ -268,7 +268,7 @@ const TeacherClassesPanel: React.FC = () => {
                       </div>
                       <div className="flex gap-1 mt-auto">
                         <button onClick={() => setShowSlotEditor(o.id)}
-                          className="flex-1 bg-purple-50 hover:bg-purple-100 text-purple-700 text-[11px] font-bold py-2 rounded-lg flex items-center justify-center gap-1">
+                          className="flex-1 bg-pink-50 hover:bg-pink-100 text-pink-700 text-[11px] font-bold py-2 rounded-lg flex items-center justify-center gap-1">
                           <CalIcon className="w-3.5 h-3.5" /> Horarios
                         </button>
                         <button onClick={() => setEditingOffering(o)}
@@ -579,7 +579,7 @@ const SlotEditor: React.FC<{
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {/* Añadir nuevos */}
-          <div className="bg-brand-orange dark:from-pink-900/20 dark:to-purple-900/20 rounded-2xl p-3 space-y-2">
+          <div className="bg-brand-orange dark:from-pink-900/20 dark:to-fuchsia-900/20 rounded-2xl p-3 space-y-2">
             <p className="text-xs font-black uppercase text-gray-500 tracking-wider">➕ Añadir horarios</p>
             <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)}
               min={new Date().toISOString().split('T')[0]}

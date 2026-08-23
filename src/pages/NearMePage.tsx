@@ -513,7 +513,7 @@ const NearMePage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-24">
 
       {/* ── HERO HEADER ── */}
-      <div className="bg-gradient-to-br from-pink-500 via-fuchsia-600 to-purple-700 text-white px-4 pt-5 pb-6 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-pink-500 via-fuchsia-600 to-fuchsia-700 text-white px-4 pt-5 pb-6 relative overflow-hidden">
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
         <div className="relative">
           <h1 className="font-display font-black text-2xl flex items-center gap-2 mb-1">
