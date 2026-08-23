@@ -65,40 +65,40 @@ const WeeklyScheduleEditor: React.FC<Props> = ({
             const on = isOn(d);
             const slot = slots.find(s => s.day === d);
             return (
-              <div key={d} className={`rounded-xl border transition-all ${on ? 'border-purple-300 bg-purple-50' : 'border-gray-200 bg-gray-50'}`}>
+              <div key={d} className={`rounded-xl border transition-all ${on ? 'border-fuchsia-300 bg-pink-50' : 'border-gray-200 bg-gray-50'}`}>
                 <button
                   type="button"
                   onClick={() => toggle(d)}
-                  className={`w-full px-4 py-3 flex items-center justify-between text-sm font-bold rounded-xl ${on ? 'text-purple-700' : 'text-gray-500 hover:text-gray-700'}`}>
+                  className={`w-full px-4 py-3 flex items-center justify-between text-sm font-bold rounded-xl ${on ? 'text-fuchsia-700' : 'text-gray-500 hover:text-gray-700'}`}>
                   <span className="flex items-center gap-2">
-                    <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${on ? 'bg-purple-600 border-purple-600 text-white text-[10px]' : 'border-gray-300'}`}>
+                    <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${on ? 'bg-fuchsia-600 border-fuchsia-600 text-white text-[10px]' : 'border-gray-300'}`}>
                       {on && '✓'}
                     </span>
                     {d}
                   </span>
                   {on && slot && (
-                    <span className="text-xs font-semibold text-purple-500">{slot.from} – {slot.to}</span>
+                    <span className="text-xs font-semibold text-fuchsia-500">{slot.from} – {slot.to}</span>
                   )}
                 </button>
 
                 {on && slot && (
                   <div className="px-4 pb-3 grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-semibold text-purple-600 mb-1 uppercase tracking-wide">Desde</label>
+                      <label className="block text-[10px] font-semibold text-fuchsia-600 mb-1 uppercase tracking-wide">Desde</label>
                       <input
                         type="time"
                         value={slot.from}
                         onChange={e => updateTime(d, 'from', e.target.value)}
-                        className="w-full border border-purple-200 rounded-lg px-3 py-2 text-sm font-mono text-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white"
+                        className="w-full border border-fuchsia-200 rounded-lg px-3 py-2 text-sm font-mono text-fuchsia-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 bg-white"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-semibold text-purple-600 mb-1 uppercase tracking-wide">Hasta</label>
+                      <label className="block text-[10px] font-semibold text-fuchsia-600 mb-1 uppercase tracking-wide">Hasta</label>
                       <input
                         type="time"
                         value={slot.to}
                         onChange={e => updateTime(d, 'to', e.target.value)}
-                        className="w-full border border-purple-200 rounded-lg px-3 py-2 text-sm font-mono text-purple-800 focus:outline-none focus:ring-2 focus:ring-purple-400 bg-white"
+                        className="w-full border border-fuchsia-200 rounded-lg px-3 py-2 text-sm font-mono text-fuchsia-800 focus:outline-none focus:ring-2 focus:ring-fuchsia-400 bg-white"
                       />
                     </div>
                   </div>

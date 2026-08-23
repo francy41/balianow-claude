@@ -62,13 +62,13 @@ const ImageInput: React.FC<{ label: string; value: string; folder: string; onCha
           ? <img src={value} alt="" className="w-16 h-16 rounded-xl object-cover border border-gray-200 flex-shrink-0" />
           : <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0"><Upload className="w-5 h-5" /></div>}
         <div className="flex-1 space-y-2 min-w-0">
-          <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-purple-50 text-purple-600 text-xs font-semibold hover:bg-purple-100">
+          <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-pink-50 text-pink-600 text-xs font-semibold hover:bg-pink-100">
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
             {uploading ? 'Subiendo…' : 'Subir'}
             <input type="file" accept="image/*" hidden onChange={e => handleFile(e.target.files?.[0])} />
           </label>
           <input type="text" value={value} onChange={e => onChange(e.target.value)} placeholder="o pega URL…"
-            className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-purple-300" />
+            className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-pink-300" />
         </div>
       </div>
     </div>
@@ -226,7 +226,7 @@ const ArtistAdminPanel: React.FC<Props> = ({ id, onSaved, ownerUserId, autoOpen 
             <div className="flex flex-wrap border-b border-gray-100 flex-shrink-0">
               {tabs.map(t => (
                 <button key={t.id} onClick={() => setTab(t.id)}
-                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${tab === t.id ? 'border-purple-600 text-purple-700' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
+                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${tab === t.id ? 'border-pink-600 text-pink-700' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
                   {t.icon} {t.label}
                 </button>
               ))}
@@ -263,23 +263,23 @@ const GeneralTab: React.FC<{ fields: EditField[]; form: any; setVal: (k: string,
             <label className="block text-xs font-semibold text-gray-600 mb-1.5">{f.label}{f.required && <span className="text-red-500 ml-0.5">*</span>}</label>
             {f.type === 'textarea' ? (
               <textarea value={v || ''} onChange={e => setVal(f.key, e.target.value)} rows={4} placeholder={f.placeholder}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 resize-y" />
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 resize-y" />
             ) : f.type === 'select' ? (
-              <select value={v || ''} onChange={e => setVal(f.key, e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white">
+              <select value={v || ''} onChange={e => setVal(f.key, e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 bg-white">
                 <option value="">— selecciona —</option>
                 {f.options?.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             ) : f.type === 'checkbox' ? (
-              <button type="button" onClick={() => setVal(f.key, !v)} className={`relative w-12 h-6 rounded-full transition-colors mt-1 ${v ? 'bg-purple-600' : 'bg-gray-200'}`}>
+              <button type="button" onClick={() => setVal(f.key, !v)} className={`relative w-12 h-6 rounded-full transition-colors mt-1 ${v ? 'bg-pink-600' : 'bg-gray-200'}`}>
                 <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${v ? 'translate-x-7' : 'translate-x-1'}`} />
               </button>
             ) : f.type === 'tags' ? (
               <input value={Array.isArray(v) ? v.join(', ') : (v || '')} onChange={e => setVal(f.key, e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
-                placeholder={f.placeholder || 'separados por comas'} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+                placeholder={f.placeholder || 'separados por comas'} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
             ) : (
               <input type={f.type === 'number' ? 'number' : f.type === 'email' ? 'email' : f.type === 'date' ? 'date' : 'text'} value={v ?? ''}
                 onChange={e => setVal(f.key, f.type === 'number' ? (e.target.value === '' ? '' : Number(e.target.value)) : e.target.value)}
-                placeholder={f.placeholder} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+                placeholder={f.placeholder} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
             )}
             {f.helper && <p className="text-[10px] text-gray-400 mt-1">{f.helper}</p>}
           </div>
@@ -314,7 +314,7 @@ const SocialLinksEditor: React.FC<{ social: Record<string, string>; onChange: (s
           <div className="flex-1">
             <label className="block text-[11px] font-semibold text-gray-500 mb-0.5">{label}</label>
             <input value={social[key] || ''} onChange={e => onChange({ ...social, [key]: e.target.value.trim() })}
-              placeholder={ph} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+              placeholder={ph} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
           </div>
         </div>
       ))}
@@ -338,14 +338,14 @@ const GalleryEditor: React.FC<{ items: MediaItem[]; onChange: (v: MediaItem[]) =
         <h4 className="font-bold text-gray-800 text-sm">Añadir foto o vídeo</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <select value={draft.type} onChange={e => setDraft(d => ({ ...d, type: e.target.value as any }))}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-300">
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pink-300">
             <option value="photo">Foto</option><option value="video">Vídeo</option><option value="mix">Mix / set</option>
           </select>
           <input value={draft.title || ''} onChange={e => setDraft(d => ({ ...d, title: e.target.value }))} placeholder="Título"
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
         </div>
         <ImageInput label="" value={draft.url || ''} folder="artist-gallery" onChange={v => setDraft(d => ({ ...d, url: v, thumbnail: d.thumbnail || v }))} compact />
-        <button onClick={add} disabled={!draft.url?.trim()} className="w-full bg-purple-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-purple-700 disabled:opacity-40 flex items-center justify-center gap-1.5">
+        <button onClick={add} disabled={!draft.url?.trim()} className="w-full bg-pink-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-pink-700 disabled:opacity-40 flex items-center justify-center gap-1.5">
           <Plus className="w-4 h-4" /> Añadir a la galería
         </button>
       </div>
@@ -391,16 +391,16 @@ const PackagesEditor: React.FC<{ items: Pkg[]; onChange: (v: Pkg[]) => void; onS
       <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
         <h4 className="font-bold text-gray-800 text-sm">Nuevo paquete de servicio</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <select value={d.tier} onChange={e => setD(s => ({ ...s, tier: e.target.value as any }))} className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-300">
+          <select value={d.tier} onChange={e => setD(s => ({ ...s, tier: e.target.value as any }))} className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pink-300">
             <option value="basic">Básico</option><option value="standard">Estándar</option><option value="premium">Premium</option>
           </select>
-          <input value={d.name || ''} onChange={e => setD(s => ({ ...s, name: e.target.value }))} placeholder="Nombre del paquete" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
-          <input type="number" value={d.price ?? ''} onChange={e => setD(s => ({ ...s, price: Number(e.target.value) }))} placeholder="Precio €" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
-          <input type="number" value={d.deliveryDays ?? ''} onChange={e => setD(s => ({ ...s, deliveryDays: Number(e.target.value) }))} placeholder="Días de entrega" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+          <input value={d.name || ''} onChange={e => setD(s => ({ ...s, name: e.target.value }))} placeholder="Nombre del paquete" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+          <input type="number" value={d.price ?? ''} onChange={e => setD(s => ({ ...s, price: Number(e.target.value) }))} placeholder="Precio €" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+          <input type="number" value={d.deliveryDays ?? ''} onChange={e => setD(s => ({ ...s, deliveryDays: Number(e.target.value) }))} placeholder="Días de entrega" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
         </div>
-        <textarea value={d.description || ''} onChange={e => setD(s => ({ ...s, description: e.target.value }))} rows={2} placeholder="Descripción" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
-        <input value={(d.includes || []).join(', ')} onChange={e => setD(s => ({ ...s, includes: e.target.value.split(',').map(x => x.trim()).filter(Boolean) }))} placeholder="Incluye (separado por comas)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
-        <button onClick={add} disabled={!d.name?.trim()} className="w-full bg-purple-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-purple-700 disabled:opacity-40 flex items-center justify-center gap-1.5"><Plus className="w-4 h-4" /> Añadir paquete</button>
+        <textarea value={d.description || ''} onChange={e => setD(s => ({ ...s, description: e.target.value }))} rows={2} placeholder="Descripción" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+        <input value={(d.includes || []).join(', ')} onChange={e => setD(s => ({ ...s, includes: e.target.value.split(',').map(x => x.trim()).filter(Boolean) }))} placeholder="Incluye (separado por comas)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+        <button onClick={add} disabled={!d.name?.trim()} className="w-full bg-pink-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-pink-700 disabled:opacity-40 flex items-center justify-center gap-1.5"><Plus className="w-4 h-4" /> Añadir paquete</button>
       </div>
 
       <div>
@@ -411,7 +411,7 @@ const PackagesEditor: React.FC<{ items: Pkg[]; onChange: (v: Pkg[]) => void; onS
           <div className="space-y-2">
             {items.map(p => (
               <div key={p.id} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 group">
-                <span className="text-[10px] font-black uppercase bg-purple-100 text-purple-700 px-2 py-1 rounded">{tierLabel(p.tier)}</span>
+                <span className="text-[10px] font-black uppercase bg-pink-100 text-pink-700 px-2 py-1 rounded">{tierLabel(p.tier)}</span>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-gray-900 text-sm truncate">{p.name}</p>
                   <p className="text-xs text-gray-400">€{p.price} · {p.deliveryDays}d · {p.includes.length} incluidos</p>
@@ -460,7 +460,7 @@ const LiveEditor: React.FC<{ form: any; setVal: (k: string, v: any) => void; onS
       </label>
       <input type="url" value={form.stream_url || ''} onChange={e => setVal('stream_url', e.target.value)}
         placeholder="https://stream.ejemplo.com:8000/radio"
-        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
       <p className="text-[11px] text-gray-400 mt-1">Para radios con emisión directa. Se reproduce en el player de la plataforma.</p>
     </div>
 
@@ -475,7 +475,7 @@ const LiveEditor: React.FC<{ form: any; setVal: (k: string, v: any) => void; onS
             <div className="flex-1">
               <input type="text" value={form.social?.[key] || ''} onChange={e => setVal('social', { ...(form.social || {}), [key]: e.target.value.trim() })}
                 placeholder={placeholder}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
             </div>
             <span className="text-xs text-gray-400 w-20 text-right">{label}</span>
           </div>
@@ -490,10 +490,10 @@ const LiveEditor: React.FC<{ form: any; setVal: (k: string, v: any) => void; onS
       </label>
       <input type="url" value={form.featured_video || ''} onChange={e => setVal('featured_video', e.target.value)}
         placeholder="https://www.youtube.com/watch?v=…"
-        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 mb-2" />
+        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300 mb-2" />
       <input type="text" value={form.featured_video_title || ''} onChange={e => setVal('featured_video_title', e.target.value)}
         placeholder="Título del vídeo…"
-        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
     </div>
 
     <SaveBtn onClick={onSave} saving={saving} label="Guardar configuración Live" />
@@ -540,7 +540,7 @@ const ClassPackagesEditor: React.FC<{ items: ClassPkg[]; onChange: (v: ClassPkg[
 
   return (
     <div className="p-5 space-y-5">
-      <div className="bg-purple-50 border border-purple-100 rounded-2xl p-3 text-xs text-purple-700">
+      <div className="bg-pink-50 border border-pink-100 rounded-2xl p-3 text-xs text-pink-700">
         💡 Defines tú el precio. La plataforma retiene <b>{commission}%</b> y tú recibes el <b>{100 - commission}%</b> de cada reserva. El comprador podrá invitar a los demás participantes al reservar.
       </div>
 
@@ -548,26 +548,26 @@ const ClassPackagesEditor: React.FC<{ items: ClassPkg[]; onChange: (v: ClassPkg[
         <h4 className="font-bold text-gray-800 text-sm">Nuevo paquete de clase</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <select value={preset} onChange={e => { const v = Number(e.target.value); setPreset(v); setD(s => ({ ...s, capacity: v === 0 ? 4 : v })); }}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-300">
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pink-300">
             {CAP_PRESETS.map(p => <option key={p.cap} value={p.cap}>{p.label}</option>)}
           </select>
           {preset === 0 ? (
-            <input type="number" min={3} value={d.capacity ?? ''} onChange={e => setD(s => ({ ...s, capacity: Number(e.target.value) }))} placeholder="Cupo máximo" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+            <input type="number" min={3} value={d.capacity ?? ''} onChange={e => setD(s => ({ ...s, capacity: Number(e.target.value) }))} placeholder="Cupo máximo" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
           ) : (
-            <input value={d.name || ''} onChange={e => setD(s => ({ ...s, name: e.target.value }))} placeholder="Nombre del paquete" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+            <input value={d.name || ''} onChange={e => setD(s => ({ ...s, name: e.target.value }))} placeholder="Nombre del paquete" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
           )}
           {preset === 0 && (
-            <input value={d.name || ''} onChange={e => setD(s => ({ ...s, name: e.target.value }))} placeholder="Nombre del paquete" className="col-span-2 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+            <input value={d.name || ''} onChange={e => setD(s => ({ ...s, name: e.target.value }))} placeholder="Nombre del paquete" className="col-span-2 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
           )}
-          <input type="number" value={d.price ?? ''} onChange={e => setD(s => ({ ...s, price: Number(e.target.value) }))} placeholder="Precio total €" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
-          <input type="number" value={d.duration_minutes ?? ''} onChange={e => setD(s => ({ ...s, duration_minutes: Number(e.target.value) }))} placeholder="Duración (min)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+          <input type="number" value={d.price ?? ''} onChange={e => setD(s => ({ ...s, price: Number(e.target.value) }))} placeholder="Precio total €" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+          <input type="number" value={d.duration_minutes ?? ''} onChange={e => setD(s => ({ ...s, duration_minutes: Number(e.target.value) }))} placeholder="Duración (min)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
         </div>
-        <textarea value={d.description || ''} onChange={e => setD(s => ({ ...s, description: e.target.value }))} rows={2} placeholder="Qué incluye la clase…" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+        <textarea value={d.description || ''} onChange={e => setD(s => ({ ...s, description: e.target.value }))} rows={2} placeholder="Qué incluye la clase…" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
         <ImageInput label="Imagen de la clase" value={d.image || ''} folder="class-images" onChange={v => setD(s => ({ ...s, image: v }))} />
         {Number(d.price) > 0 && (
           <p className="text-xs text-gray-500">Por €{Number(d.price).toFixed(0)}: tú recibes <b className="text-green-600">€{(Number(d.price) * (100 - commission) / 100).toFixed(2)}</b>, plataforma €{(Number(d.price) * commission / 100).toFixed(2)} · cupo {capValue} persona{capValue > 1 ? 's' : ''}</p>
         )}
-        <button onClick={add} disabled={!d.name?.trim()} className="w-full bg-purple-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-purple-700 disabled:opacity-40 flex items-center justify-center gap-1.5"><Plus className="w-4 h-4" /> Añadir paquete de clase</button>
+        <button onClick={add} disabled={!d.name?.trim()} className="w-full bg-pink-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-pink-700 disabled:opacity-40 flex items-center justify-center gap-1.5"><Plus className="w-4 h-4" /> Añadir paquete de clase</button>
       </div>
 
       <div>
@@ -580,7 +580,7 @@ const ClassPackagesEditor: React.FC<{ items: ClassPkg[]; onChange: (v: ClassPkg[
               <div key={p.id} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 group">
                 {p.image
                   ? <img src={p.image} alt={p.name} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                  : <span className="text-[10px] font-black uppercase bg-purple-100 text-purple-700 px-2 py-1 rounded flex-shrink-0">{capLabel(p.capacity)}</span>}
+                  : <span className="text-[10px] font-black uppercase bg-pink-100 text-pink-700 px-2 py-1 rounded flex-shrink-0">{capLabel(p.capacity)}</span>}
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-gray-900 text-sm truncate">{p.name}</p>
                   <p className="text-xs text-gray-400">€{p.price} · {p.duration_minutes}min · hasta {p.capacity} persona{p.capacity > 1 ? 's' : ''}</p>
@@ -633,17 +633,17 @@ const CoursesEditor: React.FC<{ courses: Course[]; ownerId?: string; instructor:
     <div className="p-5 space-y-5">
       <div className="bg-gray-50 rounded-2xl p-4 space-y-3">
         <h4 className="font-bold text-gray-800 text-sm">Nuevo curso</h4>
-        <input value={d.title} onChange={e => setD(s => ({ ...s, title: e.target.value }))} placeholder="Título del curso" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
+        <input value={d.title} onChange={e => setD(s => ({ ...s, title: e.target.value }))} placeholder="Título del curso" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <input type="number" value={d.price || ''} onChange={e => setD(s => ({ ...s, price: Number(e.target.value) }))} placeholder="Precio €" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
-          <input value={d.duration} onChange={e => setD(s => ({ ...s, duration: e.target.value }))} placeholder="Duración (ej. 4 semanas)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
-          <input value={d.category} onChange={e => setD(s => ({ ...s, category: e.target.value }))} placeholder="Categoría (Bachata…)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300" />
-          <select value={d.level} onChange={e => setD(s => ({ ...s, level: e.target.value }))} className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-purple-300">
+          <input type="number" value={d.price || ''} onChange={e => setD(s => ({ ...s, price: Number(e.target.value) }))} placeholder="Precio €" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+          <input value={d.duration} onChange={e => setD(s => ({ ...s, duration: e.target.value }))} placeholder="Duración (ej. 4 semanas)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+          <input value={d.category} onChange={e => setD(s => ({ ...s, category: e.target.value }))} placeholder="Categoría (Bachata…)" className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+          <select value={d.level} onChange={e => setD(s => ({ ...s, level: e.target.value }))} className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-pink-300">
             <option value="">Nivel…</option><option value="Principiante">Principiante</option><option value="Intermedio">Intermedio</option><option value="Avanzado">Avanzado</option>
           </select>
         </div>
         <ImageInput label="Imagen del curso" value={d.image_url} folder="courses" onChange={v => setD(s => ({ ...s, image_url: v }))} compact />
-        <button onClick={add} disabled={busy || !d.title.trim()} className="w-full bg-purple-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-purple-700 disabled:opacity-40 flex items-center justify-center gap-1.5">
+        <button onClick={add} disabled={busy || !d.title.trim()} className="w-full bg-pink-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-pink-700 disabled:opacity-40 flex items-center justify-center gap-1.5">
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Crear curso
         </button>
       </div>
@@ -658,7 +658,7 @@ const CoursesEditor: React.FC<{ courses: Course[]; ownerId?: string; instructor:
               <div key={c.id} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 group">
                 {c.image_url
                   ? <img src={c.image_url} alt={c.title} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                  : <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center flex-shrink-0"><GraduationCap className="w-5 h-5 text-purple-500" /></div>}
+                  : <div className="w-12 h-12 rounded-lg bg-pink-100 flex items-center justify-center flex-shrink-0"><GraduationCap className="w-5 h-5 text-pink-500" /></div>}
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-gray-900 text-sm truncate">{c.title}</p>
                   <p className="text-xs text-gray-400">€{c.price}{c.level ? ` · ${c.level}` : ''}{c.category ? ` · ${c.category}` : ''}</p>

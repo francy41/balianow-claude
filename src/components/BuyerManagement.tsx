@@ -83,7 +83,7 @@ export const BuyerTable: React.FC<{ eventId: string }> = ({ eventId }) => {
           { label: 'Total Compradores', value: tickets.length, icon: '👥', color: 'bg-blue-50 text-blue-700' },
           { label: 'Tickets Vendidos', value: tickets.reduce((s, t) => s + t.quantity, 0), icon: '🎫', color: 'bg-pink-50 text-brand-orange' },
           { label: 'Revenue', value: `€${tickets.filter(t => t.paymentStatus === 'paid').reduce((s, t) => s + t.totalPrice, 0).toLocaleString()}`, icon: '💰', color: 'bg-green-50 text-green-700' },
-          { label: 'Accesos', value: tickets.filter(t => t.qrStatus === 'used').length, icon: '✅', color: 'bg-purple-50 text-purple-700' },
+          { label: 'Accesos', value: tickets.filter(t => t.qrStatus === 'used').length, icon: '✅', color: 'bg-fuchsia-50 text-fuchsia-700' },
         ].map(stat => (
           <div key={stat.label} className="card-white rounded-xl p-3">
             <div className="flex items-center gap-2 mb-1">

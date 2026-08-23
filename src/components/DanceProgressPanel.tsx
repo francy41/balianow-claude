@@ -57,7 +57,7 @@ const DanceProgressPanel: React.FC<{ userId?: string; refreshKey?: number }> = (
     { icon: GraduationCap, label: 'Clases', value: summary?.classes_completed ?? 0, color: 'text-emerald-400' },
     { icon: Star, label: 'Estrellas', value: summary?.total_stars ?? 0, color: 'text-yellow-400' },
     { icon: Target, label: 'Sync medio', value: `${summary?.avg_sync ?? 0}%`, color: 'text-pink-400' },
-    { icon: Activity, label: 'Pasos', value: summary?.steps_passed ?? 0, color: 'text-purple-400' },
+    { icon: Activity, label: 'Pasos', value: summary?.steps_passed ?? 0, color: 'text-fuchsia-400' },
   ];
 
   return (

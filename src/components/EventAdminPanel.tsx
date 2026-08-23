@@ -272,7 +272,7 @@ const EventAdminPanel: React.FC<Props> = ({ eventId, onSaved, ownerUserId }) => 
                   onClick={() => setTab(t.id)}
                   className={`flex items-center gap-1.5 px-5 py-3 text-sm font-bold border-b-2 transition-colors flex-1 justify-center whitespace-nowrap ${
                     tab === t.id
-                      ? 'border-purple-600 text-purple-700'
+                      ? 'border-fuchsia-600 text-fuchsia-700'
                       : 'border-transparent text-gray-500 hover:text-gray-800'
                   }`}
                 >
@@ -284,7 +284,7 @@ const EventAdminPanel: React.FC<Props> = ({ eventId, onSaved, ownerUserId }) => 
             {/* Loading state */}
             {loading ? (
               <div className="flex-1 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+                <Loader2 className="w-8 h-8 animate-spin text-fuchsia-500" />
               </div>
             ) : (
               <div className="flex-1 overflow-y-auto">
@@ -387,7 +387,7 @@ const ImageInput: React.FC<{
           ? <img src={value} alt={label} className="w-20 h-20 rounded-xl object-cover border border-gray-200 flex-shrink-0" />
           : <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0"><Upload className="w-5 h-5" /></div>}
         <div className="flex-1 space-y-2">
-          <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 text-purple-600 text-sm font-semibold hover:bg-purple-100">
+          <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-pink-50 text-fuchsia-600 text-sm font-semibold hover:bg-pink-100">
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
             {uploading ? 'Subiendo…' : 'Subir imagen'}
             <input type="file" accept="image/*" hidden onChange={e => handleFile(e.target.files?.[0])} />
@@ -397,7 +397,7 @@ const ImageInput: React.FC<{
             value={value}
             onChange={e => onChange(e.target.value)}
             placeholder="o pega una URL https://…"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-purple-300"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
           />
         </div>
       </div>
@@ -419,7 +419,7 @@ const GeneralTab: React.FC<{
         value={(data[key] as string) ?? ''}
         onChange={e => onChange({ [key]: e.target.value } as any)}
         placeholder={placeholder}
-        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
       />
     </div>
   );
@@ -432,7 +432,7 @@ const GeneralTab: React.FC<{
         value={(data[key] as number | '') ?? ''}
         onChange={e => onChange({ [key]: e.target.value === '' ? '' : Number(e.target.value) } as any)}
         placeholder={placeholder}
-        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
       />
     </div>
   );
@@ -446,7 +446,7 @@ const GeneralTab: React.FC<{
       <button
         type="button"
         onClick={() => onChange({ [key]: !data[key] } as any)}
-        className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${data[key] ? 'bg-purple-600' : 'bg-gray-200'}`}
+        className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${data[key] ? 'bg-fuchsia-600' : 'bg-gray-200'}`}
       >
         <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${data[key] ? 'translate-x-7' : 'translate-x-1'}`} />
       </button>
@@ -465,7 +465,7 @@ const GeneralTab: React.FC<{
             onChange={e => onChange({ description: e.target.value })}
             rows={4}
             placeholder="Describe el evento…"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 resize-y"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300 resize-y"
           />
         </div>
       </div>
@@ -478,7 +478,7 @@ const GeneralTab: React.FC<{
             type="date"
             value={data.date}
             onChange={e => onChange({ date: e.target.value })}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
           />
         </div>
         {txt('time', 'Hora inicio', '22:00')}
@@ -492,7 +492,7 @@ const GeneralTab: React.FC<{
           <select
             value={data.type}
             onChange={e => onChange({ type: e.target.value })}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300 bg-white"
           >
             <option value="">—</option>
             <option value="Social">Social</option>
@@ -541,7 +541,7 @@ const GeneralTab: React.FC<{
         <select
           value={data.admin_status}
           onChange={e => onChange({ admin_status: e.target.value })}
-          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300 bg-white"
         >
           <option value="approved">Aprobado (visible)</option>
           <option value="pending">Pendiente</option>
@@ -657,7 +657,7 @@ const LineupTab: React.FC<{
       {/* Search from DB */}
       <div>
         <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-          <Search className="w-4 h-4 text-purple-500" /> Buscar artista en la plataforma
+          <Search className="w-4 h-4 text-fuchsia-500" /> Buscar artista en la plataforma
         </h3>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -666,7 +666,7 @@ const LineupTab: React.FC<{
             value={search}
             onChange={e => handleSearchChange(e.target.value)}
             placeholder="Nombre del artista, DJ o bailarín…"
-            className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+            className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
           />
           {searching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-gray-400" />}
         </div>
@@ -681,7 +681,7 @@ const LineupTab: React.FC<{
                   onClick={() => addFromResult(a)}
                   disabled={already}
                   className={`w-full flex items-center gap-3 px-4 py-3 text-left transition-colors ${
-                    already ? 'opacity-40 cursor-default' : 'hover:bg-purple-50'
+                    already ? 'opacity-40 cursor-default' : 'hover:bg-pink-50'
                   }`}
                 >
                   <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-100 flex-shrink-0">
@@ -702,7 +702,7 @@ const LineupTab: React.FC<{
                   </div>
                   {already
                     ? <span className="text-xs text-green-500 font-bold">Ya añadido</span>
-                    : <Plus className="w-4 h-4 text-purple-500 flex-shrink-0" />}
+                    : <Plus className="w-4 h-4 text-fuchsia-500 flex-shrink-0" />}
                 </button>
               );
             })}
@@ -714,7 +714,7 @@ const LineupTab: React.FC<{
       <div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 text-sm font-semibold text-purple-600 hover:text-purple-800 transition-colors"
+          className="flex items-center gap-2 text-sm font-semibold text-fuchsia-600 hover:text-fuchsia-800 transition-colors"
         >
           <Plus className="w-4 h-4" /> Añadir manualmente (sin perfil en la plataforma)
           <ChevronDown className={`w-4 h-4 transition-transform ${showForm ? 'rotate-180' : ''}`} />
@@ -730,7 +730,7 @@ const LineupTab: React.FC<{
                   value={manualEntry.name || ''}
                   onChange={e => setManualEntry(m => ({ ...m, name: e.target.value }))}
                   placeholder="DJ Latino, María García…"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
                 />
               </div>
               <div>
@@ -738,7 +738,7 @@ const LineupTab: React.FC<{
                 <select
                   value={manualEntry.role || 'DJ'}
                   onChange={e => setManualEntry(m => ({ ...m, role: e.target.value as LineupRole }))}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300 bg-white"
                 >
                   {ROLE_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
@@ -751,13 +751,13 @@ const LineupTab: React.FC<{
                 value={manualEntry.time_slot || ''}
                 onChange={e => setManualEntry(m => ({ ...m, time_slot: e.target.value }))}
                 placeholder="22:00 – 23:30"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
               />
             </div>
             <button
               onClick={addManual}
               disabled={!manualEntry.name?.trim()}
-              className="w-full bg-purple-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-purple-700 transition-colors disabled:opacity-40"
+              className="w-full bg-fuchsia-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-fuchsia-700 transition-colors disabled:opacity-40"
             >
               Añadir al lineup
             </button>
@@ -782,10 +782,10 @@ const LineupTab: React.FC<{
             {entries.map((e, i) => (
               <div key={i} className="flex items-center gap-3 bg-gray-50 rounded-xl p-3 group">
                 {/* Avatar */}
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-purple-100 flex-shrink-0">
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-pink-100 flex-shrink-0">
                   {e.avatar
                     ? <img src={e.avatar} alt={e.name} className="w-full h-full object-cover" />
-                    : <div className="w-full h-full flex items-center justify-center text-purple-600 font-bold text-sm">{e.name[0]}</div>}
+                    : <div className="w-full h-full flex items-center justify-center text-fuchsia-600 font-bold text-sm">{e.name[0]}</div>}
                 </div>
 
                 {/* Name & role */}
@@ -809,7 +809,7 @@ const LineupTab: React.FC<{
                   value={e.time_slot || ''}
                   onChange={ev => updateSlot(i, ev.target.value)}
                   placeholder="22:00–23:00"
-                  className="w-24 text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-center focus:outline-none focus:ring-2 focus:ring-purple-200"
+                  className="w-24 text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-center focus:outline-none focus:ring-2 focus:ring-fuchsia-200"
                 />
 
                 {/* Remove */}
@@ -864,7 +864,7 @@ const SponsorsTab: React.FC<{
         <h3 className="font-bold text-gray-900">Patrocinadores del evento</h3>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1.5 bg-purple-600 text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-purple-700 transition-colors"
+          className="flex items-center gap-1.5 bg-fuchsia-600 text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-fuchsia-700 transition-colors"
         >
           <Plus className="w-4 h-4" /> Añadir
         </button>
@@ -882,7 +882,7 @@ const SponsorsTab: React.FC<{
                 value={form.name || ''}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                 placeholder="Nombre de la empresa…"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
               />
             </div>
             <div className="col-span-2">
@@ -894,7 +894,7 @@ const SponsorsTab: React.FC<{
                 value={form.logo || ''}
                 onChange={e => setForm(f => ({ ...f, logo: e.target.value }))}
                 placeholder="https://empresa.com/logo.png"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
               />
             </div>
             <div>
@@ -906,7 +906,7 @@ const SponsorsTab: React.FC<{
                 value={form.url || ''}
                 onChange={e => setForm(f => ({ ...f, url: e.target.value }))}
                 placeholder="https://empresa.com"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
               />
             </div>
             <div>
@@ -914,7 +914,7 @@ const SponsorsTab: React.FC<{
               <select
                 value={form.tier || 'gold'}
                 onChange={e => setForm(f => ({ ...f, tier: e.target.value as SponsorTier }))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300 bg-white"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300 bg-white"
               >
                 <option value="platinum">Platino</option>
                 <option value="gold">Oro</option>
@@ -944,7 +944,7 @@ const SponsorsTab: React.FC<{
             <button
               onClick={add}
               disabled={!form.name?.trim()}
-              className="flex-1 bg-purple-600 text-white font-bold py-2 rounded-xl text-sm hover:bg-purple-700 disabled:opacity-40"
+              className="flex-1 bg-fuchsia-600 text-white font-bold py-2 rounded-xl text-sm hover:bg-fuchsia-700 disabled:opacity-40"
             >
               Añadir patrocinador
             </button>
@@ -1058,7 +1058,7 @@ const LiveTab: React.FC<{
           value={liveTitle}
           onChange={e => onChange({ live_title: e.target.value })}
           placeholder="Ej. Noche de Salsa en Directo — Festival BailaNow"
-          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
         />
       </div>
 
@@ -1072,7 +1072,7 @@ const LiveTab: React.FC<{
           value={liveUrl}
           onChange={e => onChange({ live_url: e.target.value })}
           placeholder="https://www.youtube.com/watch?v=… o https://twitch.tv/canal"
-          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-300"
+          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-300"
         />
         <p className="text-xs text-gray-400 mt-1.5">Compatible con YouTube Live y Twitch</p>
       </div>
