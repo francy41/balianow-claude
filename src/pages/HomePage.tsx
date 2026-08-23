@@ -631,6 +631,15 @@ const DISCOVER_BADGE: Record<DiscoverKind, { label: string; className: string; c
   vivo:   { label: 'EN VIVO',       className: 'bg-red-600',     cta: 'bg-gradient-to-r from-red-600 to-rose-700 text-white border-transparent' },
 };
 
+// Punto de alarma parpadeante por categoría en las pestañas — mismos colores que el mapa y las tarjetas.
+const DISCOVER_TAB_DOT: Partial<Record<DiscoverKind | 'todos', { ring: string; grad: string }>> = {
+  plan:   { ring: 'bg-pink-400',    grad: 'from-pink-500 to-fuchsia-600' },
+  venue:  { ring: 'bg-emerald-400', grad: 'from-emerald-500 to-emerald-700' },
+  pareja: { ring: 'bg-fuchsia-400', grad: 'from-fuchsia-500 to-purple-700' },
+  evento: { ring: 'bg-violet-400',  grad: 'from-violet-500 to-purple-700' },
+  vivo:   { ring: 'bg-orange-400',  grad: 'from-orange-500 to-red-600' },
+};
+
 const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
   const [loaded, setLoaded] = useState(false);
   const [items, setItems] = useState<DiscoverItem[]>([]);
@@ -851,21 +860,31 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => 
       </div>
 
       <div className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-[#4A0B33] via-[#26071B] to-[#12060E] px-4 sm:px-5 pb-4 sm:pb-5 -mt-3">
-        {/* Pestañas de filtro — funcionales, sobre datos reales ya cargados; también controlan el mapa de arriba */}
-        <div className="flex items-center gap-1.5 pt-4 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+        {/* Pestañas de filtro — funcionales, sobre datos reales ya cargados; también controlan el mapa de arriba.
+            En móvil: cuadrícula de 2 columnas (2 líneas) para que quepan enteras sin scroll horizontal.
+            En escritorio: fila con scroll, como antes. Cada pestaña lleva el mismo punto de alarma
+            parpadeante y color que su pin en el mapa, para reconocer la categoría de un vistazo. */}
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-1.5 pt-4 sm:overflow-x-auto sm:pb-1" style={{ scrollbarWidth: 'none' }}>
           {DISCOVER_TABS.map(t => {
             const Icon = t.icon;
             const isActive = tab === t.key;
             const trueCounts: Record<DiscoverKind, number> = { plan: stats.plan, venue: stats.abiertos, pareja: stats.pareja, evento: stats.evento, vivo: stats.vivo };
             const count = t.key === 'todos' ? items.length : trueCounts[t.key];
             if (t.key !== 'todos' && count === 0) return null;
+            const dot = DISCOVER_TAB_DOT[t.key];
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
-                className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-extrabold transition-all ${
+                className={`sm:flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-[11px] font-extrabold transition-all ${
                   isActive ? 'bg-gradient-to-br from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-900/40' : 'bg-white/[0.05] text-pink-200/70 border border-white/10 hover:bg-white/10'
                 }`}>
-                <Icon className="w-3.5 h-3.5" /> {t.label}
-                <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/25' : 'bg-white/10'}`}>{count}</span>
+                {dot && (
+                  <span className="relative flex h-2 w-2 flex-shrink-0">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${dot.ring} opacity-75`} />
+                    <span className={`relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br ${dot.grad}`} />
+                  </span>
+                )}
+                <Icon className="w-3.5 h-3.5 flex-shrink-0" /> <span className="truncate">{t.label}</span>
+                <span className={`ml-auto text-[9px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0 ${isActive ? 'bg-white/25' : 'bg-white/10'}`}>{count}</span>
               </button>
             );
           })}
