@@ -7,6 +7,7 @@
 import { useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useSiteConfigStore, useSponsorsStore, type HomeCategory, type ProfileModule, type CommissionConfig } from '../store/appStore';
+import { useCMSStore } from '../store/cmsStore';
 
 // ── Load config from Supabase on mount ────────────────────────────────────
 export function useSiteConfigLoader() {
@@ -29,6 +30,11 @@ export function useSiteConfigLoader() {
           }
           if (row.key === 'profile_modules' && Array.isArray(row.value) && row.value.length > 0) {
             setProfileModules(row.value as ProfileModule[]);
+          }
+          // Constructor Home (secciones activas/orden) — antes solo vivía en localStorage
+          // del admin que lo tocara; ahora todos los visitantes cargan el mismo ajuste real.
+          if (row.key === 'home_cms_modules' && Array.isArray(row.value) && row.value.length > 0) {
+            useCMSStore.setState({ modules: row.value });
           }
           if (row.key === 'home_tv_cards' && Array.isArray(row.value) && row.value.length > 0) {
             setHomeTvCards(row.value);
