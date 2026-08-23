@@ -1196,9 +1196,9 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     return (
       <button
         onClick={() => navigate(cat.route)}
-        className="group relative bg-white dark:bg-gray-800/70 rounded-2xl p-3 flex flex-col items-center justify-start gap-2 border border-gray-100 dark:border-white/10 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-transparent active:scale-95 transition-all duration-300"
+        className="group relative bg-white dark:bg-gray-800/70 rounded-2xl p-3 flex flex-col items-center justify-start gap-2 border border-gray-100 dark:border-white/10 shadow-lg shadow-black/[0.06] hover:shadow-xl hover:shadow-pink-500/10 hover:-translate-y-1 hover:border-pink-100 active:scale-95 transition-all duration-300"
       >
-        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${tint} ring-1 flex items-center justify-center shadow-sm group-hover:shadow-lg group-hover:scale-110 transition-all duration-300`}>
+        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${tint} ring-1 flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-300`}>
           <span className="text-2xl sm:text-[26px] leading-none">{cat.icon}</span>
         </div>
         <span className="text-gray-700 dark:text-gray-200 text-[11px] sm:text-xs font-bold leading-tight text-center line-clamp-2 group-hover:text-brand-orange transition-colors">{cat.name}</span>
@@ -1521,7 +1521,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <div className="grid grid-cols-2 gap-2.5">
             {events.map(e => (
               <button key={e.id} onClick={() => navigate(`/eventos/${e.id}`)}
-                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-fuchsia-900/60 via-purple-900/40 to-gray-900 text-left group shadow-sm border border-gray-100 dark:border-gray-800 hover:-translate-y-0.5 hover:shadow-md transition-all">
+                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-fuchsia-900/60 via-purple-900/40 to-gray-900 text-left group shadow-lg shadow-black/10 border border-gray-100 dark:border-gray-800 hover:-translate-y-0.5 hover:shadow-xl transition-all">
                 {(e as any).cover && <img src={(e as any).cover} alt="" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                 <div className="absolute top-2 left-2 bg-white/90 text-gray-900 rounded-lg px-1.5 py-0.5 text-center leading-none">
@@ -1544,7 +1544,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <div className="grid grid-cols-2 gap-2.5">
             {artists.map(a => (
               <button key={a.id} onClick={() => navigate(`/artistas/${a.id}`)}
-                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-pink-900/60 via-rose-900/40 to-gray-900 text-left group shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all">
+                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-pink-900/60 via-rose-900/40 to-gray-900 text-left group shadow-lg shadow-black/10 hover:-translate-y-0.5 hover:shadow-xl transition-all">
                 {a.avatar && <img src={a.avatar} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
                 <div className="absolute bottom-2 left-2 right-2">
@@ -1774,7 +1774,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
         <div className="flex flex-wrap gap-2">
           {trends.map((t, i) => (
             <button key={t} onClick={() => navigate(`/artistas?q=${encodeURIComponent(t)}`)}
-              className="inline-flex items-center gap-1.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-full px-3.5 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 shadow-sm hover:shadow-md hover:border-pink-300 hover:text-pink-600 transition-all">
+              className="inline-flex items-center gap-1.5 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-full px-3.5 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 shadow-lg shadow-black/[0.06] hover:shadow-xl hover:shadow-pink-500/10 hover:border-pink-300 hover:text-pink-600 transition-all">
               <span className="text-pink-500 font-black">#{i + 1}</span> {t}
             </button>
           ))}
@@ -1813,7 +1813,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
         <HScroll>
           {teachers.map(t => (
             <button key={t.id} onClick={() => navigate(`/artistas/${t.id}`)}
-              className="flex-shrink-0 w-40 bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all text-center flex flex-col items-center">
+              className="flex-shrink-0 w-40 bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-lg shadow-black/[0.06] hover:shadow-xl hover:shadow-pink-500/10 hover:-translate-y-1 transition-all text-center flex flex-col items-center">
               <div className="relative">
                 <div className="w-16 h-16 rounded-full overflow-hidden grid place-items-center bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white font-black text-xl">
                   <span>{t.name?.[0] || '?'}</span>
