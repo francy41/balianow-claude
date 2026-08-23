@@ -604,7 +604,7 @@ const DISCOVER_PIN_ICON: Record<'plan' | 'venue' | 'evento' | 'vivo', L.DivIcon>
 interface HomeRutaStop { name: string; address?: string; lat: number; lng: number; venue_id?: string; }
 interface HomeRuta { id: string; title: string; city: string; date: string | null; time: string | null; stops: HomeRutaStop[]; }
 
-type DiscoverKind = 'plan' | 'venue' | 'pareja' | 'evento' | 'vivo';
+type DiscoverKind = 'plan' | 'venue' | 'local' | 'pareja' | 'evento' | 'vivo';
 interface DiscoverItem {
   id: string; kind: DiscoverKind; title: string; city: string; meta: string;
   cover: string | null; rating: number; route: string; lat?: number; lng?: number;
@@ -615,18 +615,20 @@ const DISCOVER_TABS: { key: DiscoverKind | 'todos'; label: string; icon: React.F
   { key: 'todos', label: 'Todos', icon: Grid3x3 },
   { key: 'plan', label: 'Planes de baile', icon: RouteIcon },
   { key: 'venue', label: 'Abiertos ahora', icon: Building2 },
+  { key: 'local', label: 'Locales', icon: MapPin },
   { key: 'pareja', label: 'Pareja de baile', icon: Heart },
   { key: 'evento', label: 'Eventos', icon: GraduationCap },
   { key: 'vivo', label: 'Eventos en vivo', icon: Calendar },
 ];
-const DISCOVER_ORDER: DiscoverKind[] = ['plan', 'venue', 'vivo', 'evento', 'pareja'];
+const DISCOVER_ORDER: DiscoverKind[] = ['plan', 'venue', 'local', 'vivo', 'evento', 'pareja'];
 const DISCOVER_TAB_ROUTE: Record<DiscoverKind | 'todos', string> = {
-  todos: '/rutas', plan: '/rutas', venue: '/venues', pareja: '/parejas', evento: '/eventos', vivo: '/live',
+  todos: '/rutas', plan: '/rutas', venue: '/venues', local: '/venues', pareja: '/parejas', evento: '/eventos', vivo: '/live',
 };
 
 const DISCOVER_BADGE: Record<DiscoverKind, { label: string; className: string; cta: string }> = {
   plan:   { label: 'PLAN',          className: 'bg-pink-600',    cta: 'border-pink-400 text-pink-300' },
   venue:  { label: 'ABIERTO AHORA', className: 'bg-emerald-600', cta: 'border-emerald-400 text-emerald-300' },
+  local:  { label: 'LOCAL',         className: 'bg-cyan-600',    cta: 'border-cyan-400 text-cyan-300' },
   pareja: { label: 'PAREJA',        className: 'bg-fuchsia-600', cta: 'border-fuchsia-400 text-fuchsia-300' },
   evento: { label: 'EVENTO',        className: 'bg-violet-600',  cta: 'border-violet-400 text-violet-300' },
   vivo:   { label: 'EN VIVO',       className: 'bg-red-600',     cta: 'bg-gradient-to-r from-red-600 to-rose-700 text-white border-transparent' },
@@ -636,6 +638,7 @@ const DISCOVER_BADGE: Record<DiscoverKind, { label: string; className: string; c
 const DISCOVER_TAB_DOT: Partial<Record<DiscoverKind | 'todos', { ring: string; grad: string }>> = {
   plan:   { ring: 'bg-pink-400',    grad: 'from-pink-500 to-fuchsia-600' },
   venue:  { ring: 'bg-emerald-400', grad: 'from-emerald-500 to-emerald-700' },
+  local:  { ring: 'bg-cyan-400',    grad: 'from-cyan-500 to-blue-600' },
   pareja: { ring: 'bg-fuchsia-400', grad: 'from-fuchsia-500 to-purple-700' },
   evento: { ring: 'bg-violet-400',  grad: 'from-violet-500 to-purple-700' },
   vivo:   { ring: 'bg-orange-400',  grad: 'from-orange-500 to-red-600' },
@@ -728,7 +731,7 @@ const FitDiscoverPins: React.FC<{ pins: { lat: number; lng: number }[] }> = ({ p
 const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; onCityChange: (city: string) => void }> = ({ navigate, cityFilter, onCityChange }) => {
   const [loaded, setLoaded] = useState(false);
   const [items, setItems] = useState<DiscoverItem[]>([]);
-  const [stats, setStats] = useState({ abiertos: 0, pareja: 0, vivo: 0, rating: 0, plan: 0, evento: 0 });
+  const [stats, setStats] = useState({ abiertos: 0, pareja: 0, vivo: 0, rating: 0, plan: 0, evento: 0, local: 0 });
   const [tab, setTab] = useState<DiscoverKind | 'todos'>('todos');
 
   useEffect(() => {
@@ -812,6 +815,12 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         cover: v.cover || v.image_url || null, rating: Number(v.rating) || 0, route: `/venues/${v.id}`,
         ...withCoords(v.lat, v.lng, v.city, `venue-${v.id}`),
       }));
+      // "Locales" = directorio completo (abiertos o no), a diferencia de "Abiertos ahora".
+      const localItems: DiscoverItem[] = allVenues.slice(0, 6).map((v: any) => ({
+        id: `local-${v.id}`, kind: 'local', title: v.name, city: v.city || '',
+        meta: isOpenNow(v) ? 'Abierto ahora' : 'Cerrado ahora',
+        cover: v.cover || v.image_url || null, rating: Number(v.rating) || 0, route: `/venues/${v.id}`,
+      }));
       const parejaItems: DiscoverItem[] = (parejaRes.data || []).slice(0, 6).map((p: any) => ({
         id: `pareja-${p.user_id}`, kind: 'pareja', title: p.name || 'Bailarín/a', city: p.city || '',
         meta: [p.level, Array.isArray(p.styles) ? p.styles.slice(0, 2).join(', ') : ''].filter(Boolean).join(' · '),
@@ -830,7 +839,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         ...withCoords(s.lat, s.lng, s.city, `vivo-${s.id}`),
       }));
 
-      setItems([...planItems, ...venueItems, ...parejaItems, ...eventoItems, ...vivoItems]);
+      setItems([...planItems, ...venueItems, ...localItems, ...parejaItems, ...eventoItems, ...vivoItems]);
       // Totales reales (no el nº de tarjetas cargadas) — el mismo número que se ve en las
       // cabeceras se usa también en el contador de cada pestaña, para que nunca se contradigan.
       setStats({
@@ -840,6 +849,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         rating: avgRating,
         plan: rutasCountRes.count || 0,
         evento: eventoCountRes.count || 0,
+        local: allVenues.length,
       });
       setLoaded(true);
     })();
@@ -979,7 +989,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
           {DISCOVER_TABS.map(t => {
             const Icon = t.icon;
             const isActive = tab === t.key;
-            const trueCounts: Record<DiscoverKind, number> = { plan: stats.plan, venue: stats.abiertos, pareja: stats.pareja, evento: stats.evento, vivo: stats.vivo };
+            const trueCounts: Record<DiscoverKind, number> = { plan: stats.plan, venue: stats.abiertos, local: stats.local, pareja: stats.pareja, evento: stats.evento, vivo: stats.vivo };
             const count = t.key === 'todos' ? items.length : trueCounts[t.key];
             if (t.key !== 'todos' && count === 0) return null;
             const dot = DISCOVER_TAB_DOT[t.key];
