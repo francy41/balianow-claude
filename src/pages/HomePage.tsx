@@ -1521,7 +1521,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <div className="grid grid-cols-2 gap-2.5">
             {events.map(e => (
               <button key={e.id} onClick={() => navigate(`/eventos/${e.id}`)}
-                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-pink-900/60 via-fuchsia-900/40 to-gray-900 text-left group shadow-lg shadow-black/10 border border-gray-100 dark:border-gray-800 hover:-translate-y-0.5 hover:shadow-xl transition-all">
+                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-[#831843]/70 via-[#831843]/45 to-gray-900 text-left group shadow-lg shadow-black/10 border border-gray-100 dark:border-gray-800 hover:-translate-y-0.5 hover:shadow-xl transition-all">
                 {(e as any).cover && <img src={(e as any).cover} alt="" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                 <div className="absolute top-2 left-2 bg-white/90 text-gray-900 rounded-lg px-1.5 py-0.5 text-center leading-none">
@@ -1563,7 +1563,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
             {tv.map((c, i) => {
               return (
               <button key={i} onClick={() => navigate(c.link || '/tv')}
-                className="relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-pink-900/60 via-fuchsia-900/40 to-gray-950">
+                className="relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-[#831843]/70 via-[#831843]/45 to-gray-950">
                 {c.image ? (
                   <img src={c.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
                 ) : (
@@ -1709,7 +1709,7 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
       <HScroll>
         {shows.map(s => (
           <button key={s.id} onClick={() => navigate(`/tv/${s.id}`)}
-            className="flex-shrink-0 w-64 relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-pink-900/60 via-fuchsia-900/40 to-gray-950 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
+            className="flex-shrink-0 w-64 relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-[#831843]/70 via-[#831843]/45 to-gray-950 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
             {s.img ? (
               <img src={s.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
             ) : (
@@ -1834,7 +1834,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
       {/* Trabajos para Bailarines (CTA) */}
       <section className="mx-3 sm:mx-4 mt-8">
         <button onClick={() => navigate('/promocionate')}
-          className="relative w-full overflow-hidden rounded-3xl p-6 sm:p-8 text-left text-white bg-gradient-to-br from-gray-900 via-fuchsia-950 to-black hover:shadow-2xl hover:shadow-pink-500/20 transition-all">
+          className="relative w-full overflow-hidden rounded-3xl p-6 sm:p-8 text-left text-white bg-gradient-to-br from-gray-900 via-[#831843] to-black hover:shadow-2xl hover:shadow-pink-500/20 transition-all">
           <div className="absolute -top-10 -right-10 w-48 h-48 bg-pink-500/30 rounded-full blur-3xl pointer-events-none" />
           <div className="relative flex items-center justify-between gap-4 flex-wrap">
             <div>
