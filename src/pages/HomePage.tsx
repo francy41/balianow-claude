@@ -573,16 +573,6 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
 };
 
 // ── DYNAMIC CATEGORIES SECTION ────────────────────────────────────────
-// Tintes rotativos para los chips de categoría — dan variedad tipo escaparate
-// (Glovo/Fever) manteniendo la identidad BailaNow. Clases literales para el JIT.
-const CHIP_TINTS = [
-  'from-brand/20 to-rose-500/10 ring-pink-400/40 group-hover:shadow-brand/25',
-  'from-brand-secondary/20 to-brand/10 ring-fuchsia-400/40 group-hover:shadow-brand-secondary/25',
-  'from-rose-500/20 to-brand/10 ring-rose-400/40 group-hover:shadow-rose-500/25',
-  'from-brand/20 to-brand-secondary/10 ring-brand/40 group-hover:shadow-brand/25',
-  'from-brand-secondary/20 to-rose-600/10 ring-brand-secondary/40 group-hover:shadow-brand-secondary/25',
-  'from-rose-600/20 to-brand/10 ring-rose-500/40 group-hover:shadow-rose-600/25',
-];
 
 // Un pin distinto (color + alarma parpadeante) por categoría, para el mapa de "Planes de baile"
 // del Home — mismos colores que las insignias de las tarjetas, para que se reconozcan a simple vista.
@@ -882,7 +872,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
 
   return (
     <section className="mx-3 sm:mx-4 mt-8">
-      <div className="relative overflow-hidden rounded-3xl min-h-[80px] sm:min-h-[240px]">
+      <div className="card-float relative overflow-hidden rounded-3xl min-h-[80px] sm:min-h-[240px]">
         {/* Mapa real de fondo — Planes/Abiertos ahora/Eventos/En directo a la vez, cada uno con su color y alarma */}
         <div className="absolute inset-0">
           {pins.length > 0 ? (
@@ -1134,7 +1124,7 @@ const SuperSearchBar: React.FC<{ cityValue: string; onCitySelect: (city: string)
 
   return (
     <div className="relative">
-      <div className="relative bg-white border border-white shadow-xl shadow-black/25 rounded-2xl flex items-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-3">
+      <div className="card-float relative bg-white rounded-2xl flex items-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-3">
         <Search className="w-5 h-5 text-brand flex-shrink-0" />
         <input
           value={query}
@@ -1191,17 +1181,14 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
   const shown = showAll ? visibleCats : visibleCats.slice(0, LIMIT);
   const rest = visibleCats.length - LIMIT;
 
-  const CategoryButton: React.FC<{ cat: HomeCategory; index: number }> = ({ cat, index }) => {
-    const tint = CHIP_TINTS[index % CHIP_TINTS.length];
+  const CategoryButton: React.FC<{ cat: HomeCategory }> = ({ cat }) => {
     return (
       <button
         onClick={() => navigate(cat.route)}
-        className="card-float group relative bg-white dark:bg-gray-800/70 rounded-2xl p-2 flex flex-col items-center justify-start gap-1.5 active:scale-95"
+        className="card-float group relative bg-white dark:bg-gray-800/70 rounded-2xl p-3 flex flex-col items-center justify-center gap-2 active:scale-95"
       >
-        {/* El icono ocupa todo el ancho de la tarjeta (cuadrado), no un chip pequeño */}
-        <div className={`w-full aspect-square rounded-xl bg-gradient-to-br ${tint} ring-1 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300`}>
-          <span className="text-[2.75rem] sm:text-5xl leading-none">{cat.icon}</span>
-        </div>
+        {/* Solo el icono grande y el texto debajo — sin chip de color de fondo */}
+        <span className="text-[2.75rem] sm:text-5xl leading-none group-hover:scale-110 transition-transform duration-300">{cat.icon}</span>
         <span className="text-gray-700 dark:text-gray-200 text-[11px] sm:text-xs font-bold leading-tight text-center line-clamp-2 group-hover:text-brand-orange transition-colors">{cat.name}</span>
       </button>
     );
@@ -1228,8 +1215,8 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
               </button>
             </div>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5 sm:gap-3">
-              {shown.map((cat, idx) => (
-                <CategoryButton key={cat.id} cat={cat} index={idx} />
+              {shown.map(cat => (
+                <CategoryButton key={cat.id} cat={cat} />
               ))}
             </div>
             {rest > 0 && (
@@ -1934,7 +1921,7 @@ const HomePage: React.FC = () => {
       {/* ── HERO: TV con el vídeo real visible sin pulsar, Radio con emisoras reales clicables ── */}
       <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 grid grid-cols-2 gap-2.5 sm:gap-3">
         {/* TV: se ve el contenido en directo, no hace falta pulsar para verlo */}
-        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-[#4A0530] via-[#C00E68] to-[#E5127D] flex flex-col">
+        <div className="card-float relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-[#4A0530] via-[#C00E68] to-[#E5127D] flex flex-col">
           <div className="relative w-full h-24 sm:h-32 lg:h-52 bg-black">
             {heroYtId ? (
               <iframe
@@ -1958,7 +1945,7 @@ const HomePage: React.FC = () => {
         </div>
 
         {/* Radio: emisoras reales visibles, cada una se pulsa para escucharla directamente */}
-        <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-bl from-[#E5127D] via-[#C00E68] to-[#4A0530] flex flex-col justify-center p-2 sm:p-3 lg:p-5">
+        <div className="card-float relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-bl from-[#E5127D] via-[#C00E68] to-[#4A0530] flex flex-col justify-center p-2 sm:p-3 lg:p-5">
           <p className="text-white font-display font-black text-xs sm:text-base lg:text-lg flex items-center gap-1.5 mb-1.5 lg:mb-3">
             <Radio className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5" /> Radio Online
           </p>
