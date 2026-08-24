@@ -105,7 +105,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
 // ── STAT CARDS DATA ────────────────────────────────────────────────────────
 const STATS = [
   { label: 'Usuarios totales',    value: '1,247',  change: '+12%', up: true,  icon: <Users className="w-6 h-6 text-blue-500" />,   color: 'bg-blue-50' },
-  { label: 'Artistas activos',    value: '523',    change: '+8%',  up: true,  icon: <Music2 className="w-6 h-6 text-pink-500" />, color: 'bg-pink-50' },
+  { label: 'Artistas activos',    value: '523',    change: '+8%',  up: true,  icon: <Music2 className="w-6 h-6 text-brand" />, color: 'bg-pink-50' },
   { label: 'Eventos este mes',    value: '204',    change: '+31%', up: true,  icon: <Calendar className="w-6 h-6 text-green-500" />, color: 'bg-green-50' },
   { label: 'Revenue total',       value: '€48.2k', change: '+22%', up: true,  icon: <DollarSign className="w-6 h-6 text-brand-orange" />, color: 'bg-pink-50' },
   { label: 'Suscripciones activas', value: '312', change: '+19%', up: true,  icon: <Crown className="w-6 h-6 text-yellow-500" />,  color: 'bg-yellow-50' },
@@ -453,9 +453,9 @@ const OverviewSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 
   const cards = [
     { label: 'Usuarios totales', value: counts.users.toLocaleString(), icon: <Users className="w-6 h-6 text-blue-500" />, color: 'bg-blue-50' },
-    { label: 'Artistas / perfiles', value: counts.artists.toLocaleString(), icon: <Music2 className="w-6 h-6 text-pink-500" />, color: 'bg-pink-50' },
+    { label: 'Artistas / perfiles', value: counts.artists.toLocaleString(), icon: <Music2 className="w-6 h-6 text-brand" />, color: 'bg-pink-50' },
     { label: 'Eventos', value: counts.events.toLocaleString(), icon: <Calendar className="w-6 h-6 text-green-500" />, color: 'bg-green-50' },
-    { label: 'Locales', value: counts.venues.toLocaleString(), icon: <MapPin className="w-6 h-6 text-pink-500" />, color: 'bg-pink-50' },
+    { label: 'Locales', value: counts.venues.toLocaleString(), icon: <MapPin className="w-6 h-6 text-brand" />, color: 'bg-pink-50' },
     { label: 'Directos ahora', value: counts.lives.toLocaleString(), icon: <Radio className="w-6 h-6 text-red-500" />, color: 'bg-red-50' },
     { label: 'Disputas abiertas', value: counts.disputes.toLocaleString(), icon: <AlertTriangle className="w-6 h-6 text-yellow-600" />, color: 'bg-yellow-50' },
   ];
@@ -685,14 +685,14 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
             {/* Reorder con flechas */}
             <div className="flex flex-col gap-0.5 flex-shrink-0">
               <button onClick={() => moveCategory(cat.id, -1)} disabled={idx === 0}
-                className="p-0.5 text-gray-300 hover:text-pink-500 disabled:opacity-20 transition-colors text-xs">▲</button>
+                className="p-0.5 text-gray-300 hover:text-brand disabled:opacity-20 transition-colors text-xs">▲</button>
               <button onClick={() => moveCategory(cat.id, 1)} disabled={idx === sectionCats.length - 1}
-                className="p-0.5 text-gray-300 hover:text-pink-500 disabled:opacity-20 transition-colors text-xs">▼</button>
+                className="p-0.5 text-gray-300 hover:text-brand disabled:opacity-20 transition-colors text-xs">▼</button>
             </div>
             {/* Actions */}
             <div className="flex gap-1 flex-shrink-0">
               <button onClick={() => { setEditingId(cat.id); setEditData(cat); }}
-                className="p-1.5 hover:bg-pink-50 text-pink-400 hover:text-pink-600 rounded-lg transition-all">
+                className="p-1.5 hover:bg-pink-50 text-pink-400 hover:text-brand rounded-lg transition-all">
                 <Edit className="w-3.5 h-3.5" />
               </button>
               <button onClick={() => deleteCategory(cat.id)}
@@ -742,12 +742,12 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
       </div>
 
       {/* Módulos de perfil — activar/ocultar pestañas globalmente */}
-      <div className="card-white p-4 mb-5 border-l-4 border-fuchsia-500">
+      <div className="card-white p-4 mb-5 border-l-4 border-brand-secondary">
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
             🧩 Módulos de los perfiles
           </h3>
-          <span className="text-[10px] font-bold text-fuchsia-600 bg-fuchsia-50 px-2 py-1 rounded-full">
+          <span className="text-[10px] font-bold text-brand-secondary bg-fuchsia-50 px-2 py-1 rounded-full">
             {profileModules.filter(m => m.enabled).length}/{profileModules.length} activos
           </span>
         </div>
@@ -769,7 +769,7 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
                   {m.enabled ? '✓ Visible' : '○ Oculto'}
                 </span>
               </span>
-              <span className={`w-9 h-5 rounded-full flex-shrink-0 transition-colors relative ${m.enabled ? 'bg-fuchsia-500' : 'bg-gray-300'}`}>
+              <span className={`w-9 h-5 rounded-full flex-shrink-0 transition-colors relative ${m.enabled ? 'bg-brand-secondary' : 'bg-gray-300'}`}>
                 <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${m.enabled ? 'left-4' : 'left-0.5'}`} />
               </span>
             </button>
@@ -779,8 +779,8 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
 
       {/* New category form */}
       {showNewForm && (
-        <div className="card-white p-5 mb-5 border-l-4 border-pink-500 bg-pink-50/30">
-          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><Plus className="w-4 h-4 text-pink-500" /> Nueva categoría</h3>
+        <div className="card-white p-5 mb-5 border-l-4 border-brand bg-pink-50/30">
+          <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2"><Plus className="w-4 h-4 text-brand" /> Nueva categoría</h3>
           <div className="space-y-3">
             <div className="grid grid-cols-4 gap-2">
               <div>
@@ -818,7 +818,7 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
                   <p className="font-bold text-sm text-gray-900">{newCat.name}</p>
                   <p className="text-[11px] text-gray-400 font-mono">{newCat.route}</p>
                 </div>
-                <span className="ml-auto text-[10px] bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full font-bold capitalize">{newCat.section}</span>
+                <span className="ml-auto text-[10px] bg-pink-100 text-brand px-2 py-0.5 rounded-full font-bold capitalize">{newCat.section}</span>
               </div>
             )}
             <div className="flex gap-2">
@@ -841,7 +841,7 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           <div key={section} className="card-white mb-4 overflow-hidden">
             <div className="p-4 border-b border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-pink-50 border border-pink-200 flex items-center justify-center font-black text-sm text-pink-500">
+                <div className="w-8 h-8 rounded-lg bg-pink-50 border border-pink-200 flex items-center justify-center font-black text-sm text-brand">
                   {activeInSection}
                 </div>
                 <div>
@@ -865,7 +865,7 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
                         {children.length > 0 && (
                           <>
                             <button onClick={() => setExpandedParent(isExpanded ? null : parent.id)}
-                              className="text-[11px] font-bold text-pink-500 hover:text-pink-700 flex items-center gap-1">
+                              className="text-[11px] font-bold text-brand hover:text-pink-700 flex items-center gap-1">
                               {isExpanded ? '▼' : '▶'} {children.length} subcategoría{children.length === 1 ? '' : 's'}
                             </button>
                             {isExpanded && children.map(child => (
@@ -885,13 +885,13 @@ const CategoriasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
                             <input value={subDraft.route} onChange={e => setSubDraft(d => d && { ...d, route: e.target.value })}
                               placeholder={`Ruta (por defecto ${parent.route})`} className="input w-full text-xs font-mono mb-2" />
                             <div className="flex gap-2">
-                              <button onClick={addSubcategory} className="flex-1 bg-pink-500 text-white font-bold text-xs rounded-lg py-2">Crear</button>
+                              <button onClick={addSubcategory} className="flex-1 bg-brand text-white font-bold text-xs rounded-lg py-2">Crear</button>
                               <button onClick={() => setSubDraft(null)} className="flex-1 border border-gray-200 text-gray-600 font-bold text-xs rounded-lg py-2">Cancelar</button>
                             </div>
                           </div>
                         ) : (
                           <button onClick={() => setSubDraft({ parentId: parent.id, name: '', icon: '🏷️', route: '' })}
-                            className="text-[11px] font-bold text-gray-400 hover:text-pink-500 flex items-center gap-1">
+                            className="text-[11px] font-bold text-gray-400 hover:text-brand flex items-center gap-1">
                             <Plus className="w-3 h-3" /> Añadir subcategoría
                           </button>
                         )}
@@ -1050,14 +1050,14 @@ const RadioSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           headers={['Emisora', 'Género', 'Bitrate', 'Stream URL', 'Estado', 'Acciones']}
           rows={stations.map(s => [
             <div className="flex items-center gap-2">
-              {s.img_url ? <img src={s.img_url} alt="" className="w-8 h-8 rounded-lg object-cover bg-gray-100" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} /> : <div className="w-8 h-8 rounded-lg bg-pink-100 flex items-center justify-center text-pink-500 text-xs font-bold">{s.name[0]}</div>}
+              {s.img_url ? <img src={s.img_url} alt="" className="w-8 h-8 rounded-lg object-cover bg-gray-100" onError={e => { (e.target as HTMLImageElement).style.display='none'; }} /> : <div className="w-8 h-8 rounded-lg bg-pink-100 flex items-center justify-center text-brand text-xs font-bold">{s.name[0]}</div>}
               <span className="font-semibold text-sm">{s.name}</span>
             </div>,
             <span className="text-xs text-gray-500">{s.genre}</span>,
             <span className="text-xs font-mono text-gray-500">{s.bitrate}</span>,
             <div className="max-w-[220px]">
               <p className="text-xs font-mono text-gray-400 truncate" title={s.stream_url}>{s.stream_url}</p>
-              <a href={s.stream_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-pink-500 hover:underline">Probar enlace ↗</a>
+              <a href={s.stream_url} target="_blank" rel="noopener noreferrer" className="text-[10px] text-brand hover:underline">Probar enlace ↗</a>
             </div>,
             s.status === 'active'
               ? <Badge variant="live">🔴 Activa</Badge>
@@ -1250,8 +1250,8 @@ const TVAdminSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           <Badge variant={t.access === 'premium' ? 'orange' : 'gray'} className="capitalize">{t.access || 'basico'}</Badge>,
           <Badge variant={t.status === 'published' ? 'green' : 'gray'}>{t.status === 'published' ? '● Publicado' : '○ Borrador'}</Badge>,
           <div className="flex gap-1">
-            <button onClick={() => togglePublish(t)} title={t.status === 'published' ? 'Despublicar' : 'Publicar'} className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-pink-500">{t.status === 'published' ? <Eye className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}</button>
-            <button onClick={() => navigate('/tv/estudio')} title="Editar clases en el Estudio" className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-pink-500"><Film className="w-4 h-4" /></button>
+            <button onClick={() => togglePublish(t)} title={t.status === 'published' ? 'Despublicar' : 'Publicar'} className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-brand">{t.status === 'published' ? <Eye className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}</button>
+            <button onClick={() => navigate('/tv/estudio')} title="Editar clases en el Estudio" className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-brand"><Film className="w-4 h-4" /></button>
             <button onClick={() => remove(t)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
           </div>
         ])}
@@ -1363,7 +1363,7 @@ const ParejasAdminSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
           <span className="text-xs text-gray-400">{Array.isArray(p.styles) ? p.styles.join(', ') : '—'}</span>,
           <Badge variant={p.active ? 'green' : 'gray'}>{p.active ? 'Activo' : 'Oculto'}</Badge>,
           <div className="flex gap-1">
-            <button onClick={() => toggleActive(p)} title={p.active ? 'Ocultar' : 'Activar'} className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-pink-500">{p.active ? <Eye className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}</button>
+            <button onClick={() => toggleActive(p)} title={p.active ? 'Ocultar' : 'Activar'} className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-brand">{p.active ? <Eye className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}</button>
             <button onClick={() => remove(p)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
           </div>
         ])}
@@ -1566,7 +1566,7 @@ const LocalidadesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           <Badge variant={v.is_open ? 'green' : 'gray'}>{v.is_open ? '🟢 Abierto' : 'Cerrado'}</Badge>,
           v.is_premium ? <Badge variant="orange">Premium</Badge> : <Badge variant="gray">Básico</Badge>,
           <div className="flex gap-1">
-            <button onClick={() => navigate(`/venues/${v.id}?edit=1`)} title="Editar en la página del local" className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-pink-500"><Edit className="w-4 h-4" /></button>
+            <button onClick={() => navigate(`/venues/${v.id}?edit=1`)} title="Editar en la página del local" className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-brand"><Edit className="w-4 h-4" /></button>
             <button onClick={async () => {
               if (!confirm(`¿Eliminar el local "${fixText(v.name)}"?`)) return;
               // Soft delete. .select() devuelve las filas afectadas: si es 0, RLS lo bloqueó
@@ -1764,7 +1764,7 @@ const ArtistasSection: React.FC<{ addToast: Function; navigate: Function }> = ({
             <Badge variant={a.source === 'profile' ? 'blue' : 'orange'}>{a.source === 'profile' ? 'Usuario' : 'Artista'}</Badge>,
             <div className="flex gap-1">
               <button onClick={() => navigate(a.source === 'profile' ? `/p/${a.id}` : `/artistas/${a.id}`)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
-              <button onClick={() => navigate(a.source === 'profile' ? `/p/${a.id}?edit=1` : `/artistas/${a.id}?edit=1`)} title="Editar en el perfil real" className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-pink-500"><Edit className="w-4 h-4" /></button>
+              <button onClick={() => navigate(a.source === 'profile' ? `/p/${a.id}?edit=1` : `/artistas/${a.id}?edit=1`)} title="Editar en el perfil real" className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-brand"><Edit className="w-4 h-4" /></button>
               <button onClick={() => handleDelete(a)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-400"><Trash2 className="w-4 h-4" /></button>
             </div>
           ])}
@@ -1864,7 +1864,7 @@ const AnaliticasSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const cards = [
     { label: 'Visitas hoy',          value: viewsToday,  icon: <Eye className="w-6 h-6 text-blue-500" />,        color: 'bg-blue-50' },
     { label: 'Visitas (7 días)',     value: views7,      icon: <TrendingUp className="w-6 h-6 text-green-500" />, color: 'bg-green-50' },
-    { label: 'Visitantes únicos 7d', value: uniques7,    icon: <Users className="w-6 h-6 text-pink-500" />,    color: 'bg-pink-50' },
+    { label: 'Visitantes únicos 7d', value: uniques7,    icon: <Users className="w-6 h-6 text-brand" />,    color: 'bg-pink-50' },
     { label: 'Visitas registradas',  value: totalWindow, icon: <Eye className="w-6 h-6 text-brand-orange" />,    color: 'bg-pink-50' },
   ];
 
@@ -2092,7 +2092,7 @@ const EventosSection: React.FC<{ addToast: Function; navigate: Function }> = ({ 
           <Badge variant={e.is_featured ? 'orange' : 'green'}>{e.is_featured ? 'Destacado' : 'Activo'}</Badge>,
           <div className="flex gap-1">
             <button onClick={() => navigate(`/eventos/${e.id}`)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400"><Eye className="w-4 h-4" /></button>
-            <button onClick={() => navigate(`/eventos/${e.id}?edit=1`)} title="Editar en la página del evento" className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-pink-500"><Edit className="w-4 h-4" /></button>
+            <button onClick={() => navigate(`/eventos/${e.id}?edit=1`)} title="Editar en la página del evento" className="p-1.5 hover:bg-pink-50 rounded-lg text-gray-400 hover:text-brand"><Edit className="w-4 h-4" /></button>
             <button onClick={async () => {
               if (!confirm(`¿Eliminar el evento "${e.title}"?`)) return;
               const { error } = await supabase.from('events').delete().eq('id', e.id);
@@ -2427,8 +2427,8 @@ const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
             <input type="number" step="0.5" min="0" max="100"
               value={(commissions.premiumDiscount * 100).toFixed(1)}
               onChange={e => onSetPremiumDiscount((parseFloat(e.target.value) || 0) / 100)}
-              className="input-field text-3xl font-black text-fuchsia-600 w-32" />
-            <span className="text-3xl font-black text-fuchsia-600">%</span>
+              className="input-field text-3xl font-black text-brand-secondary w-32" />
+            <span className="text-3xl font-black text-brand-secondary">%</span>
           </div>
           <p className="text-xs text-gray-400 mt-2">
             Sellers 👑 PRO pagan {((commissions.default - commissions.premiumDiscount) * 100).toFixed(1)}% en lugar de {(commissions.default * 100).toFixed(1)}%
@@ -2439,7 +2439,7 @@ const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           <p className="text-xs text-gray-400 font-semibold uppercase">Vista rápida</p>
           <div className="mt-2 space-y-1.5 text-sm">
             <div className="flex justify-between"><span className="text-gray-600">Default:</span><span className="font-black text-brand-orange">{(commissions.default * 100).toFixed(1)}%</span></div>
-            <div className="flex justify-between"><span className="text-gray-600">Premium:</span><span className="font-black text-fuchsia-600">{((commissions.default - commissions.premiumDiscount) * 100).toFixed(1)}%</span></div>
+            <div className="flex justify-between"><span className="text-gray-600">Premium:</span><span className="font-black text-brand-secondary">{((commissions.default - commissions.premiumDiscount) * 100).toFixed(1)}%</span></div>
             <div className="flex justify-between text-xs text-gray-400 pt-1 border-t border-gray-100"><span>Diferencia</span><span>-{(commissions.premiumDiscount * 100).toFixed(1)} pp</span></div>
           </div>
         </div>
@@ -2468,7 +2468,7 @@ const ComisionesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
                     className="input-field w-24 text-center font-bold text-brand-orange" />
                   <span className="font-bold text-gray-700">%</span>
                   <div className="ml-3 text-right hidden sm:block">
-                    <p className="text-[10px] text-fuchsia-600 font-bold">Premium {(premiumRate * 100).toFixed(1)}%</p>
+                    <p className="text-[10px] text-brand-secondary font-bold">Premium {(premiumRate * 100).toFixed(1)}%</p>
                     <p className="text-[10px] text-gray-400">€100 → recibe €{(100 - 100 * rate).toFixed(0)}</p>
                   </div>
                 </div>
@@ -2565,7 +2565,7 @@ const AfiliadosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
         <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Activos</p><p className="font-black text-2xl text-green-600 mt-1">{activeCount}</p></div>
         <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Pendientes</p><p className="font-black text-2xl text-yellow-600 mt-1">{pendingCount}</p></div>
         <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Comisión generada</p><p className="font-black text-2xl text-brand-orange mt-1">€{totalEarnings.toLocaleString('es-ES')}</p></div>
-        <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Por pagar</p><p className="font-black text-2xl text-fuchsia-600 mt-1">€{totalPending.toLocaleString('es-ES')}</p></div>
+        <div className="card-white p-4"><p className="text-xs text-gray-400 font-semibold uppercase">Por pagar</p><p className="font-black text-2xl text-brand-secondary mt-1">€{totalPending.toLocaleString('es-ES')}</p></div>
       </div>
 
       {loading ? (
@@ -2587,7 +2587,7 @@ const AfiliadosSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
               <span className="font-semibold text-sm">{((Number(a.commission_rate) || 0) * 100).toFixed(1)}%</span>,
               <span className="text-sm text-gray-600">{a.total_referrals || 0}</span>,
               <span className="font-bold text-sm">€{Number(a.total_earnings) || 0}</span>,
-              <span className="text-sm text-fuchsia-600 font-semibold">€{Number(a.pending_payout) || 0}</span>,
+              <span className="text-sm text-brand-secondary font-semibold">€{Number(a.pending_payout) || 0}</span>,
               <Badge variant={a.status === 'active' ? 'green' : a.status === 'pending' ? 'orange' : 'red'}>
                 {a.status === 'active' ? 'Activo' : a.status === 'pending' ? 'Pendiente' : 'Suspendido'}
               </Badge>,
@@ -3305,7 +3305,7 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
             <h3 className="font-bold text-gray-900 flex items-center gap-2">🖼️ Slider Banner Principal</h3>
             <p className="text-xs text-gray-400 mt-0.5">Imagenes del slider hero. Recomendado: 1400x500px. Se muestran en la portada.</p>
           </div>
-          <span className="text-xs bg-pink-50 text-pink-600 px-2 py-1 rounded-full font-bold">{slides.length} slides</span>
+          <span className="text-xs bg-pink-50 text-brand px-2 py-1 rounded-full font-bold">{slides.length} slides</span>
         </div>
 
         {/* Current slides */}
@@ -3362,7 +3362,7 @@ const HeroBannerEditor: React.FC<{ addToast: Function }> = ({ addToast }) => {
           {addMode === 'upload' ? (
             <div className="space-y-2">
               <button onClick={() => imgFileRef.current?.click()}
-                className="w-full border border-gray-200 hover:border-brand-orange rounded-lg p-3 text-center transition-all text-xs text-gray-600 hover:text-pink-600">
+                className="w-full border border-gray-200 hover:border-brand-orange rounded-lg p-3 text-center transition-all text-xs text-gray-600 hover:text-brand">
                 📁 Click para seleccionar imagen (jpg, png, webp)
               </button>
               <input ref={imgFileRef} type="file" accept="image/*" className="hidden" onChange={handleImgFile} />
@@ -3621,7 +3621,7 @@ const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           </div>
           {/* Upload from file */}
           <button onClick={() => logoFileRef.current?.click()}
-            className="w-full border-2 border-dashed border-pink-300 hover:border-pink-500 rounded-xl py-3 text-sm font-semibold text-pink-500 hover:text-pink-700 hover:bg-pink-50 transition-all mb-2">
+            className="w-full border-2 border-dashed border-pink-300 hover:border-brand rounded-xl py-3 text-sm font-semibold text-brand hover:text-pink-700 hover:bg-pink-50 transition-all mb-2">
             📁 Subir logo desde archivo (PNG, SVG, JPG)
           </button>
           <input ref={logoFileRef} type="file" accept="image/*" className="hidden" onChange={handleLogoFile} />
@@ -3855,7 +3855,7 @@ const RolesSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
               <p className="text-gray-400 text-xs mt-1">Con WhatsApp</p>
             </div>
             <div className="card-white p-4 text-center">
-              <p className="text-3xl font-black text-fuchsia-600">{profiles.filter(p => p.email).length}</p>
+              <p className="text-3xl font-black text-brand-secondary">{profiles.filter(p => p.email).length}</p>
               <p className="text-gray-400 text-xs mt-1">Con email</p>
             </div>
           </div>
@@ -4133,7 +4133,7 @@ const SeguridadSection: React.FC = () => {
             {[
               { label: 'Usuarios registrados',   val: stats.users.toLocaleString(),       icon: <Users className="w-5 h-5 text-blue-500" />,    color: 'bg-blue-50' },
               { label: 'Nuevos esta semana',      val: `+${stats.newThisWeek}`,            icon: <TrendingUp className="w-5 h-5 text-green-500" />, color: 'bg-green-50' },
-              { label: 'Administradores activos', val: String(stats.admins),               icon: <Shield className="w-5 h-5 text-pink-500" />, color: 'bg-pink-50' },
+              { label: 'Administradores activos', val: String(stats.admins),               icon: <Shield className="w-5 h-5 text-brand" />, color: 'bg-pink-50' },
               { label: 'Acciones pendientes',     val: String(stats.pendingActions),       icon: <AlertTriangle className="w-5 h-5 text-red-500" />, color: 'bg-red-50' },
             ].map(s => (
               <div key={s.label} className="card-white p-4 flex items-center gap-3">
@@ -5003,7 +5003,7 @@ const IntegracionesSection: React.FC<{ addToast: Function }> = ({ addToast }) =>
           <div>
             <h3 className="font-bold text-gray-900">Newsletter — Formulario GHL</h3>
             <p className="text-xs text-gray-500">
-              {cfg.subs !== undefined && <span className="font-bold text-pink-600">{cfg.subs} suscriptores</span>}
+              {cfg.subs !== undefined && <span className="font-bold text-brand">{cfg.subs} suscriptores</span>}
             </p>
           </div>
         </div>
@@ -5220,7 +5220,7 @@ const ReclamacionesSection: React.FC<{ addToast: Function; onCountChange?: (n: n
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-black text-2xl text-gray-900 flex items-center gap-2">
-            <Flag className="w-6 h-6 text-pink-500" /> Reclamaciones de perfil
+            <Flag className="w-6 h-6 text-brand" /> Reclamaciones de perfil
           </h2>
           <p className="text-gray-400 text-sm mt-1">Usuarios que solicitan ser reconocidos como dueños de un perfil</p>
         </div>
@@ -5259,7 +5259,7 @@ const ReclamacionesSection: React.FC<{ addToast: Function; onCountChange?: (n: n
                     </div>
                     <p className="text-sm text-gray-600 mt-0.5">
                       Solicita el {c.target_table === 'artists' ? 'artista' : c.target_table === 'events' ? 'evento' : c.target_table === 'venues' ? 'local' : 'servicio'}:
-                      {' '}<a href={`${TABLE_ROUTES[c.target_table]}/${c.target_id}`} target="_blank" rel="noreferrer" className="text-fuchsia-600 font-bold hover:underline inline-flex items-center gap-1">
+                      {' '}<a href={`${TABLE_ROUTES[c.target_table]}/${c.target_id}`} target="_blank" rel="noreferrer" className="text-brand-secondary font-bold hover:underline inline-flex items-center gap-1">
                         {c.target_name || c.target_id.slice(0, 10)}… <ExternalLink className="w-3 h-3" />
                       </a>
                     </p>
@@ -5562,7 +5562,7 @@ const PlanificadorSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
           <div className="flex gap-2 flex-wrap">
             {PLATFORMS_CFG.map(p => (
               <button key={p.id} onClick={() => togglePlatform(p.id)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${platforms.includes(p.id) ? 'bg-fuchsia-600 text-white border-fuchsia-600' : 'bg-white text-gray-600 border-gray-200 hover:border-fuchsia-400'}`}>
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${platforms.includes(p.id) ? 'bg-brand-secondary text-white border-brand-secondary' : 'bg-white text-gray-600 border-gray-200 hover:border-fuchsia-400'}`}>
                 {p.emoji} {p.label}
               </button>
             ))}
@@ -5576,7 +5576,7 @@ const PlanificadorSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
             <div className="flex gap-2">
               {POST_TYPES.map(t => (
                 <button key={t.id} onClick={() => setPostType(t.id as any)}
-                  className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-all ${postType === t.id ? 'bg-fuchsia-600 text-white border-fuchsia-600' : 'bg-white text-gray-600 border-gray-200 hover:border-fuchsia-400'}`}>
+                  className={`flex-1 py-2 rounded-xl text-sm font-semibold border transition-all ${postType === t.id ? 'bg-brand-secondary text-white border-brand-secondary' : 'bg-white text-gray-600 border-gray-200 hover:border-fuchsia-400'}`}>
                   {t.label}
                 </button>
               ))}
@@ -5661,7 +5661,7 @@ const HomeFeaturedSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="font-black text-2xl text-gray-900 flex items-center gap-2"><Tv className="w-6 h-6 text-pink-500" /> Home · BailaNow TV</h2>
+        <h2 className="font-black text-2xl text-gray-900 flex items-center gap-2"><Tv className="w-6 h-6 text-brand" /> Home · BailaNow TV</h2>
         <p className="text-gray-400 text-sm mt-1">Edita las <b>4 tarjetas de BailaNow TV</b> del home (título, subtítulo, imagen, etiqueta y enlace). Los bloques de <b>Eventos</b> y <b>Artistas</b> del home se llenan solos con lo que tengas en sus secciones del admin.</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

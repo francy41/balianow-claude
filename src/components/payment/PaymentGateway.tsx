@@ -71,14 +71,14 @@ const SuccessScreen: React.FC<{
         <span className="text-xs text-gray-400 flex items-center gap-1">
           <ShieldCheck className="w-3 h-3 text-pink-400" /> Comisión BailaNow (15%)
         </span>
-        <span className="text-sm font-black text-pink-500">
+        <span className="text-sm font-black text-brand">
           {fmtEur(breakdown.reduce((s, b) => s + b.commission, 0))}
         </span>
       </div>
     </div>
 
     <button onClick={onClose}
-      className="w-full bg-brand-orange text-white font-black rounded-2xl py-4 text-sm hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2">
+      className="w-full bg-brand-orange text-white font-black rounded-2xl py-4 text-sm hover:from-brand hover:to-fuchsia-700 transition-all shadow-lg shadow-brand/25 flex items-center justify-center gap-2">
       Ver mis pedidos <ArrowRight className="w-4 h-4" />
     </button>
     <p className="text-[10px] text-gray-400 mt-3">Recibirás un email de confirmación en breve</p>
@@ -204,7 +204,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
             <div className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-5 py-4 flex items-center justify-between rounded-t-3xl sm:rounded-t-2xl">
               <div>
                 <h2 className="font-black text-xl text-gray-900 flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-pink-500" /> Checkout seguro
+                  <Lock className="w-4 h-4 text-brand" /> Checkout seguro
                 </h2>
                 <p className="text-xs text-gray-400 mt-0.5">
                   {items.length} servicio{items.length > 1 ? 's' : ''} · BailaNow Promociónate
@@ -225,7 +225,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
                   </div>
                   <div className="bg-white rounded-xl px-3 py-2 text-right shadow-sm border border-pink-100">
                     <p className="text-[9px] text-gray-400 uppercase tracking-wide font-bold">Comisión BailaNow</p>
-                    <p className="text-sm font-black text-pink-500">{fmtEur(commission)}</p>
+                    <p className="text-sm font-black text-brand">{fmtEur(commission)}</p>
                     <p className="text-[9px] text-gray-400">15% incluida</p>
                   </div>
                 </div>
@@ -246,7 +246,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
 
                 {/* Breakdown toggle */}
                 <button onClick={() => setShowBreakdown(v => !v)}
-                  className="flex items-center gap-1.5 text-[11px] text-fuchsia-600 font-bold hover:text-fuchsia-700 transition-colors">
+                  className="flex items-center gap-1.5 text-[11px] text-brand-secondary font-bold hover:text-fuchsia-700 transition-colors">
                   {showBreakdown ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                   {showBreakdown ? 'Ocultar' : 'Ver'} distribución a vendedores
                 </button>
@@ -300,7 +300,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
                       emoji: '👛',
                       label: 'Wallet',
                       sub: fmtEur(walletBalance),
-                      gradient: 'bg-pink-500',
+                      gradient: 'bg-brand',
                     },
                   ].map(pm => (
                     <button
@@ -320,7 +320,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
                       <p className="text-xs font-black text-gray-900 relative z-10">{pm.label}</p>
                       <p className="text-[9px] text-gray-400 relative z-10">{pm.sub}</p>
                       {method === pm.id && (
-                        <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-pink-500 rounded-full flex items-center justify-center">
+                        <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-brand rounded-full flex items-center justify-center">
                           <CheckCircle className="w-3 h-3 text-white" />
                         </div>
                       )}
@@ -336,10 +336,10 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
                   <div className="space-y-3">
                     {loadingIntent && (
                       <div className="bg-gray-50 border border-gray-200 rounded-2xl p-3 flex items-center gap-3">
-                        <div className="w-5 h-5 border-2 border-pink-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                        <div className="w-5 h-5 border-2 border-brand border-t-transparent rounded-full animate-spin flex-shrink-0" />
                         <p className="text-xs text-gray-500 flex-1">Verificando pasarela…</p>
                         <button onClick={() => { setIntentError('Demo'); setLoadingIntent(false); }}
-                          className="text-[10px] text-pink-600 font-bold underline">
+                          className="text-[10px] text-brand font-bold underline">
                           Saltar
                         </button>
                       </div>
@@ -357,7 +357,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
                           </div>
                         </div>
                         <button onClick={() => handleSuccess('Stripe Demo')}
-                          className="w-full bg-gradient-to-r from-pink-500 via-fuchsia-600 to-rose-600 text-white font-black rounded-2xl py-4 text-sm flex items-center justify-center gap-2 shadow-2xl shadow-pink-500/30 active:scale-95 transition-all">
+                          className="w-full bg-gradient-to-r from-brand via-brand-secondary to-rose-600 text-white font-black rounded-2xl py-4 text-sm flex items-center justify-center gap-2 shadow-2xl shadow-brand/30 active:scale-95 transition-all">
                           <CreditCard className="w-5 h-5" />
                           <span>Pagar {fmtEur(subtotal)} ahora</span>
                           <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full ml-1">DEMO</span>
@@ -426,7 +426,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
                           </div>
                         </div>
                         <button onClick={handleWalletPay} disabled={walletLoading}
-                          className="w-full bg-brand-orange text-white font-black rounded-2xl py-4 text-sm hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2 disabled:opacity-60">
+                          className="w-full bg-brand-orange text-white font-black rounded-2xl py-4 text-sm hover:from-brand hover:to-fuchsia-700 transition-all shadow-lg shadow-brand/25 flex items-center justify-center gap-2 disabled:opacity-60">
                           {walletLoading
                             ? <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Procesando...</>
                             : <><Wallet className="w-4 h-4" /> Pagar {fmtEur(subtotal)} con Wallet</>
@@ -440,7 +440,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
                           Te faltan <span className="font-black">{fmtEur(subtotal - walletBalance)}</span> para completar el pago
                         </p>
                         <button onClick={() => setMethod('card')}
-                          className="text-xs font-bold text-pink-500 border border-pink-200 px-4 py-2 rounded-xl hover:bg-pink-50 transition-all">
+                          className="text-xs font-bold text-brand border border-pink-200 px-4 py-2 rounded-xl hover:bg-pink-50 transition-all">
                           Pagar con tarjeta →
                         </button>
                       </div>
@@ -454,7 +454,7 @@ const PaymentGateway: React.FC<{ open: boolean; onClose: () => void }> = ({ open
                 {[
                   { icon: <ShieldCheck className="w-3 h-3 text-green-500" />, label: 'SSL 256-bit' },
                   { icon: <Lock className="w-3 h-3 text-blue-500" />, label: 'Escrow seguro' },
-                  { icon: <ShieldCheck className="w-3 h-3 text-pink-500" />, label: 'GDPR' },
+                  { icon: <ShieldCheck className="w-3 h-3 text-brand" />, label: 'GDPR' },
                 ].map(b => (
                   <div key={b.label} className="flex items-center gap-1 text-[10px] text-gray-400">
                     {b.icon} {b.label}

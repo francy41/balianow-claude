@@ -104,7 +104,7 @@ const AffiliatePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       {/* Header */}
-      <div className="bg-gradient-to-r from-rose-600 via-fuchsia-600 to-pink-500 px-4 pt-6 pb-10">
+      <div className="bg-gradient-to-r from-rose-600 via-brand-secondary to-brand px-4 pt-6 pb-10">
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center gap-2 mb-1">
             <span className="text-2xl">🤝</span>
@@ -122,7 +122,7 @@ const AffiliatePage: React.FC = () => {
               <p className="text-white font-bold text-sm mb-1">Aún no eres afiliado</p>
               <p className="text-white/60 text-xs mb-4">Únete al programa y recibe tu link único para empezar a ganar comisiones.</p>
               <button onClick={joinProgram} disabled={joining}
-                className="bg-white text-pink-600 font-bold text-sm px-6 py-2.5 rounded-xl hover:bg-gray-100 transition-all inline-flex items-center gap-2 disabled:opacity-60">
+                className="bg-white text-brand font-bold text-sm px-6 py-2.5 rounded-xl hover:bg-gray-100 transition-all inline-flex items-center gap-2 disabled:opacity-60">
                 {joining ? <Loader2 className="w-4 h-4 animate-spin" /> : <Share2 className="w-4 h-4" />}
                 {joining ? 'Enviando…' : 'Unirme al programa'}
               </button>
@@ -141,7 +141,7 @@ const AffiliatePage: React.FC = () => {
               </div>
               <button onClick={copyLink}
                 className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all ${
-                  copied ? 'bg-emerald-500 text-white' : 'bg-white text-pink-600 hover:bg-gray-100'
+                  copied ? 'bg-emerald-500 text-white' : 'bg-white text-brand hover:bg-gray-100'
                 }`}>
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 {copied ? 'Copiado' : 'Copiar'}
@@ -176,12 +176,12 @@ const AffiliatePage: React.FC = () => {
             <p className="text-2xl font-black text-gray-900">€{stats.pendingPayout}</p>
           </div>
           <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
-            <Users className="w-5 h-5 text-fuchsia-500 mb-1" />
+            <Users className="w-5 h-5 text-brand-secondary mb-1" />
             <p className="text-[10px] text-gray-400 uppercase font-bold">Referidos</p>
             <p className="text-2xl font-black text-gray-900">{stats.totalReferrals}</p>
           </div>
           <div className="bg-white rounded-2xl p-4 shadow-lg border border-gray-100">
-            <TrendingUp className="w-5 h-5 text-pink-500 mb-1" />
+            <TrendingUp className="w-5 h-5 text-brand mb-1" />
             <p className="text-[10px] text-gray-400 uppercase font-bold">Conversion</p>
             <p className="text-2xl font-black text-gray-900">{stats.conversionRate}%</p>
           </div>
@@ -199,7 +199,7 @@ const AffiliatePage: React.FC = () => {
           ].map(t => (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all ${
-                tab === t.id ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                tab === t.id ? 'bg-white text-brand shadow-sm' : 'text-gray-500 hover:text-gray-700'
               }`}>
               {t.icon} {t.label}
             </button>
@@ -222,10 +222,10 @@ const AffiliatePage: React.FC = () => {
                   return (
                     <div key={tier.name}
                       className={`rounded-xl p-3 text-center transition-all ${
-                        isActive ? 'bg-pink-50 border-2 border-pink-500 shadow-lg shadow-pink-500/10' : 'bg-gray-50 border border-gray-200'
+                        isActive ? 'bg-pink-50 border-2 border-brand shadow-lg shadow-brand/10' : 'bg-gray-50 border border-gray-200'
                       }`}>
                       <div className="text-2xl mb-1">{tier.icon}</div>
-                      <p className={`text-xs font-black ${isActive ? 'text-pink-600' : 'text-gray-500'}`}>{tier.name}</p>
+                      <p className={`text-xs font-black ${isActive ? 'text-brand' : 'text-gray-500'}`}>{tier.name}</p>
                       <p className="text-[10px] text-gray-400 mt-0.5">{tier.rate}% comision</p>
                       <p className="text-[9px] text-gray-300 mt-0.5">{tier.min}+ referidos</p>
                     </div>
@@ -246,7 +246,7 @@ const AffiliatePage: React.FC = () => {
                   { step: '3', icon: <DollarSign className="w-5 h-5" />, title: 'Tu ganas', desc: `Recibes ${stats.commissionRate}% de comision automaticamente` },
                 ].map(s => (
                   <div key={s.step} className="text-center p-4 rounded-xl bg-pink-50/50">
-                    <div className="w-10 h-10 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center mx-auto mb-2">
+                    <div className="w-10 h-10 rounded-full bg-pink-100 text-brand flex items-center justify-center mx-auto mb-2">
                       {s.icon}
                     </div>
                     <p className="font-bold text-sm text-gray-900">{s.title}</p>
@@ -266,7 +266,7 @@ const AffiliatePage: React.FC = () => {
                 {referrals.slice(0, 4).map(r => (
                   <div key={r.id} className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-gray-50 transition-colors">
                     <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center">
-                      <Users className="w-3.5 h-3.5 text-pink-600" />
+                      <Users className="w-3.5 h-3.5 text-brand" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-900">{r.referred_name || 'Referido'}</p>
@@ -301,7 +301,7 @@ const AffiliatePage: React.FC = () => {
               {referrals.map(r => (
                 <div key={r.id} className="flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors">
                   <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
-                    <Users className="w-4 h-4 text-pink-600" />
+                    <Users className="w-4 h-4 text-brand" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm text-gray-900">{r.referred_name || 'Referido'}</p>
@@ -328,7 +328,7 @@ const AffiliatePage: React.FC = () => {
           <div className="space-y-4">
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
               <h3 className="font-bold text-sm text-gray-900 mb-4 flex items-center gap-2">
-                <Gift className="w-4 h-4 text-pink-500" /> Material Promocional
+                <Gift className="w-4 h-4 text-brand" /> Material Promocional
               </h3>
               <div className="grid grid-cols-2 gap-3">
                 {PROMO_MATERIALS.map(m => (
@@ -338,7 +338,7 @@ const AffiliatePage: React.FC = () => {
                     </div>
                     <p className="font-semibold text-xs text-gray-900">{m.name}</p>
                     <p className="text-[10px] text-gray-400 mt-0.5">{m.size} · {m.type}</p>
-                    <button className="mt-2 w-full bg-pink-50 hover:bg-pink-100 text-pink-600 text-xs font-bold py-1.5 rounded-lg transition-colors">
+                    <button className="mt-2 w-full bg-pink-50 hover:bg-pink-100 text-brand text-xs font-bold py-1.5 rounded-lg transition-colors">
                       Descargar
                     </button>
                   </div>
@@ -348,13 +348,13 @@ const AffiliatePage: React.FC = () => {
 
             {/* QR Code */}
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 text-center">
-              <QrCode className="w-8 h-8 text-pink-500 mx-auto mb-2" />
+              <QrCode className="w-8 h-8 text-brand mx-auto mb-2" />
               <h3 className="font-bold text-sm text-gray-900 mb-1">Tu Codigo QR</h3>
               <p className="text-gray-400 text-xs mb-4">Imprime o comparte este QR con tu link de afiliado</p>
               <div className="w-40 h-40 bg-gray-100 rounded-xl mx-auto flex items-center justify-center border-2 border-dashed border-gray-300">
                 <QrCode className="w-20 h-20 text-gray-400" />
               </div>
-              <button className="mt-4 bg-pink-500 hover:bg-pink-600 text-white text-xs font-bold px-6 py-2 rounded-full transition-all">
+              <button className="mt-4 bg-brand hover:bg-brand-orange-dark text-white text-xs font-bold px-6 py-2 rounded-full transition-all">
                 Descargar QR
               </button>
             </div>
@@ -372,7 +372,7 @@ const AffiliatePage: React.FC = () => {
               </div>
               <p className="text-gray-400 text-xs mb-4">Minimo de retiro: 50. Pago via transferencia bancaria o PayPal.</p>
               <div className="grid grid-cols-2 gap-3">
-                <button className="bg-pink-500 hover:bg-pink-600 text-white font-bold text-sm py-3 rounded-xl transition-all flex items-center justify-center gap-2">
+                <button className="bg-brand hover:bg-brand-orange-dark text-white font-bold text-sm py-3 rounded-xl transition-all flex items-center justify-center gap-2">
                   <Wallet className="w-4 h-4" /> Solicitar Pago
                 </button>
                 <button className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-sm py-3 rounded-xl transition-all flex items-center justify-center gap-2">

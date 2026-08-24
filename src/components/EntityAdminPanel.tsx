@@ -54,7 +54,7 @@ const ImageInput: React.FC<{
           ? <img src={value} alt={label} className="w-20 h-20 rounded-xl object-cover border border-gray-200 flex-shrink-0" />
           : <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0"><Upload className="w-5 h-5" /></div>}
         <div className="flex-1 space-y-2">
-          <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-pink-50 text-fuchsia-600 text-sm font-semibold hover:bg-pink-100">
+          <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-pink-50 text-brand-secondary text-sm font-semibold hover:bg-pink-100">
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
             {uploading ? 'Subiendo…' : 'Subir imagen'}
             <input type="file" accept="image/*" hidden onChange={e => handleFile(e.target.files?.[0])} />
@@ -276,7 +276,7 @@ const EntityAdminPanel: React.FC<Props> = ({ kind, id, onSaved, ownerUserId }) =
           <button
             type="button"
             onClick={() => setVal(f.key, !v)}
-            className={`relative w-12 h-6 rounded-full transition-colors mt-1 ${v ? 'bg-fuchsia-600' : 'bg-gray-200'}`}
+            className={`relative w-12 h-6 rounded-full transition-colors mt-1 ${v ? 'bg-brand-secondary' : 'bg-gray-200'}`}
           >
             <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${v ? 'translate-x-7' : 'translate-x-1'}`} />
           </button>
@@ -309,7 +309,7 @@ const EntityAdminPanel: React.FC<Props> = ({ kind, id, onSaved, ownerUserId }) =
         onClick={openPanel}
         disabled={loading}
         title={`Editar ${label} (admin)`}
-        className="fixed z-[70] bottom-24 left-4 sm:bottom-8 sm:left-8 flex items-center gap-2 bg-brand-orange text-white font-black text-sm px-5 py-3.5 rounded-2xl shadow-2xl shadow-fuchsia-500/40 hover:scale-105 transition-all ring-2 ring-white/40"
+        className="fixed z-[70] bottom-24 left-4 sm:bottom-8 sm:left-8 flex items-center gap-2 bg-brand-orange text-white font-black text-sm px-5 py-3.5 rounded-2xl shadow-2xl shadow-brand-secondary/40 hover:scale-105 transition-all ring-2 ring-white/40"
       >
         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Settings2 className="w-5 h-5" />}
         Editar {label}
@@ -340,7 +340,7 @@ const EntityAdminPanel: React.FC<Props> = ({ kind, id, onSaved, ownerUserId }) =
                   <button
                     key={t.id}
                     onClick={() => setActiveTab(t.id)}
-                    className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-bold border-b-2 transition-all -mb-px ${activeTab === t.id ? 'border-fuchsia-600 text-fuchsia-700' : 'border-transparent text-gray-400 hover:text-gray-700'}`}>
+                    className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-bold border-b-2 transition-all -mb-px ${activeTab === t.id ? 'border-brand-secondary text-fuchsia-700' : 'border-transparent text-gray-400 hover:text-gray-700'}`}>
                     {t.icon}{t.label}
                   </button>
                 ))}

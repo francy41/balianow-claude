@@ -61,8 +61,8 @@ const RadioPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-28">
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-fuchsia-950 to-black p-6 sm:p-8 text-white">
-          <div className="absolute -top-10 -right-10 w-48 h-48 bg-pink-500/25 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-12 -left-12 w-52 h-52 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-10 -right-10 w-48 h-48 bg-brand/25 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-12 -left-12 w-52 h-52 bg-brand-secondary/20 rounded-full blur-3xl pointer-events-none" />
           <div className="relative">
             <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-pink-300">
               <RadioIcon className="w-3.5 h-3.5" /> Radio Online
@@ -87,7 +87,7 @@ const RadioPage: React.FC = () => {
               return (
                 <button key={s.id} onClick={() => toggle(s)}
                   className={`group text-left bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border transition-all ${
-                    isPlaying ? 'border-brand-orange shadow-lg shadow-pink-500/10' : 'border-gray-100 dark:border-gray-800 hover:border-pink-300'
+                    isPlaying ? 'border-brand-orange shadow-lg shadow-brand/10' : 'border-gray-100 dark:border-gray-800 hover:border-pink-300'
                   }`}>
                   <div className="relative aspect-square overflow-hidden bg-gray-100 dark:bg-gray-800">
                     <img src={s.img} alt={s.name} className="w-full h-full object-cover" loading="lazy" />
@@ -116,7 +116,7 @@ const RadioPage: React.FC = () => {
       <audio ref={audioRef} className="hidden" preload="none" />
 
       {playing && (
-        <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-pink-500/20 px-4 py-2 flex items-center gap-3 backdrop-blur-xl shadow-2xl">
+        <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-brand/20 px-4 py-2 flex items-center gap-3 backdrop-blur-xl shadow-2xl">
           <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-700">
             <img src={playing.img} alt="" className="w-full h-full object-cover" />
           </div>

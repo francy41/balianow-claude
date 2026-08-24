@@ -37,7 +37,7 @@ const PROFILES: Profile[] = [
     id: 'dj', category: 'creator',
     label: 'DJ Mambo King', desc: 'DJ · Madrid',
     icon: <Headphones className="w-4 h-4" />,
-    color: 'bg-pink-500 text-white',
+    color: 'bg-brand text-white',
     user: {
       id: 'a1', name: 'DJ Mambo King', email: 'dj@bachasalseros.com',
       avatar: 'https://ui-avatars.com/api/?name=DJ+Mambo&background=A855F7&color=fff',
@@ -63,7 +63,7 @@ const PROFILES: Profile[] = [
     id: 'band', category: 'creator',
     label: 'Orquesta Tropical', desc: 'Banda / Artista · Valencia',
     icon: <Music2 className="w-4 h-4" />,
-    color: 'bg-pink-500 text-white',
+    color: 'bg-brand text-white',
     user: {
       id: 'a3', name: 'Orquesta Tropical', email: 'orquesta@bachasalseros.com',
       avatar: 'https://ui-avatars.com/api/?name=Orquesta+T&background=F59E0B&color=fff',
@@ -139,7 +139,7 @@ const DevRoleSwitcher: React.FC = () => {
       {/* Dark Mode Toggle — visible to ALL users */}
       <button
         onClick={toggleDarkMode}
-        className="fixed bottom-24 lg:bottom-4 right-4 z-[60] w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 border-2 border-pink-500/30 hover:border-pink-500 hover:scale-110 active:scale-95"
+        className="fixed bottom-24 lg:bottom-4 right-4 z-[60] w-12 h-12 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 border-2 border-brand/30 hover:border-brand hover:scale-110 active:scale-95"
         style={{
           background: darkMode
             ? 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
@@ -149,7 +149,7 @@ const DevRoleSwitcher: React.FC = () => {
       >
         {darkMode
           ? <Sun className="w-5 h-5 text-yellow-400" />
-          : <Moon className="w-5 h-5 text-fuchsia-500" />
+          : <Moon className="w-5 h-5 text-brand-secondary" />
         }
       </button>
 
@@ -190,7 +190,7 @@ const DevRoleSwitcher: React.FC = () => {
                       key={p.id}
                       onClick={() => switchTo(p)}
                       className={`w-full flex items-center gap-2 p-2.5 rounded-xl text-left transition-all mb-0.5 ${
-                        isCurrent ? 'bg-pink-50 dark:bg-pink-900/30 border border-brand-orange' : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                        isCurrent ? 'bg-pink-50 dark:bg-brand-deep/30 border border-brand-orange' : 'hover:bg-gray-50 dark:hover:bg-gray-800'
                       }`}
                     >
                       <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${p.color}`}>

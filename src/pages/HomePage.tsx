@@ -134,7 +134,7 @@ const FeaturedSlider: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = (
           <div className="w-1 h-3 rounded-full bg-brand-orange" />
           <span className="text-[11px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">🔥 Lo más destacado</span>
         </div>
-        <button onClick={() => navigate('/destacados')} className="flex items-center gap-0.5 text-[10px] font-bold text-pink-500 hover:text-fuchsia-500 transition-colors">
+        <button onClick={() => navigate('/destacados')} className="flex items-center gap-0.5 text-[10px] font-bold text-brand hover:text-brand-secondary transition-colors">
           Ver todos <ChevronRight className="w-2.5 h-2.5" />
         </button>
       </div>
@@ -158,7 +158,7 @@ const FeaturedSlider: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = (
               >
                 <img src={sp.logo} alt={sp.name} className="w-full h-full object-cover" loading="lazy" />
               </div>
-              <p className="mt-1.5 text-xs font-bold text-gray-900 dark:text-white leading-tight line-clamp-1 group-hover:text-pink-500 transition-colors">
+              <p className="mt-1.5 text-xs font-bold text-gray-900 dark:text-white leading-tight line-clamp-1 group-hover:text-brand transition-colors">
                 {sp.name}
               </p>
               <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-tight line-clamp-1">
@@ -201,7 +201,7 @@ const SponsorsFooterStrip: React.FC<{ navigate: ReturnType<typeof useNavigate> }
                 style={{ boxShadow: `0 2px 10px ${sp.color}35` }}>
                 <img src={sp.logo} alt={sp.name} className="w-full h-full object-cover" loading="lazy" />
               </div>
-              <span className="text-[9px] font-semibold text-gray-500 text-center leading-tight max-w-[60px] line-clamp-1 group-hover:text-pink-500 transition-colors">
+              <span className="text-[9px] font-semibold text-gray-500 text-center leading-tight max-w-[60px] line-clamp-1 group-hover:text-brand transition-colors">
                 {sp.name}
               </span>
             </button>
@@ -247,7 +247,7 @@ const CATEGORY_CARDS = [
     name: 'Conciertos y Música en Vivo',
     img: 'https://picsum.photos/seed/concert2024/800/500',
     to: '/eventos?cat=conciertos',
-    btnColor: 'bg-pink-600',
+    btnColor: 'bg-brand',
   },
   {
     name: 'Festivales y Congresos',
@@ -259,7 +259,7 @@ const CATEGORY_CARDS = [
     name: 'Noches de club',
     img: 'https://picsum.photos/seed/nightclub2024/800/500',
     to: '/eventos?cat=club',
-    btnColor: 'bg-pink-500',
+    btnColor: 'bg-brand',
   },
 ];
 
@@ -273,7 +273,7 @@ const RADIO_STATIONS = [
 ];
 
 const PLAYLISTS = [
-  { id: 'p1', name: 'Bachata Sensual', tracks: 24, duration: '1h 32m', img: 'https://picsum.photos/seed/playlist-bachata/120/120', color: 'bg-pink-500' },
+  { id: 'p1', name: 'Bachata Sensual', tracks: 24, duration: '1h 32m', img: 'https://picsum.photos/seed/playlist-bachata/120/120', color: 'bg-brand' },
   { id: 'p2', name: 'Salsa Pa Bailar', tracks: 30, duration: '2h 05m', img: 'https://picsum.photos/seed/playlist-salsa/120/120', color: 'bg-orange-500' },
   { id: 'p3', name: 'Latin Club Hits', tracks: 18, duration: '1h 10m', img: 'https://picsum.photos/seed/playlist-club/120/120', color: 'bg-purple-500' },
   { id: 'p4', name: 'Kizomba Chill', tracks: 20, duration: '1h 25m', img: 'https://picsum.photos/seed/playlist-kizomba/120/120', color: 'bg-indigo-500' },
@@ -361,7 +361,7 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
       <div className="relative">
         {/* Search Container */}
         <div className="relative">
-          <div className="bg-gradient-to-r from-pink-500/20 via-fuchsia-500/10 to-pink-500/20 rounded-2xl sm:rounded-3xl p-[2px] border border-pink-500/30 overflow-hidden">
+          <div className="bg-gradient-to-r from-brand/20 via-brand-secondary/10 to-brand/20 rounded-2xl sm:rounded-3xl p-[2px] border border-brand/30 overflow-hidden">
             <div className="bg-white dark:bg-gray-900 rounded-2xl sm:rounded-3xl px-3 sm:px-5 py-3 flex items-center gap-2">
               {/* Input */}
               <input
@@ -391,13 +391,13 @@ const UltraModernSearchSection: React.FC<{ navigate: any; categories: any[] }> =
 
           {/* Autocomplete Suggestions */}
           {showSuggestions && searchQuery.trim() !== '' && (
-            <div className="absolute top-full left-0 right-0 mt-3 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-pink-500/20 z-50 max-h-[500px] overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-3 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-brand/20 z-50 max-h-[500px] overflow-y-auto">
               {/* Search Results Option */}
               <button
                 onClick={() => handleSearch()}
                 className={`w-full px-6 py-3 text-left flex items-center gap-3 transition-all ${
                   selectedIndex === 0
-                    ? 'bg-pink-500/10 border-l-4 border-pink-500'
+                    ? 'bg-brand/10 border-l-4 border-brand'
                     : 'hover:bg-pink-50 border-l-4 border-transparent'
                 }`}
               >
@@ -503,7 +503,7 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
           </div>
           <button
             onClick={() => navigate('/comunidad')}
-            className="px-4 py-2 bg-brand-orange hover:bg-pink-600 text-white rounded-full font-bold text-sm hover:shadow-lg transition-all hover:scale-105"
+            className="px-4 py-2 bg-brand-orange hover:bg-brand text-white rounded-full font-bold text-sm hover:shadow-lg transition-all hover:scale-105"
           >
             Ver más →
           </button>
@@ -576,12 +576,12 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
 // Tintes rotativos para los chips de categoría — dan variedad tipo escaparate
 // (Glovo/Fever) manteniendo la identidad BailaNow. Clases literales para el JIT.
 const CHIP_TINTS = [
-  'from-pink-500/20 to-rose-500/10 ring-pink-400/40 group-hover:shadow-pink-500/25',
-  'from-fuchsia-500/20 to-pink-500/10 ring-fuchsia-400/40 group-hover:shadow-fuchsia-500/25',
-  'from-rose-500/20 to-pink-500/10 ring-rose-400/40 group-hover:shadow-rose-500/25',
-  'from-pink-600/20 to-fuchsia-600/10 ring-pink-500/40 group-hover:shadow-pink-600/25',
-  'from-fuchsia-600/20 to-rose-600/10 ring-fuchsia-500/40 group-hover:shadow-fuchsia-600/25',
-  'from-rose-600/20 to-pink-600/10 ring-rose-500/40 group-hover:shadow-rose-600/25',
+  'from-brand/20 to-rose-500/10 ring-pink-400/40 group-hover:shadow-brand/25',
+  'from-brand-secondary/20 to-brand/10 ring-fuchsia-400/40 group-hover:shadow-brand-secondary/25',
+  'from-rose-500/20 to-brand/10 ring-rose-400/40 group-hover:shadow-rose-500/25',
+  'from-brand/20 to-brand-secondary/10 ring-brand/40 group-hover:shadow-brand/25',
+  'from-brand-secondary/20 to-rose-600/10 ring-brand-secondary/40 group-hover:shadow-brand-secondary/25',
+  'from-rose-600/20 to-brand/10 ring-rose-500/40 group-hover:shadow-rose-600/25',
 ];
 
 // Un pin distinto (color + alarma parpadeante) por categoría, para el mapa de "Planes de baile"
@@ -592,7 +592,7 @@ const discoverPin = (ringClass: string, gradClass: string) => L.divIcon({
   iconSize: [16, 16], iconAnchor: [8, 8],
 });
 const DISCOVER_PIN_ICON: Record<'plan' | 'venue' | 'evento' | 'vivo', L.DivIcon> = {
-  plan:   discoverPin('bg-pink-300', 'from-pink-500 to-fuchsia-600'),
+  plan:   discoverPin('bg-pink-300', 'from-brand to-brand-secondary'),
   venue:  discoverPin('bg-rose-300', 'from-rose-500 to-pink-700'),
   evento: discoverPin('bg-rose-300', 'from-rose-500 to-fuchsia-700'),
   vivo:   discoverPin('bg-red-300', 'from-red-500 to-rose-700'),
@@ -626,20 +626,20 @@ const DISCOVER_TAB_ROUTE: Record<DiscoverKind | 'todos', string> = {
 };
 
 const DISCOVER_BADGE: Record<DiscoverKind, { label: string; className: string; cta: string }> = {
-  plan:   { label: 'PLAN',          className: 'bg-pink-600',    cta: 'border-pink-500 text-pink-600' },
+  plan:   { label: 'PLAN',          className: 'bg-brand',    cta: 'border-brand text-brand' },
   venue:  { label: 'ABIERTO AHORA', className: 'bg-rose-600',    cta: 'border-rose-500 text-rose-600' },
-  local:  { label: 'LOCAL',         className: 'bg-fuchsia-600', cta: 'border-fuchsia-500 text-fuchsia-600' },
-  pareja: { label: 'PAREJA',        className: 'bg-fuchsia-600', cta: 'border-fuchsia-500 text-fuchsia-600' },
+  local:  { label: 'LOCAL',         className: 'bg-brand-secondary', cta: 'border-brand-secondary text-brand-secondary' },
+  pareja: { label: 'PAREJA',        className: 'bg-brand-secondary', cta: 'border-brand-secondary text-brand-secondary' },
   evento: { label: 'EVENTO',        className: 'bg-rose-600',    cta: 'border-rose-500 text-rose-600' },
   vivo:   { label: 'EN VIVO',       className: 'bg-red-600',     cta: 'bg-gradient-to-r from-red-600 to-rose-700 text-white border-transparent' },
 };
 
 // Punto de alarma parpadeante por categoría en las pestañas — mismos colores que el mapa y las tarjetas.
 const DISCOVER_TAB_DOT: Partial<Record<DiscoverKind | 'todos', { ring: string; grad: string }>> = {
-  plan:   { ring: 'bg-pink-400',    grad: 'from-pink-500 to-fuchsia-600' },
+  plan:   { ring: 'bg-pink-400',    grad: 'from-brand to-brand-secondary' },
   venue:  { ring: 'bg-rose-400',    grad: 'from-rose-500 to-pink-700' },
-  local:  { ring: 'bg-fuchsia-400', grad: 'from-fuchsia-500 to-pink-600' },
-  pareja: { ring: 'bg-fuchsia-400', grad: 'from-fuchsia-500 to-pink-700' },
+  local:  { ring: 'bg-fuchsia-400', grad: 'from-brand-secondary to-brand' },
+  pareja: { ring: 'bg-fuchsia-400', grad: 'from-brand-secondary to-pink-700' },
   evento: { ring: 'bg-rose-400',    grad: 'from-rose-500 to-fuchsia-700' },
   vivo:   { ring: 'bg-red-400',     grad: 'from-red-500 to-rose-700' },
 };
@@ -886,7 +886,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         {/* Mapa real de fondo — Planes/Abiertos ahora/Eventos/En directo a la vez, cada uno con su color y alarma */}
         <div className="absolute inset-0">
           {pins.length > 0 ? (
-            <MapErrorBoundary fallback={<div className="absolute inset-0 bg-gradient-to-br from-[#EC4899] via-[#BE185D] to-[#831843]" />}>
+            <MapErrorBoundary fallback={<div className="absolute inset-0 bg-gradient-to-br from-[#EC4899] via-[#BE185D] to-brand-deep" />}>
               <MapContainer center={mapCenter} zoom={pins.length > 1 ? 6 : 12} style={{ width: '100%', height: '100%' }}
                 attributionControl={false} zoomControl={false} scrollWheelZoom={false}>
                 <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
@@ -898,12 +898,12 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
               </MapContainer>
             </MapErrorBoundary>
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-[#EC4899] via-[#BE185D] to-[#831843]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#EC4899] via-[#BE185D] to-brand-deep" />
           )}
         </div>
         {/* Degradados rosa oscuro para que el texto siempre se lea sobre el mapa */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#831843] via-[#831843]/70 to-[#831843]/15 pointer-events-none" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#831843]/85 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-deep via-brand-deep/70 to-brand-deep/15 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-deep/85 via-transparent to-transparent pointer-events-none" />
 
         <div className="relative p-2.5 sm:p-5 flex items-start justify-between gap-2 sm:gap-3 flex-wrap sm:flex-nowrap min-h-[80px] sm:min-h-[240px]">
           <div className="min-w-0 pointer-events-none">
@@ -937,18 +937,18 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
           {/* Actividad ahora (real: abiertos + directos + planes de hoy) — no es un sistema de alertas inventado.
               En móvil: pastilla compacta clicable de una línea. En escritorio: tarjeta completa. */}
           <button onClick={() => navigate(DISCOVER_TAB_ROUTE[tab])}
-            className="flex-shrink-0 flex sm:hidden items-center gap-1.5 bg-gradient-to-br from-pink-600 to-fuchsia-800 rounded-full pl-1.5 pr-2.5 py-1 shadow-lg shadow-pink-950/50">
+            className="flex-shrink-0 flex sm:hidden items-center gap-1.5 bg-gradient-to-br from-brand to-fuchsia-800 rounded-full pl-1.5 pr-2.5 py-1 shadow-lg shadow-pink-950/50">
             <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
               <RouteIcon className="w-2.5 h-2.5 text-white" />
             </span>
             <span className="text-white text-[10px] font-extrabold whitespace-nowrap">{activityNow} activos</span>
           </button>
-          <div className="hidden sm:block flex-shrink-0 w-[230px] bg-gradient-to-br from-pink-600 to-fuchsia-800 rounded-2xl p-3 shadow-xl shadow-pink-950/50">
+          <div className="hidden sm:block flex-shrink-0 w-[230px] bg-gradient-to-br from-brand to-fuchsia-800 rounded-2xl p-3 shadow-xl shadow-pink-950/50">
             <div className="flex items-center gap-2.5">
               <span className="relative w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
                 <RouteIcon className="w-4 h-4 text-white" />
                 {activityNow > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-white text-pink-600 text-[10px] font-black flex items-center justify-center">{activityNow}</span>
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-white text-brand text-[10px] font-black flex items-center justify-center">{activityNow}</span>
                 )}
               </span>
               <div className="min-w-0">
@@ -966,7 +966,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         {/* Leyenda del mapa — qué representa cada color de pin (Planes/Abiertos/Eventos/En directo) */}
         {pins.length > 0 && (
           <div className="relative flex flex-wrap gap-x-2.5 gap-y-1 px-3 sm:px-5 pb-2 sm:pb-3">
-            <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75" /><span className="relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600" /></span> Planes</span>
+            <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75" /><span className="relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br from-brand to-brand-secondary" /></span> Planes</span>
             <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" /><span className="relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br from-rose-500 to-pink-700" /></span> Abiertos ahora</span>
             <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" /><span className="relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br from-rose-500 to-fuchsia-700" /></span> Eventos</span>
             <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" /><span className="relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br from-red-500 to-rose-700" /></span> En directo</span>
@@ -974,7 +974,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         )}
       </div>
 
-      <div className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-[#EC4899] via-[#BE185D] to-[#831843] px-4 sm:px-5 pb-4 sm:pb-5 -mt-3">
+      <div className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-[#EC4899] via-[#BE185D] to-brand-deep px-4 sm:px-5 pb-4 sm:pb-5 -mt-3">
         {/* Súper buscador — justo donde termina el mapa, dentro del mismo panel, para que se lea
             como una sola pieza con "Planes de baile" en vez de un elemento suelto encima. */}
         <div className="pt-4">
@@ -996,7 +996,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={`sm:flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-[11px] font-extrabold transition-all ${
-                  isActive ? 'bg-gradient-to-br from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-900/40' : 'bg-white/15 text-pink-100 border border-white/25 shadow-md shadow-black/10 hover:bg-white/20'
+                  isActive ? 'bg-gradient-to-br from-brand to-brand text-white shadow-lg shadow-brand-deep/40' : 'bg-white/15 text-pink-100 border border-white/25 shadow-md shadow-black/10 hover:bg-white/20'
                 }`}>
                 {dot && (
                   <span className="relative flex h-2 w-2 flex-shrink-0">
@@ -1016,7 +1016,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
             <p className="text-pink-200/70 text-xs">Aún no hay nada real publicado en «{cityFilter}» — sé el primero en crear un plan.</p>
             <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
               <button onClick={() => navigate('/rutas')}
-                className="inline-flex items-center gap-1.5 bg-gradient-to-br from-pink-500 to-fuchsia-700 text-white text-[11px] font-extrabold px-3.5 py-2 rounded-xl shadow-lg shadow-pink-900/40">
+                className="inline-flex items-center gap-1.5 bg-gradient-to-br from-brand to-fuchsia-700 text-white text-[11px] font-extrabold px-3.5 py-2 rounded-xl shadow-lg shadow-brand-deep/40">
                 <Plus className="w-3.5 h-3.5" /> Crear un plan en {cityFilter}
               </button>
               <a href="mailto:hola@bailanow.com?subject=Quiero%20BailaNow%20en%20mi%20ciudad"
@@ -1034,7 +1034,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
             return (
               <button key={it.id} onClick={() => navigate(it.route)}
                 className="text-left rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-lg shadow-black/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                <div className="relative h-24 bg-gradient-to-br from-pink-700 to-fuchsia-900 overflow-hidden">
+                <div className="relative h-24 bg-gradient-to-br from-pink-700 to-brand-deep overflow-hidden">
                   {it.cover ? (
                     <img src={it.cover} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy"
                       onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
@@ -1135,7 +1135,7 @@ const SuperSearchBar: React.FC<{ cityValue: string; onCitySelect: (city: string)
   return (
     <div className="relative">
       <div className="relative bg-white border border-white shadow-xl shadow-black/25 rounded-2xl flex items-center gap-2 px-3.5 sm:px-4 py-2.5 sm:py-3">
-        <Search className="w-5 h-5 text-pink-500 flex-shrink-0" />
+        <Search className="w-5 h-5 text-brand flex-shrink-0" />
         <input
           value={query}
           onChange={e => { setQuery(e.target.value); setShowList(true); }}
@@ -1149,7 +1149,7 @@ const SuperSearchBar: React.FC<{ cityValue: string; onCitySelect: (city: string)
           <button onClick={() => { setQuery(''); onCitySelect(''); }} className="flex-shrink-0 text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
         )}
         <button onClick={useMyLocation} disabled={locating}
-          className="flex-shrink-0 flex items-center gap-1.5 bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white text-xs sm:text-sm font-bold px-2.5 sm:px-4 py-2 rounded-xl disabled:opacity-60 shadow shadow-pink-900/40">
+          className="flex-shrink-0 flex items-center gap-1.5 bg-gradient-to-br from-brand to-brand-secondary text-white text-xs sm:text-sm font-bold px-2.5 sm:px-4 py-2 rounded-xl disabled:opacity-60 shadow shadow-brand-deep/40">
           {locating ? <Loader2 className="w-4 h-4 animate-spin" /> : <MapPin className="w-4 h-4" />}
           <span className="hidden sm:inline">Usar mi ubicación</span>
         </button>
@@ -1162,7 +1162,7 @@ const SuperSearchBar: React.FC<{ cityValue: string; onCitySelect: (city: string)
               Buscar "{query}" en toda la plataforma →
             </button>
           ) : filtered.map(c => (
-            <button key={c} onMouseDown={() => pick(c)} className="w-full text-left px-3 py-2 rounded-xl hover:bg-pink-50 dark:hover:bg-pink-900/20 text-sm text-gray-700 dark:text-gray-200 flex items-center gap-2">
+            <button key={c} onMouseDown={() => pick(c)} className="w-full text-left px-3 py-2 rounded-xl hover:bg-pink-50 dark:hover:bg-brand-deep/20 text-sm text-gray-700 dark:text-gray-200 flex items-center gap-2">
               <MapPin className="w-3.5 h-3.5 text-pink-400 flex-shrink-0" /> {c}
             </button>
           ))}
@@ -1196,7 +1196,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     return (
       <button
         onClick={() => navigate(cat.route)}
-        className="group relative bg-white dark:bg-gray-800/70 rounded-2xl p-3 flex flex-col items-center justify-start gap-2 border border-gray-100 dark:border-white/10 shadow-lg shadow-black/[0.06] hover:shadow-xl hover:shadow-pink-500/10 hover:-translate-y-1 hover:border-pink-100 active:scale-95 transition-all duration-300"
+        className="group relative bg-white dark:bg-gray-800/70 rounded-2xl p-3 flex flex-col items-center justify-start gap-2 border border-gray-100 dark:border-white/10 shadow-lg shadow-black/[0.06] hover:shadow-xl hover:shadow-brand/10 hover:-translate-y-1 hover:border-pink-100 active:scale-95 transition-all duration-300"
       >
         <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${tint} ring-1 flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-300`}>
           <span className="text-2xl sm:text-[26px] leading-none">{cat.icon}</span>
@@ -1214,14 +1214,14 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
           <div>
             <div className="flex items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-brand-orange to-pink-500" />
+                <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-brand-orange to-brand" />
                 <h3 className="font-display font-black text-sm sm:text-base text-gray-900 dark:text-white uppercase tracking-wider">
                   Principales
                 </h3>
               </div>
               <button
                 onClick={() => navigate('/explorar')}
-                className="text-xs font-bold text-pink-500 hover:text-pink-600 flex items-center gap-1 transition-colors"
+                className="text-xs font-bold text-brand hover:text-brand-orange-dark flex items-center gap-1 transition-colors"
               >
                 Ver todas →
               </button>
@@ -1234,7 +1234,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
             {rest > 0 && (
               <button
                 onClick={() => setShowAll(v => !v)}
-                className="w-full mt-4 py-2.5 rounded-xl border border-pink-200 text-pink-500 hover:bg-pink-50 text-sm font-bold transition-all flex items-center justify-center gap-2"
+                className="w-full mt-4 py-2.5 rounded-xl border border-pink-200 text-brand hover:bg-pink-50 text-sm font-bold transition-all flex items-center justify-center gap-2"
               >
                 {showAll ? '▲ Ver menos categorías' : `🔍 Ver más categorías (${rest})`}
               </button>
@@ -1276,10 +1276,10 @@ const HomeSectionWithSearch: React.FC<HomeSectionProps> = ({
             onClick={onAction}
             className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform"
           >
-            <div className="w-9 h-9 rounded-full bg-brand-orange flex items-center justify-center shadow-lg shadow-pink-500/30 group-hover:shadow-pink-500/50 transition-shadow">
+            <div className="w-9 h-9 rounded-full bg-brand-orange flex items-center justify-center shadow-lg shadow-brand/30 group-hover:shadow-brand/50 transition-shadow">
               <ArrowRight className="w-4 h-4 text-white" />
             </div>
-            <span className="text-[9px] font-black uppercase tracking-widest text-pink-500">{actionLabel}</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-brand">{actionLabel}</span>
           </button>
         )}
       </div>
@@ -1301,9 +1301,9 @@ const HScroll: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         {children}
       </div>
       <button onClick={() => go(-1)} aria-label="Anterior"
-        className="hidden lg:grid place-items-center absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 dark:bg-gray-900/95 shadow-xl border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white text-xl leading-none opacity-0 group-hover/hs:opacity-100 hover:bg-pink-500 hover:text-white transition z-10">‹</button>
+        className="hidden lg:grid place-items-center absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 dark:bg-gray-900/95 shadow-xl border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white text-xl leading-none opacity-0 group-hover/hs:opacity-100 hover:bg-brand hover:text-white transition z-10">‹</button>
       <button onClick={() => go(1)} aria-label="Siguiente"
-        className="hidden lg:grid place-items-center absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 dark:bg-gray-900/95 shadow-xl border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white text-xl leading-none opacity-0 group-hover/hs:opacity-100 hover:bg-pink-500 hover:text-white transition z-10">›</button>
+        className="hidden lg:grid place-items-center absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/95 dark:bg-gray-900/95 shadow-xl border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-white text-xl leading-none opacity-0 group-hover/hs:opacity-100 hover:bg-brand hover:text-white transition z-10">›</button>
     </div>
   );
 };
@@ -1412,7 +1412,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
   const ColHeader = ({ title, onAll }: { title: string; onAll: () => void }) => (
     <div className="flex items-center justify-between mb-3 px-1">
       <h3 className="font-display font-black text-base text-gray-900 dark:text-white">{title}</h3>
-      <button onClick={onAll} className="text-pink-600 dark:text-pink-400 text-[11px] font-bold hover:underline">Ver todos →</button>
+      <button onClick={onAll} className="text-brand dark:text-pink-400 text-[11px] font-bold hover:underline">Ver todos →</button>
     </div>
   );
 
@@ -1426,14 +1426,14 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <div className="grid grid-cols-2 gap-2.5">
             {events.map(e => (
               <button key={e.id} onClick={() => navigate(`/eventos/${e.id}`)}
-                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-[#831843]/70 via-[#831843]/45 to-gray-900 text-left group shadow-lg shadow-black/10 border border-gray-100 dark:border-gray-800 hover:-translate-y-0.5 hover:shadow-xl transition-all">
+                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-900 text-left group shadow-lg shadow-black/10 border border-gray-100 dark:border-gray-800 hover:-translate-y-0.5 hover:shadow-xl transition-all">
                 {(e as any).cover && <img src={(e as any).cover} alt="" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                 <div className="absolute top-2 left-2 bg-white/90 text-gray-900 rounded-lg px-1.5 py-0.5 text-center leading-none">
                   <div className="font-black text-sm">{day(e.date)}</div>
-                  <div className="text-[8px] font-bold text-pink-600">{month(e.date)}</div>
+                  <div className="text-[8px] font-bold text-brand">{month(e.date)}</div>
                 </div>
-                <span className="absolute top-2 right-2 bg-pink-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">Entradas</span>
+                <span className="absolute top-2 right-2 bg-brand text-white text-[9px] font-black px-2 py-0.5 rounded-full">Entradas</span>
                 <div className="absolute bottom-2 left-2 right-2">
                   <p className="text-white font-bold text-xs leading-tight truncate">{e.title}</p>
                   <p className="text-white/70 text-[9px] truncate flex items-center gap-1 mt-0.5"><MapPin className="w-2.5 h-2.5" />{e.venueName || e.city}</p>
@@ -1449,7 +1449,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <div className="grid grid-cols-2 gap-2.5">
             {artists.map(a => (
               <button key={a.id} onClick={() => navigate(`/artistas/${a.id}`)}
-                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-pink-900/60 via-rose-900/40 to-gray-900 text-left group shadow-lg shadow-black/10 hover:-translate-y-0.5 hover:shadow-xl transition-all">
+                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-brand-deep/60 via-rose-900/40 to-gray-900 text-left group shadow-lg shadow-black/10 hover:-translate-y-0.5 hover:shadow-xl transition-all">
                 {a.avatar && <img src={a.avatar} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
                 <div className="absolute bottom-2 left-2 right-2">
@@ -1468,14 +1468,14 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
             {tv.map((c, i) => {
               return (
               <button key={i} onClick={() => navigate(c.link || '/tv')}
-                className="relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-[#831843]/70 via-[#831843]/45 to-gray-950">
+                className="relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-950">
                 {c.image ? (
                   <img src={c.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
                 ) : (
                   <Video className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-white/15" />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/40 to-transparent" />
-                {c.tag && <span className="absolute top-2.5 left-2.5 bg-pink-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">{c.tag}</span>}
+                {c.tag && <span className="absolute top-2.5 left-2.5 bg-brand text-white text-[9px] font-black px-2 py-0.5 rounded-full">{c.tag}</span>}
                 <div className="absolute bottom-3 left-3 right-3">
                   <p className="text-white font-black text-sm leading-tight">{c.title}</p>
                   <p className="text-white/60 text-[10px] mt-0.5">{c.subtitle}</p>
@@ -1484,7 +1484,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
             );})}
           </div>
           <button onClick={() => navigate('/tv')}
-            className="w-full mt-3 py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-sm font-black flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-pink-500/30 transition-all">
+            className="w-full mt-3 py-2.5 rounded-xl bg-gradient-to-r from-brand to-brand-secondary text-white text-sm font-black flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-brand/30 transition-all">
             <Play className="w-4 h-4" fill="currentColor" /> Ver TV
           </button>
 
@@ -1492,7 +1492,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <p className="mt-5 mb-2 px-1 text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Explora más</p>
           <div className="space-y-2.5">
             <button onClick={() => navigate('/cerca')}
-              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-pink-600 to-rose-700 text-white text-left hover:shadow-lg transition-all">
+              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-brand to-rose-700 text-white text-left hover:shadow-lg transition-all">
               <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">📍</span>
               <div className="min-w-0 flex-1">
                 <p className="font-black text-sm leading-tight">Cerca de ti</p>
@@ -1501,7 +1501,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
               <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-80" />
             </button>
             <button onClick={() => navigate('/clases')}
-              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-rose-500 to-pink-600 text-white text-left hover:shadow-lg transition-all">
+              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-rose-500 to-brand text-white text-left hover:shadow-lg transition-all">
               <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">🎓</span>
               <div className="min-w-0 flex-1">
                 <p className="font-black text-sm leading-tight">Clases online</p>
@@ -1510,7 +1510,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
               <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-80" />
             </button>
             <button onClick={() => navigate('/subscripciones')}
-              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-fuchsia-600 to-pink-700 text-white text-left hover:shadow-lg transition-all">
+              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-brand-secondary to-pink-700 text-white text-left hover:shadow-lg transition-all">
               <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">👑</span>
               <div className="min-w-0 flex-1">
                 <p className="font-black text-sm leading-tight">Hazte Premium</p>
@@ -1519,7 +1519,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
               <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-80" />
             </button>
             <button onClick={() => navigate('/promocionate')}
-              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white text-left hover:shadow-lg transition-all">
+              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-brand to-brand-secondary text-white text-left hover:shadow-lg transition-all">
               <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">📢</span>
               <div className="min-w-0 flex-1">
                 <p className="font-black text-sm leading-tight">Promociona tu evento</p>
@@ -1545,11 +1545,11 @@ const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
     <section className="mx-3 sm:mx-4 mt-8">
       <div className="flex items-center justify-between mb-4 px-1">
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-brand-orange to-pink-500" />
+          <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-brand-orange to-brand" />
           <h2 className="font-display font-black text-xl text-gray-900 dark:text-white">Más para ti</h2>
         </div>
         <button onClick={() => navigate('/explorar')}
-          className="text-xs font-bold text-pink-500 hover:text-pink-600 flex items-center gap-1 transition-colors">
+          className="text-xs font-bold text-brand hover:text-brand-orange-dark flex items-center gap-1 transition-colors">
           Ver todas <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -1561,7 +1561,7 @@ const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
             <div className={`absolute inset-0 bg-gradient-to-br ${m.gradient}`} />
             <div className="absolute -right-8 -top-8 w-28 h-28 bg-white/10 rounded-full blur-2xl pointer-events-none" />
             {m.badge && (
-              <span className="absolute top-3 right-3 bg-white text-pink-600 text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full shadow">{m.badge}</span>
+              <span className="absolute top-3 right-3 bg-white text-brand text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full shadow">{m.badge}</span>
             )}
             <div className="relative h-full flex flex-col justify-between p-4">
               <span className={`w-11 h-11 rounded-2xl ${m.iconBg} text-white grid place-items-center text-xl shadow-lg ring-2 ring-white/20`}>{m.icon}</span>
@@ -1594,7 +1594,7 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
         setShows((data || []).map((t: any) => ({
           id: t.id, title: fixText(t.title || 'Vídeo'),
           meta: [t.type, t.level].filter(Boolean).join(' · ') || t.style || '',
-          tag: t.featured ? 'Destacado' : 'Nuevo', tagColor: t.featured ? 'bg-emerald-500' : 'bg-pink-500',
+          tag: t.featured ? 'Destacado' : 'Nuevo', tagColor: t.featured ? 'bg-emerald-500' : 'bg-brand',
           img: t.cover_url || '',
         })));
         setLoaded(true);
@@ -1609,12 +1609,12 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
     <section className="mx-3 sm:mx-4 mt-8">
       <div className="flex items-center justify-between mb-3 px-1">
         <h2 className="font-display font-black text-lg text-gray-900 dark:text-white flex items-center gap-2">📺 BailaNow TV</h2>
-        <button onClick={() => navigate('/tv')} className="text-pink-600 dark:text-pink-400 text-xs font-bold hover:underline">Ver todo →</button>
+        <button onClick={() => navigate('/tv')} className="text-brand dark:text-pink-400 text-xs font-bold hover:underline">Ver todo →</button>
       </div>
       <HScroll>
         {shows.map(s => (
           <button key={s.id} onClick={() => navigate(`/tv/${s.id}`)}
-            className="flex-shrink-0 w-64 relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-[#831843]/70 via-[#831843]/45 to-gray-950 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
+            className="flex-shrink-0 w-64 relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-950 shadow-lg hover:shadow-2xl hover:shadow-brand/20 hover:-translate-y-1 transition-all">
             {s.img ? (
               <img src={s.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
             ) : (
@@ -1667,7 +1667,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
   const Header = ({ icon, title, onAll }: { icon: string; title: string; onAll: () => void }) => (
     <div className="flex items-center justify-between mb-3 px-1">
       <h2 className="font-display font-black text-lg text-gray-900 dark:text-white flex items-center gap-2">{icon} {title}</h2>
-      <button onClick={onAll} className="text-pink-600 dark:text-pink-400 text-xs font-bold hover:underline">Ver todo →</button>
+      <button onClick={onAll} className="text-brand dark:text-pink-400 text-xs font-bold hover:underline">Ver todo →</button>
     </div>
   );
 
@@ -1679,8 +1679,8 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
         <div className="flex flex-wrap gap-2">
           {trends.map((t, i) => (
             <button key={t} onClick={() => navigate(`/artistas?q=${encodeURIComponent(t)}`)}
-              className="inline-flex items-center gap-1.5 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-full px-3.5 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 shadow-lg shadow-black/[0.06] hover:shadow-xl hover:shadow-pink-500/10 hover:border-pink-300 hover:text-pink-600 transition-all">
-              <span className="text-pink-500 font-black">#{i + 1}</span> {t}
+              className="inline-flex items-center gap-1.5 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-full px-3.5 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 shadow-lg shadow-black/[0.06] hover:shadow-xl hover:shadow-brand/10 hover:border-pink-300 hover:text-brand transition-all">
+              <span className="text-brand font-black">#{i + 1}</span> {t}
             </button>
           ))}
         </div>
@@ -1693,7 +1693,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
         <HScroll>
           {clases.map(c => (
             <button key={c.id} onClick={() => navigate('/clases')}
-              className="flex-shrink-0 w-52 relative rounded-2xl overflow-hidden h-32 group text-left bg-gradient-to-br from-pink-600/30 via-fuchsia-700/20 to-gray-900 shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all">
+              className="flex-shrink-0 w-52 relative rounded-2xl overflow-hidden h-32 group text-left bg-gradient-to-br from-brand/30 via-fuchsia-700/20 to-gray-900 shadow-lg hover:shadow-2xl hover:shadow-brand/20 hover:-translate-y-1 transition-all">
               {c.img ? (
                 <img src={c.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
               ) : (
@@ -1718,9 +1718,9 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
         <HScroll>
           {teachers.map(t => (
             <button key={t.id} onClick={() => navigate(`/artistas/${t.id}`)}
-              className="flex-shrink-0 w-40 bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-lg shadow-black/[0.06] hover:shadow-xl hover:shadow-pink-500/10 hover:-translate-y-1 transition-all text-center flex flex-col items-center">
+              className="flex-shrink-0 w-40 bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-lg shadow-black/[0.06] hover:shadow-xl hover:shadow-brand/10 hover:-translate-y-1 transition-all text-center flex flex-col items-center">
               <div className="relative">
-                <div className="w-16 h-16 rounded-full overflow-hidden grid place-items-center bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white font-black text-xl">
+                <div className="w-16 h-16 rounded-full overflow-hidden grid place-items-center bg-gradient-to-br from-brand to-brand-secondary text-white font-black text-xl">
                   <span>{t.name?.[0] || '?'}</span>
                   <img src={t.avatar} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                 </div>
@@ -1729,7 +1729,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
               <p className="font-black text-gray-900 dark:text-white text-sm mt-2 truncate max-w-full">{t.name}</p>
               <p className="text-gray-400 text-[11px] truncate max-w-full">{t.genre.slice(0, 2).join(' · ')}</p>
               <div className="flex items-center gap-1 mt-1 text-amber-500 text-xs font-bold"><Star className="w-3.5 h-3.5 fill-amber-500" />{t.rating}</div>
-              <span className="mt-2 text-[11px] font-bold text-pink-600 dark:text-pink-400">Ver perfil →</span>
+              <span className="mt-2 text-[11px] font-bold text-brand dark:text-pink-400">Ver perfil →</span>
             </button>
           ))}
         </HScroll>
@@ -1739,8 +1739,8 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
       {/* Trabajos para Bailarines (CTA) */}
       <section className="mx-3 sm:mx-4 mt-8">
         <button onClick={() => navigate('/promocionate')}
-          className="relative w-full overflow-hidden rounded-3xl p-6 sm:p-8 text-left text-white bg-gradient-to-br from-gray-900 via-[#831843] to-black hover:shadow-2xl hover:shadow-pink-500/20 transition-all">
-          <div className="absolute -top-10 -right-10 w-48 h-48 bg-pink-500/30 rounded-full blur-3xl pointer-events-none" />
+          className="relative w-full overflow-hidden rounded-3xl p-6 sm:p-8 text-left text-white bg-gradient-to-br from-gray-900 via-brand-deep to-black hover:shadow-2xl hover:shadow-brand/20 transition-all">
+          <div className="absolute -top-10 -right-10 w-48 h-48 bg-brand/30 rounded-full blur-3xl pointer-events-none" />
           <div className="relative flex items-center justify-between gap-4 flex-wrap">
             <div>
               <span className="inline-block text-[10px] font-black uppercase tracking-widest bg-white/15 rounded-full px-2.5 py-1">🎤 Trabajos para bailarines</span>
@@ -1989,7 +1989,7 @@ const HomePage: React.FC = () => {
       {/* ── Título de marca, justo bajo el hero ── */}
       <div className="text-center mt-6 px-4">
         <h2 className="font-display font-black text-xl sm:text-2xl text-gray-900 dark:text-white mb-1">
-          💃 <span className="text-pink-600">Baila</span> Now
+          💃 <span className="text-brand">Baila</span> Now
         </h2>
         <p className="text-gray-400 text-xs sm:text-sm max-w-lg mx-auto">
           Todo lo que amas del baile, en un solo lugar
@@ -2015,7 +2015,7 @@ const HomePage: React.FC = () => {
 
       {/* ── PERSISTENT MINI PLAYER (when playing) ── */}
       {playing !== null && playing < 100 && radioStations[playing] && (
-        <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-pink-500/20 px-4 py-2 flex items-center gap-3 backdrop-blur-xl shadow-2xl">
+        <div className="fixed bottom-16 lg:bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-t border-brand/20 px-4 py-2 flex items-center gap-3 backdrop-blur-xl shadow-2xl">
           <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-700">
             <img src={radioStations[playing].img} alt="" className="w-full h-full object-cover"
               onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -2032,7 +2032,7 @@ const HomePage: React.FC = () => {
           </div>
           <div className="flex items-center gap-1">
             <button onClick={() => setPlaying(null)}
-              className="w-9 h-9 rounded-full bg-pink-500 text-white flex items-center justify-center hover:bg-pink-600 transition-all shadow-lg shadow-pink-500/30">
+              className="w-9 h-9 rounded-full bg-brand text-white flex items-center justify-center hover:bg-brand transition-all shadow-lg shadow-brand/30">
               <Pause className="w-4 h-4" />
             </button>
           </div>
@@ -2046,7 +2046,7 @@ const HomePage: React.FC = () => {
       {isAdmin && adminStats && isModuleOn('admin-panel') && (
         <section className="mx-4 mt-4 bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-3xl p-5 sm:p-6 text-white shadow-card relative overflow-hidden">
           <div className="absolute -top-12 -right-12 w-40 h-40 bg-brand-orange/20 rounded-full blur-3xl" />
-          <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-fuchsia-600/20 rounded-full blur-3xl" />
+          <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-brand-secondary/20 rounded-full blur-3xl" />
           <div className="relative">
             <div className="flex items-center justify-between flex-wrap gap-3 mb-5">
               <div className="flex items-center gap-3">
@@ -2189,12 +2189,12 @@ const HomePage: React.FC = () => {
                 <button
                   key={city.name}
                   onClick={() => navigate(`/venues?city=${city.name}`)}
-                  className="relative rounded-3xl overflow-hidden group shadow-lg hover:shadow-2xl hover:shadow-pink-500/20 hover:-translate-y-1 transition-all duration-500 h-52 sm:h-56"
+                  className="relative rounded-3xl overflow-hidden group shadow-lg hover:shadow-2xl hover:shadow-brand/20 hover:-translate-y-1 transition-all duration-500 h-52 sm:h-56"
                 >
                   <img src={city.img} alt={city.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-                  <div className="absolute inset-0 rounded-3xl border-2 border-transparent group-hover:border-pink-500/40 transition-all duration-300" />
+                  <div className="absolute inset-0 rounded-3xl border-2 border-transparent group-hover:border-brand/40 transition-all duration-300" />
                   <div className="absolute top-3 left-3 w-11 h-11 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-2xl shadow-lg">
                     {city.monument}
                   </div>
@@ -2295,15 +2295,15 @@ const HomePage: React.FC = () => {
             <span className="text-gray-400 text-xs ml-1">© 2025</span>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-gray-400">
-            <a href="/legal/terminos" className="hover:text-pink-500 transition-colors">Términos</a>
-            <a href="/legal/privacidad" className="hover:text-pink-500 transition-colors">Privacidad</a>
-            <a href="/legal/cookies" className="hover:text-pink-500 transition-colors">Cookies</a>
-            <button onClick={() => window.dispatchEvent(new Event('bn:open-cookie-settings'))} className="hover:text-pink-500 transition-colors">Gestionar cookies</button>
-            <a href="/legal/aviso" className="hover:text-pink-500 transition-colors">Aviso Legal</a>
-            <a href="/legal/reembolsos" className="hover:text-pink-500 transition-colors">Reembolsos</a>
-            <a href="/legal/vendedores" className="hover:text-pink-500 transition-colors">Vendedores</a>
-            <a href="/legal/conducta" className="hover:text-pink-500 transition-colors">Conducta</a>
-            <a href="mailto:hola@bailanow.com" className="hover:text-pink-500 transition-colors">Contacto</a>
+            <a href="/legal/terminos" className="hover:text-brand transition-colors">Términos</a>
+            <a href="/legal/privacidad" className="hover:text-brand transition-colors">Privacidad</a>
+            <a href="/legal/cookies" className="hover:text-brand transition-colors">Cookies</a>
+            <button onClick={() => window.dispatchEvent(new Event('bn:open-cookie-settings'))} className="hover:text-brand transition-colors">Gestionar cookies</button>
+            <a href="/legal/aviso" className="hover:text-brand transition-colors">Aviso Legal</a>
+            <a href="/legal/reembolsos" className="hover:text-brand transition-colors">Reembolsos</a>
+            <a href="/legal/vendedores" className="hover:text-brand transition-colors">Vendedores</a>
+            <a href="/legal/conducta" className="hover:text-brand transition-colors">Conducta</a>
+            <a href="mailto:hola@bailanow.com" className="hover:text-brand transition-colors">Contacto</a>
           </div>
         </div>
       </footer>

@@ -354,7 +354,7 @@ const NearMePage: React.FC = () => {
   // ── Card COMPACTA (para grids de 2/3/4 columnas) ─────────────────────────
   const renderCardCompact = (it: Item) => {
     const typeMeta = {
-      venue:  { label: 'Local',     emoji: '🏛️', color: 'bg-pink-500' },
+      venue:  { label: 'Local',     emoji: '🏛️', color: 'bg-brand' },
       event:  { label: 'Evento',    emoji: '🎉', color: 'bg-orange-500' },
       artist: { label: 'Artista',   emoji: '🎤', color: 'bg-purple-500' },
       dancer: { label: 'Bailarín',  emoji: '💃', color: 'bg-green-500' },
@@ -389,7 +389,7 @@ const NearMePage: React.FC = () => {
           </span>
           {/* Precio si es live de pago */}
           {it.type === 'live' && it.pricing_mode === 'paid' && it.price && (
-            <span className="absolute bottom-1.5 left-1.5 bg-pink-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">€{it.price}</span>
+            <span className="absolute bottom-1.5 left-1.5 bg-brand text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">€{it.price}</span>
           )}
           {it.type === 'live' && it.pricing_mode === 'free' && (
             <span className="absolute bottom-1.5 left-1.5 bg-green-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">GRATIS</span>
@@ -417,7 +417,7 @@ const NearMePage: React.FC = () => {
   // ── Renderiza una card individual (compartido por vistas agrupada y flat) ──
   const renderCard = (it: Item) => {
     const typeMeta = {
-      venue:  { label: 'Local',     emoji: '🏛️', color: 'bg-pink-500' },
+      venue:  { label: 'Local',     emoji: '🏛️', color: 'bg-brand' },
       event:  { label: 'Evento',    emoji: '🎉', color: 'bg-orange-500' },
       artist: { label: 'Artista',   emoji: '🎤', color: 'bg-purple-500' },
       dancer: { label: 'Bailarín',  emoji: '💃', color: 'bg-green-500' },
@@ -451,8 +451,8 @@ const NearMePage: React.FC = () => {
             </p>
           </div>
           <div className="text-right flex-shrink-0">
-            <div className="bg-pink-50 dark:bg-pink-900/20 rounded-full px-2 py-1">
-              <p className="text-[10px] font-black text-pink-600 dark:text-pink-300">{it.distance!.toFixed(1)} km</p>
+            <div className="bg-pink-50 dark:bg-brand-deep/20 rounded-full px-2 py-1">
+              <p className="text-[10px] font-black text-brand dark:text-pink-300">{it.distance!.toFixed(1)} km</p>
             </div>
           </div>
         </header>
@@ -472,7 +472,7 @@ const NearMePage: React.FC = () => {
                 {it.isLive && <span className="bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded flex items-center gap-1"><span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> LIVE</span>}
                 {it.liveData?.preview_url && <span className="bg-black/60 text-white text-[10px] font-bold px-2 py-1 rounded">PREVIEW 60s</span>}
                 {it.pricing_mode === 'free' && <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded">GRATIS</span>}
-                {it.pricing_mode === 'paid' && <span className="bg-pink-500 text-white text-[10px] font-bold px-2 py-1 rounded">€{it.price}</span>}
+                {it.pricing_mode === 'paid' && <span className="bg-brand text-white text-[10px] font-bold px-2 py-1 rounded">€{it.price}</span>}
                 {it.pricing_mode === 'reservation' && <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-1 rounded">RESERVA €{it.price}</span>}
                 {it.pricing_mode === 'donation' && <span className="bg-purple-500 text-white text-[10px] font-bold px-2 py-1 rounded">DONACIÓN</span>}
               </div>
@@ -485,7 +485,7 @@ const NearMePage: React.FC = () => {
             )}
             {it.date && (
               <div className="absolute bottom-3 left-3 bg-white/95 rounded-full px-2.5 py-1 flex items-center gap-1">
-                <Calendar className="w-3 h-3 text-pink-600" />
+                <Calendar className="w-3 h-3 text-brand" />
                 <span className="text-gray-900 text-[11px] font-bold">{it.date}</span>
               </div>
             )}
@@ -495,7 +495,7 @@ const NearMePage: React.FC = () => {
           <div className="flex items-center gap-3 text-xs text-gray-500 flex-1 min-w-0">
             {it.genre && (
               <span className="flex items-center gap-1 truncate">
-                <Music className="w-3.5 h-3.5 text-pink-500 flex-shrink-0" />
+                <Music className="w-3.5 h-3.5 text-brand flex-shrink-0" />
                 <span className="font-medium truncate">{it.genre}</span>
               </span>
             )}
@@ -513,7 +513,7 @@ const NearMePage: React.FC = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-24">
 
       {/* ── HERO HEADER ── */}
-      <div className="bg-gradient-to-br from-pink-500 via-fuchsia-600 to-fuchsia-700 text-white px-4 pt-5 pb-6 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-brand via-brand-secondary to-fuchsia-700 text-white px-4 pt-5 pb-6 relative overflow-hidden">
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
         <div className="relative">
           <h1 className="font-display font-black text-2xl flex items-center gap-2 mb-1">
@@ -541,7 +541,7 @@ const NearMePage: React.FC = () => {
             {[50, 100, 500, 5000].map(r => (
               <button key={r} onClick={() => setRadius(r as any)}
                 className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                  radius === r ? 'bg-white text-pink-600' : 'bg-white/20 text-white'
+                  radius === r ? 'bg-white text-brand' : 'bg-white/20 text-white'
                 }`}>
                 {r >= 1000 ? `${r/1000}K km` : `${r} km`}
               </button>
@@ -576,7 +576,7 @@ const NearMePage: React.FC = () => {
             <button key={t.key} onClick={() => setActiveTab(t.key as any)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                 activeTab === t.key
-                  ? 'bg-brand-orange text-white shadow-lg shadow-pink-500/30'
+                  ? 'bg-brand-orange text-white shadow-lg shadow-brand/30'
                   : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
               }`}>
               <span className="mr-1">{t.icon}</span>{t.label}
@@ -589,7 +589,7 @@ const NearMePage: React.FC = () => {
             type="checkbox"
             checked={onlyOpenNow}
             onChange={e => setOnlyOpenNow(e.target.checked)}
-            className="w-4 h-4 rounded text-pink-500 cursor-pointer"
+            className="w-4 h-4 rounded text-brand cursor-pointer"
           />
           <span>🟢 Solo abiertos ahora</span>
         </label>
@@ -599,7 +599,7 @@ const NearMePage: React.FC = () => {
       <div className="px-4 pb-32 space-y-4">
         {loading ? (
           <div className="text-center py-12">
-            <div className="w-10 h-10 border-3 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto" />
+            <div className="w-10 h-10 border-3 border-brand border-t-transparent rounded-full animate-spin mx-auto" />
             <p className="text-gray-400 text-sm mt-3">Buscando cerca de ti…</p>
           </div>
         ) : !position ? (
@@ -643,7 +643,7 @@ const NearMePage: React.FC = () => {
                     </h2>
                     {hasMore && (
                       <button onClick={() => setActiveTab(sec.tab)}
-                        className="text-xs font-bold text-pink-500 hover:text-pink-600 flex items-center gap-1">
+                        className="text-xs font-bold text-brand hover:text-brand-orange-dark flex items-center gap-1">
                         Ver todo <ChevronRight className="w-3 h-3" />
                       </button>
                     )}
@@ -684,10 +684,10 @@ const NearMePage: React.FC = () => {
               {POPULAR_CITIES.map(c => (
                 <button key={c} onClick={() => selectCity(c)}
                   className={`w-full text-left px-4 py-2.5 rounded-xl flex items-center justify-between text-sm font-bold transition-all ${
-                    city === c ? 'bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-300' : 'hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
+                    city === c ? 'bg-pink-50 dark:bg-brand-deep/20 text-brand dark:text-pink-300' : 'hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
                   }`}>
                   <span className="flex items-center gap-2"><MapPin className="w-4 h-4 opacity-50" />{c}</span>
-                  {city === c && <span className="text-pink-500">✓</span>}
+                  {city === c && <span className="text-brand">✓</span>}
                 </button>
               ))}
             </div>
@@ -699,7 +699,7 @@ const NearMePage: React.FC = () => {
       {position && (
         <div className="fixed left-0 right-0 bottom-[68px] lg:bottom-4 z-30 px-3 pointer-events-none">
           <button onClick={() => navigate('/mapa')}
-            className="pointer-events-auto w-full sm:w-auto sm:mx-auto sm:max-w-xs flex items-center justify-center gap-2 bg-brand-orange text-white px-5 py-3.5 rounded-2xl shadow-2xl shadow-pink-500/40 font-bold text-base active:scale-95 transition-transform mx-auto block">
+            className="pointer-events-auto w-full sm:w-auto sm:mx-auto sm:max-w-xs flex items-center justify-center gap-2 bg-brand-orange text-white px-5 py-3.5 rounded-2xl shadow-2xl shadow-brand/40 font-bold text-base active:scale-95 transition-transform mx-auto block">
             <Map className="w-5 h-5" /> Ver mapa
           </button>
         </div>

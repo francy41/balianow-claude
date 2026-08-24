@@ -48,7 +48,7 @@ const ROLE_LABELS: Record<string, { label: string; color: string; emoji: string 
   band:       { label: 'Banda',        color: 'bg-rose-500',   emoji: '🥁' },
   dancer:     { label: 'Bailarín/a',   color: 'bg-green-500',  emoji: '💃' },
   dj:         { label: 'DJ',           color: 'bg-cyan-500',      emoji: '🎧' },
-  instructor: { label: 'Profesor/a',   color: 'bg-pink-500',      emoji: '🎓' },
+  instructor: { label: 'Profesor/a',   color: 'bg-brand',      emoji: '🎓' },
   venue:      { label: 'Local',        color: 'bg-orange-500',     emoji: '🏛️' },
   business:   { label: 'Vendedor',     color: 'bg-blue-600',    emoji: '🏪' },
   promoter:   { label: 'Promotor',     color: 'bg-yellow-500',  emoji: '📢' },
@@ -140,7 +140,7 @@ const PublicProfilePage: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-3" />
           <p className="text-gray-400">Cargando perfil...</p>
         </div>
       </div>
@@ -164,7 +164,7 @@ const PublicProfilePage: React.FC = () => {
 
   const role = ROLE_LABELS[profile.role] || ROLE_LABELS.user;
   const socials = [
-    { key: 'instagram',  url: profile.instagram_url,  icon: <Instagram className="w-5 h-5" />, color: 'from-purple-500 via-pink-500 to-orange-400', label: 'Instagram' },
+    { key: 'instagram',  url: profile.instagram_url,  icon: <Instagram className="w-5 h-5" />, color: 'from-purple-500 via-brand to-orange-400', label: 'Instagram' },
     { key: 'tiktok',     url: profile.tiktok_url,     icon: <Music className="w-5 h-5" />,      color: 'bg-gray-900', label: 'TikTok' },
     { key: 'youtube',    url: profile.youtube_url,    icon: <Youtube className="w-5 h-5" />,    color: 'bg-red-500', label: 'YouTube' },
     { key: 'facebook',   url: profile.facebook_url,   icon: <Facebook className="w-5 h-5" />,   color: 'bg-blue-600', label: 'Facebook' },
@@ -177,7 +177,7 @@ const PublicProfilePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-20">
       {/* COVER */}
-      <div className="relative h-48 sm:h-64 bg-gradient-to-br from-pink-500 via-fuchsia-600 to-fuchsia-800 overflow-hidden">
+      <div className="relative h-48 sm:h-64 bg-gradient-to-br from-brand via-brand-secondary to-fuchsia-800 overflow-hidden">
         {profile.cover_photo && (
           <img src={profile.cover_photo} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70" />
         )}
@@ -185,7 +185,7 @@ const PublicProfilePage: React.FC = () => {
 
         {/* Share button */}
         <button onClick={handleShare}
-          className="absolute top-4 right-4 z-10 bg-white/95 backdrop-blur-sm text-pink-600 font-bold px-4 py-2 rounded-full shadow-xl flex items-center gap-2 hover:scale-105 transition-transform">
+          className="absolute top-4 right-4 z-10 bg-white/95 backdrop-blur-sm text-brand font-bold px-4 py-2 rounded-full shadow-xl flex items-center gap-2 hover:scale-105 transition-transform">
           <Share2 className="w-4 h-4" /> Compartir
         </button>
 
@@ -229,7 +229,7 @@ const PublicProfilePage: React.FC = () => {
         <div className="bg-white dark:bg-gray-900 rounded-3xl p-5 shadow-md border border-gray-100 dark:border-gray-800 mb-4">
           {(profile.location || profile.country) && (
             <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 mb-3">
-              <MapPin className="w-4 h-4 text-pink-500" />
+              <MapPin className="w-4 h-4 text-brand" />
               {profile.location}{profile.country && profile.location ? `, ${profile.country}` : profile.country}
             </p>
           )}
@@ -242,7 +242,7 @@ const PublicProfilePage: React.FC = () => {
             <div className="flex flex-wrap gap-1.5 mt-4">
               {(profile.styles || []).map(s => (
                 <Link key={s} to={`/cerca?style=${encodeURIComponent(s)}`}
-                  className="text-xs font-bold px-3 py-1 rounded-full bg-brand-orange dark:from-pink-900/30 dark:to-fuchsia-900/30 text-pink-700 dark:text-pink-300 hover:scale-105 transition-transform">
+                  className="text-xs font-bold px-3 py-1 rounded-full bg-brand-orange dark:from-brand-deep/30 dark:to-brand-deep/30 text-pink-700 dark:text-pink-300 hover:scale-105 transition-transform">
                   🎵 {s}
                 </Link>
               ))}
@@ -292,15 +292,15 @@ const PublicProfilePage: React.FC = () => {
         {/* CTA grande: Reservar / Bookear */}
         {['artist','dancer','dj','instructor'].includes(profile.role) && (
           <button onClick={() => navigate(`/clases?vendor=${profile.id}`)}
-            className="w-full bg-gradient-to-r from-pink-500 via-fuchsia-600 to-pink-600 text-white font-black py-4 rounded-2xl shadow-2xl shadow-pink-500/30 flex items-center justify-center gap-2 active:scale-95 mb-4">
+            className="w-full bg-gradient-to-r from-brand via-brand-secondary to-brand text-white font-black py-4 rounded-2xl shadow-2xl shadow-brand/30 flex items-center justify-center gap-2 active:scale-95 mb-4">
             <Calendar className="w-5 h-5" /> Reservar una clase
           </button>
         )}
 
         {/* Footer BailaNow */}
         <div className="text-center pt-6 pb-12 text-xs text-gray-400">
-          <p>Perfil creado en <Link to="/" className="text-pink-500 font-bold">BailaNow.com</Link></p>
-          <p className="mt-1">¿Eres bailarín, DJ o profesor? <Link to="/auth?tab=register" className="text-pink-500 font-bold underline">Crea tu perfil gratis</Link></p>
+          <p>Perfil creado en <Link to="/" className="text-brand font-bold">BailaNow.com</Link></p>
+          <p className="mt-1">¿Eres bailarín, DJ o profesor? <Link to="/auth?tab=register" className="text-brand font-bold underline">Crea tu perfil gratis</Link></p>
         </div>
       </div>
 
@@ -313,7 +313,7 @@ const PublicProfilePage: React.FC = () => {
             <button onClick={copyLink}
               className="w-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 rounded-xl p-3 flex items-center justify-between transition-all">
               <span className="text-xs text-gray-600 dark:text-gray-300 truncate flex-1 text-left">{publicUrl}</span>
-              <span className={`text-sm font-black px-3 py-1 rounded-full flex items-center gap-1 ${copied ? 'bg-green-500 text-white' : 'bg-pink-500 text-white'}`}>
+              <span className={`text-sm font-black px-3 py-1 rounded-full flex items-center gap-1 ${copied ? 'bg-green-500 text-white' : 'bg-brand text-white'}`}>
                 {copied ? <><Check className="w-3.5 h-3.5" /> Copiado</> : <><Copy className="w-3.5 h-3.5" /> Copiar</>}
               </span>
             </button>
@@ -343,7 +343,7 @@ const PublicProfilePage: React.FC = () => {
       {(isAdmin || user?.id === profile?.id) && (
         <button
           onClick={() => setEditOpen(true)}
-          className="fixed bottom-36 lg:bottom-6 right-4 z-30 bg-brand-orange text-white font-bold rounded-full px-5 py-3 shadow-lg shadow-pink-500/40 flex items-center gap-2 active:scale-95"
+          className="fixed bottom-36 lg:bottom-6 right-4 z-30 bg-brand-orange text-white font-bold rounded-full px-5 py-3 shadow-lg shadow-brand/40 flex items-center gap-2 active:scale-95"
           title="Editar este perfil"
         >
           <Edit className="w-5 h-5" />

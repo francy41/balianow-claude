@@ -194,7 +194,7 @@ const CategoriesPanel: React.FC = () => {
                           {c.isActive ? <Eye className="w-3.5 h-3.5 text-gray-600" /> : <EyeOff className="w-3.5 h-3.5 text-gray-400" />}
                         </button>
                         <button onClick={() => { setEdit(c); setShowForm(true); }} className="bg-blue-50 hover:bg-blue-100 p-1.5 rounded" title="Editar"><Edit3 className="w-3.5 h-3.5 text-blue-600" /></button>
-                        <button onClick={() => cms.cloneCategory(c.id)} className="bg-fuchsia-50 hover:bg-fuchsia-100 p-1.5 rounded" title="Duplicar"><Copy className="w-3.5 h-3.5 text-fuchsia-600" /></button>
+                        <button onClick={() => cms.cloneCategory(c.id)} className="bg-fuchsia-50 hover:bg-fuchsia-100 p-1.5 rounded" title="Duplicar"><Copy className="w-3.5 h-3.5 text-brand-secondary" /></button>
                         <button onClick={() => cms.softDeleteCategory(c.id)} className="bg-red-50 hover:bg-red-100 p-1.5 rounded" title="Mover a papelera"><Trash2 className="w-3.5 h-3.5 text-red-500" /></button>
                       </div>
                     )}

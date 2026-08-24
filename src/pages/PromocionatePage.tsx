@@ -23,9 +23,9 @@ const CATEGORY_TABS = [
 
 // Sub-categorías por plataforma (filtro fino)
 const PLATFORM_TABS = [
-  { id: 'all',       label: 'Todas',    icon: '🌐', color: 'bg-pink-500' },
-  { id: 'TikTok',    label: 'TikTok',   icon: '🎵', color: 'bg-pink-500' },
-  { id: 'Instagram', label: 'Instagram',icon: '📸', color: 'from-purple-500 via-pink-500 to-orange-400' },
+  { id: 'all',       label: 'Todas',    icon: '🌐', color: 'bg-brand' },
+  { id: 'TikTok',    label: 'TikTok',   icon: '🎵', color: 'bg-brand' },
+  { id: 'Instagram', label: 'Instagram',icon: '📸', color: 'from-purple-500 via-brand to-orange-400' },
   { id: 'Facebook',  label: 'Facebook', icon: '📘', color: 'bg-blue-600' },
   { id: 'YouTube',   label: 'YouTube',  icon: '▶️', color: 'bg-red-500' },
   { id: 'Spotify',   label: 'Spotify',  icon: '🎧', color: 'bg-green-500' },
@@ -121,7 +121,7 @@ const PromoServiceCard: React.FC<{
 
         <div className="flex flex-wrap gap-1.5 mb-3">
           {service.platforms.map((p, i) => (
-            <span key={i} className="inline-flex items-center gap-1 text-[10px] bg-pink-50 text-pink-600 px-2 py-1 rounded-lg font-semibold border border-pink-100">
+            <span key={i} className="inline-flex items-center gap-1 text-[10px] bg-pink-50 text-brand px-2 py-1 rounded-lg font-semibold border border-pink-100">
               {p.icon} {p.accounts > 1 ? `${p.accounts} cuentas` : p.name} · {formatFollowers(p.totalFollowers)}
             </span>
           ))}
@@ -140,7 +140,7 @@ const PromoServiceCard: React.FC<{
             </p>
           ))}
           {service.includes.length > 3 && (
-            <p className="text-[10px] text-pink-500 font-semibold">+{service.includes.length - 3} más incluidos</p>
+            <p className="text-[10px] text-brand font-semibold">+{service.includes.length - 3} más incluidos</p>
           )}
         </div>
 
@@ -161,7 +161,7 @@ const PromoServiceCard: React.FC<{
             {service.extras.map((extra, i) => (
               <div key={i} className="flex items-center justify-between py-0.5 text-[11px]">
                 <span className="text-gray-600">+ {extra.label}</span>
-                <span className="text-pink-500 font-bold">+€{extra.price}</span>
+                <span className="text-brand font-bold">+€{extra.price}</span>
               </div>
             ))}
           </div>
@@ -169,7 +169,7 @@ const PromoServiceCard: React.FC<{
 
         {/* Action buttons — 3 buttons */}
         <div className="flex gap-2">
-          <button onClick={onChat} className="flex items-center justify-center gap-1 border-2 border-pink-500 text-pink-500 font-bold rounded-xl py-2.5 px-3 text-xs hover:bg-pink-500 hover:text-white transition-all">
+          <button onClick={onChat} className="flex items-center justify-center gap-1 border-2 border-brand text-brand font-bold rounded-xl py-2.5 px-3 text-xs hover:bg-brand hover:text-white transition-all">
             <MessageSquare className="w-3.5 h-3.5" />
           </button>
           <button
@@ -178,12 +178,12 @@ const PromoServiceCard: React.FC<{
             className={`flex-1 flex items-center justify-center gap-1.5 font-bold rounded-xl py-2.5 text-xs transition-all border-2 ${
               isInCart
                 ? 'border-green-400 text-green-600 bg-green-50 cursor-default'
-                : 'border-fuchsia-500 text-fuchsia-600 hover:bg-fuchsia-500 hover:text-white'
+                : 'border-brand-secondary text-brand-secondary hover:bg-brand-secondary hover:text-white'
             }`}
           >
             <ShoppingCart className="w-3.5 h-3.5" /> {isInCart ? 'Reservado' : 'Reservar'}
           </button>
-          <button onClick={onBuy} className="flex-1 flex items-center justify-center gap-1.5 bg-brand-orange text-white font-bold rounded-xl py-2.5 text-xs hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25">
+          <button onClick={onBuy} className="flex-1 flex items-center justify-center gap-1.5 bg-brand-orange text-white font-bold rounded-xl py-2.5 text-xs hover:from-brand hover:to-fuchsia-700 transition-all shadow-lg shadow-brand/25">
             <ShoppingBag className="w-3.5 h-3.5" /> Contratar
           </button>
         </div>
@@ -214,10 +214,10 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
         {/* ── Header ── */}
         <div className="relative flex-shrink-0 px-5 pt-5 pb-4">
           {/* Decorative glow */}
-          <div className="absolute top-0 right-0 w-40 h-40 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-40 h-40 bg-brand-secondary/20 rounded-full blur-3xl pointer-events-none" />
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-brand-orange flex items-center justify-center shadow-lg shadow-fuchsia-500/30">
+              <div className="w-9 h-9 rounded-xl bg-brand-orange flex items-center justify-center shadow-lg shadow-brand-secondary/30">
                 <ShoppingCart className="w-4.5 h-4.5 text-white" style={{ width: 18, height: 18 }} />
               </div>
               <div>
@@ -229,7 +229,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
             </div>
             <div className="flex items-center gap-2">
               {items.length > 0 && (
-                <span className="bg-brand-orange text-white text-xs font-black px-2.5 py-1 rounded-full shadow-lg shadow-fuchsia-500/30">
+                <span className="bg-brand-orange text-white text-xs font-black px-2.5 py-1 rounded-full shadow-lg shadow-brand-secondary/30">
                   {items.length}
                 </span>
               )}
@@ -243,7 +243,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
           </div>
 
           {/* Divider with glow */}
-          <div className="mt-4 h-px bg-gradient-to-r from-transparent via-fuchsia-500/50 to-transparent" />
+          <div className="mt-4 h-px bg-gradient-to-r from-transparent via-brand-secondary/50 to-transparent" />
         </div>
 
         {/* ── Items List ── */}
@@ -255,7 +255,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
               </div>
               <p className="text-white/60 font-bold text-base">Tu carrito está vacío</p>
               <p className="text-white/30 text-sm mt-2 max-w-[200px] leading-relaxed">Reserva servicios y págalos todos juntos con un solo pago</p>
-              <button onClick={onClose} className="mt-6 bg-brand-orange text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25">
+              <button onClick={onClose} className="mt-6 bg-brand-orange text-white text-sm font-bold px-5 py-2.5 rounded-xl hover:from-brand hover:to-fuchsia-700 transition-all shadow-lg shadow-brand/25">
                 Explorar servicios
               </button>
             </div>
@@ -273,7 +273,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
                     {/* Item header */}
                     <div className="flex items-start gap-3 p-3.5">
                       <div className="relative flex-shrink-0">
-                        <img src={item.sellerAvatar} alt={item.sellerName} className="w-11 h-11 rounded-xl object-cover ring-2 ring-fuchsia-500/30" />
+                        <img src={item.sellerAvatar} alt={item.sellerName} className="w-11 h-11 rounded-xl object-cover ring-2 ring-brand-secondary/30" />
                         <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-brand-orange rounded-full flex items-center justify-center text-[8px] font-black text-white">
                           {idx + 1}
                         </div>
@@ -284,7 +284,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
                         <div className="flex items-center gap-1.5 mt-1.5">
                           <span className="text-[10px] bg-white/10 text-white/50 px-2 py-0.5 rounded-full">Base: €{item.price.toFixed(2)}</span>
                           {extrasTotal > 0 && (
-                            <span className="text-[10px] bg-fuchsia-500/20 text-fuchsia-300 px-2 py-0.5 rounded-full">+extras: €{extrasTotal.toFixed(2)}</span>
+                            <span className="text-[10px] bg-brand-secondary/20 text-fuchsia-300 px-2 py-0.5 rounded-full">+extras: €{extrasTotal.toFixed(2)}</span>
                           )}
                         </div>
                       </div>
@@ -314,7 +314,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
                                 onClick={() => toggleExtra(item.id, eidx)}
                                 className={`w-4 h-4 rounded flex items-center justify-center transition-all flex-shrink-0 cursor-pointer border ${
                                   extra.selected
-                                    ? 'bg-brand-orange border-transparent shadow-lg shadow-pink-500/30'
+                                    ? 'bg-brand-orange border-transparent shadow-lg shadow-brand/30'
                                     : 'border-white/20 bg-white/5 hover:border-fuchsia-400/50'
                                 }`}
                               >
@@ -386,7 +386,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
         {items.length > 0 && (
           <div className="flex-shrink-0 px-4 pb-5 pt-3">
             {/* Divider */}
-            <div className="h-px bg-gradient-to-r from-transparent via-fuchsia-500/40 to-transparent mb-4" />
+            <div className="h-px bg-gradient-to-r from-transparent via-brand-secondary/40 to-transparent mb-4" />
 
             {/* Totals */}
             <div className="rounded-2xl border border-white/10 p-4 mb-4 space-y-2.5" style={{ background: 'rgba(255,255,255,0.04)' }}>
@@ -413,7 +413,7 @@ const CartDrawer: React.FC<{ open: boolean; onClose: () => void; onCheckout: () 
             {/* CTA button */}
             <button
               onClick={onCheckout}
-              className="w-full relative overflow-hidden rounded-2xl py-4 flex items-center justify-center gap-2.5 font-black text-sm text-white transition-all hover:scale-[1.02] active:scale-95 shadow-2xl shadow-pink-500/30"
+              className="w-full relative overflow-hidden rounded-2xl py-4 flex items-center justify-center gap-2.5 font-black text-sm text-white transition-all hover:scale-[1.02] active:scale-95 shadow-2xl shadow-brand/30"
               style={{ background: 'linear-gradient(135deg, #ec4899 0%, #a855f7 50%, #6366f1 100%)' }}
             >
               {/* Shimmer effect */}
@@ -501,7 +501,7 @@ const CheckoutModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open,
               ))}
               <div className="border-t border-gray-200 pt-2 flex items-center justify-between">
                 <span className="text-xs text-gray-400">Comisión total BailaNow (15%)</span>
-                <span className="text-sm font-bold text-pink-500">€{getCommission().toFixed(2)}</span>
+                <span className="text-sm font-bold text-brand">€{getCommission().toFixed(2)}</span>
               </div>
             </div>
 
@@ -514,7 +514,7 @@ const CheckoutModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open,
           <div className="p-5">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-black text-xl text-gray-900 flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-pink-500" /> Checkout
+                <CreditCard className="w-5 h-5 text-brand" /> Checkout
               </h2>
               <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
                 <X className="w-5 h-5" />
@@ -532,7 +532,7 @@ const CheckoutModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open,
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-gray-900 truncate">{item.title}</p>
                       <p className="text-[10px] text-gray-400">{item.sellerName}</p>
-                      {extrasTotal > 0 && <p className="text-[10px] text-pink-500">+ extras: €{extrasTotal}</p>}
+                      {extrasTotal > 0 && <p className="text-[10px] text-brand">+ extras: €{extrasTotal}</p>}
                     </div>
                     <span className="font-bold text-sm text-gray-900">€{(item.price + extrasTotal).toFixed(2)}</span>
                   </div>
@@ -569,7 +569,7 @@ const CheckoutModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open,
               </div>
               <div className="border-t border-gray-200 pt-2 flex justify-between">
                 <span className="font-black text-lg text-gray-900">Total a pagar</span>
-                <span className="font-black text-xl text-pink-500">€{getTotal().toFixed(2)}</span>
+                <span className="font-black text-xl text-brand">€{getTotal().toFixed(2)}</span>
               </div>
             </div>
 
@@ -583,9 +583,9 @@ const CheckoutModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open,
                   { label: 'Wallet BailaNow', icon: '👛', selected: false },
                 ].map(pm => (
                   <label key={pm.label} className={`flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                    pm.selected ? 'border-pink-500 bg-pink-50' : 'border-gray-200 hover:border-gray-300'
+                    pm.selected ? 'border-brand bg-pink-50' : 'border-gray-200 hover:border-gray-300'
                   }`}>
-                    <input type="radio" name="payment" defaultChecked={pm.selected} className="w-4 h-4 text-pink-500 focus:ring-pink-500" />
+                    <input type="radio" name="payment" defaultChecked={pm.selected} className="w-4 h-4 text-brand focus:ring-brand" />
                     <span className="text-lg">{pm.icon}</span>
                     <span className="text-sm font-medium text-gray-900">{pm.label}</span>
                   </label>
@@ -597,7 +597,7 @@ const CheckoutModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open,
             <button
               onClick={handlePay}
               disabled={processing}
-              className="w-full bg-brand-orange text-white font-black rounded-xl py-4 text-sm hover:from-pink-600 hover:to-fuchsia-700 transition-all shadow-lg shadow-pink-500/25 flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full bg-brand-orange text-white font-black rounded-xl py-4 text-sm hover:from-brand hover:to-fuchsia-700 transition-all shadow-lg shadow-brand/25 flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {processing ? (
                 <>
@@ -659,13 +659,13 @@ const SellerModal: React.FC<{ seller: PromoSeller; onClose: () => void }> = ({ s
             <p className="text-[10px] text-gray-400">Rating</p>
           </div>
           <div className="bg-gray-50 rounded-xl p-3 text-center">
-            <p className="font-black text-lg text-pink-500">{seller.responseTime}</p>
+            <p className="font-black text-lg text-brand">{seller.responseTime}</p>
             <p className="text-[10px] text-gray-400">Respuesta</p>
           </div>
         </div>
 
         <h3 className="font-bold text-sm text-gray-900 mb-3 flex items-center gap-2">
-          <TrendingUp className="w-4 h-4 text-pink-500" /> Redes Sociales & Métricas
+          <TrendingUp className="w-4 h-4 text-brand" /> Redes Sociales & Métricas
         </h3>
         <div className="space-y-2 mb-4">
           {seller.socialProof.map((s, i) => (
@@ -678,7 +678,7 @@ const SellerModal: React.FC<{ seller: PromoSeller; onClose: () => void }> = ({ s
                 </div>
               </div>
               <div className="text-right">
-                <p className="text-xs font-black text-pink-500">{formatFollowers(s.followers)}</p>
+                <p className="text-xs font-black text-brand">{formatFollowers(s.followers)}</p>
                 <p className="text-[10px] text-gray-400">{formatFollowers(s.monthlyReach)}/mes alcance</p>
               </div>
             </div>
@@ -688,7 +688,7 @@ const SellerModal: React.FC<{ seller: PromoSeller; onClose: () => void }> = ({ s
         {seller.metricsScreenshots.length > 0 && (
           <>
             <h3 className="font-bold text-sm text-gray-900 mb-3 flex items-center gap-2">
-              <Eye className="w-4 h-4 text-pink-500" /> Capturas de Métricas
+              <Eye className="w-4 h-4 text-brand" /> Capturas de Métricas
             </h3>
             <div className="flex gap-2 overflow-x-auto pb-2">
               {seller.metricsScreenshots.map((ss, i) => (
@@ -740,8 +740,8 @@ function normalizeService(r: any): PromoService {
 const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate>; onOpenQR: () => void }> = ({ navigate, onOpenQR }) => (
   <section className="mb-8">
     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-gray-900 to-black p-5 sm:p-7">
-      <div className="absolute -top-16 -right-16 w-64 h-64 bg-fuchsia-600/20 rounded-full blur-3xl" />
-      <div className="absolute -bottom-16 -left-16 w-64 h-64 bg-pink-600/20 rounded-full blur-3xl" />
+      <div className="absolute -top-16 -right-16 w-64 h-64 bg-brand-secondary/20 rounded-full blur-3xl" />
+      <div className="absolute -bottom-16 -left-16 w-64 h-64 bg-brand/20 rounded-full blur-3xl" />
       <div className="relative">
         <div className="text-center mb-6">
           <span className="inline-block bg-brand-orange text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full mb-3">
@@ -792,7 +792,7 @@ const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate>; onOpen
             <div key={plan.id}
               className={`relative rounded-2xl p-5 flex flex-col ${
                 plan.popular
-                  ? 'bg-white shadow-2xl shadow-fuchsia-500/20 ring-2 ring-fuchsia-400 sm:scale-105'
+                  ? 'bg-white shadow-2xl shadow-brand-secondary/20 ring-2 ring-fuchsia-400 sm:scale-105'
                   : 'bg-white/5 border border-white/10 backdrop-blur-sm'
               }`}>
               {plan.popular && (
@@ -805,7 +805,7 @@ const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate>; onOpen
                   {plan.icon}
                 </div>
                 <h3 className={`font-display font-black text-lg ${plan.popular ? 'text-gray-900' : 'text-white'}`}>{plan.name}</h3>
-                <p className={`text-[11px] font-bold ${plan.popular ? 'text-fuchsia-600' : 'text-pink-300'}`}>{plan.tagline}</p>
+                <p className={`text-[11px] font-bold ${plan.popular ? 'text-brand-secondary' : 'text-pink-300'}`}>{plan.tagline}</p>
                 <div className="mt-2 flex items-end justify-center gap-0.5">
                   <span className={`font-display font-black text-3xl ${plan.popular ? 'text-gray-900' : 'text-white'}`}>€{plan.price}</span>
                   <span className={`text-xs mb-1 ${plan.popular ? 'text-gray-400' : 'text-white/50'}`}>{plan.period}</span>
@@ -814,7 +814,7 @@ const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate>; onOpen
               <ul className="space-y-1.5 flex-1 mb-4">
                 {plan.features.map((f, i) => (
                   <li key={i} className={`flex items-start gap-1.5 text-xs ${plan.popular ? 'text-gray-600' : 'text-white/70'}`}>
-                    <CheckCircle className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${plan.popular ? 'text-fuchsia-500' : 'text-pink-400'}`} />
+                    <CheckCircle className={`w-3.5 h-3.5 flex-shrink-0 mt-0.5 ${plan.popular ? 'text-brand-secondary' : 'text-pink-400'}`} />
                     <span>{f}</span>
                   </li>
                 ))}
@@ -936,7 +936,7 @@ const PromocionatePage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-20 transition-colors">
       {/* Hero */}
-      <div className="relative bg-gradient-to-br from-pink-600 via-fuchsia-600 to-fuchsia-800 overflow-hidden">
+      <div className="relative bg-gradient-to-br from-brand via-brand-secondary to-fuchsia-800 overflow-hidden">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-10 left-10 w-40 h-40 bg-white rounded-full blur-3xl" />
           <div className="absolute bottom-10 right-10 w-60 h-60 bg-yellow-300 rounded-full blur-3xl" />
@@ -1002,7 +1002,7 @@ const PromocionatePage: React.FC = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all ${
                 activeTab === tab.id
-                  ? 'bg-brand-orange text-white shadow-lg shadow-pink-500/25'
+                  ? 'bg-brand-orange text-white shadow-lg shadow-brand/25'
                   : 'bg-white text-gray-600 border border-gray-200 hover:border-pink-300'
               }`}
             >
@@ -1044,11 +1044,11 @@ const PromocionatePage: React.FC = () => {
 
         {/* Filtro activo de vendedor */}
         {sellerFilter && (
-          <div className="mt-3 flex items-center gap-2 bg-pink-50 dark:bg-pink-900/20 border border-pink-200 dark:border-pink-700 rounded-xl px-3 py-2">
+          <div className="mt-3 flex items-center gap-2 bg-pink-50 dark:bg-brand-deep/20 border border-pink-200 dark:border-pink-700 rounded-xl px-3 py-2">
             <span className="text-xs text-pink-700 dark:text-pink-300 font-bold">
               👤 Mostrando solo servicios de: <strong>{sellers.find(s => s.id === sellerFilter)?.name}</strong>
             </span>
-            <button onClick={() => setSellerFilter(null)} className="ml-auto text-pink-500 hover:text-pink-700 text-xs font-bold">
+            <button onClick={() => setSellerFilter(null)} className="ml-auto text-brand hover:text-pink-700 text-xs font-bold">
               ✕ Quitar filtro
             </button>
           </div>
@@ -1058,7 +1058,7 @@ const PromocionatePage: React.FC = () => {
         {cart.items.length > 0 && (
           <button
             onClick={() => setCartOpen(true)}
-            className="mt-4 w-full bg-gradient-to-r from-pink-600 via-fuchsia-600 to-pink-600 text-white rounded-2xl shadow-2xl shadow-fuchsia-500/30 px-5 py-3.5 flex items-center gap-4 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            className="mt-4 w-full bg-gradient-to-r from-brand via-brand-secondary to-brand text-white rounded-2xl shadow-2xl shadow-brand-secondary/30 px-5 py-3.5 flex items-center gap-4 hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
             {/* Icono + badge */}
             <div className="relative flex-shrink-0">
@@ -1095,7 +1095,7 @@ const PromocionatePage: React.FC = () => {
         <div className="mt-6 mb-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-display font-black text-lg text-gray-900 flex items-center gap-2">
-              <Shield className="w-5 h-5 text-pink-500" /> Vendedores Verificados
+              <Shield className="w-5 h-5 text-brand" /> Vendedores Verificados
             </h2>
           </div>
           <p className="text-xs text-gray-400 mb-2">💡 Toca un vendedor para ver SOLO sus servicios. Cada vendedor puede tener varios.</p>
@@ -1104,7 +1104,7 @@ const PromocionatePage: React.FC = () => {
               const isFiltering = sellerFilter === seller.id;
               const sellerServices = services.filter(s => s.sellerId === seller.id);
               return (
-                <div key={seller.id} className={`flex-shrink-0 w-72 ${isFiltering ? 'ring-2 ring-pink-500 rounded-2xl' : ''}`}>
+                <div key={seller.id} className={`flex-shrink-0 w-72 ${isFiltering ? 'ring-2 ring-brand rounded-2xl' : ''}`}>
                   <div className="relative">
                     <SellerCard
                       seller={seller}
@@ -1122,7 +1122,7 @@ const PromocionatePage: React.FC = () => {
                     </div>
                     <button
                       onClick={e => { e.stopPropagation(); setSelectedSeller(seller); }}
-                      className="absolute bottom-2 right-2 bg-white/95 dark:bg-gray-900/95 text-pink-600 text-[10px] font-bold px-2 py-1 rounded-full shadow border border-pink-200 hover:bg-pink-50"
+                      className="absolute bottom-2 right-2 bg-white/95 dark:bg-gray-900/95 text-brand text-[10px] font-bold px-2 py-1 rounded-full shadow border border-pink-200 hover:bg-pink-50"
                     >
                       Ver perfil →
                     </button>
@@ -1142,7 +1142,7 @@ const PromocionatePage: React.FC = () => {
 
         {/* Service Grid */}
         {loading ? (
-          <div className="py-20 text-center"><Loader2 className="w-8 h-8 mx-auto animate-spin text-pink-500" /></div>
+          <div className="py-20 text-center"><Loader2 className="w-8 h-8 mx-auto animate-spin text-brand" /></div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map(service => (
@@ -1169,8 +1169,8 @@ const PromocionatePage: React.FC = () => {
 
         {/* CTA bottom */}
         <div className="mt-10 bg-gray-800 rounded-3xl p-6 sm:p-8 text-center relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-500/20 rounded-full blur-3xl" />
-          <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-fuchsia-500/20 rounded-full blur-3xl" />
+          <div className="absolute -top-10 -right-10 w-40 h-40 bg-brand/20 rounded-full blur-3xl" />
+          <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-brand-secondary/20 rounded-full blur-3xl" />
           <div className="relative">
             <span className="text-4xl">🚀</span>
             <h3 className="font-display font-black text-xl sm:text-2xl text-white mt-2 mb-2">¿Quieres vender tus servicios de promoción?</h3>

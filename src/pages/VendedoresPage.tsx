@@ -52,7 +52,7 @@ const VendedoresPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a]">
       {/* Header */}
-      <div className="bg-gradient-to-br from-gray-900 via-fuchsia-900 to-pink-900 px-4 pt-6 pb-8">
+      <div className="bg-gradient-to-br from-gray-900 via-brand-deep to-brand-deep px-4 pt-6 pb-8">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center">
             <Store className="w-5 h-5 text-white" />
@@ -81,7 +81,7 @@ const VendedoresPage: React.FC = () => {
             <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
               {TYPES.map(t => (
                 <button key={t} onClick={() => setSelectedType(t)}
-                  className={`flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-full transition-all ${selectedType === t ? 'bg-pink-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
+                  className={`flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-full transition-all ${selectedType === t ? 'bg-brand text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
                   {t}
                 </button>
               ))}
@@ -89,7 +89,7 @@ const VendedoresPage: React.FC = () => {
             <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
               {CITIES_LIST.map(c => (
                 <button key={c} onClick={() => setSelectedCity(c)}
-                  className={`flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-full transition-all ${selectedCity === c ? 'bg-fuchsia-500 text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
+                  className={`flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-full transition-all ${selectedCity === c ? 'bg-brand-secondary text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}>
                   {c}
                 </button>
               ))}
@@ -104,14 +104,14 @@ const VendedoresPage: React.FC = () => {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-black text-gray-900 dark:text-white text-base">🔥 Servicios Destacados</h2>
-            <button onClick={() => navigate('/marketplace')} className="text-pink-500 text-xs font-bold flex items-center gap-0.5">
+            <button onClick={() => navigate('/marketplace')} className="text-brand text-xs font-bold flex items-center gap-0.5">
               Ver todos <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
           {loading ? (
             <div className="py-6 text-center"><Loader2 className="w-6 h-6 mx-auto animate-spin text-pink-400" /></div>
           ) : services.length === 0 ? (
-            <p className="text-gray-400 text-sm py-4">Aún no hay servicios publicados. <button onClick={() => navigate('/marketplace')} className="text-pink-500 font-bold underline">Ver marketplace</button></p>
+            <p className="text-gray-400 text-sm py-4">Aún no hay servicios publicados. <button onClick={() => navigate('/marketplace')} className="text-brand font-bold underline">Ver marketplace</button></p>
           ) : (
             <div className="flex gap-3 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
               {services.map(svc => (
@@ -126,7 +126,7 @@ const VendedoresPage: React.FC = () => {
                         <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                         <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">{svc.rating || '—'}</span>
                       </div>
-                      <span className="text-pink-500 font-black text-sm">€{svc.price}</span>
+                      <span className="text-brand font-black text-sm">€{svc.price}</span>
                     </div>
                   </div>
                 </button>
@@ -150,7 +150,7 @@ const VendedoresPage: React.FC = () => {
             <div className="text-5xl mb-3">{artists.length === 0 ? '🎧' : '🔍'}</div>
             <p className="font-bold text-gray-700 dark:text-gray-300">{artists.length === 0 ? 'Aún no hay artistas registrados' : 'Sin resultados'}</p>
             <p className="text-gray-400 text-sm mt-1">{artists.length === 0 ? 'Los artistas aparecerán aquí cuando se registren en la plataforma.' : 'Prueba con otros filtros'}</p>
-            {artists.length > 0 && <button onClick={() => { setSearch(''); setSelectedType('Todos'); setSelectedCity('Todas'); }} className="mt-4 text-pink-500 text-sm font-bold underline">Limpiar filtros</button>}
+            {artists.length > 0 && <button onClick={() => { setSearch(''); setSelectedType('Todos'); setSelectedCity('Todas'); }} className="mt-4 text-brand text-sm font-bold underline">Limpiar filtros</button>}
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
@@ -175,7 +175,7 @@ const VendedoresPage: React.FC = () => {
                       <span className="text-[10px] font-semibold text-gray-700 dark:text-gray-300">{artist.rating || '—'}</span>
                       {artist.reviews > 0 && <span className="text-[9px] text-gray-400">({artist.reviews})</span>}
                     </div>
-                    {artist.priceFrom > 0 && <span className="text-[10px] font-bold text-pink-500">€{artist.priceFrom}</span>}
+                    {artist.priceFrom > 0 && <span className="text-[10px] font-bold text-brand">€{artist.priceFrom}</span>}
                   </div>
                   {artist.completedBookings > 0 && <div className="mt-2 flex items-center gap-1"><MapPin className="w-2.5 h-2.5 text-gray-400" /><span className="text-[9px] text-gray-400">{artist.completedBookings} reservas</span></div>}
                 </div>

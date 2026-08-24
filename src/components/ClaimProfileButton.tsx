@@ -112,7 +112,7 @@ const ClaimProfileButton: React.FC<Props> = ({ targetTable, targetId, targetName
     <>
       <button
         onClick={() => { setOpen(true); setSubmitted(false); }}
-        className={`relative inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black text-white bg-gradient-to-r from-pink-600 to-fuchsia-600 shadow-lg shadow-fuchsia-500/40 hover:shadow-fuchsia-500/60 hover:scale-[1.03] active:scale-95 transition-all ${fullWidth ? 'w-full justify-center' : ''}`}
+        className={`relative inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black text-white bg-gradient-to-r from-brand to-brand-secondary shadow-lg shadow-brand-secondary/40 hover:shadow-brand-secondary/60 hover:scale-[1.03] active:scale-95 transition-all ${fullWidth ? 'w-full justify-center' : ''}`}
       >
         <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5">
           <span className="absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75 animate-ping" />
@@ -155,7 +155,7 @@ const ClaimProfileButton: React.FC<Props> = ({ targetTable, targetId, targetName
 
                 {/* Perfil objetivo */}
                 <div className="bg-pink-50 border border-pink-100 rounded-2xl p-4 mb-5">
-                  <p className="text-xs font-bold text-pink-500 uppercase tracking-widest mb-1">Perfil a reclamar</p>
+                  <p className="text-xs font-bold text-brand uppercase tracking-widest mb-1">Perfil a reclamar</p>
                   <p className="font-black text-gray-900">{targetName}</p>
                   <p className="text-xs text-gray-400">{TABLE_LABEL[targetTable]}</p>
                 </div>
