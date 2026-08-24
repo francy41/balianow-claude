@@ -131,7 +131,7 @@ const ClassesPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-24">
       {/* Hero */}
-      <div className="bg-gradient-to-br from-pink-500 via-fuchsia-600 to-fuchsia-700 text-white px-4 pt-6 pb-8 relative overflow-hidden">
+      <div className="bg-gradient-to-br from-brand via-brand-secondary to-fuchsia-700 text-white px-4 pt-6 pb-8 relative overflow-hidden">
         <div className="max-w-6xl mx-auto relative">
           <div className="flex items-center gap-2 mb-2">
             <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
@@ -176,7 +176,7 @@ const ClassesPage: React.FC = () => {
             <button key={l} onClick={() => setFilterLevel(l)}
               className={`flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-bold transition-all ${
                 filterLevel === l
-                  ? 'bg-fuchsia-600 text-white'
+                  ? 'bg-brand-secondary text-white'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
               }`}>
               🎯 {l}
@@ -199,7 +199,7 @@ const ClassesPage: React.FC = () => {
       <div className="max-w-6xl mx-auto px-4 mt-5">
         {loading ? (
           <div className="text-center py-16">
-            <div className="w-10 h-10 border-3 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto" />
+            <div className="w-10 h-10 border-3 border-brand border-t-transparent rounded-full animate-spin mx-auto" />
             <p className="text-gray-400 text-sm mt-3">Cargando clases…</p>
           </div>
         ) : classes.length === 0 ? (
@@ -213,7 +213,7 @@ const ClassesPage: React.FC = () => {
             <p className="text-5xl mb-3">📚</p>
             <p className="font-bold text-gray-700 dark:text-gray-300">No hay clases con esos filtros</p>
             <button onClick={() => { setFilterStyle('Todos'); setFilterLevel('Todos'); setFilterOnline('all'); }}
-              className="mt-3 bg-pink-500 text-white px-4 py-2 rounded-xl text-sm font-bold">
+              className="mt-3 bg-brand text-white px-4 py-2 rounded-xl text-sm font-bold">
               Quitar filtros
             </button>
           </div>
@@ -285,7 +285,7 @@ const ClassCard: React.FC<{ cls: ClassOffering; onClick: () => void; onPractice?
         <div className="absolute top-2 left-2 flex gap-1.5 flex-wrap">
           {cls.is_online && <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full flex items-center gap-1"><Video className="w-3 h-3" />En vivo</span>}
           {cls.style?.slice(0, 2).map(s => (
-            <span key={s} className="bg-white/95 text-pink-600 text-[10px] font-bold px-2 py-0.5 rounded-full">{s}</span>
+            <span key={s} className="bg-white/95 text-brand text-[10px] font-bold px-2 py-0.5 rounded-full">{s}</span>
           ))}
         </div>
         <div className="absolute bottom-2 right-2 bg-black/70 backdrop-blur-sm rounded-full px-2.5 py-1 text-white text-xs font-black">
@@ -316,12 +316,12 @@ const ClassCard: React.FC<{ cls: ClassOffering; onClick: () => void; onPractice?
         </div>
 
         {cls.next_slot ? (
-          <div className="bg-brand-orange dark:from-pink-900/20 dark:to-pink-900/20 rounded-xl px-3 py-2 flex items-center justify-between">
+          <div className="bg-brand-orange dark:from-brand-deep/20 dark:to-brand-deep/20 rounded-xl px-3 py-2 flex items-center justify-between">
             <div>
-              <p className="text-[10px] uppercase font-black text-pink-600 dark:text-pink-300">Próxima clase</p>
+              <p className="text-[10px] uppercase font-black text-brand dark:text-pink-300">Próxima clase</p>
               <p className="text-xs font-bold text-ink-primary">{fmtDate(cls.next_slot.starts_at)}</p>
             </div>
-            <ChevronRight className="w-4 h-4 text-pink-500" />
+            <ChevronRight className="w-4 h-4 text-brand" />
           </div>
         ) : (
           <div className="bg-surface-elevated-2 rounded-xl px-3 py-2 text-center">

@@ -251,7 +251,7 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
         className="bg-white dark:bg-gray-900 sm:rounded-3xl rounded-t-3xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col">
 
         {/* Header */}
-        <div className="relative h-32 bg-gradient-to-br from-pink-500 via-fuchsia-600 to-rose-700 overflow-hidden flex-shrink-0">
+        <div className="relative h-32 bg-gradient-to-br from-brand via-brand-secondary to-rose-700 overflow-hidden flex-shrink-0">
           {offering.cover_image && <img src={offering.cover_image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-30" />}
           <button onClick={onClose}
             className="absolute top-3 right-3 w-9 h-9 bg-black/40 backdrop-blur-sm rounded-full flex items-center justify-center text-white z-10">
@@ -297,7 +297,7 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
                 <CalendarIcon className="w-3.5 h-3.5" /> Elige día
               </p>
               {loading ? (
-                <div className="text-center py-8"><Loader2 className="w-6 h-6 text-pink-500 animate-spin mx-auto" /></div>
+                <div className="text-center py-8"><Loader2 className="w-6 h-6 text-brand animate-spin mx-auto" /></div>
               ) : (
                 <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4" style={{ scrollbarWidth: 'none' }}>
                   {days.map(d => {
@@ -358,7 +358,7 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
 
           {step === 'paying' && (
             <div className="p-8 text-center">
-              <Loader2 className="w-12 h-12 text-pink-500 animate-spin mx-auto mb-3" />
+              <Loader2 className="w-12 h-12 text-brand animate-spin mx-auto mb-3" />
               <p className="font-black text-gray-900 dark:text-white">Procesando pago…</p>
               <p className="text-xs text-gray-500 mt-1">No cierres esta ventana</p>
             </div>
@@ -375,7 +375,7 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
                 <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-4 text-left space-y-2 max-w-sm mx-auto">
                   <div className="flex justify-between"><span className="text-xs text-gray-500">Clase</span><span className="text-sm font-bold text-gray-900 dark:text-white text-right">{offering.title}</span></div>
                   <div className="flex justify-between"><span className="text-xs text-gray-500">Fecha</span><span className="text-sm font-bold text-gray-900 dark:text-white">{new Date(selectedSlot.starts_at).toLocaleString('es-ES', { dateStyle: 'medium', timeStyle: 'short' })}</span></div>
-                  <div className="flex justify-between"><span className="text-xs text-gray-500">Pagado</span><span className="text-sm font-black text-pink-600">€{offering.price}</span></div>
+                  <div className="flex justify-between"><span className="text-xs text-gray-500">Pagado</span><span className="text-sm font-black text-brand">€{offering.price}</span></div>
                 </div>
               )}
               <button onClick={onBooked}
@@ -397,7 +397,7 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
               <p className="text-[10px] text-gray-400">Incluye {commissionPct}% plataforma</p>
             </div>
             <button onClick={handleConfirm} disabled={!selectedSlot || submitting}
-              className="bg-brand-orange text-white font-black px-6 py-3 rounded-2xl shadow-lg shadow-pink-500/30 flex items-center gap-2 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed">
+              className="bg-brand-orange text-white font-black px-6 py-3 rounded-2xl shadow-lg shadow-brand/30 flex items-center gap-2 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed">
               {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
               <span>Reservar y pagar</span>
               <ArrowRight className="w-4 h-4" />

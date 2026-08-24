@@ -13,7 +13,7 @@ const HomeBackground: React.FC = () => {
   return (
     <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
       {/* Capa de gradient base (rosa de marca, visible) */}
-      <div className="absolute inset-0 bg-gradient-to-b from-pink-100/70 via-pink-50/50 to-fuchsia-100/60 dark:from-gray-900/80 dark:via-[#0a0a0a] dark:to-[#831843]/30" />
+      <div className="absolute inset-0 bg-gradient-to-b from-pink-100/70 via-pink-50/50 to-fuchsia-100/60 dark:from-gray-900/80 dark:via-[#0a0a0a] dark:to-brand-deep/30" />
 
       {/* Blob 1 — rosa de marca top-right */}
       <div

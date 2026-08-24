@@ -231,7 +231,7 @@ const ClaimsAdminSection: React.FC<Props> = ({ addToast }) => {
                     <span className="flex items-center gap-1"><Mail className="w-3 h-3" /> {claim.claimant_email}</span>
                     {claim.claimant_phone && <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {claim.claimant_phone}</span>}
                     {claim.evidence_url && (
-                      <a href={claim.evidence_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-pink-600 hover:underline">
+                      <a href={claim.evidence_url} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-brand hover:underline">
                         <LinkIcon className="w-3 h-3" /> Ver evidencia
                       </a>
                     )}

@@ -12,12 +12,12 @@ interface Tool {
 }
 
 const TOOLS: Tool[] = [
-  { id: 'qr',       icon: <QrCode className="w-5 h-5" />,        title: 'Código QR',       desc: 'QR a tu perfil, reservas o enlace',        gradient: 'bg-fuchsia-500', action: 'qr' },
+  { id: 'qr',       icon: <QrCode className="w-5 h-5" />,        title: 'Código QR',       desc: 'QR a tu perfil, reservas o enlace',        gradient: 'bg-brand-secondary', action: 'qr' },
   { id: 'checkin',  icon: <ScanLine className="w-5 h-5" />,      title: 'Check-in en puerta', desc: 'Escanea entradas con la cámara',        gradient: 'bg-blue-500',    action: 'nav', path: '/dashboard?tab=scanner' },
   { id: 'mesas',    icon: <Wine className="w-5 h-5" />,          title: 'Mesas VIP',       desc: 'Bottle service y palcos en eventos',       gradient: 'bg-amber-500',   action: 'nav', path: '/eventos' },
-  { id: 'reservas', icon: <CalendarCheck className="w-5 h-5" />, title: 'Reservas con seña', desc: 'Cobra un depósito, resto en el local',   gradient: 'bg-pink-500',      action: 'nav', path: '/eventos' },
+  { id: 'reservas', icon: <CalendarCheck className="w-5 h-5" />, title: 'Reservas con seña', desc: 'Cobra un depósito, resto en el local',   gradient: 'bg-brand',      action: 'nav', path: '/eventos' },
   { id: 'stats',    icon: <BarChart3 className="w-5 h-5" />,     title: 'Estadísticas',    desc: 'Ganancias y métricas del negocio',         gradient: 'bg-emerald-500',   action: 'nav', path: '/dashboard?tab=earnings' },
-  { id: 'master',   icon: <GraduationCap className="w-5 h-5" />, title: 'Masterclass',     desc: 'Entradas premium con profe invitado',      gradient: 'bg-fuchsia-500', action: 'nav', path: '/eventos?cat=Masterclass' },
+  { id: 'master',   icon: <GraduationCap className="w-5 h-5" />, title: 'Masterclass',     desc: 'Entradas premium con profe invitado',      gradient: 'bg-brand-secondary', action: 'nav', path: '/eventos?cat=Masterclass' },
   { id: 'split',    icon: <Users className="w-5 h-5" />,         title: 'Dividir pago',    desc: 'Reparte una mesa entre el grupo',          gradient: 'bg-teal-500',      action: 'split' },
 ];
 

@@ -22,9 +22,9 @@ interface Choreo {
 }
 
 const GRADIENTS = [
-  'bg-pink-500', 'bg-cyan-500', 'bg-fuchsia-500',
+  'bg-brand', 'bg-cyan-500', 'bg-brand-secondary',
   'bg-amber-500', 'bg-rose-400', 'bg-red-500',
-  'bg-green-400', 'bg-fuchsia-500', 'bg-yellow-400',
+  'bg-green-400', 'bg-brand-secondary', 'bg-yellow-400',
 ];
 
 const DanceChoreoAdmin: React.FC = () => {
@@ -73,7 +73,7 @@ const DanceChoreoAdmin: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="py-12 text-center"><Loader2 className="w-7 h-7 animate-spin text-pink-500 mx-auto" /></div>
+        <div className="py-12 text-center"><Loader2 className="w-7 h-7 animate-spin text-brand mx-auto" /></div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
           {items.map(c => (
@@ -82,7 +82,7 @@ const DanceChoreoAdmin: React.FC = () => {
                 {c.video_url ? <video src={c.video_url} className="w-full h-full object-cover" muted loop autoPlay playsInline />
                   : c.avatar_url ? <img src={c.avatar_url} alt={c.name} className="w-full h-full object-cover" />
                   : <span className="text-5xl">{c.avatar_emoji}</span>}
-                <span className={`absolute top-2 right-2 text-[9px] font-bold px-2 py-0.5 rounded-full ${c.mode === 'pareja' ? 'bg-purple-500' : 'bg-pink-500'} text-white`}>{c.mode}</span>
+                <span className={`absolute top-2 right-2 text-[9px] font-bold px-2 py-0.5 rounded-full ${c.mode === 'pareja' ? 'bg-purple-500' : 'bg-brand'} text-white`}>{c.mode}</span>
                 {(c.avatar_url || c.video_url) && <span className="absolute top-2 left-2 text-[8px] bg-green-500 text-white px-1 rounded font-bold">REAL</span>}
               </div>
               <div className="p-3">
@@ -93,7 +93,7 @@ const DanceChoreoAdmin: React.FC = () => {
                   <button onClick={() => toggleActive(c)} className={`text-xs px-2 py-1 rounded-lg ${c.active ? 'text-green-600' : 'text-gray-400'}`}>{c.active ? '✓' : '○'}</button>
                   <button onClick={() => handleDelete(c)} className="text-xs px-2 py-1 rounded-lg text-red-400 hover:bg-red-50"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
-                <button onClick={() => setLessonsFor(c)} className="w-full mt-1 text-xs py-1.5 rounded-lg bg-fuchsia-50 text-fuchsia-600 font-bold hover:bg-fuchsia-100 flex items-center justify-center gap-1">
+                <button onClick={() => setLessonsFor(c)} className="w-full mt-1 text-xs py-1.5 rounded-lg bg-fuchsia-50 text-brand-secondary font-bold hover:bg-fuchsia-100 flex items-center justify-center gap-1">
                   <ListVideo className="w-3.5 h-3.5" /> Pasos / Lecciones
                 </button>
               </div>
@@ -180,7 +180,7 @@ const ChoreoEditModal: React.FC<{ choreo: Choreo; onClose: () => void; onSaved: 
                 {form.avatar_url ? <img src={form.avatar_url} className="w-full h-full object-cover" alt="" />
                   : <div className="w-full h-full flex items-center justify-center text-4xl">{form.avatar_emoji}</div>}
               </div>
-              <label className="cursor-pointer block text-center text-xs bg-pink-50 text-pink-600 font-bold py-1.5 rounded-lg hover:bg-pink-100">
+              <label className="cursor-pointer block text-center text-xs bg-pink-50 text-brand font-bold py-1.5 rounded-lg hover:bg-pink-100">
                 {uploadingImg ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : <><Upload className="w-3 h-3 inline mr-1" />Subir</>}
                 <input type="file" accept="image/*" hidden onChange={handleImg} />
               </label>
@@ -191,7 +191,7 @@ const ChoreoEditModal: React.FC<{ choreo: Choreo; onClose: () => void; onSaved: 
                 {form.video_url ? <video src={form.video_url} className="w-full h-full object-cover" muted loop autoPlay playsInline />
                   : <div className="w-full h-full flex items-center justify-center text-gray-400"><Video className="w-8 h-8" /></div>}
               </div>
-              <label className="cursor-pointer block text-center text-xs bg-fuchsia-50 text-fuchsia-600 font-bold py-1.5 rounded-lg hover:bg-fuchsia-100">
+              <label className="cursor-pointer block text-center text-xs bg-fuchsia-50 text-brand-secondary font-bold py-1.5 rounded-lg hover:bg-fuchsia-100">
                 {uploadingVid ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : <><Upload className="w-3 h-3 inline mr-1" />Subir</>}
                 <input type="file" accept="video/*" hidden onChange={handleVid} />
               </label>
@@ -235,7 +235,7 @@ const ChoreoEditModal: React.FC<{ choreo: Choreo; onClose: () => void; onSaved: 
             <div className="flex flex-wrap gap-1.5">
               {GRADIENTS.map(g => (
                 <button key={g} onClick={() => set('gradient', g)}
-                  className={`w-8 h-8 rounded-lg bg-gradient-to-br ${g} ${form.gradient === g ? 'ring-2 ring-offset-2 ring-pink-500' : ''}`} />
+                  className={`w-8 h-8 rounded-lg bg-gradient-to-br ${g} ${form.gradient === g ? 'ring-2 ring-offset-2 ring-brand' : ''}`} />
               ))}
             </div>
           </div>
@@ -357,7 +357,7 @@ const LessonsModal: React.FC<{ choreo: Choreo; onClose: () => void }> = ({ chore
           <div>
             <p className="text-xs font-bold text-gray-500 uppercase mb-2">{loading ? 'Cargando…' : `${lessons.length} pasos`}</p>
             {loading ? (
-              <div className="py-6 text-center"><Loader2 className="w-6 h-6 animate-spin text-pink-500 mx-auto" /></div>
+              <div className="py-6 text-center"><Loader2 className="w-6 h-6 animate-spin text-brand mx-auto" /></div>
             ) : lessons.length === 0 ? (
               <p className="text-sm text-gray-400 text-center py-4">Aún no hay pasos. Añade el primero abajo 👇</p>
             ) : (
@@ -383,7 +383,7 @@ const LessonsModal: React.FC<{ choreo: Choreo; onClose: () => void }> = ({ chore
                     {l.video_url && !/youtube|youtu\.be/.test(l.video_url) && (
                       <button onClick={() => analyzeLesson(l)} disabled={!!analyzingId}
                         title="Analizar el vídeo y dejar el paso listo para sincronizar"
-                        className={`text-xs px-2 py-1 rounded-lg font-bold flex items-center gap-1 ${l.pose_track && l.pose_track.length ? 'bg-green-50 text-green-600' : 'bg-pink-500 text-white hover:bg-pink-600'} disabled:opacity-50`}>
+                        className={`text-xs px-2 py-1 rounded-lg font-bold flex items-center gap-1 ${l.pose_track && l.pose_track.length ? 'bg-green-50 text-green-600' : 'bg-brand text-white hover:bg-brand'} disabled:opacity-50`}>
                         {analyzingId === l.id
                           ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> {analyzeProgress}%</>
                           : <><Cpu className="w-3.5 h-3.5" /> {l.pose_track && l.pose_track.length ? 'Regrabar' : 'Analizar'}</>}
@@ -398,8 +398,8 @@ const LessonsModal: React.FC<{ choreo: Choreo; onClose: () => void }> = ({ chore
           </div>
 
           {/* Guía de sincronización */}
-          <details className="bg-pink-50 dark:bg-pink-500/10 border border-pink-200 dark:border-pink-500/20 rounded-xl text-xs">
-            <summary className="cursor-pointer font-bold text-pink-600 dark:text-pink-400 px-3 py-2 select-none">
+          <details className="bg-pink-50 dark:bg-brand/10 border border-pink-200 dark:border-brand/20 rounded-xl text-xs">
+            <summary className="cursor-pointer font-bold text-brand dark:text-pink-400 px-3 py-2 select-none">
               📐 Cómo grabar los vídeos para que sincronicen (pulsa para ver)
             </summary>
             <div className="px-3 pb-3 space-y-1.5 text-gray-600 dark:text-gray-300 leading-relaxed">
@@ -412,7 +412,7 @@ const LessonsModal: React.FC<{ choreo: Choreo; onClose: () => void }> = ({ chore
               <p><b>Conteo:</b> escribe el <i>conteo</i> exacto abajo (ej. bachata <i>1,2,3 - pausa - 5,6,7 - pausa</i>). Es lo que el sistema usa para el ritmo.</p>
               <p><b>Estructura (1 clase = 10 módulos):</b> pasos <b>1 → 9</b> = un movimiento cada uno; <b>módulo 10 = BAILE COMPLETO</b> (une todo). Al superar el 10 se completa el nivel y se desbloquea el siguiente reto. Luego crea la siguiente serie (otro nivel) empezando en el paso 1.</p>
               <a href="/guia-grabacion-bailanow.pdf" target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 mt-1 bg-pink-500 text-white font-bold px-3 py-1.5 rounded-lg text-[11px] hover:bg-pink-600">
+                className="inline-flex items-center gap-1.5 mt-1 bg-brand text-white font-bold px-3 py-1.5 rounded-lg text-[11px] hover:bg-brand">
                 <Upload className="w-3 h-3 rotate-180" /> Descargar guía PDF para enviar a los bailarines
               </a>
             </div>
@@ -420,7 +420,7 @@ const LessonsModal: React.FC<{ choreo: Choreo; onClose: () => void }> = ({ chore
 
           {/* Formulario añadir/editar paso */}
           <div className="border-t border-gray-100 dark:border-gray-800 pt-4 space-y-3">
-            <p className="text-xs font-bold text-pink-600 uppercase">{form.id ? '✏️ Editar paso' : '➕ Nuevo paso'}</p>
+            <p className="text-xs font-bold text-brand uppercase">{form.id ? '✏️ Editar paso' : '➕ Nuevo paso'}</p>
 
             <div className="grid grid-cols-4 gap-2">
               <input type="number" value={form.step_number} onChange={e => set('step_number', e.target.value)} placeholder="#" className="input-field col-span-1" />
@@ -441,7 +441,7 @@ const LessonsModal: React.FC<{ choreo: Choreo; onClose: () => void }> = ({ chore
             {/* Video del paso */}
             <div className="grid grid-cols-2 gap-2 items-start">
               <div>
-                <label className="cursor-pointer block text-center text-xs bg-fuchsia-50 text-fuchsia-600 font-bold py-2 rounded-lg hover:bg-fuchsia-100">
+                <label className="cursor-pointer block text-center text-xs bg-fuchsia-50 text-brand-secondary font-bold py-2 rounded-lg hover:bg-fuchsia-100">
                   {uploading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : <><Upload className="w-3 h-3 inline mr-1" />Subir video del paso</>}
                   <input type="file" accept="video/*" hidden onChange={handleVid} />
                 </label>

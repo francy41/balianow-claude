@@ -71,20 +71,20 @@ const WeeklyScheduleEditor: React.FC<Props> = ({
                   onClick={() => toggle(d)}
                   className={`w-full px-4 py-3 flex items-center justify-between text-sm font-bold rounded-xl ${on ? 'text-fuchsia-700' : 'text-gray-500 hover:text-gray-700'}`}>
                   <span className="flex items-center gap-2">
-                    <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${on ? 'bg-fuchsia-600 border-fuchsia-600 text-white text-[10px]' : 'border-gray-300'}`}>
+                    <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${on ? 'bg-brand-secondary border-brand-secondary text-white text-[10px]' : 'border-gray-300'}`}>
                       {on && '✓'}
                     </span>
                     {d}
                   </span>
                   {on && slot && (
-                    <span className="text-xs font-semibold text-fuchsia-500">{slot.from} – {slot.to}</span>
+                    <span className="text-xs font-semibold text-brand-secondary">{slot.from} – {slot.to}</span>
                   )}
                 </button>
 
                 {on && slot && (
                   <div className="px-4 pb-3 grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-semibold text-fuchsia-600 mb-1 uppercase tracking-wide">Desde</label>
+                      <label className="block text-[10px] font-semibold text-brand-secondary mb-1 uppercase tracking-wide">Desde</label>
                       <input
                         type="time"
                         value={slot.from}
@@ -93,7 +93,7 @@ const WeeklyScheduleEditor: React.FC<Props> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-semibold text-fuchsia-600 mb-1 uppercase tracking-wide">Hasta</label>
+                      <label className="block text-[10px] font-semibold text-brand-secondary mb-1 uppercase tracking-wide">Hasta</label>
                       <input
                         type="time"
                         value={slot.to}

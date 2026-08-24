@@ -62,7 +62,7 @@ const ImageInput: React.FC<{ label: string; value: string; folder: string; onCha
           ? <img src={value} alt="" className="w-16 h-16 rounded-xl object-cover border border-gray-200 flex-shrink-0" />
           : <div className="w-16 h-16 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0"><Upload className="w-5 h-5" /></div>}
         <div className="flex-1 space-y-2 min-w-0">
-          <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-pink-50 text-pink-600 text-xs font-semibold hover:bg-pink-100">
+          <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-pink-50 text-brand text-xs font-semibold hover:bg-pink-100">
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
             {uploading ? 'Subiendo…' : 'Subir'}
             <input type="file" accept="image/*" hidden onChange={e => handleFile(e.target.files?.[0])} />
@@ -205,7 +205,7 @@ const ArtistAdminPanel: React.FC<Props> = ({ id, onSaved, ownerUserId, autoOpen 
   return (
     <>
       <button onClick={openPanel} disabled={loading} title="Gestionar perfil (admin)"
-        className="fixed z-[70] bottom-24 left-4 sm:bottom-8 sm:left-8 flex items-center gap-2 bg-brand-orange text-white font-black text-sm px-5 py-3.5 rounded-2xl shadow-2xl shadow-fuchsia-500/40 hover:scale-105 transition-all ring-2 ring-white/40">
+        className="fixed z-[70] bottom-24 left-4 sm:bottom-8 sm:left-8 flex items-center gap-2 bg-brand-orange text-white font-black text-sm px-5 py-3.5 rounded-2xl shadow-2xl shadow-brand-secondary/40 hover:scale-105 transition-all ring-2 ring-white/40">
         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Settings2 className="w-5 h-5" />} Gestionar perfil
       </button>
 
@@ -226,7 +226,7 @@ const ArtistAdminPanel: React.FC<Props> = ({ id, onSaved, ownerUserId, autoOpen 
             <div className="flex flex-wrap border-b border-gray-100 flex-shrink-0">
               {tabs.map(t => (
                 <button key={t.id} onClick={() => setTab(t.id)}
-                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${tab === t.id ? 'border-pink-600 text-pink-700' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
+                  className={`flex items-center gap-1.5 px-3 sm:px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap ${tab === t.id ? 'border-brand text-pink-700' : 'border-transparent text-gray-500 hover:text-gray-800'}`}>
                   {t.icon} {t.label}
                 </button>
               ))}
@@ -270,7 +270,7 @@ const GeneralTab: React.FC<{ fields: EditField[]; form: any; setVal: (k: string,
                 {f.options?.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
             ) : f.type === 'checkbox' ? (
-              <button type="button" onClick={() => setVal(f.key, !v)} className={`relative w-12 h-6 rounded-full transition-colors mt-1 ${v ? 'bg-pink-600' : 'bg-gray-200'}`}>
+              <button type="button" onClick={() => setVal(f.key, !v)} className={`relative w-12 h-6 rounded-full transition-colors mt-1 ${v ? 'bg-brand' : 'bg-gray-200'}`}>
                 <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${v ? 'translate-x-7' : 'translate-x-1'}`} />
               </button>
             ) : f.type === 'tags' ? (
@@ -345,7 +345,7 @@ const GalleryEditor: React.FC<{ items: MediaItem[]; onChange: (v: MediaItem[]) =
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
         </div>
         <ImageInput label="" value={draft.url || ''} folder="artist-gallery" onChange={v => setDraft(d => ({ ...d, url: v, thumbnail: d.thumbnail || v }))} compact />
-        <button onClick={add} disabled={!draft.url?.trim()} className="w-full bg-pink-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-pink-700 disabled:opacity-40 flex items-center justify-center gap-1.5">
+        <button onClick={add} disabled={!draft.url?.trim()} className="w-full bg-brand text-white font-bold py-2 rounded-lg text-sm hover:bg-pink-700 disabled:opacity-40 flex items-center justify-center gap-1.5">
           <Plus className="w-4 h-4" /> Añadir a la galería
         </button>
       </div>
@@ -400,7 +400,7 @@ const PackagesEditor: React.FC<{ items: Pkg[]; onChange: (v: Pkg[]) => void; onS
         </div>
         <textarea value={d.description || ''} onChange={e => setD(s => ({ ...s, description: e.target.value }))} rows={2} placeholder="Descripción" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
         <input value={(d.includes || []).join(', ')} onChange={e => setD(s => ({ ...s, includes: e.target.value.split(',').map(x => x.trim()).filter(Boolean) }))} placeholder="Incluye (separado por comas)" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
-        <button onClick={add} disabled={!d.name?.trim()} className="w-full bg-pink-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-pink-700 disabled:opacity-40 flex items-center justify-center gap-1.5"><Plus className="w-4 h-4" /> Añadir paquete</button>
+        <button onClick={add} disabled={!d.name?.trim()} className="w-full bg-brand text-white font-bold py-2 rounded-lg text-sm hover:bg-pink-700 disabled:opacity-40 flex items-center justify-center gap-1.5"><Plus className="w-4 h-4" /> Añadir paquete</button>
       </div>
 
       <div>
@@ -567,7 +567,7 @@ const ClassPackagesEditor: React.FC<{ items: ClassPkg[]; onChange: (v: ClassPkg[
         {Number(d.price) > 0 && (
           <p className="text-xs text-gray-500">Por €{Number(d.price).toFixed(0)}: tú recibes <b className="text-green-600">€{(Number(d.price) * (100 - commission) / 100).toFixed(2)}</b>, plataforma €{(Number(d.price) * commission / 100).toFixed(2)} · cupo {capValue} persona{capValue > 1 ? 's' : ''}</p>
         )}
-        <button onClick={add} disabled={!d.name?.trim()} className="w-full bg-pink-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-pink-700 disabled:opacity-40 flex items-center justify-center gap-1.5"><Plus className="w-4 h-4" /> Añadir paquete de clase</button>
+        <button onClick={add} disabled={!d.name?.trim()} className="w-full bg-brand text-white font-bold py-2 rounded-lg text-sm hover:bg-pink-700 disabled:opacity-40 flex items-center justify-center gap-1.5"><Plus className="w-4 h-4" /> Añadir paquete de clase</button>
       </div>
 
       <div>
@@ -643,7 +643,7 @@ const CoursesEditor: React.FC<{ courses: Course[]; ownerId?: string; instructor:
           </select>
         </div>
         <ImageInput label="Imagen del curso" value={d.image_url} folder="courses" onChange={v => setD(s => ({ ...s, image_url: v }))} compact />
-        <button onClick={add} disabled={busy || !d.title.trim()} className="w-full bg-pink-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-pink-700 disabled:opacity-40 flex items-center justify-center gap-1.5">
+        <button onClick={add} disabled={busy || !d.title.trim()} className="w-full bg-brand text-white font-bold py-2 rounded-lg text-sm hover:bg-pink-700 disabled:opacity-40 flex items-center justify-center gap-1.5">
           {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />} Crear curso
         </button>
       </div>
@@ -658,7 +658,7 @@ const CoursesEditor: React.FC<{ courses: Course[]; ownerId?: string; instructor:
               <div key={c.id} className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl p-3 group">
                 {c.image_url
                   ? <img src={c.image_url} alt={c.title} className="w-12 h-12 rounded-lg object-cover flex-shrink-0" />
-                  : <div className="w-12 h-12 rounded-lg bg-pink-100 flex items-center justify-center flex-shrink-0"><GraduationCap className="w-5 h-5 text-pink-500" /></div>}
+                  : <div className="w-12 h-12 rounded-lg bg-pink-100 flex items-center justify-center flex-shrink-0"><GraduationCap className="w-5 h-5 text-brand" /></div>}
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-gray-900 text-sm truncate">{c.title}</p>
                   <p className="text-xs text-gray-400">€{c.price}{c.level ? ` · ${c.level}` : ''}{c.category ? ` · ${c.category}` : ''}</p>

@@ -128,7 +128,7 @@ const DashboardPage: React.FC = () => {
                   <h1 className="font-display font-black text-2xl text-gray-900">{user.name}</h1>
                   {user.isVerified && <CheckCircle className="w-5 h-5 text-blue-500" />}
                   {user.isPremium && <Badge variant="orange">👑 PRO</Badge>}
-                  {isPerformer && <span className="text-[10px] bg-fuchsia-100 text-fuchsia-600 px-2 py-0.5 rounded-full font-bold uppercase">Panel Creator</span>}
+                  {isPerformer && <span className="text-[10px] bg-fuchsia-100 text-brand-secondary px-2 py-0.5 rounded-full font-bold uppercase">Panel Creator</span>}
                 </div>
                 <p className="text-gray-400 capitalize">{user.role} · {user.city}{user.country ? `, ${user.country}` : ''}</p>
                 {user.socials && Object.values(user.socials).some(v => v) && (
@@ -413,7 +413,7 @@ const OverviewTab: React.FC<{ performerId: string; onNavigate: (t: TabId) => voi
           <span className="font-black text-brand-orange">{completionPct}%</span>
         </div>
         <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-4">
-          <div className="h-full bg-gradient-to-r from-pink-500 to-fuchsia-600 rounded-full transition-all" style={{ width: `${completionPct}%` }} />
+          <div className="h-full bg-gradient-to-r from-brand to-brand-secondary rounded-full transition-all" style={{ width: `${completionPct}%` }} />
         </div>
         {completionPct === 100 ? (
           <p className="text-sm text-gray-500">Tu perfil está completo. ¡Sigue publicando contenido para mantenerlo destacado!</p>
@@ -464,8 +464,8 @@ const MetricCard: React.FC<{ label: string; value: string; sub?: string; trendPc
   const colors = {
     green:  'bg-green-50 text-green-600',
     orange: 'bg-pink-50 text-brand-orange',
-    purple: 'bg-fuchsia-50 text-fuchsia-600',
-    pink:   'bg-pink-50 text-pink-600',
+    purple: 'bg-fuchsia-50 text-brand-secondary',
+    pink:   'bg-pink-50 text-brand',
   };
   const Comp: any = onClick ? 'button' : 'div';
   return (
@@ -489,8 +489,8 @@ const StatCard: React.FC<{ label: string; value: string; sub?: string; icon: Rea
   const colors = {
     green:  'bg-green-50 text-green-600',
     orange: 'bg-pink-50 text-brand-orange',
-    purple: 'bg-fuchsia-50 text-fuchsia-600',
-    pink:   'bg-pink-50 text-pink-600',
+    purple: 'bg-fuchsia-50 text-brand-secondary',
+    pink:   'bg-pink-50 text-brand',
   };
   return (
     <div className="card-white p-4">
@@ -1321,7 +1321,7 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
             fanTab === 'classes' ? 'bg-brand-orange text-white shadow-sm' : 'text-gray-500 hover:bg-gray-50'
           }`}>
           <Video className="w-4 h-4" /> Mis clases
-          {classBookings.length > 0 && <span className="bg-white text-pink-600 text-[10px] font-black px-1.5 py-0.5 rounded-full">{classBookings.length}</span>}
+          {classBookings.length > 0 && <span className="bg-white text-brand text-[10px] font-black px-1.5 py-0.5 rounded-full">{classBookings.length}</span>}
         </button>
         <button onClick={() => setFanTab('tickets')}
           className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
@@ -1361,14 +1361,14 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
         <div className="space-y-3">
           <div className="card-white p-5 bg-brand-orange border border-pink-100">
             <h2 className="font-display font-black text-xl text-gray-900 mb-1 flex items-center gap-2">
-              <Video className="w-5 h-5 text-pink-500" /> Mis clases reservadas
+              <Video className="w-5 h-5 text-brand" /> Mis clases reservadas
             </h2>
             <p className="text-gray-500 text-sm">Accede a la sala 10 minutos antes del horario. Tu profesor te estará esperando.</p>
           </div>
 
           {loadingClasses && (
             <div className="card-white p-12 text-center">
-              <div className="w-10 h-10 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+              <div className="w-10 h-10 border-4 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-2" />
               <p className="text-sm text-gray-400">Cargando tus reservas…</p>
             </div>
           )}
@@ -1471,7 +1471,7 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
           })}
 
           <div className="text-center pt-3">
-            <button onClick={() => navigate('/clases')} className="text-pink-600 text-sm font-bold hover:underline">
+            <button onClick={() => navigate('/clases')} className="text-brand text-sm font-bold hover:underline">
               + Reservar otra clase
             </button>
           </div>
@@ -1611,7 +1611,7 @@ const FanDashboard: React.FC<{ userId: string; userName: string }> = ({ userId, 
                     <p className="text-xs font-bold text-gray-900 truncate">{item.title}</p>
                     <p className="text-[10px] text-gray-400">{item.sellerName}</p>
                   </div>
-                  <span className="text-xs font-bold text-pink-600">€{item.price.toFixed(2)}</span>
+                  <span className="text-xs font-bold text-brand">€{item.price.toFixed(2)}</span>
                 </div>
               ))}
             </div>

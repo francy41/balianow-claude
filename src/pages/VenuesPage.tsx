@@ -160,8 +160,8 @@ const VenuesList: React.FC = () => {
     <div className="min-h-screen bg-gray-50 py-6">
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-fuchsia-950 to-black p-6 sm:p-8 text-white">
-          <div className="absolute -top-10 -right-10 w-48 h-48 bg-pink-500/25 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-12 -left-12 w-52 h-52 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-10 -right-10 w-48 h-48 bg-brand/25 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-12 -left-12 w-52 h-52 bg-brand-secondary/20 rounded-full blur-3xl pointer-events-none" />
           <div className="relative">
             <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-pink-300">🏛️ Locales</span>
             <h1 className="font-display font-black text-3xl sm:text-4xl mt-1.5 leading-tight">Locales y clubs latinos</h1>
@@ -225,7 +225,7 @@ const VenueCard: React.FC<{ venue: Venue; onClick: () => void }> = ({ venue, onC
       </span>
 
       {/* Favorito */}
-      <button onClick={e => e.stopPropagation()} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm border border-white/20 grid place-items-center text-white group-hover:bg-pink-500 transition">
+      <button onClick={e => e.stopPropagation()} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm border border-white/20 grid place-items-center text-white group-hover:bg-brand transition">
         <Heart className="w-4 h-4" />
       </button>
 
@@ -241,7 +241,7 @@ const VenueCard: React.FC<{ venue: Venue; onClick: () => void }> = ({ venue, onC
     <div className="p-4">
       <h3 className="text-ink-primary font-black text-base line-clamp-1">{venue.name}</h3>
       <div className="flex items-center gap-1.5 text-ink-tertiary text-xs mt-1">
-        <MapPin className="w-3.5 h-3.5 text-pink-500 flex-shrink-0" /> {venue.city}
+        <MapPin className="w-3.5 h-3.5 text-brand flex-shrink-0" /> {venue.city}
         <span className="text-ink-tertiary">·</span>
         <span className="font-bold text-ink-secondary">{'€'.repeat(venue.priceRange)}</span>
       </div>
@@ -268,7 +268,7 @@ const SOCIAL_COLORS: Record<string, string> = {
   youtube:    'bg-red-500',
   facebook:   'bg-blue-500',
   spotify:    'bg-green-500',
-  soundcloud: 'bg-pink-500',
+  soundcloud: 'bg-brand',
   tiktok:     'bg-gray-900',
   twitch:     'bg-purple-600',
 };
@@ -410,8 +410,8 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
       <section className="relative h-80 sm:h-[26rem] overflow-hidden">
         <img src={venue.cover} alt={venue.name} className="w-full h-full object-cover kenburns" />
         <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-900/55 to-transparent" />
-        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-pink-500/25 rounded-full blur-3xl pointer-events-none animate-pulse" />
-        <div className="absolute -top-24 -right-24 w-96 h-96 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-brand/25 rounded-full blur-3xl pointer-events-none animate-pulse" />
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-brand-secondary/20 rounded-full blur-3xl pointer-events-none" />
 
         <button onClick={() => navigate('/venues')}
           className="absolute top-4 left-4 bg-white/90 hover:bg-white text-gray-800 text-sm px-3 py-1.5 rounded-xl font-semibold transition-colors backdrop-blur-md">
@@ -470,7 +470,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
               {chips.map((ev, i) => (
                 <button key={`${ev.id}-${i}`} onClick={() => setActiveTab('events')}
                   className="flex-shrink-0 flex items-center gap-2 bg-white/5 hover:bg-white/10 rounded-full pl-1 pr-3 py-1 mx-1.5 transition-colors">
-                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-brand-orange to-pink-600 text-white flex flex-col items-center justify-center leading-none">
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-gradient-to-br from-brand-orange to-brand text-white flex flex-col items-center justify-center leading-none">
                     <span className="font-black text-[10px]">{ev.day}</span>
                   </span>
                   <span className="text-white/90 text-xs font-semibold">{ev.title}</span>
@@ -518,7 +518,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
               if ((navigator as any).share) { try { await (navigator as any).share({ title: `${venue.name} · BailaNow`, text: `Mira ${venue.name} en BailaNow`, url }); return; } catch {} }
               try { await navigator.clipboard.writeText(url); addToast({ message: '✅ Enlace copiado — compártelo donde quieras', type: 'success' }); } catch {}
             }}
-            className="text-sm font-bold py-2 px-3.5 rounded-lg flex items-center gap-1.5 whitespace-nowrap bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white hover:opacity-90 transition-all shadow shadow-pink-500/30">
+            className="text-sm font-bold py-2 px-3.5 rounded-lg flex items-center gap-1.5 whitespace-nowrap bg-gradient-to-r from-brand to-brand-secondary text-white hover:opacity-90 transition-all shadow shadow-brand/30">
             <Share2 className="w-4 h-4" /> Compartir
           </button>
         </div>
@@ -545,7 +545,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
             <div className="lg:col-span-2 space-y-4">
               {/* CTA de reservas destacado */}
               <button onClick={handleReserve}
-                className="w-full text-left relative overflow-hidden rounded-2xl p-5 bg-gradient-to-r from-brand-orange to-pink-600 text-white shadow-lg hover:shadow-xl hover:shadow-pink-500/30 hover:-translate-y-0.5 transition-all group">
+                className="w-full text-left relative overflow-hidden rounded-2xl p-5 bg-gradient-to-r from-brand-orange to-brand text-white shadow-lg hover:shadow-xl hover:shadow-brand/30 hover:-translate-y-0.5 transition-all group">
                 <div className="absolute -top-8 -right-8 w-40 h-40 bg-white/15 rounded-full blur-2xl pointer-events-none" />
                 <div className="relative flex items-center justify-between gap-3 flex-wrap">
                   <div className="min-w-0">
@@ -695,18 +695,18 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                   <div className="card-white rounded-2xl p-5">
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-display font-bold text-gray-900 dark:text-white">📅 Próximos eventos</h3>
-                      <button onClick={() => setActiveTab('events')} className="text-[11px] font-bold text-pink-500 hover:underline">Ver todos</button>
+                      <button onClick={() => setActiveTab('events')} className="text-[11px] font-bold text-brand hover:underline">Ver todos</button>
                     </div>
                     {mapped.length === 0 && <p className="text-[11px] text-gray-400 mb-3">Ejemplos — aún no hay eventos publicados.</p>}
                     <div className="grid grid-cols-2 gap-2.5">
                       {list.map((ev, i) => (
                         <button key={ev.id} onClick={() => ev.id.startsWith('ex') ? setActiveTab('events') : navigate(`/eventos/${ev.id}`)}
-                          className="relative aspect-[3/4] rounded-xl overflow-hidden text-left group bg-gradient-to-br from-fuchsia-900 via-pink-900 to-gray-950">
+                          className="relative aspect-[3/4] rounded-xl overflow-hidden text-left group bg-gradient-to-br from-brand-deep via-brand-deep to-gray-950">
                           {ev.cover && <img src={ev.cover} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-500" onError={(e) => { e.currentTarget.style.display = 'none'; }} />}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-black/10" />
                           <div className="absolute top-2 left-2 bg-white/95 rounded-lg px-1.5 py-1 text-center leading-none shadow">
                             <div className="font-black text-sm text-gray-900">{ev.day}</div>
-                            <div className="text-[8px] font-bold text-pink-600">{ev.month}</div>
+                            <div className="text-[8px] font-bold text-brand">{ev.month}</div>
                           </div>
                           <p className="absolute bottom-2 left-2 right-2 text-white font-black text-[11px] leading-tight line-clamp-2 drop-shadow">{ev.title}</p>
                         </button>
@@ -740,7 +740,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
               {events.map(ev => (
                 <div key={ev.id} onClick={() => ev.id.startsWith('ex') ? null : navigate(`/eventos/${ev.id}`)}
                   className="card-white rounded-2xl p-4 flex gap-4 hover:shadow-card-hover transition-shadow cursor-pointer">
-                  <div className="w-16 flex-shrink-0 bg-gradient-to-br from-brand-orange to-pink-600 rounded-xl flex flex-col items-center justify-center p-2">
+                  <div className="w-16 flex-shrink-0 bg-gradient-to-br from-brand-orange to-brand rounded-xl flex flex-col items-center justify-center p-2">
                     <span className="text-white font-black text-2xl leading-none">{ev.day}</span>
                     <span className="text-white/80 text-xs font-bold">{ev.month}</span>
                   </div>

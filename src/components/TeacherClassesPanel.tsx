@@ -176,7 +176,7 @@ const TeacherClassesPanel: React.FC = () => {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <Loader2 className="w-8 h-8 text-pink-500 animate-spin mx-auto" />
+        <Loader2 className="w-8 h-8 text-brand animate-spin mx-auto" />
         <p className="text-sm text-gray-400 mt-2">Cargando tu panel…</p>
       </div>
     );
@@ -187,8 +187,8 @@ const TeacherClassesPanel: React.FC = () => {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         {[
-          { label: 'Mis clases', val: stats.activeOfferings, icon: '🎓', color: 'bg-pink-500' },
-          { label: 'Horarios libres', val: stats.availableSlots, icon: '📅', color: 'bg-fuchsia-500' },
+          { label: 'Mis clases', val: stats.activeOfferings, icon: '🎓', color: 'bg-brand' },
+          { label: 'Horarios libres', val: stats.availableSlots, icon: '📅', color: 'bg-brand-secondary' },
           { label: 'Reservas', val: stats.totalBookings, icon: '👥', color: 'bg-blue-500' },
           { label: 'Ganado (85%)', val: `€${stats.totalEarnings.toFixed(0)}`, icon: '💰', color: 'bg-green-500' },
         ].map(s => (
@@ -221,7 +221,7 @@ const TeacherClassesPanel: React.FC = () => {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="font-display font-black text-lg text-gray-900 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-pink-500" /> Mis clases
+              <Sparkles className="w-4 h-4 text-brand" /> Mis clases
             </h3>
             <button onClick={() => setEditingOffering({ duration_minutes: 60, max_students: 1, is_online: true, price: 25, currency: 'EUR', style: [] })}
               className="bg-brand-orange text-white text-xs font-bold px-3 py-1.5 rounded-xl flex items-center gap-1 active:scale-95">
@@ -248,16 +248,16 @@ const TeacherClassesPanel: React.FC = () => {
                     {o.cover_image && (
                       <div className="aspect-[16/9] bg-gray-100 relative">
                         <img src={o.cover_image} alt={o.title} className="w-full h-full object-cover" loading="lazy" />
-                        <span className="absolute top-2 right-2 bg-pink-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">€{o.price}</span>
+                        <span className="absolute top-2 right-2 bg-brand text-white text-[10px] font-black px-2 py-0.5 rounded-full">€{o.price}</span>
                       </div>
                     )}
                     <div className="p-3 flex-1 flex flex-col">
                       <h4 className="font-black text-sm text-gray-900 line-clamp-2 mb-1">{o.title}</h4>
                       <div className="flex flex-wrap gap-1 mb-2">
                         {o.style?.slice(0, 3).map(s => (
-                          <span key={s} className="text-[10px] bg-pink-50 text-pink-600 font-bold px-2 py-0.5 rounded-full">{s}</span>
+                          <span key={s} className="text-[10px] bg-pink-50 text-brand font-bold px-2 py-0.5 rounded-full">{s}</span>
                         ))}
-                        <span className="text-[10px] bg-fuchsia-50 text-fuchsia-600 font-bold px-2 py-0.5 rounded-full">{o.level}</span>
+                        <span className="text-[10px] bg-fuchsia-50 text-brand-secondary font-bold px-2 py-0.5 rounded-full">{o.level}</span>
                       </div>
                       <div className="text-[11px] text-gray-500 flex items-center gap-2 mb-3">
                         <span><Clock className="w-3 h-3 inline" /> {o.duration_minutes}min</span>
@@ -298,7 +298,7 @@ const TeacherClassesPanel: React.FC = () => {
       {tab === 'bookings' && (
         <div className="space-y-3">
           <h3 className="font-display font-black text-lg text-gray-900 flex items-center gap-2">
-            <Users className="w-4 h-4 text-pink-500" /> Reservas recibidas
+            <Users className="w-4 h-4 text-brand" /> Reservas recibidas
           </h3>
           {bookings.length === 0 ? (
             <div className="card-white p-10 text-center text-gray-400">
@@ -327,7 +327,7 @@ const TeacherClassesPanel: React.FC = () => {
                       )}
                     </div>
                     <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                      <span className="text-pink-600 font-black text-sm">€{b.amount_paid}</span>
+                      <span className="text-brand font-black text-sm">€{b.amount_paid}</span>
                       {canJoin ? (
                         <button onClick={() => navigate(`/clase/${b.id}`)}
                           className="bg-red-500 text-white text-[10px] font-black px-3 py-1 rounded-full animate-pulse flex items-center gap-1">
@@ -410,14 +410,14 @@ const OfferingEditor: React.FC<{
             <label className="text-[10px] font-bold uppercase text-gray-500 tracking-wider">Título *</label>
             <input value={form.title || ''} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="Ej: Bachata Sensual Nivel Intermedio"
-              className="w-full mt-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500" />
+              className="w-full mt-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
           </div>
 
           <div>
             <label className="text-[10px] font-bold uppercase text-gray-500 tracking-wider">Descripción</label>
             <textarea value={form.description || ''} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3}
               placeholder="Describe tu clase…"
-              className="w-full mt-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 resize-none" />
+              className="w-full mt-1 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand resize-none" />
           </div>
 
           <div className="grid grid-cols-2 gap-2">
@@ -445,7 +445,7 @@ const OfferingEditor: React.FC<{
                 return (
                   <button key={s} type="button" onClick={() => toggleStyle(s)}
                     className={`text-xs font-bold px-3 py-1 rounded-full transition-all ${
-                      isActive ? 'bg-pink-500 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                      isActive ? 'bg-brand text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
                     }`}>
                     {isActive && '✓ '}{s}
                   </button>
@@ -483,10 +483,10 @@ const OfferingEditor: React.FC<{
                 </button>
               </div>
             ) : (
-              <label className="mt-1 block w-full border-2 border-dashed border-pink-300 hover:border-pink-500 rounded-xl py-6 text-center cursor-pointer">
-                {uploading ? <Loader2 className="w-5 h-5 animate-spin text-pink-500 mx-auto" /> : (
+              <label className="mt-1 block w-full border-2 border-dashed border-pink-300 hover:border-brand rounded-xl py-6 text-center cursor-pointer">
+                {uploading ? <Loader2 className="w-5 h-5 animate-spin text-brand mx-auto" /> : (
                   <>
-                    <p className="text-xs font-bold text-pink-600">📷 Subir imagen</p>
+                    <p className="text-xs font-bold text-brand">📷 Subir imagen</p>
                     <p className="text-[10px] text-gray-400 mt-0.5">JPG, PNG, WebP — max 10MB</p>
                   </>
                 )}
@@ -579,7 +579,7 @@ const SlotEditor: React.FC<{
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           {/* Añadir nuevos */}
-          <div className="bg-brand-orange dark:from-pink-900/20 dark:to-fuchsia-900/20 rounded-2xl p-3 space-y-2">
+          <div className="bg-brand-orange dark:from-brand-deep/20 dark:to-brand-deep/20 rounded-2xl p-3 space-y-2">
             <p className="text-xs font-black uppercase text-gray-500 tracking-wider">➕ Añadir horarios</p>
             <input type="date" value={newDate} onChange={e => setNewDate(e.target.value)}
               min={new Date().toISOString().split('T')[0]}
@@ -590,7 +590,7 @@ const SlotEditor: React.FC<{
                 return (
                   <button key={t} onClick={() => setNewTimes(arr => active ? arr.filter(x => x !== t) : [...arr, t])}
                     className={`text-xs font-bold px-2.5 py-1 rounded-full transition-all ${
-                      active ? 'bg-pink-500 text-white' : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300'
+                      active ? 'bg-brand text-white' : 'bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300'
                     }`}>
                     {active && '✓ '}{t}
                   </button>
@@ -658,7 +658,7 @@ const SlotsTab: React.FC<{ offerings: Offering[]; slots: Slot[]; onReload: () =>
   return (
     <div className="space-y-3">
       <h3 className="font-display font-black text-lg text-gray-900 flex items-center gap-2">
-        <CalIcon className="w-4 h-4 text-pink-500" /> Mi calendario
+        <CalIcon className="w-4 h-4 text-brand" /> Mi calendario
       </h3>
       {upcoming.length === 0 ? (
         <div className="card-white p-10 text-center text-gray-400">
@@ -678,7 +678,7 @@ const SlotsTab: React.FC<{ offerings: Offering[]; slots: Slot[]; onReload: () =>
                 const isBooked = s.booked_count >= s.max_students;
                 return (
                   <div key={s.id} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-xl text-xs">
-                    <span className="font-black text-pink-600 w-12">{new Date(s.starts_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="font-black text-brand w-12">{new Date(s.starts_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
                     <span className="flex-1 truncate font-bold text-gray-700 dark:text-gray-300">{o?.title || 'Clase'}</span>
                     {isBooked && <span className="text-[10px] bg-green-500 text-white font-black px-2 py-0.5 rounded-full">{s.booked_count}/{s.max_students}</span>}
                   </div>

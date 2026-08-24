@@ -58,7 +58,7 @@ const ProfileForm: React.FC<{ initial: Profile | null; onSaved: () => void; onCa
           <div className="flex flex-wrap gap-1.5">
             {STYLES.map(s => (
               <button key={s} type="button" onClick={() => toggle(s)}
-                className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${styles.includes(s) ? 'bg-pink-500 text-white border-pink-500' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700'}`}>
+                className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${styles.includes(s) ? 'bg-brand text-white border-brand' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700'}`}>
                 {s}
               </button>
             ))}
@@ -142,7 +142,7 @@ const ParejasPage: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] flex flex-col items-center justify-center gap-4 px-6 text-center">
-        <Heart className="w-12 h-12 text-pink-500" />
+        <Heart className="w-12 h-12 text-brand" />
         <h1 className="font-display font-black text-2xl text-gray-900 dark:text-white">Encuentra tu pareja de baile</h1>
         <p className="text-gray-500 text-sm max-w-xs">Inicia sesión para descubrir bailarines de tu ciudad y hacer match.</p>
         <button onClick={() => navigate('/auth')} className="bg-brand-orange text-white font-bold rounded-xl px-6 py-3">Entrar</button>
@@ -150,11 +150,11 @@ const ParejasPage: React.FC = () => {
     );
   }
 
-  if (loading) return <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-pink-500" /></div>;
+  if (loading) return <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand" /></div>;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-20">
-      <div className="bg-gradient-to-br from-pink-600 via-fuchsia-600 to-fuchsia-700 px-4 py-5">
+      <div className="bg-gradient-to-br from-brand via-brand-secondary to-fuchsia-700 px-4 py-5">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <h1 className="font-display font-black text-xl text-white flex items-center gap-2">💃 Pareja de baile</h1>
           {myProfile && <button onClick={() => setEditing(true)} className="text-white/80 hover:text-white"><Settings className="w-5 h-5" /></button>}
@@ -173,7 +173,7 @@ const ParejasPage: React.FC = () => {
                 <div className="flex gap-3 overflow-x-auto pb-1">
                   {matches.map(m => (
                     <button key={m.user_id} onClick={() => navigate('/chat')} className="flex-shrink-0 text-center">
-                      <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-pink-500 mx-auto">
+                      <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-brand mx-auto">
                         {m.avatar ? <img src={m.avatar} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center">💃</div>}
                       </div>
                       <p className="text-[10px] text-gray-600 dark:text-gray-300 mt-1 max-w-[56px] truncate">{m.name}</p>
@@ -204,7 +204,7 @@ const ParejasPage: React.FC = () => {
                   <button onClick={pass} className="w-14 h-14 rounded-full bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-400 hover:border-gray-400 active:scale-95 transition-all">
                     <X className="w-7 h-7" />
                   </button>
-                  <button onClick={like} className="w-16 h-16 rounded-full bg-brand-orange flex items-center justify-center text-white shadow-lg shadow-pink-500/30 active:scale-95 transition-all">
+                  <button onClick={like} className="w-16 h-16 rounded-full bg-brand-orange flex items-center justify-center text-white shadow-lg shadow-brand/30 active:scale-95 transition-all">
                     <Heart className="w-8 h-8" fill="currentColor" />
                   </button>
                 </div>
@@ -227,10 +227,10 @@ const ParejasPage: React.FC = () => {
             <p className="font-display font-black text-3xl bg-brand-orange bg-clip-text text-transparent">¡Es un match!</p>
             <p className="text-gray-500 text-sm mt-1">A ti y a {matchPopup.name} os gusta bailar juntos 💃🕺</p>
             <div className="flex justify-center gap-3 my-4">
-              <div className="w-16 h-16 rounded-full overflow-hidden ring-2 ring-pink-500">
+              <div className="w-16 h-16 rounded-full overflow-hidden ring-2 ring-brand">
                 {user?.avatar ? <img src={user.avatar} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center">💃</div>}
               </div>
-              <div className="w-16 h-16 rounded-full overflow-hidden ring-2 ring-fuchsia-500">
+              <div className="w-16 h-16 rounded-full overflow-hidden ring-2 ring-brand-secondary">
                 {matchPopup.avatar ? <img src={matchPopup.avatar} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center">🕺</div>}
               </div>
             </div>

@@ -140,8 +140,8 @@ const ComunidadPage: React.FC = () => {
       <div className="max-w-3xl mx-auto px-4">
         {/* Header */}
         <div className="mb-5 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-fuchsia-950 to-black p-6 sm:p-8 text-white">
-          <div className="absolute -top-10 -right-10 w-48 h-48 bg-pink-500/25 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-12 -left-12 w-52 h-52 bg-fuchsia-600/20 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -top-10 -right-10 w-48 h-48 bg-brand/25 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-12 -left-12 w-52 h-52 bg-brand-secondary/20 rounded-full blur-3xl pointer-events-none" />
           <div className="relative flex items-start justify-between gap-3 flex-wrap">
             <div>
               <span className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-pink-300">🔥 Comunidad</span>
@@ -191,8 +191,8 @@ const ComunidadPage: React.FC = () => {
               onClick={() => setCat(c.id)}
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${
                 cat === c.id
-                  ? 'bg-pink-500 text-white border-pink-500'
-                  : 'bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-pink-400 hover:text-pink-500'
+                  ? 'bg-brand text-white border-brand'
+                  : 'bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-pink-400 hover:text-brand'
               }`}
             >
               {c.label}

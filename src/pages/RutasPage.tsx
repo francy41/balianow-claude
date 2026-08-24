@@ -167,7 +167,7 @@ const CreateRutaModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
     <div className="fixed inset-0 z-[1000] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div className="bg-white dark:bg-gray-900 rounded-t-3xl sm:rounded-2xl max-w-lg w-full max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
-          <h2 className="font-black text-lg text-gray-900 dark:text-white flex items-center gap-2"><RouteIcon className="w-5 h-5 text-pink-500" /> Crear ruta</h2>
+          <h2 className="font-black text-lg text-gray-900 dark:text-white flex items-center gap-2"><RouteIcon className="w-5 h-5 text-brand" /> Crear ruta</h2>
           <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400"><X className="w-4 h-4" /></button>
         </div>
         <div className="px-5 pb-5 space-y-3">
@@ -209,11 +209,11 @@ const CreateRutaModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
             {/* Tabs: local de la plataforma vs zona libre */}
             <div className="flex gap-1.5 mb-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
               <button type="button" onClick={() => setStopMode('venue')}
-                className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-bold transition-all ${stopMode === 'venue' ? 'bg-white dark:bg-gray-900 text-pink-600 shadow-sm' : 'text-gray-500'}`}>
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-bold transition-all ${stopMode === 'venue' ? 'bg-white dark:bg-gray-900 text-brand shadow-sm' : 'text-gray-500'}`}>
                 <Building2 className="w-3.5 h-3.5" /> Local de BailaNow
               </button>
               <button type="button" onClick={() => setStopMode('zone')}
-                className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-bold transition-all ${stopMode === 'zone' ? 'bg-white dark:bg-gray-900 text-pink-600 shadow-sm' : 'text-gray-500'}`}>
+                className={`flex-1 flex items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-bold transition-all ${stopMode === 'zone' ? 'bg-white dark:bg-gray-900 text-brand shadow-sm' : 'text-gray-500'}`}>
                 <MapPin className="w-3.5 h-3.5" /> Otra zona
               </button>
             </div>
@@ -230,8 +230,8 @@ const CreateRutaModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
                   <div className="space-y-1">
                     {venueResults.map(v => (
                       <button key={v.id} type="button" onClick={() => addVenueStop(v)}
-                        className="w-full text-left flex items-center gap-2 bg-white dark:bg-gray-900 rounded-lg px-2.5 py-2 hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-colors">
-                        <Building2 className="w-3.5 h-3.5 text-pink-500 flex-shrink-0" />
+                        className="w-full text-left flex items-center gap-2 bg-white dark:bg-gray-900 rounded-lg px-2.5 py-2 hover:bg-pink-50 dark:hover:bg-brand-deep/20 transition-colors">
+                        <Building2 className="w-3.5 h-3.5 text-brand flex-shrink-0" />
                         <div className="min-w-0">
                           <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{v.name}</p>
                           <p className="text-[10px] text-gray-400 truncate">{v.city}</p>
@@ -242,7 +242,7 @@ const CreateRutaModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
                 ) : venueQuery.trim().length >= 2 ? (
                   <p className="text-[11px] text-gray-400 text-center py-1">Sin resultados para "{venueQuery}"</p>
                 ) : null}
-                <button type="button" onClick={goToSupport} className="w-full flex items-center justify-center gap-1.5 text-[11px] text-gray-400 hover:text-pink-500 py-1.5">
+                <button type="button" onClick={goToSupport} className="w-full flex items-center justify-center gap-1.5 text-[11px] text-gray-400 hover:text-brand py-1.5">
                   <LifeBuoy className="w-3 h-3" /> ¿No encuentras tu local? Contacta con soporte para añadirlo
                 </button>
               </div>
@@ -250,7 +250,7 @@ const CreateRutaModal: React.FC<{ onClose: () => void; onCreated: () => void }> 
               <div className="space-y-2">
                 <input className="input-field" placeholder="Nombre de la zona (ej: Malasaña)" value={stopName} onChange={e => setStopName(e.target.value)} />
                 <input className="input-field" placeholder="Dirección o barrio (opcional, mejora la ubicación)" value={stopAddr} onChange={e => setStopAddr(e.target.value)} />
-                <button type="button" onClick={addZoneStop} disabled={adding} className="w-full border-2 border-dashed border-pink-300 dark:border-pink-800 text-pink-600 dark:text-pink-400 font-bold rounded-xl py-2 text-sm hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-all disabled:opacity-50">
+                <button type="button" onClick={addZoneStop} disabled={adding} className="w-full border-2 border-dashed border-pink-300 dark:border-pink-800 text-brand dark:text-pink-400 font-bold rounded-xl py-2 text-sm hover:bg-pink-50 dark:hover:bg-brand-deep/20 transition-all disabled:opacity-50">
                   {adding ? <Loader2 className="w-4 h-4 animate-spin inline" /> : <><Plus className="w-4 h-4 inline mr-1" /> Añadir zona al mapa</>}
                 </button>
               </div>
@@ -398,7 +398,7 @@ const RutasPage: React.FC = () => {
           <path d="M340 -20 L 420 320" stroke="#F9A8D4" strokeWidth="2.5" />
           <path d="M980 -20 L 900 320" stroke="#F9A8D4" strokeWidth="2.5" />
         </svg>
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-pink-500/20 blur-3xl pointer-events-none" />
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-brand/20 blur-3xl pointer-events-none" />
 
         <div className="relative max-w-6xl mx-auto flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
@@ -411,7 +411,7 @@ const RutasPage: React.FC = () => {
 
             <div className="flex flex-wrap gap-2 mt-4">
               <div className="flex items-center gap-2.5 bg-white/[0.06] border border-white/10 rounded-2xl px-3.5 py-2">
-                <span className="w-8 h-8 rounded-xl bg-pink-500/20 grid place-items-center flex-shrink-0"><RouteIcon className="w-4 h-4 text-pink-300" /></span>
+                <span className="w-8 h-8 rounded-xl bg-brand/20 grid place-items-center flex-shrink-0"><RouteIcon className="w-4 h-4 text-pink-300" /></span>
                 <span className="leading-tight"><span className="block text-white font-extrabold text-sm">{stats.total}</span><span className="block text-pink-200/70 text-[10px]">planes abiertos</span></span>
               </div>
               <div className="flex items-center gap-2.5 bg-white/[0.06] border border-white/10 rounded-2xl px-3.5 py-2">
@@ -419,19 +419,19 @@ const RutasPage: React.FC = () => {
                 <span className="leading-tight"><span className="block text-white font-extrabold text-sm">{stats.gente}</span><span className="block text-pink-200/70 text-[10px]">personas apuntadas</span></span>
               </div>
               <div className="flex items-center gap-2.5 bg-white/[0.06] border border-white/10 rounded-2xl px-3.5 py-2">
-                <span className="w-8 h-8 rounded-xl bg-fuchsia-500/20 grid place-items-center flex-shrink-0"><Building2 className="w-4 h-4 text-fuchsia-300" /></span>
+                <span className="w-8 h-8 rounded-xl bg-brand-secondary/20 grid place-items-center flex-shrink-0"><Building2 className="w-4 h-4 text-fuchsia-300" /></span>
                 <span className="leading-tight"><span className="block text-white font-extrabold text-sm">{stats.ciudades}</span><span className="block text-pink-200/70 text-[10px]">{stats.ciudades === 1 ? 'ciudad' : 'ciudades'}</span></span>
               </div>
             </div>
           </div>
 
           {/* Aviso: planes de hoy (real). Sin planes hoy, la tarjeta invita a crear el primero. */}
-          <div className="w-full sm:w-[290px] rounded-2xl p-4 bg-gradient-to-br from-pink-500 to-pink-700 shadow-xl shadow-pink-900/40 flex-shrink-0">
+          <div className="w-full sm:w-[290px] rounded-2xl p-4 bg-gradient-to-br from-brand to-pink-700 shadow-xl shadow-brand-deep/40 flex-shrink-0">
             <div className="flex items-start gap-3">
               <span className="relative w-9 h-9 rounded-xl bg-white/20 grid place-items-center flex-shrink-0">
                 <Calendar className="w-4 h-4 text-white" />
                 {stats.hoy > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-white text-pink-600 text-[10px] font-black grid place-items-center">{stats.hoy}</span>
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-white text-brand text-[10px] font-black grid place-items-center">{stats.hoy}</span>
                 )}
               </span>
               <div className="min-w-0">
@@ -456,13 +456,13 @@ const RutasPage: React.FC = () => {
         {cities.length > 0 && (
           <div className="flex gap-2 overflow-x-auto pb-2 mb-3" style={{ scrollbarWidth: 'none' }}>
             <button onClick={() => setCityFilter('')}
-              className={`flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-[13px] font-extrabold transition-all ${!cityFilter ? 'bg-gradient-to-br from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30' : 'bg-surface-elevated text-ink-secondary border border-hairline/10 hover:border-pink-300'}`}>
+              className={`flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-[13px] font-extrabold transition-all ${!cityFilter ? 'bg-gradient-to-br from-brand to-brand text-white shadow-lg shadow-brand/30' : 'bg-surface-elevated text-ink-secondary border border-hairline/10 hover:border-pink-300'}`}>
               <RouteIcon className="w-3.5 h-3.5" /> Todos
               <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${!cityFilter ? 'bg-white/25' : 'bg-surface-elevated-2'}`}>{rutas.length}</span>
             </button>
             {cities.map(c => (
               <button key={c} onClick={() => setCityFilter(c)}
-                className={`flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-[13px] font-extrabold transition-all ${cityFilter === c ? 'bg-gradient-to-br from-pink-500 to-pink-600 text-white shadow-lg shadow-pink-500/30' : 'bg-surface-elevated text-ink-secondary border border-hairline/10 hover:border-pink-300'}`}>
+                className={`flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-[13px] font-extrabold transition-all ${cityFilter === c ? 'bg-gradient-to-br from-brand to-brand text-white shadow-lg shadow-brand/30' : 'bg-surface-elevated text-ink-secondary border border-hairline/10 hover:border-pink-300'}`}>
                 <MapPin className="w-3.5 h-3.5" /> {c}
                 <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${cityFilter === c ? 'bg-white/25' : 'bg-surface-elevated-2'}`}>{rutas.filter(r => r.city === c).length}</span>
               </button>
@@ -471,7 +471,7 @@ const RutasPage: React.FC = () => {
         )}
 
         {loading ? (
-          <div className="py-24 text-center"><Loader2 className="w-8 h-8 mx-auto animate-spin text-pink-500" /></div>
+          <div className="py-24 text-center"><Loader2 className="w-8 h-8 mx-auto animate-spin text-brand" /></div>
         ) : rutas.length === 0 ? (
           <div className="py-20 text-center">
             <RouteIcon className="w-10 h-10 mx-auto text-gray-300 mb-2" />
@@ -488,11 +488,11 @@ const RutasPage: React.FC = () => {
                 const g = crowd[r.id];
                 return (
                 <button key={r.id} onClick={() => setSelected(r)}
-                  className={`w-full text-left card-white rounded-2xl p-4 transition-all ${selected?.id === r.id ? 'ring-2 ring-pink-500 shadow-elevation-2' : 'hover:shadow-elevation-2 hover:-translate-y-0.5'}`}>
+                  className={`w-full text-left card-white rounded-2xl p-4 transition-all ${selected?.id === r.id ? 'ring-2 ring-brand shadow-elevation-2' : 'hover:shadow-elevation-2 hover:-translate-y-0.5'}`}>
                   <div className="flex items-start justify-between gap-2">
                     <p className="font-bold text-ink-primary text-sm min-w-0">{r.title}</p>
                     {isToday && (
-                      <span className="flex-shrink-0 inline-flex items-center gap-1 bg-pink-500 text-white text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full">
+                      <span className="flex-shrink-0 inline-flex items-center gap-1 bg-brand text-white text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full">
                         <span className="relative flex h-1.5 w-1.5">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
                           <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
@@ -565,13 +565,13 @@ const RutasPage: React.FC = () => {
                   {/* Grupo: perfiles de quienes van */}
                   <div className="mt-3">
                     <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-1">
-                      <Users className="w-3.5 h-3.5 text-pink-500" /> {members.length === 0 ? 'Aún nadie va' : `${members.length} ${members.length === 1 ? 'persona va' : 'personas van'}`}
+                      <Users className="w-3.5 h-3.5 text-brand" /> {members.length === 0 ? 'Aún nadie va' : `${members.length} ${members.length === 1 ? 'persona va' : 'personas van'}`}
                     </p>
                     {members.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {members.map(m => (
                           <button key={m.user_id} onClick={() => navigate(`/artistas/${m.user_id}`)}
-                            title={m.user_name || 'Perfil'} className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-800 rounded-full pl-1 pr-2.5 py-1 hover:bg-pink-50 dark:hover:bg-pink-900/20 transition-colors">
+                            title={m.user_name || 'Perfil'} className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-800 rounded-full pl-1 pr-2.5 py-1 hover:bg-pink-50 dark:hover:bg-brand-deep/20 transition-colors">
                             <Avatar src={m.avatar_url || ''} name={m.user_name || '?'} size="xs" />
                             <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-200 max-w-[90px] truncate">{m.user_name || 'Anónimo'}</span>
                           </button>
@@ -616,7 +616,7 @@ const RutasPage: React.FC = () => {
                         onChange={e => setCommentText(e.target.value)}
                         onKeyDown={e => { if (e.key === 'Enter') postComment(); }}
                       />
-                      <button onClick={postComment} className="bg-pink-500 hover:bg-pink-600 text-white rounded-xl px-3.5 flex items-center justify-center transition-colors">
+                      <button onClick={postComment} className="bg-brand hover:bg-brand-orange-dark text-white rounded-xl px-3.5 flex items-center justify-center transition-colors">
                         <Send className="w-4 h-4" />
                       </button>
                     </div>

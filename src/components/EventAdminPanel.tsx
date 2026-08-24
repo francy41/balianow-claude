@@ -229,7 +229,7 @@ const EventAdminPanel: React.FC<Props> = ({ eventId, onSaved, ownerUserId }) => 
       <button
         onClick={() => setOpen(true)}
         title={isOwner ? "Panel de edición del evento (dueño)" : "Panel de edición del evento (admin)"}
-        className="fixed z-[70] bottom-24 left-4 sm:bottom-8 sm:left-8 flex items-center gap-2 bg-brand-orange text-white font-black text-sm px-5 py-3.5 rounded-2xl shadow-2xl shadow-fuchsia-500/40 hover:scale-105 transition-all ring-2 ring-white/40"
+        className="fixed z-[70] bottom-24 left-4 sm:bottom-8 sm:left-8 flex items-center gap-2 bg-brand-orange text-white font-black text-sm px-5 py-3.5 rounded-2xl shadow-2xl shadow-brand-secondary/40 hover:scale-105 transition-all ring-2 ring-white/40"
       >
         <Settings2 className="w-5 h-5" /> Editar Evento
       </button>
@@ -272,7 +272,7 @@ const EventAdminPanel: React.FC<Props> = ({ eventId, onSaved, ownerUserId }) => 
                   onClick={() => setTab(t.id)}
                   className={`flex items-center gap-1.5 px-5 py-3 text-sm font-bold border-b-2 transition-colors flex-1 justify-center whitespace-nowrap ${
                     tab === t.id
-                      ? 'border-fuchsia-600 text-fuchsia-700'
+                      ? 'border-brand-secondary text-fuchsia-700'
                       : 'border-transparent text-gray-500 hover:text-gray-800'
                   }`}
                 >
@@ -284,7 +284,7 @@ const EventAdminPanel: React.FC<Props> = ({ eventId, onSaved, ownerUserId }) => 
             {/* Loading state */}
             {loading ? (
               <div className="flex-1 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-fuchsia-500" />
+                <Loader2 className="w-8 h-8 animate-spin text-brand-secondary" />
               </div>
             ) : (
               <div className="flex-1 overflow-y-auto">
@@ -387,7 +387,7 @@ const ImageInput: React.FC<{
           ? <img src={value} alt={label} className="w-20 h-20 rounded-xl object-cover border border-gray-200 flex-shrink-0" />
           : <div className="w-20 h-20 rounded-xl bg-gray-100 flex items-center justify-center text-gray-400 flex-shrink-0"><Upload className="w-5 h-5" /></div>}
         <div className="flex-1 space-y-2">
-          <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-pink-50 text-fuchsia-600 text-sm font-semibold hover:bg-pink-100">
+          <label className="cursor-pointer inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-pink-50 text-brand-secondary text-sm font-semibold hover:bg-pink-100">
             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
             {uploading ? 'Subiendo…' : 'Subir imagen'}
             <input type="file" accept="image/*" hidden onChange={e => handleFile(e.target.files?.[0])} />
@@ -446,7 +446,7 @@ const GeneralTab: React.FC<{
       <button
         type="button"
         onClick={() => onChange({ [key]: !data[key] } as any)}
-        className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${data[key] ? 'bg-fuchsia-600' : 'bg-gray-200'}`}
+        className={`relative w-12 h-6 rounded-full transition-colors flex-shrink-0 ${data[key] ? 'bg-brand-secondary' : 'bg-gray-200'}`}
       >
         <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${data[key] ? 'translate-x-7' : 'translate-x-1'}`} />
       </button>
@@ -657,7 +657,7 @@ const LineupTab: React.FC<{
       {/* Search from DB */}
       <div>
         <h3 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-          <Search className="w-4 h-4 text-fuchsia-500" /> Buscar artista en la plataforma
+          <Search className="w-4 h-4 text-brand-secondary" /> Buscar artista en la plataforma
         </h3>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -702,7 +702,7 @@ const LineupTab: React.FC<{
                   </div>
                   {already
                     ? <span className="text-xs text-green-500 font-bold">Ya añadido</span>
-                    : <Plus className="w-4 h-4 text-fuchsia-500 flex-shrink-0" />}
+                    : <Plus className="w-4 h-4 text-brand-secondary flex-shrink-0" />}
                 </button>
               );
             })}
@@ -714,7 +714,7 @@ const LineupTab: React.FC<{
       <div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-2 text-sm font-semibold text-fuchsia-600 hover:text-fuchsia-800 transition-colors"
+          className="flex items-center gap-2 text-sm font-semibold text-brand-secondary hover:text-fuchsia-800 transition-colors"
         >
           <Plus className="w-4 h-4" /> Añadir manualmente (sin perfil en la plataforma)
           <ChevronDown className={`w-4 h-4 transition-transform ${showForm ? 'rotate-180' : ''}`} />
@@ -757,7 +757,7 @@ const LineupTab: React.FC<{
             <button
               onClick={addManual}
               disabled={!manualEntry.name?.trim()}
-              className="w-full bg-fuchsia-600 text-white font-bold py-2 rounded-lg text-sm hover:bg-fuchsia-700 transition-colors disabled:opacity-40"
+              className="w-full bg-brand-secondary text-white font-bold py-2 rounded-lg text-sm hover:bg-fuchsia-700 transition-colors disabled:opacity-40"
             >
               Añadir al lineup
             </button>
@@ -785,7 +785,7 @@ const LineupTab: React.FC<{
                 <div className="w-10 h-10 rounded-full overflow-hidden bg-pink-100 flex-shrink-0">
                   {e.avatar
                     ? <img src={e.avatar} alt={e.name} className="w-full h-full object-cover" />
-                    : <div className="w-full h-full flex items-center justify-center text-fuchsia-600 font-bold text-sm">{e.name[0]}</div>}
+                    : <div className="w-full h-full flex items-center justify-center text-brand-secondary font-bold text-sm">{e.name[0]}</div>}
                 </div>
 
                 {/* Name & role */}
@@ -864,7 +864,7 @@ const SponsorsTab: React.FC<{
         <h3 className="font-bold text-gray-900">Patrocinadores del evento</h3>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="flex items-center gap-1.5 bg-fuchsia-600 text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-fuchsia-700 transition-colors"
+          className="flex items-center gap-1.5 bg-brand-secondary text-white text-sm font-bold px-4 py-2 rounded-xl hover:bg-fuchsia-700 transition-colors"
         >
           <Plus className="w-4 h-4" /> Añadir
         </button>
@@ -944,7 +944,7 @@ const SponsorsTab: React.FC<{
             <button
               onClick={add}
               disabled={!form.name?.trim()}
-              className="flex-1 bg-fuchsia-600 text-white font-bold py-2 rounded-xl text-sm hover:bg-fuchsia-700 disabled:opacity-40"
+              className="flex-1 bg-brand-secondary text-white font-bold py-2 rounded-xl text-sm hover:bg-fuchsia-700 disabled:opacity-40"
             >
               Añadir patrocinador
             </button>
