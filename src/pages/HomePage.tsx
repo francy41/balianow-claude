@@ -492,7 +492,7 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
 
   return (
     <section className="mx-4 mt-8 mb-10">
-      <div className="bg-gradient-to-r from-pink-50 via-white to-amber-50 rounded-3xl p-6 sm:p-8 border border-brand-orange/20">
+      <div className="card-float bg-gradient-to-r from-pink-50 via-white to-amber-50 rounded-3xl p-6 sm:p-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -1254,20 +1254,18 @@ const HomeSectionWithSearch: React.FC<HomeSectionProps> = ({
     <section className={`mx-4 mt-10 ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
-        <h2 className={`font-display font-black text-xl sm:text-2xl tracking-tight ${
-          gradient ? 'bg-brand-orange bg-clip-text text-transparent' : 'text-white'
-        }`}>
+        <h2 className="font-display font-black text-xl sm:text-2xl tracking-tight text-white">
           {title}
         </h2>
         {actionLabel && onAction && (
           <button
             onClick={onAction}
-            className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform"
+            className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform flex-shrink-0"
           >
-            <div className="w-9 h-9 rounded-full bg-brand-orange flex items-center justify-center shadow-lg shadow-brand/30 group-hover:shadow-brand/50 transition-shadow">
-              <ArrowRight className="w-4 h-4 text-white" />
+            <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-lg shadow-black/20">
+              <ArrowRight className="w-4 h-4 text-brand" />
             </div>
-            <span className="text-[9px] font-black uppercase tracking-widest text-brand">{actionLabel}</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-white">{actionLabel}</span>
           </button>
         )}
       </div>
@@ -2177,7 +2175,7 @@ const HomePage: React.FC = () => {
                 <button
                   key={city.name}
                   onClick={() => navigate(`/venues?city=${city.name}`)}
-                  className="relative rounded-3xl overflow-hidden group shadow-lg hover:shadow-2xl hover:shadow-brand/20 hover:-translate-y-1 transition-all duration-500 h-52 sm:h-56"
+                  className="card-float relative rounded-3xl overflow-hidden group h-52 sm:h-56"
                 >
                   <img src={city.img} alt={city.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
@@ -2275,11 +2273,11 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* ── FOOTER LEGAL ── */}
-      <footer className="mt-10 mx-4 mb-4 pb-2 border-t border-gray-200 dark:border-gray-800 pt-6">
+      <footer className="mt-10 mx-4 mb-4 pb-2 border-t border-white/25 pt-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-1.5">
             <span className="font-display font-black text-sm text-white">Baila</span>
-            <span className="font-display font-black text-sm bg-brand-orange bg-clip-text text-transparent">Now</span>
+            <span className="font-display font-black text-sm text-white">Now</span>
             <span className="text-white/70 text-xs ml-1">© 2025</span>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-white/80">
