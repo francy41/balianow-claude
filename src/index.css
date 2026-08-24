@@ -24,6 +24,11 @@
   --accent: 229 18 125;        /* #E5127D */
   --accent-warm: 255 140 66;   /* #FF8C42 — ya en uso de facto en la app, formalizado aquí */
 
+  /* Marca — editable en vivo desde SuperAdmin → Diseño Web (site_config.brand_colors) */
+  --brand: 229 18 125;           /* #E5127D — color sólido principal (botones, badges, iconos) */
+  --brand-secondary: 192 38 211; /* #C026D3 — segundo punto de los degradados de 2 colores */
+  --brand-dark: 131 24 67;       /* #831843 — magenta oscuro (tarjetas unificadas) */
+
   /* Tinte de sombra: gris cálido, nunca negro puro */
   --shadow-tint: 82 60 74;
 }
@@ -42,6 +47,11 @@
 
   --accent: 229 18 125;        /* #E5127D — mismo en ambos modos, ya tiene contraste suficiente */
   --accent-warm: 255 140 66;   /* #FF8C42 */
+
+  /* Marca — mismos valores que en claro, ya tienen contraste suficiente en ambos modos */
+  --brand: 229 18 125;
+  --brand-secondary: 192 38 211;
+  --brand-dark: 131 24 67;
 
   --shadow-tint: 0 0 0;
 }
@@ -171,12 +181,12 @@ body {
     color: #e5e5e5;
   }
   html.dark ::-webkit-scrollbar-track { background: #1a1a1a; }
-  html.dark ::selection { background: rgba(229,18,125,0.3); color: #fff; }
+  html.dark ::selection { background: rgb(var(--brand) / 0.3); color: #fff; }
 
   ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: #f1f1f1; }
-  ::-webkit-scrollbar-thumb { background: #E5127D; border-radius: 2px; }
-  ::selection { background: rgba(229,18,125,0.2); color: #111; }
+  ::-webkit-scrollbar-thumb { background: rgb(var(--brand)); border-radius: 2px; }
+  ::selection { background: rgb(var(--brand) / 0.2); color: #111; }
 }
 
 @layer components {

@@ -593,9 +593,9 @@ const discoverPin = (ringClass: string, gradClass: string) => L.divIcon({
 });
 const DISCOVER_PIN_ICON: Record<'plan' | 'venue' | 'evento' | 'vivo', L.DivIcon> = {
   plan:   discoverPin('bg-pink-300', 'from-pink-500 to-fuchsia-600'),
-  venue:  discoverPin('bg-emerald-300', 'from-emerald-500 to-emerald-700'),
-  evento: discoverPin('bg-violet-300', 'from-violet-500 to-purple-700'),
-  vivo:   discoverPin('bg-orange-300', 'from-orange-500 to-red-600'),
+  venue:  discoverPin('bg-rose-300', 'from-rose-500 to-pink-700'),
+  evento: discoverPin('bg-rose-300', 'from-rose-500 to-fuchsia-700'),
+  vivo:   discoverPin('bg-red-300', 'from-red-500 to-rose-700'),
 };
 
 // ── PLANES DE BAILE (Home) — mapa real, 4 métricas reales, pestañas funcionales y
@@ -627,21 +627,21 @@ const DISCOVER_TAB_ROUTE: Record<DiscoverKind | 'todos', string> = {
 
 const DISCOVER_BADGE: Record<DiscoverKind, { label: string; className: string; cta: string }> = {
   plan:   { label: 'PLAN',          className: 'bg-pink-600',    cta: 'border-pink-500 text-pink-600' },
-  venue:  { label: 'ABIERTO AHORA', className: 'bg-emerald-600', cta: 'border-emerald-500 text-emerald-600' },
-  local:  { label: 'LOCAL',         className: 'bg-cyan-600',    cta: 'border-cyan-500 text-cyan-600' },
+  venue:  { label: 'ABIERTO AHORA', className: 'bg-rose-600',    cta: 'border-rose-500 text-rose-600' },
+  local:  { label: 'LOCAL',         className: 'bg-fuchsia-600', cta: 'border-fuchsia-500 text-fuchsia-600' },
   pareja: { label: 'PAREJA',        className: 'bg-fuchsia-600', cta: 'border-fuchsia-500 text-fuchsia-600' },
-  evento: { label: 'EVENTO',        className: 'bg-violet-600',  cta: 'border-violet-500 text-violet-600' },
+  evento: { label: 'EVENTO',        className: 'bg-rose-600',    cta: 'border-rose-500 text-rose-600' },
   vivo:   { label: 'EN VIVO',       className: 'bg-red-600',     cta: 'bg-gradient-to-r from-red-600 to-rose-700 text-white border-transparent' },
 };
 
 // Punto de alarma parpadeante por categoría en las pestañas — mismos colores que el mapa y las tarjetas.
 const DISCOVER_TAB_DOT: Partial<Record<DiscoverKind | 'todos', { ring: string; grad: string }>> = {
   plan:   { ring: 'bg-pink-400',    grad: 'from-pink-500 to-fuchsia-600' },
-  venue:  { ring: 'bg-emerald-400', grad: 'from-emerald-500 to-emerald-700' },
-  local:  { ring: 'bg-cyan-400',    grad: 'from-cyan-500 to-blue-600' },
-  pareja: { ring: 'bg-fuchsia-400', grad: 'from-fuchsia-500 to-purple-700' },
-  evento: { ring: 'bg-violet-400',  grad: 'from-violet-500 to-purple-700' },
-  vivo:   { ring: 'bg-orange-400',  grad: 'from-orange-500 to-red-600' },
+  venue:  { ring: 'bg-rose-400',    grad: 'from-rose-500 to-pink-700' },
+  local:  { ring: 'bg-fuchsia-400', grad: 'from-fuchsia-500 to-pink-600' },
+  pareja: { ring: 'bg-fuchsia-400', grad: 'from-fuchsia-500 to-pink-700' },
+  evento: { ring: 'bg-rose-400',    grad: 'from-rose-500 to-fuchsia-700' },
+  vivo:   { ring: 'bg-red-400',     grad: 'from-red-500 to-rose-700' },
 };
 
 // Centro aproximado de las ciudades del baile latino más comunes en la app — se usa SOLO como
@@ -967,9 +967,9 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         {pins.length > 0 && (
           <div className="relative flex flex-wrap gap-x-2.5 gap-y-1 px-3 sm:px-5 pb-2 sm:pb-3">
             <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75" /><span className="relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-600" /></span> Planes</span>
-            <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" /><span className="relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-700" /></span> Abiertos ahora</span>
-            <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75" /><span className="relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br from-violet-500 to-purple-700" /></span> Eventos</span>
-            <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" /><span className="relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br from-orange-500 to-red-600" /></span> En directo</span>
+            <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" /><span className="relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br from-rose-500 to-pink-700" /></span> Abiertos ahora</span>
+            <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" /><span className="relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br from-rose-500 to-fuchsia-700" /></span> Eventos</span>
+            <span className="flex items-center gap-1 text-white text-[9px] font-bold"><span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" /><span className="relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br from-red-500 to-rose-700" /></span> En directo</span>
           </div>
         )}
       </div>
