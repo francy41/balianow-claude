@@ -201,6 +201,25 @@ body {
     box-shadow: 0 2px 8px rgb(var(--shadow-tint) / 0.06), 0 1px 3px rgb(var(--shadow-tint) / 0.05);
   }
 
+  /* Tarjeta flotante sobre el fondo rosa del Home: contorno blanco + sombra
+     marcada para que se despegue del fondo, y elevación al pasar por encima. */
+  .card-float {
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.12);
+    transition: transform .3s ease, box-shadow .3s ease, border-color .3s ease;
+  }
+  .card-float:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.26), 0 4px 10px rgba(0, 0, 0, 0.16);
+    border-color: #fff;
+  }
+  html.dark .card-float {
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+  html.dark .card-float:hover {
+    border-color: rgba(255, 255, 255, 0.32);
+  }
+
   /* ── PREMIUM BUTTONS ── */
   .btn-orange {
     @apply bg-brand-orange text-white font-bold rounded-xl px-5 py-2.5 shadow-md shadow-pink-500/30 transition-all duration-150 hover:bg-brand-orange-dark hover:shadow-lg hover:shadow-pink-500/40 hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed select-none;
