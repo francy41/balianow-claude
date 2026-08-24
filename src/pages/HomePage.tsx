@@ -132,9 +132,9 @@ const FeaturedSlider: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = (
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
           <div className="w-1 h-3 rounded-full bg-brand-orange" />
-          <span className="text-[11px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">🔥 Lo más destacado</span>
+          <span className="text-[11px] font-black uppercase tracking-widest text-white/80">🔥 Lo más destacado</span>
         </div>
-        <button onClick={() => navigate('/destacados')} className="flex items-center gap-0.5 text-[10px] font-bold text-brand hover:text-brand-secondary transition-colors">
+        <button onClick={() => navigate('/destacados')} className="flex items-center gap-0.5 text-[10px] font-bold text-white hover:text-white/70 transition-colors">
           Ver todos <ChevronRight className="w-2.5 h-2.5" />
         </button>
       </div>
@@ -187,7 +187,7 @@ const SponsorsFooterStrip: React.FC<{ navigate: ReturnType<typeof useNavigate> }
     <section className="mt-8 mx-4">
       <div className="flex items-center gap-1.5 mb-3">
         <div className="w-1 h-3 rounded-full bg-gray-800" />
-        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Nuestros Patrocinadores</span>
+        <span className="text-[10px] font-black uppercase tracking-widest text-white/70">Nuestros Patrocinadores</span>
       </div>
       <div className="relative overflow-hidden" style={{
         maskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
@@ -1214,14 +1214,14 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
           <div>
             <div className="flex items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-brand-orange to-brand" />
-                <h3 className="font-display font-black text-sm sm:text-base text-gray-900 dark:text-white uppercase tracking-wider">
+                <span className="w-1.5 h-5 rounded-full bg-white" />
+                <h3 className="font-display font-black text-sm sm:text-base text-white uppercase tracking-wider">
                   Principales
                 </h3>
               </div>
               <button
                 onClick={() => navigate('/explorar')}
-                className="text-xs font-bold text-brand hover:text-brand-orange-dark flex items-center gap-1 transition-colors"
+                className="text-xs font-bold text-white hover:text-white/70 flex items-center gap-1 transition-colors"
               >
                 Ver todas →
               </button>
@@ -1234,7 +1234,7 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
             {rest > 0 && (
               <button
                 onClick={() => setShowAll(v => !v)}
-                className="w-full mt-4 py-2.5 rounded-xl border border-pink-200 text-brand hover:bg-pink-50 text-sm font-bold transition-all flex items-center justify-center gap-2"
+                className="w-full mt-4 py-2.5 rounded-xl border border-white/40 text-white hover:bg-white/15 text-sm font-bold transition-all flex items-center justify-center gap-2"
               >
                 {showAll ? '▲ Ver menos categorías' : `🔍 Ver más categorías (${rest})`}
               </button>
@@ -1267,7 +1267,7 @@ const HomeSectionWithSearch: React.FC<HomeSectionProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
         <h2 className={`font-display font-black text-xl sm:text-2xl tracking-tight ${
-          gradient ? 'bg-brand-orange bg-clip-text text-transparent' : 'text-gray-900 dark:text-white'
+          gradient ? 'bg-brand-orange bg-clip-text text-transparent' : 'text-white'
         }`}>
           {title}
         </h2>
@@ -1283,7 +1283,7 @@ const HomeSectionWithSearch: React.FC<HomeSectionProps> = ({
           </button>
         )}
       </div>
-      {subtitle && <p className="text-gray-400 text-xs sm:text-sm mb-3 mt-1">{subtitle}</p>}
+      {subtitle && <p className="text-white/75 text-xs sm:text-sm mb-3 mt-1">{subtitle}</p>}
 
       {/* Content — el buscador global (arriba) es el único punto de búsqueda */}
       {children('')}
@@ -1345,7 +1345,7 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
           </span>
-          <h2 className="font-display font-black text-base sm:text-lg text-gray-900 dark:text-white">En Directo Ahora</h2>
+          <h2 className="font-display font-black text-base sm:text-lg text-white">En Directo Ahora</h2>
         </div>
         <button onClick={() => navigate('/live')} className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform">
           <div className="w-9 h-9 rounded-full bg-red-500 flex items-center justify-center shadow-lg shadow-red-500/30">
@@ -1411,8 +1411,8 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
 
   const ColHeader = ({ title, onAll }: { title: string; onAll: () => void }) => (
     <div className="flex items-center justify-between mb-3 px-1">
-      <h3 className="font-display font-black text-base text-gray-900 dark:text-white">{title}</h3>
-      <button onClick={onAll} className="text-brand dark:text-pink-400 text-[11px] font-bold hover:underline">Ver todos →</button>
+      <h3 className="font-display font-black text-base text-white">{title}</h3>
+      <button onClick={onAll} className="text-white hover:text-white/70 text-[11px] font-bold hover:underline">Ver todos →</button>
     </div>
   );
 
@@ -1489,7 +1489,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           </button>
 
           {/* Accesos rápidos para rellenar la columna (más corta que Eventos/Artistas) */}
-          <p className="mt-5 mb-2 px-1 text-[11px] font-black uppercase tracking-widest text-gray-400 dark:text-gray-500">Explora más</p>
+          <p className="mt-5 mb-2 px-1 text-[11px] font-black uppercase tracking-widest text-white/70">Explora más</p>
           <div className="space-y-2.5">
             <button onClick={() => navigate('/cerca')}
               className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-brand to-rose-700 text-white text-left hover:shadow-lg transition-all">
@@ -1545,11 +1545,11 @@ const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
     <section className="mx-3 sm:mx-4 mt-8">
       <div className="flex items-center justify-between mb-4 px-1">
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-5 rounded-full bg-gradient-to-b from-brand-orange to-brand" />
-          <h2 className="font-display font-black text-xl text-gray-900 dark:text-white">Más para ti</h2>
+          <span className="w-1.5 h-5 rounded-full bg-white" />
+          <h2 className="font-display font-black text-xl text-white">Más para ti</h2>
         </div>
         <button onClick={() => navigate('/explorar')}
-          className="text-xs font-bold text-brand hover:text-brand-orange-dark flex items-center gap-1 transition-colors">
+          className="text-xs font-bold text-white hover:text-white/70 flex items-center gap-1 transition-colors">
           Ver todas <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -1608,8 +1608,8 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
   return (
     <section className="mx-3 sm:mx-4 mt-8">
       <div className="flex items-center justify-between mb-3 px-1">
-        <h2 className="font-display font-black text-lg text-gray-900 dark:text-white flex items-center gap-2">📺 BailaNow TV</h2>
-        <button onClick={() => navigate('/tv')} className="text-brand dark:text-pink-400 text-xs font-bold hover:underline">Ver todo →</button>
+        <h2 className="font-display font-black text-lg text-white flex items-center gap-2">📺 BailaNow TV</h2>
+        <button onClick={() => navigate('/tv')} className="text-white text-xs font-bold hover:underline">Ver todo →</button>
       </div>
       <HScroll>
         {shows.map(s => (
@@ -1666,8 +1666,8 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
 
   const Header = ({ icon, title, onAll }: { icon: string; title: string; onAll: () => void }) => (
     <div className="flex items-center justify-between mb-3 px-1">
-      <h2 className="font-display font-black text-lg text-gray-900 dark:text-white flex items-center gap-2">{icon} {title}</h2>
-      <button onClick={onAll} className="text-brand dark:text-pink-400 text-xs font-bold hover:underline">Ver todo →</button>
+      <h2 className="font-display font-black text-lg text-white flex items-center gap-2">{icon} {title}</h2>
+      <button onClick={onAll} className="text-white text-xs font-bold hover:underline">Ver todo →</button>
     </div>
   );
 
@@ -1925,7 +1925,7 @@ const HomePage: React.FC = () => {
   }, [playing, radioStations]);
 
   return (
-    <div className="relative isolate min-h-screen bg-white/40 dark:bg-transparent dark:text-gray-100 transition-colors duration-300">
+    <div className="relative isolate min-h-screen dark:bg-transparent dark:text-gray-100 transition-colors duration-300">
 
       {/* Fondo flotante decorativo en toda la home */}
       <HomeBackground />
@@ -1988,10 +1988,10 @@ const HomePage: React.FC = () => {
 
       {/* ── Título de marca, justo bajo el hero ── */}
       <div className="text-center mt-6 px-4">
-        <h2 className="font-display font-black text-xl sm:text-2xl text-gray-900 dark:text-white mb-1">
-          💃 <span className="text-brand">Baila</span> Now
+        <h2 className="font-display font-black text-xl sm:text-2xl text-white mb-1">
+          💃 Baila Now
         </h2>
-        <p className="text-gray-400 text-xs sm:text-sm max-w-lg mx-auto">
+        <p className="text-white/75 text-xs sm:text-sm max-w-lg mx-auto">
           Todo lo que amas del baile, en un solo lugar
         </p>
       </div>
@@ -2290,20 +2290,20 @@ const HomePage: React.FC = () => {
       <footer className="mt-10 mx-4 mb-4 pb-2 border-t border-gray-200 dark:border-gray-800 pt-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-1.5">
-            <span className="font-display font-black text-sm text-gray-900 dark:text-white">Baila</span>
+            <span className="font-display font-black text-sm text-white">Baila</span>
             <span className="font-display font-black text-sm bg-brand-orange bg-clip-text text-transparent">Now</span>
-            <span className="text-gray-400 text-xs ml-1">© 2025</span>
+            <span className="text-white/70 text-xs ml-1">© 2025</span>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-gray-400">
-            <a href="/legal/terminos" className="hover:text-brand transition-colors">Términos</a>
-            <a href="/legal/privacidad" className="hover:text-brand transition-colors">Privacidad</a>
-            <a href="/legal/cookies" className="hover:text-brand transition-colors">Cookies</a>
-            <button onClick={() => window.dispatchEvent(new Event('bn:open-cookie-settings'))} className="hover:text-brand transition-colors">Gestionar cookies</button>
-            <a href="/legal/aviso" className="hover:text-brand transition-colors">Aviso Legal</a>
-            <a href="/legal/reembolsos" className="hover:text-brand transition-colors">Reembolsos</a>
-            <a href="/legal/vendedores" className="hover:text-brand transition-colors">Vendedores</a>
-            <a href="/legal/conducta" className="hover:text-brand transition-colors">Conducta</a>
-            <a href="mailto:hola@bailanow.com" className="hover:text-brand transition-colors">Contacto</a>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-white/80">
+            <a href="/legal/terminos" className="hover:text-white transition-colors">Términos</a>
+            <a href="/legal/privacidad" className="hover:text-white transition-colors">Privacidad</a>
+            <a href="/legal/cookies" className="hover:text-white transition-colors">Cookies</a>
+            <button onClick={() => window.dispatchEvent(new Event('bn:open-cookie-settings'))} className="hover:text-white transition-colors">Gestionar cookies</button>
+            <a href="/legal/aviso" className="hover:text-white transition-colors">Aviso Legal</a>
+            <a href="/legal/reembolsos" className="hover:text-white transition-colors">Reembolsos</a>
+            <a href="/legal/vendedores" className="hover:text-white transition-colors">Vendedores</a>
+            <a href="/legal/conducta" className="hover:text-white transition-colors">Conducta</a>
+            <a href="mailto:hola@bailanow.com" className="hover:text-white transition-colors">Contacto</a>
           </div>
         </div>
       </footer>
