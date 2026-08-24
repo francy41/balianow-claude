@@ -13,6 +13,7 @@ import {
 import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, useAdminOverridesStore, useSponsorsStore, DEFAULT_HOME_CATEGORIES, DEFAULT_HOME_TV, DEFAULT_COMMISSIONS, type HeroMediaType, type CommissionSource, type CommissionConfig, type HeroSliderImage, type HomeCategory, type HomeTvCard, type Sponsor } from '../store/appStore';
 import { supabase } from '../lib/supabase';
 import { saveSiteConfigKey, saveCategoriesToDb } from '../hooks/useSiteConfig';
+import { applyBrandColors, type BrandColors } from '../lib/color';
 import AdminCMS from '../components/AdminCMS';
 import AdminMediaManager from '../components/AdminMediaManager';
 import AdminEditModal, { type EditField } from '../components/AdminEditModal';
@@ -3518,8 +3519,10 @@ const SeoTextsCard: React.FC = () => {
   );
 };
 
+const DEFAULT_BRAND_COLORS: BrandColors = { brand: '#E5127D', brandSecondary: '#C026D3', brandDeep: '#831843' };
+
 const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
-  const [colors, setColors] = useState({ primary: '#EC4899', secondary: '#111111', accent: '#DB2777' });
+  const [colors, setColors] = useState<BrandColors>(DEFAULT_BRAND_COLORS);
   const [savingColors, setSavingColors] = useState(false);
   const { siteLogo, setSiteLogo } = useSiteConfigStore();
   const logoFileRef = React.useRef<HTMLInputElement>(null);
@@ -3539,12 +3542,21 @@ const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
     })();
   }, []);
 
+  // Preview en vivo: cada cambio de color se aplica al momento (sin guardar todavía)
+  const updateColor = (key: keyof BrandColors, hex: string) => {
+    setColors(prev => {
+      const next = { ...prev, [key]: hex };
+      applyBrandColors(next);
+      return next;
+    });
+  };
+
   const saveColors = async () => {
     setSavingColors(true);
     const { error } = await saveSiteConfigKey('brand_colors', colors);
     setSavingColors(false);
     addToast({
-      message: error ? `❌ ${error}` : '✅ Colores guardados. Aún no se aplican al tema en vivo — próximamente.',
+      message: error ? `❌ ${error}` : '✅ Colores guardados y aplicados en vivo para todos los visitantes',
       type: error ? 'error' : 'success',
     });
   };
@@ -3580,21 +3592,25 @@ const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card-white p-6">
           <h3 className="font-bold text-gray-900 mb-4">Colores de la marca</h3>
+          <p className="text-xs text-gray-400 mb-4">Se aplican al momento (verás el cambio en la app sin recargar) y quedan en vivo para todos los visitantes al pulsar "Guardar cambios". No cubre absolutamente todos los colores del sitio — algunos matices puntuales siguen fijos en el código.</p>
           <div className="space-y-4">
             {[
-              { label: 'Color primario (rosa)', key: 'primary' as const },
-              { label: 'Color secundario (fondo)', key: 'secondary' as const },
-              { label: 'Color acento', key: 'accent' as const },
+              { label: 'Color principal', key: 'brand' as const, hint: 'Botones, badges, iconos — el rosa de marca' },
+              { label: 'Color del degradado', key: 'brandSecondary' as const, hint: 'Segundo punto de los degradados de 2 colores' },
+              { label: 'Magenta oscuro', key: 'brandDeep' as const, hint: 'Tarjetas oscuras (Eventos destacados, BailaNow TV...)' },
             ].map(c => (
               <div key={c.key} className="flex items-center gap-4">
-                <input type="color" value={colors[c.key]} onChange={e => setColors(prev => ({ ...prev, [c.key]: e.target.value }))}
+                <input type="color" value={colors[c.key] || DEFAULT_BRAND_COLORS[c.key]} onChange={e => updateColor(c.key, e.target.value)}
                   className="w-12 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5" />
                 <div className="flex-1">
                   <p className="text-sm font-medium text-gray-700">{c.label}</p>
+                  <p className="text-xs text-gray-400">{c.hint}</p>
                   <p className="text-xs text-gray-400 font-mono">{colors[c.key]}</p>
                 </div>
               </div>
             ))}
+            <button onClick={() => { setColors(DEFAULT_BRAND_COLORS); applyBrandColors(DEFAULT_BRAND_COLORS); }}
+              className="text-xs font-bold text-gray-400 hover:text-brand underline">Restablecer al rosa de marca original</button>
           </div>
         </div>
         <div className="card-white p-6">
@@ -3612,8 +3628,8 @@ const DisenoSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
               <>
                 <div className="text-4xl mb-2">💃</div>
                 <p className="font-display font-black text-xl">
-                  <span style={{ color: colors.secondary }}>Baila</span>
-                  <span style={{ color: colors.primary }}>Now</span>
+                  <span style={{ color: '#111113' }}>Baila</span>
+                  <span style={{ color: colors.brand }}>Now</span>
                 </p>
                 <p className="text-gray-400 text-xs mt-1">Sin logo personalizado</p>
               </>

@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useSiteConfigStore, useSponsorsStore, type HomeCategory, type ProfileModule, type CommissionConfig } from '../store/appStore';
 import { useCMSStore } from '../store/cmsStore';
+import { applyBrandColors, type BrandColors } from '../lib/color';
 
 // ── Load config from Supabase on mount ────────────────────────────────────
 export function useSiteConfigLoader() {
@@ -41,6 +42,11 @@ export function useSiteConfigLoader() {
           }
           if (row.key === 'commission_config' && row.value && typeof row.value === 'object') {
             setCommissions(row.value as CommissionConfig);
+          }
+          // Color de marca — editado desde SuperAdmin → Diseño Web. Se aplica como
+          // variables CSS para que TODOS los visitantes vean el mismo color, no solo el admin.
+          if (row.key === 'brand_colors' && row.value && typeof row.value === 'object') {
+            applyBrandColors(row.value as BrandColors);
           }
           // Sponsors/destacados: fuente de verdad = BD. Sincroniza el store público
           // (incluye lista vacía) para que los borrados del admin se reflejen y no
