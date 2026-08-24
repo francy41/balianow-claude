@@ -519,7 +519,7 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
             {posts.slice(0, 5).map((post, idx) => (
               <div
                 key={post.id}
-                className="flex-shrink-0 w-72 bg-white rounded-2xl p-4 shadow-md hover:shadow-xl transition-all hover:scale-105 border border-gray-200 cursor-pointer"
+                className="card-float flex-shrink-0 w-72 bg-white rounded-2xl p-4 transition-all cursor-pointer"
                 onClick={() => navigate(`/comunidad?post=${post.id}`)}
               >
                 {/* Header con Avatar */}
@@ -1033,7 +1033,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
             const badge = DISCOVER_BADGE[it.kind];
             return (
               <button key={it.id} onClick={() => navigate(it.route)}
-                className="text-left rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-lg shadow-black/20 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                className="card-float text-left rounded-2xl overflow-hidden bg-white">
                 <div className="relative h-24 bg-gradient-to-br from-pink-700 to-brand-deep overflow-hidden">
                   {it.cover ? (
                     <img src={it.cover} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy"
@@ -1196,10 +1196,11 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     return (
       <button
         onClick={() => navigate(cat.route)}
-        className="group relative bg-white dark:bg-gray-800/70 rounded-2xl p-3 flex flex-col items-center justify-start gap-2 border border-gray-100 dark:border-white/10 shadow-lg shadow-black/[0.06] hover:shadow-xl hover:shadow-brand/10 hover:-translate-y-1 hover:border-pink-100 active:scale-95 transition-all duration-300"
+        className="card-float group relative bg-white dark:bg-gray-800/70 rounded-2xl p-2 flex flex-col items-center justify-start gap-1.5 active:scale-95"
       >
-        <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br ${tint} ring-1 flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-300`}>
-          <span className="text-2xl sm:text-[26px] leading-none">{cat.icon}</span>
+        {/* El icono ocupa todo el ancho de la tarjeta (cuadrado), no un chip pequeño */}
+        <div className={`w-full aspect-square rounded-xl bg-gradient-to-br ${tint} ring-1 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300`}>
+          <span className="text-[2.75rem] sm:text-5xl leading-none">{cat.icon}</span>
         </div>
         <span className="text-gray-700 dark:text-gray-200 text-[11px] sm:text-xs font-bold leading-tight text-center line-clamp-2 group-hover:text-brand-orange transition-colors">{cat.name}</span>
       </button>
@@ -1357,7 +1358,7 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
       <HScroll>
         {lives.map(s => (
           <button key={s.id} onClick={() => navigate(`/live/session/${s.id}`)}
-            className="flex-shrink-0 w-32 sm:w-36 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 group relative border-2 border-red-500/30 hover:border-red-500">
+            className="card-float flex-shrink-0 w-32 sm:w-36 rounded-2xl overflow-hidden group relative">
             <AppImage src={s.cover || ''} alt={s.title} fallback="portrait" className="w-full h-44 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-500" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
             <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded flex items-center gap-1 shadow-lg animate-pulse">
@@ -1426,7 +1427,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <div className="grid grid-cols-2 gap-2.5">
             {events.map(e => (
               <button key={e.id} onClick={() => navigate(`/eventos/${e.id}`)}
-                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-900 text-left group shadow-lg shadow-black/10 border border-gray-100 dark:border-gray-800 hover:-translate-y-0.5 hover:shadow-xl transition-all">
+                className="card-float relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-900 text-left group">
                 {(e as any).cover && <img src={(e as any).cover} alt="" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                 <div className="absolute top-2 left-2 bg-white/90 text-gray-900 rounded-lg px-1.5 py-0.5 text-center leading-none">
@@ -1449,7 +1450,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <div className="grid grid-cols-2 gap-2.5">
             {artists.map(a => (
               <button key={a.id} onClick={() => navigate(`/artistas/${a.id}`)}
-                className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-brand-deep/60 via-rose-900/40 to-gray-900 text-left group shadow-lg shadow-black/10 hover:-translate-y-0.5 hover:shadow-xl transition-all">
+                className="card-float relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-brand-deep/60 via-rose-900/40 to-gray-900 text-left group">
                 {a.avatar && <img src={a.avatar} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
                 <div className="absolute bottom-2 left-2 right-2">
@@ -1468,7 +1469,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
             {tv.map((c, i) => {
               return (
               <button key={i} onClick={() => navigate(c.link || '/tv')}
-                className="relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-950">
+                className="card-float relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-950">
                 {c.image ? (
                   <img src={c.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
                 ) : (
@@ -1492,7 +1493,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <p className="mt-5 mb-2 px-1 text-[11px] font-black uppercase tracking-widest text-white/70">Explora más</p>
           <div className="space-y-2.5">
             <button onClick={() => navigate('/cerca')}
-              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-brand to-rose-700 text-white text-left hover:shadow-lg transition-all">
+              className="card-float w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-brand to-rose-700 text-white text-left">
               <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">📍</span>
               <div className="min-w-0 flex-1">
                 <p className="font-black text-sm leading-tight">Cerca de ti</p>
@@ -1501,7 +1502,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
               <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-80" />
             </button>
             <button onClick={() => navigate('/clases')}
-              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-rose-500 to-brand text-white text-left hover:shadow-lg transition-all">
+              className="card-float w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-rose-500 to-brand text-white text-left">
               <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">🎓</span>
               <div className="min-w-0 flex-1">
                 <p className="font-black text-sm leading-tight">Clases online</p>
@@ -1510,7 +1511,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
               <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-80" />
             </button>
             <button onClick={() => navigate('/subscripciones')}
-              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-brand-secondary to-pink-700 text-white text-left hover:shadow-lg transition-all">
+              className="card-float w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-brand-secondary to-pink-700 text-white text-left">
               <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">👑</span>
               <div className="min-w-0 flex-1">
                 <p className="font-black text-sm leading-tight">Hazte Premium</p>
@@ -1519,7 +1520,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
               <ChevronRight className="w-4 h-4 flex-shrink-0 opacity-80" />
             </button>
             <button onClick={() => navigate('/promocionate')}
-              className="w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-brand to-brand-secondary text-white text-left hover:shadow-lg transition-all">
+              className="card-float w-full flex items-center gap-3 rounded-2xl p-3 bg-gradient-to-r from-brand to-brand-secondary text-white text-left">
               <span className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-lg flex-shrink-0">📢</span>
               <div className="min-w-0 flex-1">
                 <p className="font-black text-sm leading-tight">Promociona tu evento</p>
@@ -1557,7 +1558,7 @@ const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {modules.map(m => (
           <button key={m.id} onClick={() => navigate(m.route)}
-            className={`group relative overflow-hidden rounded-3xl h-40 sm:h-44 text-left shadow-lg hover:shadow-2xl ${m.glow} hover:-translate-y-1.5 transition-all duration-300`}>
+            className="card-float group relative overflow-hidden rounded-3xl h-40 sm:h-44 text-left">
             <div className={`absolute inset-0 bg-gradient-to-br ${m.gradient}`} />
             <div className="absolute -right-8 -top-8 w-28 h-28 bg-white/10 rounded-full blur-2xl pointer-events-none" />
             {m.badge && (
@@ -1614,7 +1615,7 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
       <HScroll>
         {shows.map(s => (
           <button key={s.id} onClick={() => navigate(`/tv/${s.id}`)}
-            className="flex-shrink-0 w-64 relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-950 shadow-lg hover:shadow-2xl hover:shadow-brand/20 hover:-translate-y-1 transition-all">
+            className="card-float flex-shrink-0 w-64 relative rounded-2xl overflow-hidden h-40 group text-left bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-950">
             {s.img ? (
               <img src={s.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
             ) : (
@@ -1679,7 +1680,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
         <div className="flex flex-wrap gap-2">
           {trends.map((t, i) => (
             <button key={t} onClick={() => navigate(`/artistas?q=${encodeURIComponent(t)}`)}
-              className="inline-flex items-center gap-1.5 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-full px-3.5 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 shadow-lg shadow-black/[0.06] hover:shadow-xl hover:shadow-brand/10 hover:border-pink-300 hover:text-brand transition-all">
+              className="card-float inline-flex items-center gap-1.5 bg-white dark:bg-gray-900 rounded-full px-3.5 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:text-brand">
               <span className="text-brand font-black">#{i + 1}</span> {t}
             </button>
           ))}
@@ -1693,7 +1694,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
         <HScroll>
           {clases.map(c => (
             <button key={c.id} onClick={() => navigate('/clases')}
-              className="flex-shrink-0 w-52 relative rounded-2xl overflow-hidden h-32 group text-left bg-gradient-to-br from-brand/30 via-fuchsia-700/20 to-gray-900 shadow-lg hover:shadow-2xl hover:shadow-brand/20 hover:-translate-y-1 transition-all">
+              className="card-float flex-shrink-0 w-52 relative rounded-2xl overflow-hidden h-32 group text-left bg-gradient-to-br from-brand/30 via-fuchsia-700/20 to-gray-900">
               {c.img ? (
                 <img src={c.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
               ) : (
@@ -1718,7 +1719,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
         <HScroll>
           {teachers.map(t => (
             <button key={t.id} onClick={() => navigate(`/artistas/${t.id}`)}
-              className="flex-shrink-0 w-40 bg-white dark:bg-gray-900 rounded-2xl p-4 border border-gray-100 dark:border-gray-800 shadow-lg shadow-black/[0.06] hover:shadow-xl hover:shadow-brand/10 hover:-translate-y-1 transition-all text-center flex flex-col items-center">
+              className="card-float flex-shrink-0 w-40 bg-white dark:bg-gray-900 rounded-2xl p-4 text-center flex flex-col items-center">
               <div className="relative">
                 <div className="w-16 h-16 rounded-full overflow-hidden grid place-items-center bg-gradient-to-br from-brand to-brand-secondary text-white font-black text-xl">
                   <span>{t.name?.[0] || '?'}</span>
@@ -1739,7 +1740,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
       {/* Trabajos para Bailarines (CTA) */}
       <section className="mx-3 sm:mx-4 mt-8">
         <button onClick={() => navigate('/promocionate')}
-          className="relative w-full overflow-hidden rounded-3xl p-6 sm:p-8 text-left text-white bg-gradient-to-br from-gray-900 via-brand-deep to-black hover:shadow-2xl hover:shadow-brand/20 transition-all">
+          className="card-float relative w-full overflow-hidden rounded-3xl p-6 sm:p-8 text-left text-white bg-gradient-to-br from-gray-900 via-brand-deep to-black">
           <div className="absolute -top-10 -right-10 w-48 h-48 bg-brand/30 rounded-full blur-3xl pointer-events-none" />
           <div className="relative flex items-center justify-between gap-4 flex-wrap">
             <div>
@@ -2320,7 +2321,7 @@ const HomePage: React.FC = () => {
 
 // ── ARTIST CARD ─────────────────────────────────────────────────────────────
 const ArtistCard: React.FC<{ artist: typeof ARTISTS[0]; onClick: () => void }> = ({ artist, onClick }) => (
-  <div onClick={onClick} className="card-white overflow-hidden cursor-pointer hover:shadow-lg transition-shadow group rounded-2xl">
+  <div onClick={onClick} className="card-white card-float overflow-hidden cursor-pointer group rounded-2xl">
     <div className="relative overflow-hidden" style={{ height: 200 }}>
       <img
         src={artist.cover}
@@ -2361,7 +2362,7 @@ const EventCard: React.FC<{ event: typeof EVENTS[0]; onClick: () => void }> = ({
   const day = d.toLocaleDateString('es-ES', { day: '2-digit', month: 'long' }).toUpperCase();
 
   return (
-    <div onClick={onClick} className="card-white overflow-hidden cursor-pointer hover:shadow-lg transition-shadow group rounded-2xl">
+    <div onClick={onClick} className="card-white card-float overflow-hidden cursor-pointer group rounded-2xl">
       <div className="relative overflow-hidden" style={{ height: 180 }}>
         <img
           src={event.cover}
