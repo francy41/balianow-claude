@@ -519,7 +519,7 @@ const RutaDeHoySlider: React.FC<{ navigate: any; posts: any[] }> = ({ navigate, 
             {posts.slice(0, 5).map((post, idx) => (
               <div
                 key={post.id}
-                className="card-float tile-4 bg-white rounded-2xl p-3 transition-all cursor-pointer"
+                className="card-float tile-3 bg-white rounded-2xl p-3 transition-all cursor-pointer"
                 onClick={() => navigate(`/comunidad?post=${post.id}`)}
               >
                 {/* Header con Avatar */}
@@ -1024,7 +1024,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
             const badge = DISCOVER_BADGE[it.kind];
             return (
               <button key={it.id} onClick={() => navigate(it.route)}
-                className="card-float tile-4 text-left rounded-2xl overflow-hidden bg-white flex flex-col">
+                className="card-float tile-3 text-left rounded-2xl overflow-hidden bg-white flex flex-col">
                 <div className="relative h-[52%] flex-shrink-0 bg-gradient-to-br from-pink-700 to-brand-deep overflow-hidden">
                   {it.cover ? (
                     <img src={it.cover} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy"
@@ -1044,11 +1044,11 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
                   </span>
                 </div>
                 <div className="p-1.5 sm:p-2.5 flex-1 min-h-0 overflow-hidden">
-                  <p className="text-gray-900 font-bold text-[9px] sm:text-[12px] leading-tight line-clamp-2">{it.title}</p>
-                  <p className="text-gray-500 text-[8px] sm:text-[10px] mt-0.5 flex items-center gap-0.5 truncate">
+                  <p className="text-gray-900 font-bold text-[11px] sm:text-[13px] leading-tight line-clamp-2">{it.title}</p>
+                  <p className="text-gray-500 text-[9px] sm:text-[11px] mt-0.5 flex items-center gap-0.5 truncate">
                     <MapPin className="w-2.5 h-2.5 flex-shrink-0" /> {it.city}
                   </p>
-                  <div className="hidden sm:flex items-center justify-between mt-1.5">
+                  <div className="flex items-center justify-between mt-1.5">
                     {it.rating > 0 ? (
                       <span className="inline-flex items-center gap-1 text-amber-500 font-bold text-[11px]">
                         <Star className="w-3 h-3 fill-amber-400" /> {it.rating.toFixed(1)}
@@ -1073,7 +1073,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
               </button>
             );
           })}
-          <SeeAllTile onClick={() => navigate(DISCOVER_TAB_ROUTE[tab])} className="tile-4" />
+          <SeeAllTile onClick={() => navigate(DISCOVER_TAB_ROUTE[tab])} className="tile-3" />
         </HScroll>
         </div>
       </div>
@@ -1187,8 +1187,8 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
         className="card-float group relative w-full bg-white dark:bg-gray-800/70 rounded-2xl p-1.5 sm:p-3 flex flex-col items-center justify-center gap-1 sm:gap-2 active:scale-95"
       >
         {/* Solo el icono grande y el texto debajo — sin chip de color de fondo */}
-        <span className="text-2xl sm:text-4xl leading-none group-hover:scale-110 transition-transform duration-300">{cat.icon}</span>
-        <span className="text-gray-700 dark:text-gray-200 text-[8px] sm:text-[11px] font-bold leading-tight text-center line-clamp-2 group-hover:text-brand-orange transition-colors">{cat.name}</span>
+        <span className="text-4xl sm:text-5xl leading-none group-hover:scale-110 transition-transform duration-300">{cat.icon}</span>
+        <span className="text-gray-700 dark:text-gray-200 text-[10px] sm:text-xs font-bold leading-tight text-center line-clamp-2 group-hover:text-brand-orange transition-colors">{cat.name}</span>
       </button>
     );
   };
@@ -1210,11 +1210,11 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
             {/* Una sola fila horizontal; "Ver todas" cierra la fila */}
             <HScroll>
               {visibleCats.map(cat => (
-                <div key={cat.id} className="tile-4 [&>*]:h-full">
+                <div key={cat.id} className="tile-3 [&>*]:h-full">
                   <CategoryButton cat={cat} />
                 </div>
               ))}
-              <SeeAllTile onClick={() => navigate('/explorar')} className="tile-4" />
+              <SeeAllTile onClick={() => navigate('/explorar')} className="tile-3" />
             </HScroll>
           </div>
         )}
@@ -1290,10 +1290,10 @@ const SeeAllTile: React.FC<{ onClick: () => void; className?: string }> = ({ onC
     onClick={onClick}
     className={`card-float rounded-2xl bg-white/15 backdrop-blur-sm flex flex-col items-center justify-center gap-1.5 px-1 py-3 text-white ${className}`}
   >
-    <span className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white grid place-items-center flex-shrink-0">
-      <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-brand" />
+    <span className="w-11 h-11 rounded-full bg-white grid place-items-center flex-shrink-0">
+      <ArrowRight className="w-5 h-5 text-brand" />
     </span>
-    <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest text-center leading-tight">Ver<br />más</span>
+    <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-center leading-tight">Ver<br />más</span>
   </button>
 );
 
@@ -1346,7 +1346,7 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
       <HScroll>
         {lives.map(s => (
           <button key={s.id} onClick={() => navigate(`/live/session/${s.id}`)}
-            className="card-float tile-4 rounded-2xl overflow-hidden group relative">
+            className="card-float tile-3 rounded-2xl overflow-hidden group relative">
             <AppImage src={s.cover || ''} alt={s.title} fallback="portrait" className="w-full h-44 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-500" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
             <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded flex items-center gap-1 shadow-lg animate-pulse">
@@ -1365,7 +1365,7 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
             <div className="absolute inset-0 rounded-2xl ring-1 ring-red-500/50 group-hover:ring-2 group-hover:ring-red-500 transition-all" />
           </button>
         ))}
-        <SeeAllTile onClick={() => navigate('/live')} className="tile-4" />
+        <SeeAllTile onClick={() => navigate('/live')} className="tile-3" />
       </HScroll>
     </section>
   );
@@ -1416,7 +1416,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <HScroll>
             {events.map(e => (
               <button key={e.id} onClick={() => navigate(`/eventos/${e.id}`)}
-                className="card-float tile-4 relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-900 text-left group">
+                className="card-float tile-3 relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-900 text-left group">
                 {(e as any).cover && <img src={(e as any).cover} alt="" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                 <div className="absolute top-2 left-2 bg-white/90 text-gray-900 rounded-lg px-1.5 py-0.5 text-center leading-none">
@@ -1430,7 +1430,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
                 </div>
               </button>
             ))}
-            <SeeAllTile onClick={() => navigate('/eventos')} className="tile-4" />
+            <SeeAllTile onClick={() => navigate('/eventos')} className="tile-3" />
           </HScroll>
         </div>
 
@@ -1440,7 +1440,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <HScroll>
             {artists.map(a => (
               <button key={a.id} onClick={() => navigate(`/artistas/${a.id}`)}
-                className="card-float tile-4 relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-deep/60 via-rose-900/40 to-gray-900 text-left group">
+                className="card-float tile-3 relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-deep/60 via-rose-900/40 to-gray-900 text-left group">
                 {a.avatar && <img src={a.avatar} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
                 <div className="absolute bottom-2 left-2 right-2">
@@ -1449,7 +1449,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
                 </div>
               </button>
             ))}
-            <SeeAllTile onClick={() => navigate('/artistas')} className="tile-4" />
+            <SeeAllTile onClick={() => navigate('/artistas')} className="tile-3" />
           </HScroll>
         </div>
 
@@ -1460,7 +1460,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
             {tv.map((c, i) => {
               return (
               <button key={i} onClick={() => navigate(c.link || '/tv')}
-                className="card-float tile-4 relative rounded-2xl overflow-hidden group text-left bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-950">
+                className="card-float tile-3 relative rounded-2xl overflow-hidden group text-left bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-950">
                 {c.image ? (
                   <img src={c.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
                 ) : (
@@ -1474,7 +1474,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
                 </div>
               </button>
             );})}
-            <SeeAllTile onClick={() => navigate('/tv')} className="tile-4" />
+            <SeeAllTile onClick={() => navigate('/tv')} className="tile-3" />
           </HScroll>
         </div>
 
@@ -1483,24 +1483,24 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <p className="mb-2 px-1 text-[11px] font-black uppercase tracking-widest text-white/70">Explora más</p>
           <HScroll>
             <button onClick={() => navigate('/cerca')}
-              className="card-float tile-4 flex flex-col items-center justify-center gap-1 rounded-2xl p-2 bg-gradient-to-br from-brand to-rose-700 text-white">
-              <span className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg bg-white/20 flex items-center justify-center text-base sm:text-lg flex-shrink-0">📍</span>
-              <p className="font-black text-[8px] sm:text-[11px] leading-tight text-center line-clamp-2">Cerca de ti</p>
+              className="card-float tile-3 flex flex-col items-center justify-center gap-1 rounded-2xl p-2 bg-gradient-to-br from-brand to-rose-700 text-white">
+              <span className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/20 flex items-center justify-center text-xl sm:text-2xl flex-shrink-0">📍</span>
+              <p className="font-black text-[10px] sm:text-xs leading-tight text-center line-clamp-2">Cerca de ti</p>
             </button>
             <button onClick={() => navigate('/clases')}
-              className="card-float tile-4 flex flex-col items-center justify-center gap-1 rounded-2xl p-2 bg-gradient-to-br from-rose-500 to-brand text-white">
-              <span className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg bg-white/20 flex items-center justify-center text-base sm:text-lg flex-shrink-0">🎓</span>
-              <p className="font-black text-[8px] sm:text-[11px] leading-tight text-center line-clamp-2">Clases online</p>
+              className="card-float tile-3 flex flex-col items-center justify-center gap-1 rounded-2xl p-2 bg-gradient-to-br from-rose-500 to-brand text-white">
+              <span className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/20 flex items-center justify-center text-xl sm:text-2xl flex-shrink-0">🎓</span>
+              <p className="font-black text-[10px] sm:text-xs leading-tight text-center line-clamp-2">Clases online</p>
             </button>
             <button onClick={() => navigate('/subscripciones')}
-              className="card-float tile-4 flex flex-col items-center justify-center gap-1 rounded-2xl p-2 bg-gradient-to-br from-brand-secondary to-pink-700 text-white">
-              <span className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg bg-white/20 flex items-center justify-center text-base sm:text-lg flex-shrink-0">👑</span>
-              <p className="font-black text-[8px] sm:text-[11px] leading-tight text-center line-clamp-2">Hazte Premium</p>
+              className="card-float tile-3 flex flex-col items-center justify-center gap-1 rounded-2xl p-2 bg-gradient-to-br from-brand-secondary to-pink-700 text-white">
+              <span className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/20 flex items-center justify-center text-xl sm:text-2xl flex-shrink-0">👑</span>
+              <p className="font-black text-[10px] sm:text-xs leading-tight text-center line-clamp-2">Hazte Premium</p>
             </button>
             <button onClick={() => navigate('/promocionate')}
-              className="card-float tile-4 flex flex-col items-center justify-center gap-1 rounded-2xl p-2 bg-gradient-to-br from-brand to-brand-secondary text-white">
-              <span className="w-7 h-7 sm:w-9 sm:h-9 rounded-lg bg-white/20 flex items-center justify-center text-base sm:text-lg flex-shrink-0">📢</span>
-              <p className="font-black text-[8px] sm:text-[11px] leading-tight text-center line-clamp-2">Promociona tu evento</p>
+              className="card-float tile-3 flex flex-col items-center justify-center gap-1 rounded-2xl p-2 bg-gradient-to-br from-brand to-brand-secondary text-white">
+              <span className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white/20 flex items-center justify-center text-xl sm:text-2xl flex-shrink-0">📢</span>
+              <p className="font-black text-[10px] sm:text-xs leading-tight text-center line-clamp-2">Promociona tu evento</p>
             </button>
           </HScroll>
         </div>
@@ -1532,16 +1532,16 @@ const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
       <HScroll>
         {modules.map(m => (
           <button key={m.id} onClick={() => navigate(m.route)}
-            className="card-float group tile-4 relative overflow-hidden rounded-3xl text-left">
+            className="card-float group tile-3 relative overflow-hidden rounded-3xl text-left">
             <div className={`absolute inset-0 bg-gradient-to-br ${m.gradient}`} />
             <div className="absolute -right-8 -top-8 w-28 h-28 bg-white/10 rounded-full blur-2xl pointer-events-none" />
             {m.badge && (
               <span className="absolute top-3 right-3 bg-white text-brand text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full shadow">{m.badge}</span>
             )}
             <div className="relative h-full flex flex-col justify-between p-2 sm:p-3">
-              <span className={`w-7 h-7 sm:w-10 sm:h-10 rounded-xl ${m.iconBg} text-white grid place-items-center text-sm sm:text-lg shadow-lg ring-2 ring-white/20 flex-shrink-0`}>{m.icon}</span>
+              <span className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl ${m.iconBg} text-white grid place-items-center text-lg sm:text-xl shadow-lg ring-2 ring-white/20 flex-shrink-0`}>{m.icon}</span>
               <div>
-                <p className="text-white font-display font-black text-[9px] sm:text-sm leading-tight line-clamp-2">{m.title}</p>
+                <p className="text-white font-display font-black text-[11px] sm:text-sm leading-tight line-clamp-2">{m.title}</p>
                 <p className="hidden sm:block text-white/75 text-[10px] mt-1 leading-snug line-clamp-2">{m.subtitle}</p>
               </div>
             </div>
@@ -1550,7 +1550,7 @@ const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
             </span>
           </button>
         ))}
-        <SeeAllTile onClick={() => navigate('/explorar')} className="tile-4" />
+        <SeeAllTile onClick={() => navigate('/explorar')} className="tile-3" />
       </HScroll>
     </section>
   );
@@ -1590,7 +1590,7 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
       <HScroll>
         {shows.map(s => (
           <button key={s.id} onClick={() => navigate(`/tv/${s.id}`)}
-            className="card-float tile-4 relative rounded-2xl overflow-hidden group text-left bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-950">
+            className="card-float tile-3 relative rounded-2xl overflow-hidden group text-left bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-950">
             {s.img ? (
               <img src={s.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
             ) : (
@@ -1605,7 +1605,7 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
             </div>
           </button>
         ))}
-        <SeeAllTile onClick={() => navigate('/tv')} className="tile-4" />
+        <SeeAllTile onClick={() => navigate('/tv')} className="tile-3" />
       </HScroll>
     </section>
   );
@@ -1660,7 +1660,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
               <span className="text-brand font-black">#{i + 1}</span> {t}
             </button>
           ))}
-          <SeeAllTile onClick={() => navigate('/explorar')} className="tile-4" />
+          <SeeAllTile onClick={() => navigate('/explorar')} className="tile-3" />
         </HScroll>
       </section>
 
@@ -1671,7 +1671,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
         <HScroll>
           {clases.map(c => (
             <button key={c.id} onClick={() => navigate('/clases')}
-              className="card-float tile-4 relative rounded-2xl overflow-hidden group text-left bg-gradient-to-br from-brand/30 via-fuchsia-700/20 to-gray-900">
+              className="card-float tile-3 relative rounded-2xl overflow-hidden group text-left bg-gradient-to-br from-brand/30 via-fuchsia-700/20 to-gray-900">
               {c.img ? (
                 <img src={c.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
               ) : (
@@ -1685,7 +1685,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
               </div>
             </button>
           ))}
-          <SeeAllTile onClick={() => navigate('/clases')} className="tile-4" />
+          <SeeAllTile onClick={() => navigate('/clases')} className="tile-3" />
         </HScroll>
       </section>
       )}
@@ -1697,21 +1697,21 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
         <HScroll>
           {teachers.map(t => (
             <button key={t.id} onClick={() => navigate(`/artistas/${t.id}`)}
-              className="card-float tile-4 bg-white dark:bg-gray-900 rounded-2xl p-1.5 sm:p-3 text-center flex flex-col items-center justify-center overflow-hidden">
+              className="card-float tile-3 bg-white dark:bg-gray-900 rounded-2xl p-1.5 sm:p-3 text-center flex flex-col items-center justify-center overflow-hidden">
               <div className="relative">
-                <div className="w-9 h-9 sm:w-14 sm:h-14 rounded-full overflow-hidden grid place-items-center bg-gradient-to-br from-brand to-brand-secondary text-white font-black text-sm sm:text-lg">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden grid place-items-center bg-gradient-to-br from-brand to-brand-secondary text-white font-black text-base sm:text-lg">
                   <span>{t.name?.[0] || '?'}</span>
                   <img src={t.avatar} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                 </div>
                 <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-gray-900" title="Disponible" />
               </div>
-              <p className="font-black text-gray-900 dark:text-white text-[9px] sm:text-xs mt-1.5 truncate max-w-full">{t.name}</p>
-              <p className="hidden sm:block text-gray-400 text-[10px] truncate max-w-full">{t.genre.slice(0, 2).join(' · ')}</p>
-              <div className="hidden sm:flex items-center gap-1 mt-0.5 text-amber-500 text-[10px] font-bold"><Star className="w-3 h-3 fill-amber-500" />{t.rating}</div>
+              <p className="font-black text-gray-900 dark:text-white text-[11px] sm:text-xs mt-1.5 truncate max-w-full">{t.name}</p>
+              <p className="text-gray-400 text-[9px] sm:text-[10px] truncate max-w-full">{t.genre.slice(0, 2).join(' · ')}</p>
+              <div className="flex items-center gap-1 mt-0.5 text-amber-500 text-[10px] font-bold"><Star className="w-3 h-3 fill-amber-500" />{t.rating}</div>
               <span className="hidden sm:block mt-1 text-[10px] font-bold text-brand dark:text-pink-400">Ver perfil →</span>
             </button>
           ))}
-          <SeeAllTile onClick={() => navigate('/artistas')} className="tile-4" />
+          <SeeAllTile onClick={() => navigate('/artistas')} className="tile-3" />
         </HScroll>
       </section>
       )}
@@ -2169,7 +2169,7 @@ const HomePage: React.FC = () => {
                 <button
                   key={city.name}
                   onClick={() => navigate(`/venues?city=${city.name}`)}
-                  className="card-float tile-4 relative rounded-3xl overflow-hidden group"
+                  className="card-float tile-3 relative rounded-3xl overflow-hidden group"
                 >
                   <img src={city.img} alt={city.name}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
@@ -2179,8 +2179,8 @@ const HomePage: React.FC = () => {
                     {city.monument}
                   </div>
                   <div className="absolute bottom-2 left-2 right-2 text-left">
-                    <p className="text-white font-display font-black text-[11px] sm:text-xl leading-tight drop-shadow-lg line-clamp-2">{city.name}</p>
-                    <p className="hidden sm:block text-white/70 text-[10px] font-medium">{city.landmark}</p>
+                    <p className="text-white font-display font-black text-sm sm:text-xl leading-tight drop-shadow-lg line-clamp-2">{city.name}</p>
+                    <p className="text-white/70 text-[9px] sm:text-[10px] font-medium truncate">{city.landmark}</p>
                     <div className="hidden sm:flex flex-wrap items-center gap-1.5 mt-2">
                       <span className="bg-white/15 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">🏠 {city.venues} locales</span>
                       <span className="bg-white/15 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">🎟 {city.events} eventos</span>
@@ -2188,7 +2188,7 @@ const HomePage: React.FC = () => {
                   </div>
                 </button>
               ))}
-              <SeeAllTile onClick={() => navigate('/venues')} className="tile-4" />
+              <SeeAllTile onClick={() => navigate('/venues')} className="tile-3" />
             </HScroll>
           );
         }}
@@ -2213,11 +2213,11 @@ const HomePage: React.FC = () => {
           return (
             <HScroll>
               {filtered.slice(0, 12).map(artist => (
-                <div key={artist.id} className="tile-4 [&>*]:h-full">
+                <div key={artist.id} className="tile-3 [&>*]:h-full">
                   <ArtistCard artist={artist} onClick={() => navigate(`/artistas/${artist.id}`)} />
                 </div>
               ))}
-              {filtered.length > 0 && <SeeAllTile onClick={() => navigate('/artistas')} className="tile-4" />}
+              {filtered.length > 0 && <SeeAllTile onClick={() => navigate('/artistas')} className="tile-3" />}
               {searchQ && filtered.length === 0 && (
                 <div className="w-full text-center py-8">
                   <p className="text-3xl mb-2">🔍</p>
@@ -2248,11 +2248,11 @@ const HomePage: React.FC = () => {
           return (
             <HScroll>
               {filtered.slice(0, 12).map(event => (
-                <div key={event.id} className="tile-4 [&>*]:h-full">
+                <div key={event.id} className="tile-3 [&>*]:h-full">
                   <EventCard event={event} onClick={() => navigate(`/eventos/${event.id}`)} />
                 </div>
               ))}
-              {filtered.length > 0 && <SeeAllTile onClick={() => navigate('/eventos')} className="tile-4" />}
+              {filtered.length > 0 && <SeeAllTile onClick={() => navigate('/eventos')} className="tile-3" />}
               {searchQ && filtered.length === 0 && (
                 <div className="w-full text-center py-8">
                   <p className="text-3xl mb-2">🔍</p>
@@ -2321,11 +2321,11 @@ const ArtistCard: React.FC<{ artist: typeof ARTISTS[0]; onClick: () => void }> =
       )}
     </div>
     <div className="p-1.5 sm:p-2.5 flex-1 min-h-0 overflow-hidden">
-      <h3 className="font-display font-bold text-gray-900 text-[9px] sm:text-[12px] leading-tight line-clamp-2">{artist.name}</h3>
-      <p className="text-gray-400 text-[8px] sm:text-[10px] flex items-center gap-0.5 mt-0.5 truncate">
+      <h3 className="font-display font-bold text-gray-900 text-[11px] sm:text-[13px] leading-tight line-clamp-2">{artist.name}</h3>
+      <p className="text-gray-400 text-[9px] sm:text-[11px] flex items-center gap-0.5 mt-0.5 truncate">
         <MapPin className="w-2.5 h-2.5 flex-shrink-0" /> {artist.city}
       </p>
-      <div className="hidden sm:flex items-center gap-1 mt-1">
+      <div className="flex items-center gap-1 mt-1">
         <Star className="w-3 h-3 fill-brand-orange text-brand-orange" />
         <span className="text-gray-700 text-[10px] font-semibold">{artist.rating}</span>
       </div>
@@ -2356,11 +2356,11 @@ const EventCard: React.FC<{ event: typeof EVENTS[0]; onClick: () => void }> = ({
         )}
       </div>
       <div className="p-1.5 sm:p-2.5 flex-1 min-h-0 overflow-hidden">
-        <h3 className="font-display font-bold text-gray-900 text-[9px] sm:text-[12px] leading-tight line-clamp-2">{event.title}</h3>
-        <p className="text-gray-400 text-[8px] sm:text-[10px] flex items-center gap-0.5 mt-0.5 truncate">
+        <h3 className="font-display font-bold text-gray-900 text-[11px] sm:text-[13px] leading-tight line-clamp-2">{event.title}</h3>
+        <p className="text-gray-400 text-[9px] sm:text-[11px] flex items-center gap-0.5 mt-0.5 truncate">
           <MapPin className="w-2.5 h-2.5 flex-shrink-0" /> {event.city}
         </p>
-        <p className="hidden sm:block text-gray-700 text-[10px] font-semibold mt-1">
+        <p className="text-gray-700 text-[10px] font-semibold mt-1">
           {event.price === 0 ? 'GRATIS' : `Desde €${event.price}`}
         </p>
       </div>

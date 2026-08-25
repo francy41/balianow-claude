@@ -201,14 +201,14 @@ body {
     box-shadow: 0 2px 8px rgb(var(--shadow-tint) / 0.06), 0 1px 3px rgb(var(--shadow-tint) / 0.05);
   }
 
-  /* Fila del Home: exactamente 4 tarjetas cuadradas visibles por pantalla
+  /* Fila del Home: exactamente 3 tarjetas cuadradas visibles por pantalla
      (móvil y escritorio); el resto se descubre desplazando. El gap del
-     contenedor es gap-3 (0.75rem) → 3 huecos = 2.25rem a descontar del 100%.
+     contenedor es gap-3 (0.75rem) → 2 huecos = 1.5rem a descontar del 100%.
      Todas las tarjetas comparten proporción 1:1 para que la fila quede
      perfectamente alineada. */
-  .tile-4 {
-    flex: 0 0 calc((100% - 2.25rem) / 4);
-    width: calc((100% - 2.25rem) / 4);
+  .tile-3 {
+    flex: 0 0 calc((100% - 1.5rem) / 3);
+    width: calc((100% - 1.5rem) / 3);
     aspect-ratio: 1 / 1;
   }
 
