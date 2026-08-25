@@ -956,23 +956,25 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
           <SuperSearchBar cityValue={cityFilter || ''} onCitySelect={onCityChange} />
         </div>
 
-        {/* Pestañas de filtro — funcionales, sobre datos reales ya cargados; también controlan el mapa de arriba.
-            En móvil: cuadrícula de 2 columnas (2 líneas) para que quepan enteras sin scroll horizontal.
-            En escritorio: fila con scroll, como antes. Cada pestaña lleva el mismo punto de alarma
-            parpadeante y color que su pin en el mapa, para reconocer la categoría de un vistazo. */}
-        <div className="flex flex-col gap-2 pt-3 pb-1">
-          {DISCOVER_TABS.map(t => {
+        {/* Menú de categorías — cada una abre su página completa.
+            "Planes de baile" ocupa la fila entera (es el módulo principal y lleva descripción);
+            el resto va en cuadrícula de 2 columnas. Cada entrada conserva el punto de alarma
+            parpadeante con el color de su pin en el mapa, para reconocerla de un vistazo. */}
+        {(() => {
+          const trueCounts: Record<DiscoverKind, number> = { plan: stats.plan, venue: stats.abiertos, local: stats.local, pareja: stats.pareja, evento: stats.evento, vivo: stats.vivo };
+          const visibles = DISCOVER_TABS.filter(t => trueCounts[t.key] > 0);
+          const principal = visibles.find(t => t.key === 'plan');
+          const resto = visibles.filter(t => t.key !== 'plan');
+
+          const Pildora = ({ t, full }: { t: typeof DISCOVER_TABS[number]; full: boolean }) => {
             const Icon = t.icon;
-            const trueCounts: Record<DiscoverKind, number> = { plan: stats.plan, venue: stats.abiertos, local: stats.local, pareja: stats.pareja, evento: stats.evento, vivo: stats.vivo };
-            const count = trueCounts[t.key];
-            if (count === 0) return null;
             const dot = DISCOVER_TAB_DOT[t.key];
             return (
-              <button key={t.key} onClick={() => navigate(DISCOVER_TAB_ROUTE[t.key])}
-                className="card-float w-full flex items-center gap-3 pl-2 pr-3 py-2 rounded-2xl bg-white text-gray-800 hover:bg-gray-50 transition-all text-left">
+              <button onClick={() => navigate(DISCOVER_TAB_ROUTE[t.key])}
+                className={`card-float w-full flex items-center bg-white text-gray-800 hover:bg-gray-50 transition-all text-left rounded-2xl ${full ? 'gap-3 pl-2 pr-3 py-2' : 'gap-2 pl-1.5 pr-2 py-1.5'}`}>
                 {/* Icono en círculo, como ancla visual de la categoría */}
-                <span className="relative w-10 h-10 rounded-full grid place-items-center flex-shrink-0 bg-brand/10">
-                  <Icon className="w-5 h-5 text-brand" />
+                <span className={`relative rounded-full grid place-items-center flex-shrink-0 bg-brand/10 ${full ? 'w-10 h-10' : 'w-8 h-8'}`}>
+                  <Icon className={`text-brand ${full ? 'w-5 h-5' : 'w-4 h-4'}`} />
                   {dot && (
                     <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
                       <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${dot.ring} opacity-75`} />
@@ -981,15 +983,26 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
                   )}
                 </span>
                 <span className="flex-1 min-w-0">
-                  <span className="block text-sm font-extrabold leading-tight">{t.label}</span>
+                  <span className={`block font-extrabold leading-tight ${full ? 'text-sm' : 'text-[11px] line-clamp-2'}`}>{t.label}</span>
                   {t.desc && <span className="block text-[11px] font-medium text-gray-500 leading-tight mt-0.5">{t.desc}</span>}
                 </span>
-                <span className="text-xs font-black px-2.5 py-1 rounded-full flex-shrink-0 bg-brand/10 text-brand">{count}</span>
-                <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" />
+                <span className={`font-black rounded-full flex-shrink-0 bg-brand/10 text-brand ${full ? 'text-xs px-2.5 py-1' : 'text-[10px] px-1.5 py-0.5'}`}>{trueCounts[t.key]}</span>
+                {full && <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" />}
               </button>
             );
-          })}
-        </div>
+          };
+
+          return (
+            <div className="pt-3 pb-1 space-y-2">
+              {principal && <Pildora t={principal} full />}
+              {resto.length > 0 && (
+                <div className="grid grid-cols-2 gap-2">
+                  {resto.map(t => <Pildora key={t.key} t={t} full={false} />)}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {cityFilter?.trim() && scoped.length === 0 && (
           <div className="text-center py-6">
