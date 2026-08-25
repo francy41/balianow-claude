@@ -1,49 +1,36 @@
 /**
- * HomeBackground — fondo decorativo flotante para toda la HomePage
+ * HomeBackground — fondo de la HomePage
  *
- * - SVG blobs animados con gradient brand (pink/purple/orange)
- * - Posicionado absolute detrás del contenido
+ * El rosa fuerte se reserva para la cabecera y los acentos (hero TV/Radio,
+ * panel de Planes de baile, botones). El resto de la página vive sobre un
+ * rosa muy claro, casi blanco, para que las fotos de las tarjetas destaquen
+ * y la página respire.
+ * - Posicionado absolute detrás del contenido, no interactivo
  * - Respeta dark mode
- * - No interactivo (pointer-events: none)
- * - Optimizado: <2KB, GPU-aceleradas (transform animations)
  */
 import React from 'react';
 
 const HomeBackground: React.FC = () => {
   return (
     <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
-      {/* Capa base: rosa de marca a plena intensidad — el Home entero vive sobre
-          rosa, con las tarjetas blancas flotando encima (mismo lenguaje que el
-          panel de "Planes de baile"). Usa los tokens de marca, así que el color
-          se puede cambiar desde SuperAdmin → Diseño Web. */}
-      <div className="absolute inset-0 bg-gradient-to-b from-brand via-brand to-brand-deep dark:from-gray-900 dark:via-[#0a0a0a] dark:to-brand-deep" />
+      {/* Base clara: un velo rosa muy suave sobre blanco. */}
+      <div className="absolute inset-0 bg-gradient-to-b from-pink-50 via-white to-pink-50/60 dark:from-gray-900 dark:via-[#0a0a0a] dark:to-brand-deep/40" />
 
-      {/* Sobre el rosa base, halos de luz/sombra para dar profundidad — ya no son
-          manchas de color (el fondo YA es rosa), sino brillos claros y oscuros. */}
-      <div
-        className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full opacity-40 dark:opacity-15 blur-3xl animate-bn-float-slow"
-        style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.35) 0%, transparent 70%)' }}
-      />
-      <div
-        className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full opacity-45 dark:opacity-20 blur-3xl animate-bn-float-slower"
-        style={{ background: 'radial-gradient(circle, rgba(131,24,67,0.65) 0%, transparent 70%)' }}
-      />
-      <div
-        className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[400px] h-[400px] rounded-full opacity-30 dark:opacity-10 blur-3xl animate-bn-float"
-        style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.25) 0%, transparent 70%)' }}
-      />
-      <div
-        className="absolute top-40 -left-20 w-[300px] h-[300px] rounded-full opacity-30 dark:opacity-10 blur-3xl animate-bn-float-slow"
-        style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.28) 0%, transparent 70%)' }}
-      />
+      {/* Halo rosa arriba: liga visualmente con la cabecera y el hero. */}
+      <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-brand/15 to-transparent dark:from-brand-deep/30" />
 
-      {/* Patrón de puntos sutil (noise visual) */}
+      {/* Manchas de color muy diluidas, solo para dar profundidad al blanco. */}
       <div
-        className="absolute inset-0 opacity-[0.05] dark:opacity-[0.03]"
-        style={{
-          backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.7) 1px, transparent 1px)',
-          backgroundSize: '24px 24px',
-        }}
+        className="absolute -top-32 -right-32 w-[500px] h-[500px] rounded-full opacity-40 dark:opacity-20 blur-3xl animate-bn-float-slow"
+        style={{ background: 'radial-gradient(circle, rgba(229,18,125,0.18) 0%, transparent 70%)' }}
+      />
+      <div
+        className="absolute -bottom-40 -left-40 w-[600px] h-[600px] rounded-full opacity-35 dark:opacity-20 blur-3xl animate-bn-float-slower"
+        style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.14) 0%, transparent 70%)' }}
+      />
+      <div
+        className="absolute top-1/2 left-1/3 w-[420px] h-[420px] rounded-full opacity-30 dark:opacity-10 blur-3xl animate-bn-float"
+        style={{ background: 'radial-gradient(circle, rgba(229,18,125,0.12) 0%, transparent 70%)' }}
       />
     </div>
   );
