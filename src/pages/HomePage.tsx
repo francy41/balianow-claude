@@ -857,6 +857,12 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
 
   return (
     <section className="mx-3 sm:mx-4 mt-8">
+      {/* Súper buscador — justo encima del mapa: primero se elige ciudad y debajo
+          se ve reflejada en el mapa y en los contadores de cada categoría. */}
+      <div className="mb-3">
+        <SuperSearchBar cityValue={cityFilter || ''} onCitySelect={onCityChange} />
+      </div>
+
       <div className="card-float relative overflow-hidden rounded-3xl min-h-[80px] sm:min-h-[240px]">
         {/* Mapa real de fondo — Planes/Abiertos ahora/Eventos/En directo a la vez, cada uno con su color y alarma */}
         <div className="absolute inset-0">
@@ -949,13 +955,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         )}
       </div>
 
-      <div className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-[#EC4899] via-[#BE185D] to-brand-deep px-4 sm:px-5 pb-4 sm:pb-5 -mt-3">
-        {/* Súper buscador — justo donde termina el mapa, dentro del mismo panel, para que se lea
-            como una sola pieza con "Planes de baile" en vez de un elemento suelto encima. */}
-        <div className="pt-4">
-          <SuperSearchBar cityValue={cityFilter || ''} onCitySelect={onCityChange} />
-        </div>
-
+      <div className="relative overflow-hidden rounded-b-3xl bg-gradient-to-br from-[#EC4899] via-[#BE185D] to-brand-deep px-4 sm:px-5 pt-1 pb-4 sm:pb-5 -mt-3">
         {/* Menú de categorías — cada una abre su página completa.
             "Planes de baile" ocupa la fila entera (es el módulo principal y lleva descripción);
             el resto va en cuadrícula de 2 columnas. Cada entrada conserva el punto de alarma
