@@ -39,7 +39,7 @@ const BottomNav: React.FC = () => {
       <Search className="w-5 h-5" />
     </button>
     )}
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-t from-gray-950 via-gray-900 to-gray-900/95 border-t border-pink-500/20 backdrop-blur-xl"
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-surface-elevated/95 border-t border-hairline/10 backdrop-blur-xl shadow-elevation-2"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       <div className="flex items-center h-14">
         {tabs.map(tab => {
@@ -48,12 +48,12 @@ const BottomNav: React.FC = () => {
           return (
             <Link key={tab.to} to={tab.to}
               className={`flex-1 flex flex-col items-center justify-center h-full gap-1 relative transition-all active:scale-95 ${
-                isActive ? 'text-white' : 'text-gray-500'
+                isActive ? 'text-accent' : 'text-ink-tertiary'
               }`}
             >
               <div className={`relative grid place-items-center rounded-2xl transition-all duration-200 ${
                 isActive
-                  ? 'bg-gradient-to-br from-pink-500 to-fuchsia-600 text-white p-2 shadow-lg shadow-pink-500/40 -translate-y-0.5'
+                  ? 'bg-accent/10 text-accent p-2'
                   : 'p-1.5'
               }`}>
                 {tab.icon}
@@ -61,7 +61,7 @@ const BottomNav: React.FC = () => {
                   <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-pink-500 rounded-full animate-pulse shadow-lg shadow-pink-500/50" />
                 )}
               </div>
-              <span className={`text-[8px] sm:text-[9px] font-bold ${isActive ? 'text-pink-400' : ''}`}>{tab.label}</span>
+              <span className={`text-[8px] sm:text-[9px] font-bold ${isActive ? 'text-accent' : ''}`}>{tab.label}</span>
             </Link>
           );
         })}

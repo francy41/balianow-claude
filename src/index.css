@@ -269,14 +269,21 @@ body {
   .tag-live   { @apply inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-600 text-white; }
 
   /* ── NAV LINK ── */
+  /* El item activo usa fondo suave + barra indicadora en vez de un degradado
+     macizo: pesa menos visualmente y deja respirar al sidebar. Tokenizado, así
+     que no depende del bloque de overrides !important de dark del final. */
   .nav-link {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-gray-600 text-sm font-semibold transition-all duration-200 hover:bg-pink-50 hover:text-pink-600 hover:translate-x-0.5;
+    @apply relative flex items-center gap-3 pl-4 pr-3 py-2.5 rounded-xl text-ink-secondary text-sm font-semibold transition-colors duration-200 hover:bg-accent/[0.07] hover:text-accent;
   }
   .nav-link.active {
-    @apply bg-gradient-to-r from-pink-500 to-fuchsia-600 text-white shadow-lg shadow-pink-500/25 hover:text-white hover:bg-pink-600;
+    @apply bg-accent/10 text-accent font-bold;
+  }
+  .nav-link.active::before {
+    content: '';
+    @apply absolute left-1 top-1/2 -translate-y-1/2 w-1 h-5 rounded-full bg-accent;
   }
   .nav-section {
-    @apply text-gray-400 text-[10px] font-bold uppercase tracking-widest px-3 pt-5 pb-1;
+    @apply text-ink-tertiary text-[10px] font-bold uppercase tracking-widest px-3 pt-5 pb-1;
   }
 
   /* ── INPUT ── */

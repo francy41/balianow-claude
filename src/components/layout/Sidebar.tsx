@@ -125,17 +125,17 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
       {/* Mobile overlay */}
       {open && <div className="fixed inset-0 bg-black/50 z-30 lg:hidden" onClick={onClose} />}
 
-      <aside className={`fixed top-0 left-0 h-full w-60 bg-white border-r border-gray-200 z-40 flex flex-col transition-transform duration-300 shadow-sm ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+      <aside className={`fixed top-0 left-0 h-full w-60 bg-surface-elevated border-r border-hairline/10 z-40 flex flex-col transition-transform duration-300 shadow-elevation-1 ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Logo — enlaza a Inicio */}
         <NavLink to="/" onClick={onClose}
-          className="flex items-center gap-2 px-5 h-14 border-b border-gray-100 flex-shrink-0 hover:opacity-90 transition-opacity">
+          className="flex items-center gap-2 px-5 h-14 border-b border-hairline/10 flex-shrink-0 hover:opacity-90 transition-opacity">
           {siteLogo ? (
             <img src={siteLogo} alt="BailaNow" className="h-10 max-w-[180px] object-contain" />
           ) : (
             <>
               <span className="text-2xl">💃</span>
               <span className="font-display font-black text-lg">
-                <span className="text-gray-900">Baila</span>
+                <span className="text-ink-primary">Baila</span>
                 <span className="bg-gradient-to-r from-pink-500 to-fuchsia-600 bg-clip-text text-transparent">Now</span>
               </span>
             </>
@@ -147,7 +147,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
           {/* Inicio — acceso fijo (no es categoría) */}
           <NavLink to="/" onClick={onClose}
             className={() => `nav-link mb-0.5 ${isNavItemActive('inicio') ? 'active' : ''}`}>
-            <Home className="w-4 h-4" />
+            <Home className="w-[18px] h-[18px] flex-shrink-0" />
             <span className="truncate">Inicio</span>
           </NavLink>
 
@@ -162,7 +162,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                   onClick={onClose}
                   className={() => `nav-link mb-0.5 ${isNavItemActive(item.label + item.to) ? 'active' : ''}`}
                 >
-                  <span className="w-4 h-4 flex items-center justify-center text-sm">{item.icon}</span>
+                  <span className="w-[18px] flex items-center justify-center text-base flex-shrink-0">{item.icon}</span>
                   <span className="truncate">{item.label}</span>
                 </NavLink>
               ))}
@@ -189,7 +189,7 @@ const Sidebar: React.FC<SidebarProps> = ({ open, onClose }) => {
                   onClick={async () => { onClose?.(); await supabaseLogout(); }}
                   className="nav-link mb-0.5 w-full text-left text-red-500 hover:bg-red-50"
                 >
-                  <LogOut className="w-4 h-4" />
+                  <LogOut className="w-[18px] h-[18px] flex-shrink-0" />
                   <span className="truncate">Cerrar sesión</span>
                 </button>
               )}

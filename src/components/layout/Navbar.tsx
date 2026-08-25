@@ -39,6 +39,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
   const [showEdit, setShowEdit] = useState(false);
   const [selectedCity, setSelectedCity] = useState(() => localStorage.getItem(SELECTED_CITY_KEY) || 'Madrid');
   const [cityOpen, setCityOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
   const [citySearch, setCitySearch] = useState('');
   const cityRef = useRef<HTMLDivElement>(null);
 
@@ -48,6 +50,15 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
     document.addEventListener('mousedown', onClick);
     return () => document.removeEventListener('mousedown', onClick);
   }, [cityOpen]);
+
+  useEffect(() => {
+    if (!profileOpen) return;
+    const onClick = (e: MouseEvent) => { if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false); };
+    const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') setProfileOpen(false); };
+    document.addEventListener('mousedown', onClick);
+    document.addEventListener('keydown', onEsc);
+    return () => { document.removeEventListener('mousedown', onClick); document.removeEventListener('keydown', onEsc); };
+  }, [profileOpen]);
 
   const cityMatches = TOP_DANCE_CITIES.filter(c => c.toLowerCase().includes(citySearch.trim().toLowerCase())).slice(0, 8);
 
@@ -82,7 +93,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
         ) : (
           <>
             <span className="text-ink-primary">Baila</span>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-fuchsia-600">Now</span>
+            <span className="text-accent">Now</span>
           </>
         )}
       </Link>
@@ -94,7 +105,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
           className="flex items-center gap-1.5 pl-3 pr-2.5 py-2 rounded-full border border-hairline/15 hover:shadow-md hover:border-hairline/25 text-ink-secondary transition-all"
           title="Cambiar ciudad"
         >
-          <MapPin className="w-4 h-4 text-pink-500" />
+          <MapPin className="w-4 h-4 text-accent" />
           <span className="text-sm font-semibold">{selectedCity}</span>
           <ChevronDown className="w-3.5 h-3.5 text-ink-tertiary" />
         </button>
@@ -129,15 +140,15 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
       {/* Superbuscador (GlobalSearch) — abre el modal que busca en locales, eventos, artistas, ciudades... */}
       <button
         onClick={() => window.dispatchEvent(new Event('bn:open-search'))}
-        className="flex-1 min-w-0 max-w-xl flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full bg-gradient-to-r from-pink-50 to-orange-50 dark:from-pink-950/30 dark:to-orange-950/20 border border-pink-200/70 dark:border-pink-900/40 hover:shadow-lg hover:shadow-pink-500/10 hover:border-pink-300 text-ink-tertiary transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
+        className="flex-1 min-w-0 max-w-2xl flex items-center gap-2.5 pl-2 pr-3 py-2 rounded-full bg-surface-elevated-2 border border-hairline/10 hover:border-accent/40 hover:shadow-elevation-2 text-ink-tertiary transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
         title="Buscar (Ctrl+K)"
       >
-        <span className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-sm">
-          <Search className="w-3.5 h-3.5 text-white" />
+        <span className="w-8 h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
+          <Search className="w-4 h-4 text-white" />
         </span>
         <span className="flex-1 min-w-0 text-left leading-tight">
-          <span className="block text-sm text-ink-primary font-semibold truncate">¿Qué quieres hacer hoy?</span>
-          <span className="hidden sm:block text-[10px] text-ink-tertiary truncate">Locales, eventos, artistas, ciudades…</span>
+          <span className="block text-sm text-ink-primary font-semibold truncate">Buscar eventos, clases, locales, artistas…</span>
+          
         </span>
         <span className="ml-auto text-[10px] hidden md:inline bg-surface-elevated-2 px-1.5 py-0.5 rounded font-mono text-ink-tertiary flex-shrink-0 border border-hairline/10">Ctrl K</span>
       </button>
@@ -175,34 +186,35 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
           <NotificationsBell />
 
           {/* Profile */}
-          <div className="relative group">
-            <button className="flex items-center gap-1.5 hover:bg-surface-elevated-2 rounded-full p-1 sm:pl-2 transition-all">
+          <div ref={profileRef} className="relative">
+            <button onClick={() => setProfileOpen(v => !v)} aria-haspopup="menu" aria-expanded={profileOpen}
+              className="flex items-center gap-1.5 hover:bg-surface-elevated-2 rounded-full p-1 sm:pl-2 transition-all">
               <Avatar src={user.avatar} name={user.name} size="sm" />
               <ChevronDown className="w-3.5 h-3.5 text-ink-tertiary hidden sm:block" />
             </button>
 
             {/* Dropdown */}
-            <div className="absolute right-0 top-full mt-2 w-56 bg-surface-elevated border border-hairline/10 rounded-2xl shadow-elevation-3 overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
-              <div className="p-3 border-b border-hairline/10 bg-gradient-to-r from-pink-500/10 to-fuchsia-500/10">
+            <div className={`absolute right-0 top-full mt-2 w-56 bg-surface-elevated border border-hairline/10 rounded-2xl shadow-elevation-3 overflow-hidden transition-all duration-150 z-50 ${profileOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
+              <div className="p-3 border-b border-hairline/10 bg-accent/5">
                 <p className="text-ink-primary font-bold text-sm">{user.name}</p>
-                <p className="text-pink-500 text-xs capitalize">{roleLabel}</p>
+                <p className="text-accent text-xs capitalize">{roleLabel}</p>
               </div>
               <div className="p-2">
-                <Link to="/dashboard" className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-surface-elevated-2 text-ink-secondary text-sm transition-colors">
+                <Link to="/dashboard" onClick={() => setProfileOpen(false)} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-surface-elevated-2 text-ink-secondary text-sm transition-colors">
                   <LayoutDashboard className="w-4 h-4" /> Mi Dashboard
                 </Link>
-                <button onClick={() => setShowEdit(true)} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-surface-elevated-2 text-ink-secondary text-sm transition-colors text-left">
+                <button onClick={() => { setProfileOpen(false); setShowEdit(true); }} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-surface-elevated-2 text-ink-secondary text-sm transition-colors text-left">
                   <Edit3 className="w-4 h-4" /> Editar mi perfil
                 </button>
-                <Link to="/wallet" className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-surface-elevated-2 text-ink-secondary text-sm transition-colors">
+                <Link to="/wallet" onClick={() => setProfileOpen(false)} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-surface-elevated-2 text-ink-secondary text-sm transition-colors">
                   💳 Wallet — €{user.wallet.toFixed(0)}
                 </Link>
                 {isAdmin && (
-                  <Link to="/admin" className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-pink-50 text-pink-600 text-sm font-semibold transition-colors mt-1">
+                  <Link to="/admin" onClick={() => setProfileOpen(false)} className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-accent/10 text-accent text-sm font-semibold transition-colors mt-1">
                     <Shield className="w-4 h-4" /> Panel Admin
                   </Link>
                 )}
-                <button onClick={handleLogout} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-red-50 text-red-500 text-sm transition-colors mt-1">
+                <button onClick={() => { setProfileOpen(false); handleLogout(); }} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-red-50 text-red-500 text-sm transition-colors mt-1">
                   <LogOut className="w-4 h-4" /> Salir
                 </button>
               </div>
