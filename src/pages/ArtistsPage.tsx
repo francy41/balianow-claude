@@ -252,7 +252,7 @@ const ArtistsPage: React.FC = () => {
   const clearAll = () => { setSelectedType(['Todos']); setSelectedGenre(['Todos']); setSelectedCity(['Todas']); setOnlyLive(false); setOnlyVerified(false); };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6">
+    <div className="min-h-screen bg-surface py-6">
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-fuchsia-950 to-black p-6 sm:p-8 text-white">
           <div className="absolute -top-10 -right-10 w-48 h-48 bg-brand/25 rounded-full blur-3xl pointer-events-none" />
@@ -271,17 +271,17 @@ const ArtistsPage: React.FC = () => {
             <FilterFacet label="Ciudad" icon={<span>📍</span>} options={cities} selected={selectedCity} onChange={setSelectedCity} collapsible limit={8} />
 
             <div>
-              <span className="text-gray-400 text-xs font-semibold uppercase tracking-wide">Opciones</span>
+              <span className="text-ink-tertiary text-xs font-semibold uppercase tracking-wide">Opciones</span>
               <div className="flex items-center gap-3 flex-wrap mt-2">
                 <button
                   onClick={() => setOnlyLive(!onlyLive)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${onlyLive ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-600 border-gray-200 hover:border-red-400 hover:text-red-500'}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${onlyLive ? 'bg-red-500 text-white border-red-500' : 'bg-surface-elevated text-ink-secondary border-hairline/10 hover:border-red-400 hover:text-red-500'}`}
                 >
                   <Radio className="w-3.5 h-3.5" /> Solo en vivo
                 </button>
                 <button
                   onClick={() => setOnlyVerified(!onlyVerified)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${onlyVerified ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-400 hover:text-blue-500'}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${onlyVerified ? 'bg-blue-600 text-white border-blue-600' : 'bg-surface-elevated text-ink-secondary border-hairline/10 hover:border-blue-400 hover:text-blue-500'}`}
                 >
                   <CheckCircle className="w-3.5 h-3.5" /> Verificados
                 </button>
@@ -289,13 +289,13 @@ const ArtistsPage: React.FC = () => {
             </div>
 
             <div>
-              <span className="text-gray-400 text-xs font-semibold uppercase tracking-wide">Ordenar por</span>
+              <span className="text-ink-tertiary text-xs font-semibold uppercase tracking-wide">Ordenar por</span>
               <div className="flex gap-2 flex-wrap mt-2">
                 {(['rating', 'price', 'followers'] as const).map(s => (
                   <button
                     key={s}
                     onClick={() => setSortBy(s)}
-                    className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all border ${sortBy === s ? 'bg-brand-orange text-white border-brand-orange' : 'bg-white text-gray-500 border-gray-200 hover:border-brand-orange hover:text-brand-orange'}`}
+                    className={`px-3 py-2 rounded-xl text-xs font-semibold transition-all border ${sortBy === s ? 'bg-brand-orange text-white border-brand-orange' : 'bg-surface-elevated text-ink-secondary border-hairline/10 hover:border-brand-orange hover:text-brand-orange'}`}
                   >
                     {s === 'rating' ? '⭐ Rating' : s === 'price' ? '💰 Precio' : '👥 Seguidores'}
                   </button>
@@ -318,7 +318,7 @@ const ArtistsPage: React.FC = () => {
 
         <div className="mt-6">
           <div className="mb-4">
-            {loading && <p className="text-gray-400 text-sm">Cargando…</p>}
+            {loading && <p className="text-ink-tertiary text-sm">Cargando…</p>}
           </div>
           {loadError && (
             <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-700 rounded-lg p-3 mb-4 text-xs text-red-700 dark:text-red-300">
@@ -332,7 +332,7 @@ const ArtistsPage: React.FC = () => {
                 🔍 Debug: ¿por qué 0 artistas?
               </button>
               {debugInfo && (
-                <pre className="mt-2 text-[10px] text-gray-700 font-mono whitespace-pre-wrap break-all">{debugInfo}</pre>
+                <pre className="mt-2 text-[10px] text-ink-secondary font-mono whitespace-pre-wrap break-all">{debugInfo}</pre>
               )}
             </div>
           )}

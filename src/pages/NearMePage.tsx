@@ -363,7 +363,7 @@ const NearMePage: React.FC = () => {
     }[it.type];
     return (
       <article key={`c-${it.type}-${it.id}`} onClick={() => goTo(it)}
-        className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-md hover:shadow-xl border border-gray-100 dark:border-gray-800 cursor-pointer active:scale-[0.97] transition-all flex flex-col">
+        className="bg-surface-elevated rounded-2xl overflow-hidden shadow-md hover:shadow-xl border border-hairline/10 cursor-pointer active:scale-[0.97] transition-all flex flex-col">
         {/* Cover */}
         <div className="relative w-full aspect-square bg-gray-800 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
           {it.img
@@ -397,9 +397,9 @@ const NearMePage: React.FC = () => {
         </div>
         {/* Info */}
         <div className="p-2.5 flex-1 flex flex-col justify-between gap-1">
-          <h3 className="font-black text-[13px] text-gray-900 dark:text-white leading-tight line-clamp-2">{it.name}</h3>
+          <h3 className="font-black text-[13px] text-ink-primary leading-tight line-clamp-2">{it.name}</h3>
           <div className="flex items-center justify-between gap-1 mt-auto">
-            <p className="text-[10px] text-gray-500 flex items-center gap-0.5 truncate">
+            <p className="text-[10px] text-ink-secondary flex items-center gap-0.5 truncate">
               <MapPin className="w-2.5 h-2.5 flex-shrink-0" />
               <span className="truncate">{it.city}</span>
             </p>
@@ -426,27 +426,27 @@ const NearMePage: React.FC = () => {
     }[it.type];
     return (
       <article key={`${it.type}-${it.id}`} onClick={() => goTo(it)}
-        className="bg-white dark:bg-gray-900 rounded-3xl overflow-hidden shadow-md hover:shadow-xl border border-gray-100 dark:border-gray-800 cursor-pointer active:scale-[0.99] transition-all">
+        className="bg-surface-elevated rounded-3xl overflow-hidden shadow-md hover:shadow-xl border border-hairline/10 cursor-pointer active:scale-[0.99] transition-all">
         <header className="flex items-center gap-3 px-4 py-3">
           <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${typeMeta.color} p-[2px] flex-shrink-0`}>
-            <div className="w-full h-full rounded-full bg-white dark:bg-gray-900 overflow-hidden">
+            <div className="w-full h-full rounded-full bg-surface-elevated overflow-hidden">
               {it.img
                 ? <img src={it.img} alt={it.name} className="w-full h-full object-cover" loading="lazy" />
                 : <div className="w-full h-full flex items-center justify-center text-lg">{typeMeta.emoji}</div>}
             </div>
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-black text-[15px] text-gray-900 dark:text-white truncate leading-tight flex items-center gap-1.5">
+            <h3 className="font-black text-[15px] text-ink-primary truncate leading-tight flex items-center gap-1.5">
               {it.name}
               {it.type === 'venue' && it.isOpenNow && <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0" title="Abierto ahora" />}
             </h3>
-            <p className="text-[11px] text-gray-400 flex items-center gap-1 mt-0.5">
+            <p className="text-[11px] text-ink-tertiary flex items-center gap-1 mt-0.5">
               <span className={`px-1.5 py-0.5 rounded-full text-white text-[9px] font-bold bg-gradient-to-r ${typeMeta.color}`}>
                 {typeMeta.emoji} {typeMeta.label}
               </span>
               <MapPin className="w-3 h-3 ml-1" />{it.city}
               {it.type === 'venue' && it.openHoursText && (
-                <span className="ml-1 text-[10px] text-gray-500">· {it.openHoursText}</span>
+                <span className="ml-1 text-[10px] text-ink-secondary">· {it.openHoursText}</span>
               )}
             </p>
           </div>
@@ -492,7 +492,7 @@ const NearMePage: React.FC = () => {
           </div>
         )}
         <footer className="px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3 text-xs text-gray-500 flex-1 min-w-0">
+          <div className="flex items-center gap-3 text-xs text-ink-secondary flex-1 min-w-0">
             {it.genre && (
               <span className="flex items-center gap-1 truncate">
                 <Music className="w-3.5 h-3.5 text-brand flex-shrink-0" />
@@ -510,7 +510,7 @@ const NearMePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-24">
+    <div className="min-h-screen bg-surface pb-24">
 
       {/* ── HERO HEADER ── */}
       <div className="bg-gradient-to-br from-brand via-brand-secondary to-fuchsia-700 text-white px-4 pt-5 pb-6 relative overflow-hidden">
@@ -577,14 +577,14 @@ const NearMePage: React.FC = () => {
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                 activeTab === t.key
                   ? 'bg-brand-orange text-white shadow-lg shadow-brand/30'
-                  : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+                  : 'bg-surface-elevated text-ink-secondary border border-hairline/10'
               }`}>
               <span className="mr-1">{t.icon}</span>{t.label}
             </button>
           ))}
         </div>
         {/* ── CHECKBOX: Solo abiertos ahora ── */}
-        <label className="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-300 cursor-pointer">
+        <label className="flex items-center gap-2 text-xs font-bold text-ink-secondary cursor-pointer">
           <input
             type="checkbox"
             checked={onlyOpenNow}
@@ -600,13 +600,13 @@ const NearMePage: React.FC = () => {
         {loading ? (
           <div className="text-center py-12">
             <div className="w-10 h-10 border-3 border-brand border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-gray-400 text-sm mt-3">Buscando cerca de ti…</p>
+            <p className="text-ink-tertiary text-sm mt-3">Buscando cerca de ti…</p>
           </div>
         ) : !position ? (
           <div className="text-center py-12">
-            <MapPin className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="font-bold text-gray-700 dark:text-gray-300">Activa tu ubicación</p>
-            <p className="text-gray-400 text-xs mt-1 mb-4">o elige una ciudad para empezar</p>
+            <MapPin className="w-12 h-12 text-ink-tertiary mx-auto mb-3" />
+            <p className="font-bold text-ink-secondary">Activa tu ubicación</p>
+            <p className="text-ink-tertiary text-xs mt-1 mb-4">o elige una ciudad para empezar</p>
             <button onClick={handleLocate} className="bg-brand-orange text-white font-bold px-6 py-3 rounded-xl">
               📍 Usar mi ubicación
             </button>
@@ -614,8 +614,8 @@ const NearMePage: React.FC = () => {
         ) : filtered.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-4xl mb-3">🔍</p>
-            <p className="font-bold text-gray-700 dark:text-gray-300">Nada cerca de {locationLabel}</p>
-            <p className="text-gray-400 text-xs mt-1">Prueba ampliando el radio o cambiando de ciudad</p>
+            <p className="font-bold text-ink-secondary">Nada cerca de {locationLabel}</p>
+            <p className="text-ink-tertiary text-xs mt-1">Prueba ampliando el radio o cambiando de ciudad</p>
           </div>
         ) : activeTab === 'all' ? (
           // ── VISTA "TODO": agrupa por categoria, max 4 por seccion + ver mas ──
@@ -637,9 +637,9 @@ const NearMePage: React.FC = () => {
               return (
                 <section key={sec.key} className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <h2 className="font-display font-black text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                    <h2 className="font-display font-black text-lg text-ink-primary flex items-center gap-2">
                       <span>{sec.emoji}</span> {sec.label}
-                      <span className="text-sm font-bold text-gray-400">({sectionItems.length})</span>
+                      <span className="text-sm font-bold text-ink-tertiary">({sectionItems.length})</span>
                     </h2>
                     {hasMore && (
                       <button onClick={() => setActiveTab(sec.tab)}
@@ -665,10 +665,10 @@ const NearMePage: React.FC = () => {
       {/* ── CITY PICKER MODAL ── */}
       {showCityPicker && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-end sm:items-center justify-center p-3" onClick={() => setShowCityPicker(false)}>
-          <div onClick={e => e.stopPropagation()} className="bg-white dark:bg-gray-900 rounded-3xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="px-5 pt-5 pb-3 flex items-center justify-between border-b border-gray-100 dark:border-gray-800">
-              <h2 className="font-black text-gray-900 dark:text-white">Elige tu ubicación</h2>
-              <button onClick={() => setShowCityPicker(false)} className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+          <div onClick={e => e.stopPropagation()} className="bg-surface-elevated rounded-3xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="px-5 pt-5 pb-3 flex items-center justify-between border-b border-hairline/10">
+              <h2 className="font-black text-ink-primary">Elige tu ubicación</h2>
+              <button onClick={() => setShowCityPicker(false)} className="w-8 h-8 rounded-full bg-surface-elevated-2 flex items-center justify-center">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -680,11 +680,11 @@ const NearMePage: React.FC = () => {
                   : <><Navigation className="w-4 h-4" /> Usar mi ubicación actual</>
                 }
               </button>
-              <p className="text-[10px] font-bold uppercase text-gray-400 tracking-wider px-2 pt-2">Ciudades populares</p>
+              <p className="text-[10px] font-bold uppercase text-ink-tertiary tracking-wider px-2 pt-2">Ciudades populares</p>
               {POPULAR_CITIES.map(c => (
                 <button key={c} onClick={() => selectCity(c)}
                   className={`w-full text-left px-4 py-2.5 rounded-xl flex items-center justify-between text-sm font-bold transition-all ${
-                    city === c ? 'bg-pink-50 dark:bg-brand-deep/20 text-brand dark:text-pink-300' : 'hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300'
+                    city === c ? 'bg-pink-50 dark:bg-brand-deep/20 text-brand dark:text-pink-300' : 'hover:bg-surface text-ink-secondary'
                   }`}>
                   <span className="flex items-center gap-2"><MapPin className="w-4 h-4 opacity-50" />{c}</span>
                   {city === c && <span className="text-brand">✓</span>}

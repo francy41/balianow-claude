@@ -129,7 +129,7 @@ const ClassesPage: React.FC = () => {
   }), [classes, filterStyle, filterLevel, filterOnline]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950 pb-24">
+    <div className="min-h-screen bg-surface pb-24">
       {/* Hero */}
       <div className="bg-gradient-to-br from-brand via-brand-secondary to-fuchsia-700 text-white px-4 pt-6 pb-8 relative overflow-hidden">
         <div className="max-w-6xl mx-auto relative">
@@ -165,7 +165,7 @@ const ClassesPage: React.FC = () => {
               className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                 filterStyle === s
                   ? 'bg-brand-orange text-white shadow-lg'
-                  : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+                  : 'bg-surface-elevated text-ink-secondary border border-hairline/10'
               }`}>
               {s}
             </button>
@@ -177,7 +177,7 @@ const ClassesPage: React.FC = () => {
               className={`flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-bold transition-all ${
                 filterLevel === l
                   ? 'bg-brand-secondary text-white'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+                  : 'bg-surface-elevated-2 text-ink-secondary'
               }`}>
               🎯 {l}
             </button>
@@ -187,7 +187,7 @@ const ClassesPage: React.FC = () => {
               className={`flex-shrink-0 px-3 py-1 rounded-full text-[11px] font-bold transition-all ${
                 filterOnline === o
                   ? 'bg-emerald-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+                  : 'bg-surface-elevated-2 text-ink-secondary'
               }`}>
               {o === 'all' ? '🌍 Todo' : o === 'online' ? '🎥 Online' : '📍 Presencial'}
             </button>
@@ -200,18 +200,18 @@ const ClassesPage: React.FC = () => {
         {loading ? (
           <div className="text-center py-16">
             <div className="w-10 h-10 border-3 border-brand border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-gray-400 text-sm mt-3">Cargando clases…</p>
+            <p className="text-ink-tertiary text-sm mt-3">Cargando clases…</p>
           </div>
         ) : classes.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-5xl mb-3">📚</p>
-            <p className="font-bold text-gray-700 dark:text-gray-300">Aún no hay clases publicadas</p>
-            <p className="text-gray-400 text-sm mt-1">Los profesores pueden ofrecer sus clases desde su perfil. ¡Pronto habrá clases aquí!</p>
+            <p className="font-bold text-ink-secondary">Aún no hay clases publicadas</p>
+            <p className="text-ink-tertiary text-sm mt-1">Los profesores pueden ofrecer sus clases desde su perfil. ¡Pronto habrá clases aquí!</p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-5xl mb-3">📚</p>
-            <p className="font-bold text-gray-700 dark:text-gray-300">No hay clases con esos filtros</p>
+            <p className="font-bold text-ink-secondary">No hay clases con esos filtros</p>
             <button onClick={() => { setFilterStyle('Todos'); setFilterLevel('Todos'); setFilterOnline('all'); }}
               className="mt-3 bg-brand text-white px-4 py-2 rounded-xl text-sm font-bold">
               Quitar filtros

@@ -157,7 +157,7 @@ const VenuesList: React.FC = () => {
   const clearAll = () => { setSelectedType(['Todos']); setSelectedCity(['Todas']); setOnlyOpen(false); };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6">
+    <div className="min-h-screen bg-surface py-6">
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-fuchsia-950 to-black p-6 sm:p-8 text-white">
           <div className="absolute -top-10 -right-10 w-48 h-48 bg-brand/25 rounded-full blur-3xl pointer-events-none" />
@@ -174,11 +174,11 @@ const VenuesList: React.FC = () => {
             <FilterFacet label="Tipo" icon={<span>🏛️</span>} options={TYPES} selected={selectedType} onChange={setSelectedType} />
             <FilterFacet label="Ciudad" icon={<span>📍</span>} options={CITIES} selected={selectedCity} onChange={setSelectedCity} collapsible limit={8} />
             <div>
-              <span className="text-gray-400 text-xs font-semibold uppercase tracking-wide">Opciones</span>
+              <span className="text-ink-tertiary text-xs font-semibold uppercase tracking-wide">Opciones</span>
               <div className="flex gap-2 flex-wrap mt-2">
                 <button
                   onClick={() => setOnlyOpen(!onlyOpen)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${onlyOpen ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-600 border-gray-200 hover:border-emerald-500 hover:text-emerald-600'}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${onlyOpen ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-surface-elevated text-ink-secondary border-hairline/10 hover:border-emerald-500 hover:text-emerald-600'}`}
                 >
                   🟢 Solo abiertos ahora
                 </button>
@@ -193,7 +193,7 @@ const VenuesList: React.FC = () => {
         </div>
 
         <div className="mt-6">
-          <p className="text-gray-500 text-sm font-semibold mb-4">
+          <p className="text-ink-secondary text-sm font-semibold mb-4">
             {loading ? 'Cargando locales…' : `${filtered.length} ${filtered.length === 1 ? 'local' : 'locales'}`}
           </p>
           {loading && filtered.length === 0 ? (
@@ -231,7 +231,9 @@ const VenueCard: React.FC<{ venue: Venue; onClick: () => void }> = ({ venue, onC
 
       {/* Tipo + Premium */}
       <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
-        <span className="bg-white/90 text-gray-700 text-[10px] px-2 py-1 rounded-lg capitalize font-bold">{venue.type}</span>
+        {/* Texto fijo, no token: la píldora es blanca en ambos modos por ir sobre la foto,
+            así que su texto tiene que quedarse oscuro (con token se volvía claro sobre claro). */}
+        <span className="bg-white/90 text-[#3f3f46] text-[10px] px-2 py-1 rounded-lg capitalize font-bold">{venue.type}</span>
         {venue.isPremium && <span className="bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[9px] font-black px-2 py-1 rounded-lg">👑 PRO</span>}
       </div>
 
@@ -394,8 +396,8 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
   if (!venue) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-3 p-6 text-center">
       <p className="text-5xl">📍</p>
-      <h2 className="font-display font-black text-xl text-gray-900 dark:text-white">Local no encontrado</h2>
-      <p className="text-gray-400 text-sm">Este local ya no existe o fue eliminado.</p>
+      <h2 className="font-display font-black text-xl text-ink-primary">Local no encontrado</h2>
+      <p className="text-ink-tertiary text-sm">Este local ya no existe o fue eliminado.</p>
       <button onClick={() => navigate('/venues')} className="btn-orange px-6 py-2">Ver locales</button>
     </div>
   );
@@ -405,7 +407,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
   const socialHref = (key: string, value: string) => value.startsWith('http') ? value : `https://${key}.com/${value}`;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-10">
+    <div className="min-h-screen bg-surface pb-10">
       {/* ── HERO BANNER · portada tipo revista ── */}
       <section className="relative h-80 sm:h-[26rem] overflow-hidden">
         <img src={venue.cover} alt={venue.name} className="w-full h-full object-cover kenburns" />
@@ -483,7 +485,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
       })()}
 
       {/* ── ACTION BAR ── */}
-      <div className="sticky top-14 z-30 bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 shadow-sm">
+      <div className="sticky top-14 z-30 bg-surface-elevated border-b border-hairline/10 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           <button onClick={() => navigate('/chat')}
             className="btn-orange text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
@@ -495,7 +497,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
             <Calendar className="w-4 h-4" /> Reservar
           </button>
           <button onClick={() => setCallOpen(true)}
-            className="text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 whitespace-nowrap bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all">
+            className="text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 whitespace-nowrap bg-surface-elevated-2 text-ink-secondary hover:bg-hairline/10 transition-all">
             <Phone className="w-4 h-4" /> Reservar llamada
           </button>
           <button onClick={() => {
@@ -503,13 +505,13 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
             addToast({ message: following ? 'Dejaste de seguir' : `¡Ahora sigues a ${venue.name}!`, type: 'success' });
           }}
             className={`text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-all ${
-              following ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              following ? 'bg-gray-900 text-white' : 'bg-surface-elevated-2 text-ink-secondary hover:bg-hairline/10'
             }`}>
             <Bell className="w-4 h-4" /> {following ? 'Siguiendo' : 'Seguir'}
           </button>
           <button onClick={() => setLiked(l => !l)}
             className={`text-sm font-bold py-2 px-3 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-all ${
-              liked ? 'bg-red-50 text-red-500' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              liked ? 'bg-red-50 text-red-500' : 'bg-surface-elevated-2 text-ink-secondary hover:bg-hairline/10'
             }`}>
             <Heart className={`w-4 h-4 ${liked ? 'fill-red-500' : ''}`} />
           </button>
@@ -528,7 +530,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
           {visibleVenueTabs.map(t => (
             <button key={t.id} onClick={() => setActiveTab(t.id)}
               className={`flex items-center gap-1.5 px-4 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === t.id ? 'border-brand-orange text-brand-orange' : 'border-transparent text-gray-500 hover:text-gray-800'
+                activeTab === t.id ? 'border-brand-orange text-brand-orange' : 'border-transparent text-ink-secondary hover:text-ink-primary'
               }`}>
               {t.icon} {t.label}
             </button>
@@ -557,8 +559,8 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
               </button>
 
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 dark:text-white mb-2">Biografía</h3>
-                <p className={`text-gray-600 leading-relaxed ${bioExpanded ? '' : 'line-clamp-3'}`}>{venue.description}</p>
+                <h3 className="font-display font-bold text-ink-primary mb-2">Biografía</h3>
+                <p className={`text-ink-secondary leading-relaxed ${bioExpanded ? '' : 'line-clamp-3'}`}>{venue.description}</p>
                 {(venue.description || '').length > 160 && (
                   <button onClick={() => setBioExpanded(v => !v)} className="text-brand-orange text-xs font-bold mt-1.5 hover:underline">
                     {bioExpanded ? 'Leer menos' : 'Leer más'}
@@ -567,8 +569,8 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
               </div>
 
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3">🎭 Estilo</h3>
-                <p className="text-gray-600">
+                <h3 className="font-display font-bold text-ink-primary mb-3">🎭 Estilo</h3>
+                <p className="text-ink-secondary">
                   {venue.type === 'club' ? 'Ambiente nocturno con DJs en vivo y pista de baile profesional' :
                    venue.type === 'bar' ? 'Espacio acogedor con música en vivo y cocktails tropicales' :
                    venue.type === 'studio' ? 'Estudio profesional con suelo flotante y espejos' :
@@ -580,7 +582,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
 
               <div className="card-white rounded-2xl p-5">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-display font-bold text-gray-900 dark:text-white">🕐 Horario</h3>
+                  <h3 className="font-display font-bold text-ink-primary">🕐 Horario</h3>
                   <Badge variant={venue.isOpen ? 'green' : 'gray'}>{venue.isOpen ? 'Abierto ahora' : 'Cerrado'}</Badge>
                 </div>
                 {dayHours.length > 0 ? (
@@ -589,8 +591,8 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                       const h = dayHours.find((x: any) => x.day_of_week === d);
                       return (
                         <div key={d} className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600 font-medium">{dname}</span>
-                          <span className={h?.is_open ? 'text-gray-900 dark:text-white font-semibold' : 'text-gray-400'}>
+                          <span className="text-ink-secondary font-medium">{dname}</span>
+                          <span className={h?.is_open ? 'text-ink-primary font-semibold' : 'text-ink-tertiary'}>
                             {h?.is_open ? `${String(h.open_time || '').slice(0,5)} – ${String(h.close_time || '').slice(0,5)}` : 'Cerrado'}
                           </span>
                         </div>
@@ -600,7 +602,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                 ) : (
                   <div className="flex items-center gap-3">
                     <Clock className="w-5 h-5 text-brand-orange" />
-                    <span className="text-gray-600 font-medium">{venue.openHours || '23:00 – 06:00'}</span>
+                    <span className="text-ink-secondary font-medium">{venue.openHours || '23:00 – 06:00'}</span>
                   </div>
                 )}
               </div>
@@ -614,7 +616,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                 return (
                   <div className="card-white rounded-2xl overflow-hidden">
                     <div className="p-5 pb-3 flex items-center justify-between">
-                      <h3 className="font-display font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                      <h3 className="font-display font-bold text-ink-primary flex items-center gap-2">
                         🎬 Vídeo destacado
                       </h3>
                       <a href={vid.url} target="_blank" rel="noreferrer"
@@ -631,9 +633,9 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                         allowFullScreen
                       />
                     </div>
-                    <div className="px-5 py-3 border-t border-gray-100">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{vid.title}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{venue.name} · YouTube</p>
+                    <div className="px-5 py-3 border-t border-hairline/10">
+                      <p className="text-sm font-semibold text-ink-primary">{vid.title}</p>
+                      <p className="text-xs text-ink-tertiary mt-0.5">{venue.name} · YouTube</p>
                     </div>
                   </div>
                 );
@@ -644,7 +646,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
             <div className="space-y-4">
               {/* Social Links */}
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3">🌐 Redes sociales</h3>
+                <h3 className="font-display font-bold text-ink-primary mb-3">🌐 Redes sociales</h3>
                 <div className="grid grid-cols-3 gap-2">
                   {Object.entries(socials).map(([key, handle]) => (
                     <a key={key}
@@ -660,8 +662,8 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
 
               {/* Map (replaces Statistics) */}
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 dark:text-white mb-3">📍 Ubicación</h3>
-                <div className="rounded-xl overflow-hidden border border-gray-100">
+                <h3 className="font-display font-bold text-ink-primary mb-3">📍 Ubicación</h3>
+                <div className="rounded-xl overflow-hidden border border-hairline/10">
                   <iframe
                     title={`Mapa de ${venue.name}`}
                     src={`https://www.openstreetmap.org/export/embed.html?bbox=${venue.lng - 0.01}%2C${venue.lat - 0.008}%2C${venue.lng + 0.01}%2C${venue.lat + 0.008}&layer=mapnik&marker=${venue.lat}%2C${venue.lng}`}
@@ -669,7 +671,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                     loading="lazy"
                   />
                 </div>
-                <p className="text-gray-500 text-xs mt-2 flex items-center gap-1">
+                <p className="text-ink-secondary text-xs mt-2 flex items-center gap-1">
                   <MapPin className="w-3 h-3" /> {venue.address}, {venue.city}
                 </p>
               </div>
@@ -694,10 +696,10 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                 return (
                   <div className="card-white rounded-2xl p-5">
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-display font-bold text-gray-900 dark:text-white">📅 Próximos eventos</h3>
+                      <h3 className="font-display font-bold text-ink-primary">📅 Próximos eventos</h3>
                       <button onClick={() => setActiveTab('events')} className="text-[11px] font-bold text-brand hover:underline">Ver todos</button>
                     </div>
-                    {mapped.length === 0 && <p className="text-[11px] text-gray-400 mb-3">Ejemplos — aún no hay eventos publicados.</p>}
+                    {mapped.length === 0 && <p className="text-[11px] text-ink-tertiary mb-3">Ejemplos — aún no hay eventos publicados.</p>}
                     <div className="grid grid-cols-2 gap-2.5">
                       {list.map((ev, i) => (
                         <button key={ev.id} onClick={() => ev.id.startsWith('ex') ? setActiveTab('events') : navigate(`/eventos/${ev.id}`)}
@@ -736,7 +738,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
           const events = mapped.length ? mapped : examples;
           return (
             <div className="space-y-3">
-              {mapped.length === 0 && <p className="text-xs text-gray-400 mb-1">Ejemplos — aún no hay eventos publicados.</p>}
+              {mapped.length === 0 && <p className="text-xs text-ink-tertiary mb-1">Ejemplos — aún no hay eventos publicados.</p>}
               {events.map(ev => (
                 <div key={ev.id} onClick={() => ev.id.startsWith('ex') ? null : navigate(`/eventos/${ev.id}`)}
                   className="card-white rounded-2xl p-4 flex gap-4 hover:shadow-card-hover transition-shadow cursor-pointer">
@@ -745,8 +747,8 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                     <span className="text-white/80 text-xs font-bold">{ev.month}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-gray-900 dark:text-white font-semibold truncate">{ev.title}</p>
-                    <p className="text-gray-400 text-xs mt-1">{venue.name}{ev.time ? ` · ${ev.time}` : ''}</p>
+                    <p className="text-ink-primary font-semibold truncate">{ev.title}</p>
+                    <p className="text-ink-tertiary text-xs mt-1">{venue.name}{ev.time ? ` · ${ev.time}` : ''}</p>
                     {ev.price != null && <p className="text-brand-orange text-sm font-bold mt-2">€{ev.price}</p>}
                   </div>
                   <button className="self-center bg-brand-orange text-white px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-brand-orange-dark transition-colors">🎫 Ver</button>
@@ -767,7 +769,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
             <div className="space-y-4">
               <div className="card-white rounded-2xl p-5 flex items-center gap-6">
                 <div className="text-center">
-                  <p className="font-black text-4xl text-gray-900 dark:text-white">{avgRating.toFixed(1)}</p>
+                  <p className="font-black text-4xl text-ink-primary">{avgRating.toFixed(1)}</p>
                   <StarRating rating={avgRating} count={venueReviews.length} size="md" className="mt-1" />
                 </div>
                 <div className="flex-1 space-y-1.5">
@@ -776,12 +778,12 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                     const pct = Math.round((count / venueReviews.length) * 100);
                     return (
                       <div key={s} className="flex items-center gap-2">
-                        <span className="text-xs text-gray-400 w-3">{s}</span>
+                        <span className="text-xs text-ink-tertiary w-3">{s}</span>
                         <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                        <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="flex-1 h-2 bg-surface-elevated-2 rounded-full overflow-hidden">
                           <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${pct}%` }} />
                         </div>
-                        <span className="text-xs text-gray-400 w-8 text-right">{pct}%</span>
+                        <span className="text-xs text-ink-tertiary w-8 text-right">{pct}%</span>
                       </div>
                     );
                   })}
@@ -792,8 +794,8 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                   <div className="flex items-center gap-3 mb-2">
                     <Avatar src={r.avatar} name={r.userName} size="sm" />
                     <div className="flex-1">
-                      <p className="font-semibold text-gray-900 dark:text-white text-sm">{r.userName}</p>
-                      <p className="text-gray-400 text-xs">{new Date(r.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                      <p className="font-semibold text-ink-primary text-sm">{r.userName}</p>
+                      <p className="text-ink-tertiary text-xs">{new Date(r.created_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                     </div>
                     <div className="flex items-center gap-0.5">
                       {Array.from({ length: r.rating }).map((_, j) => (
@@ -801,7 +803,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
                       ))}
                     </div>
                   </div>
-                  {r.comment && <p className="text-gray-600 text-sm">{r.comment}</p>}
+                  {r.comment && <p className="text-ink-secondary text-sm">{r.comment}</p>}
                 </div>
               ))}
             </div>

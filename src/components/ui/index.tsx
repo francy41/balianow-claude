@@ -20,7 +20,7 @@ export const Button: React.FC<ButtonProps> = ({
   const variants = {
     orange:  'bg-accent text-white hover:bg-brand-pink-dark shadow-elevation-2 hover:shadow-elevation-3',
     outline: 'border-2 border-accent text-accent hover:bg-accent hover:text-white',
-    dark:    'bg-gray-900 text-white hover:bg-gray-800',
+    dark:    'bg-ink-primary text-surface-elevated hover:opacity-90',
     ghost:   'text-ink-secondary hover:bg-surface-elevated-2 hover:text-ink-primary',
     danger:  'bg-red-600 text-white hover:bg-red-700',
   };
@@ -56,9 +56,9 @@ export const Avatar: React.FC<AvatarProps> = ({ src, name, size = 'md', isLive, 
   const s = { xs: 'w-6 h-6', sm: 'w-8 h-8', md: 'w-10 h-10', lg: 'w-14 h-14', xl: 'w-20 h-20' };
   return (
     <div className={`relative flex-shrink-0 ${s[size]} ${className}`}>
-      <img src={src} alt={name} className={`${s[size]} rounded-full object-cover ring-2 ${isLive ? 'ring-red-500' : 'ring-gray-200'}`}
+      <img src={src} alt={name} className={`${s[size]} rounded-full object-cover ring-2 ${isLive ? 'ring-red-500' : 'ring-hairline/15'}`}
         onError={e => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=EC4899&color=fff&size=200`; }} />
-      {isLive && <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-red-500 border-2 border-white rounded-full animate-pulse" />}
+      {isLive && <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-red-500 border-2 border-surface-elevated rounded-full animate-pulse" />}
     </div>
   );
 };
@@ -68,9 +68,9 @@ export const StarRating: React.FC<{ rating: number; count?: number; size?: 'sm'|
   const sz = size === 'sm' ? 'w-3 h-3' : 'w-4 h-4';
   return (
     <div className={`flex items-center gap-1 ${className}`}>
-      <div className="flex">{[1,2,3,4,5].map(i => <Star key={i} className={`${sz} ${i <= Math.round(rating) ? 'fill-brand-orange text-brand-orange' : 'text-gray-200'}`} />)}</div>
+      <div className="flex">{[1,2,3,4,5].map(i => <Star key={i} className={`${sz} ${i <= Math.round(rating) ? 'fill-brand-orange text-brand-orange' : 'text-hairline/20'}`} />)}</div>
       <span className="text-brand-orange text-xs font-bold">{rating.toFixed(1)}</span>
-      {count !== undefined && <span className="text-gray-400 text-xs">({count})</span>}
+      {count !== undefined && <span className="text-ink-tertiary text-xs">({count})</span>}
     </div>
   );
 };
@@ -93,14 +93,14 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className={`relative w-full ${s[size]} bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto animate-fade-in`}>
+      <div className={`relative w-full ${s[size]} bg-surface-elevated rounded-2xl shadow-elevation-3 max-h-[90vh] overflow-y-auto animate-fade-in`}>
         {title && (
-          <div className="flex items-center justify-between p-5 border-b border-gray-100">
-            <h3 className="text-lg font-display font-bold text-gray-900">{title}</h3>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100"><X className="w-5 h-5" /></button>
+          <div className="flex items-center justify-between p-5 border-b border-hairline/10">
+            <h3 className="text-lg font-display font-bold text-ink-primary">{title}</h3>
+            <button onClick={onClose} className="text-ink-tertiary hover:text-ink-primary p-1 rounded-lg hover:bg-surface-elevated-2"><X className="w-5 h-5" /></button>
           </div>
         )}
-        {!title && <button onClick={onClose} className="absolute top-4 right-4 z-10 text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100"><X className="w-5 h-5" /></button>}
+        {!title && <button onClick={onClose} className="absolute top-4 right-4 z-10 text-ink-tertiary hover:text-ink-primary p-1 rounded-lg hover:bg-surface-elevated-2"><X className="w-5 h-5" /></button>}
         <div className="p-5">{children}</div>
       </div>
     </div>
@@ -112,10 +112,10 @@ const ToastItem: React.FC<{ toast: Toast; onRemove: () => void }> = ({ toast, on
   useEffect(() => { const t = setTimeout(onRemove, 4000); return () => clearTimeout(t); }, [onRemove]);
   const icons = { success: <CheckCircle className="w-5 h-5 text-green-500" />, error: <AlertCircle className="w-5 h-5 text-red-500" />, info: <Info className="w-5 h-5 text-blue-500" />, warning: <AlertTriangle className="w-5 h-5 text-yellow-500" /> };
   return (
-    <div className="bg-white border border-gray-100 rounded-xl p-4 flex items-center gap-3 shadow-card-hover min-w-[280px] animate-fade-in">
+    <div className="bg-surface-elevated border border-hairline/10 rounded-xl p-4 flex items-center gap-3 shadow-elevation-2 min-w-[280px] animate-fade-in">
       {icons[toast.type]}
-      <span className="text-gray-800 text-sm flex-1">{toast.message}</span>
-      <button onClick={onRemove} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+      <span className="text-ink-primary text-sm flex-1">{toast.message}</span>
+      <button onClick={onRemove} className="text-ink-tertiary hover:text-ink-primary"><X className="w-4 h-4" /></button>
     </div>
   );
 };
@@ -153,7 +153,7 @@ export const SectionHeader: React.FC<{ title: string; subtitle?: string; action?
   <div className="section-head">
     <div>
       <h2 className="section-title">{title}</h2>
-      {subtitle && <p className="text-gray-400 text-sm mt-0.5">{subtitle}</p>}
+      {subtitle && <p className="text-ink-tertiary text-sm mt-0.5">{subtitle}</p>}
     </div>
     {action && <button onClick={action.onClick} className="section-link">{action.label} →</button>}
   </div>
@@ -223,11 +223,11 @@ export const Spinner: React.FC<{ size?: 'sm'|'md'|'lg'; className?: string }> = 
 };
 
 export const FullPageLoader: React.FC = () => (
-  <div className="fixed inset-0 bg-white dark:bg-[#0a0a0a] flex items-center justify-center z-50">
+  <div className="fixed inset-0 bg-surface flex items-center justify-center z-50">
     <div className="flex flex-col items-center gap-4">
       <span className="text-5xl">💃</span>
       <Spinner size="lg" />
-      <p className="text-gray-400 text-sm">Cargando...</p>
+      <p className="text-ink-tertiary text-sm">Cargando...</p>
     </div>
   </div>
 );
@@ -240,7 +240,7 @@ export const Card: React.FC<{ children: React.ReactNode; className?: string; onC
 // ── PRICE DISPLAY ──────────────────────────────────────────────────────────
 export const PriceDisplay: React.FC<{ price: number; currency?: string; prefix?: string }> = ({ price, currency = 'EUR', prefix = 'Desde' }) => (
   <div className="flex items-baseline gap-1">
-    {prefix && <span className="text-gray-400 text-xs">{prefix}</span>}
-    <span className="font-bold text-gray-900 text-lg">{currency === 'EUR' ? '€' : '$'}{price}</span>
+    {prefix && <span className="text-ink-tertiary text-xs">{prefix}</span>}
+    <span className="font-bold text-ink-primary text-lg">{currency === 'EUR' ? '€' : '$'}{price}</span>
   </div>
 );
