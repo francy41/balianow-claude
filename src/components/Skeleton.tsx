@@ -1,27 +1,14 @@
 import React from 'react';
+import { Skeleton, CardSkeleton } from './ui';
 
 /**
- * Bloque base con efecto shimmer (clase `.skeleton` definida en index.css,
- * con soporte de dark mode y prefers-reduced-motion).
+ * Skeletons de carga.
+ *
+ * `Skeleton` y `CardSkeleton` viven en `./ui` (fuente única del design system);
+ * aquí solo se reexportan para no romper los imports que ya apuntan a este
+ * fichero. Lo propio de este módulo es `CardGridSkeleton`.
  */
-export const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) => (
-  <div className={`skeleton ${className}`} aria-hidden="true" />
-);
-
-/** Skeleton de una tarjeta de listado (artista / local / evento). */
-export const CardSkeleton: React.FC = () => (
-  <div className="bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm">
-    <Skeleton className="h-40 w-full !rounded-none" />
-    <div className="p-4 space-y-2.5">
-      <Skeleton className="h-4 w-3/4" />
-      <Skeleton className="h-3 w-1/2" />
-      <div className="flex gap-2 pt-1">
-        <Skeleton className="h-5 w-16 !rounded-full" />
-        <Skeleton className="h-5 w-12 !rounded-full" />
-      </div>
-    </div>
-  </div>
-);
+export { Skeleton, CardSkeleton };
 
 /** Rejilla de skeletons de tarjeta. */
 export const CardGridSkeleton: React.FC<{ count?: number; className?: string }> = ({

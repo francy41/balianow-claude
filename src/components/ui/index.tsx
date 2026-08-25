@@ -198,6 +198,24 @@ export const EmptyState: React.FC<{ icon: string; title: string; description: st
   </div>
 );
 
+// ── ERROR STATE ────────────────────────────────────────────────────────────
+// Equivalente a EmptyState para fallos de carga. Antes cada página improvisaba
+// (o reusaba EmptyState con un emoji), así que el error se confundía con "no hay nada".
+export const ErrorState: React.FC<{ title?: string; description?: string; onRetry?: () => void }> = ({
+  title = 'No hemos podido cargar esto',
+  description = 'Ha fallado la conexión. Inténtalo de nuevo en un momento.',
+  onRetry,
+}) => (
+  <div className="flex flex-col items-center justify-center py-16 text-center px-6">
+    <div className="w-14 h-14 rounded-full bg-red-50 dark:bg-red-950/40 grid place-items-center mb-4">
+      <AlertTriangle className="w-7 h-7 text-red-500" />
+    </div>
+    <h3 className="text-xl font-display font-bold text-ink-primary mb-2">{title}</h3>
+    <p className="text-ink-tertiary text-sm max-w-xs mb-6">{description}</p>
+    {onRetry && <Button variant="outline" size="sm" onClick={onRetry}>Reintentar</Button>}
+  </div>
+);
+
 // ── SPINNER ────────────────────────────────────────────────────────────────
 export const Spinner: React.FC<{ size?: 'sm'|'md'|'lg'; className?: string }> = ({ size = 'md', className = '' }) => {
   const s = { sm: 'w-4 h-4', md: 'w-8 h-8', lg: 'w-12 h-12' };
