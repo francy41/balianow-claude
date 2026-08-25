@@ -201,10 +201,11 @@ body {
     box-shadow: 0 2px 8px rgb(var(--shadow-tint) / 0.06), 0 1px 3px rgb(var(--shadow-tint) / 0.05);
   }
 
-  /* Fila del Home: 2 tarjetas cuadradas visibles por pantalla en móvil y 4 en
-     escritorio (a partir de 640px una tarjeta de media pantalla sería enorme);
-     el resto se descubre desplazando. El gap del contenedor es gap-3 (0.75rem).
-     Todas comparten proporción 1:1 para que la fila quede alineada. */
+  /* Fila del Home: cuantas tarjetas caben por pantalla según el ancho —
+     2 en móvil, 4 en tablet y 8 en escritorio (en un monitor, 4 tarjetas
+     salían desproporcionadas). El resto se descubre desplazando.
+     El gap del contenedor es gap-3 (0.75rem): con N tarjetas hay N-1 huecos,
+     que es lo que se descuenta del 100%. */
   .tile-2 {
     flex: 0 0 calc((100% - 0.75rem) / 2);
     width: calc((100% - 0.75rem) / 2);
@@ -218,6 +219,12 @@ body {
     .tile-2 {
       flex-basis: calc((100% - 2.25rem) / 4);
       width: calc((100% - 2.25rem) / 4);
+    }
+  }
+  @media (min-width: 1024px) {
+    .tile-2 {
+      flex-basis: calc((100% - 5.25rem) / 8);
+      width: calc((100% - 5.25rem) / 8);
     }
   }
 
