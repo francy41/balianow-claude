@@ -208,6 +208,10 @@ body {
   .tile-2 {
     flex: 0 0 calc((100% - 0.75rem) / 2);
     width: calc((100% - 0.75rem) / 2);
+  }
+  /* La proporción 1:1 la lleva ahora la portada, no la tarjeta entera: la imagen
+     va a sangre y el título queda debajo, suelto sobre el fondo. */
+  .tile-cover {
     aspect-ratio: 1 / 1;
   }
   @media (min-width: 640px) {
