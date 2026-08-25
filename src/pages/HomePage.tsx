@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import MapErrorBoundary from '../components/MapErrorBoundary';
-import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2, GraduationCap, Grid3x3 } from 'lucide-react';
+import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2, GraduationCap } from 'lucide-react';
 import { ARTISTS, EVENTS } from '../data/mockData';
 import { TOP_DANCE_CITIES } from '../data/topDanceCities';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_TV, type HomeCategory } from '../store/appStore';
@@ -601,8 +601,7 @@ interface DiscoverItem {
   crowdCount?: number; crowdAvatars?: (string | null)[]; isToday?: boolean;
 }
 
-const DISCOVER_TABS: { key: DiscoverKind | 'todos'; label: string; icon: React.FC<any> }[] = [
-  { key: 'todos', label: 'Todos', icon: Grid3x3 },
+const DISCOVER_TABS: { key: DiscoverKind; label: string; icon: React.FC<any> }[] = [
   { key: 'plan', label: 'Planes de baile', icon: RouteIcon },
   { key: 'venue', label: 'Abiertos ahora', icon: Building2 },
   { key: 'local', label: 'Locales', icon: MapPin },
@@ -611,8 +610,8 @@ const DISCOVER_TABS: { key: DiscoverKind | 'todos'; label: string; icon: React.F
   { key: 'vivo', label: 'Eventos en vivo', icon: Calendar },
 ];
 const DISCOVER_ORDER: DiscoverKind[] = ['plan', 'venue', 'local', 'vivo', 'evento', 'pareja'];
-const DISCOVER_TAB_ROUTE: Record<DiscoverKind | 'todos', string> = {
-  todos: '/rutas', plan: '/rutas', venue: '/venues', local: '/venues', pareja: '/parejas', evento: '/eventos', vivo: '/live',
+const DISCOVER_TAB_ROUTE: Record<DiscoverKind, string> = {
+  plan: '/rutas', venue: '/venues', local: '/venues', pareja: '/parejas', evento: '/eventos', vivo: '/live',
 };
 
 const DISCOVER_BADGE: Record<DiscoverKind, { label: string; className: string; cta: string }> = {
@@ -625,7 +624,7 @@ const DISCOVER_BADGE: Record<DiscoverKind, { label: string; className: string; c
 };
 
 // Punto de alarma parpadeante por categoría en las pestañas — mismos colores que el mapa y las tarjetas.
-const DISCOVER_TAB_DOT: Partial<Record<DiscoverKind | 'todos', { ring: string; grad: string }>> = {
+const DISCOVER_TAB_DOT: Partial<Record<DiscoverKind, { ring: string; grad: string }>> = {
   plan:   { ring: 'bg-pink-400',    grad: 'from-brand to-brand-secondary' },
   venue:  { ring: 'bg-rose-400',    grad: 'from-rose-500 to-pink-700' },
   local:  { ring: 'bg-fuchsia-400', grad: 'from-brand-secondary to-brand' },
@@ -722,7 +721,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
   const [loaded, setLoaded] = useState(false);
   const [items, setItems] = useState<DiscoverItem[]>([]);
   const [stats, setStats] = useState({ abiertos: 0, pareja: 0, vivo: 0, rating: 0, plan: 0, evento: 0, local: 0 });
-  const [tab, setTab] = useState<DiscoverKind | 'todos'>('todos');
+  const [tab, setTab] = useState<DiscoverKind>('plan');
 
   useEffect(() => {
     let cancelled = false;
@@ -853,10 +852,11 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
     ? items.filter(it => it.city.toLowerCase().includes(cityFilter.trim().toLowerCase()))
     : items;
 
-  // "Todos" = un único ejemplo real por categoría (nunca varias tarjetas del mismo tipo seguidas).
-  const shown = tab === 'todos'
-    ? DISCOVER_ORDER.map(k => scoped.find(it => it.kind === k)).filter((it): it is DiscoverItem => !!it)
-    : scoped.filter(it => it.kind === tab).slice(0, 8);
+  // Si la pestaña activa se queda sin contenido real, se cae a la primera que sí lo tenga
+  // (antes ese caso lo absorbía la pestaña "Todos", que ya no existe).
+  const tabCount = (k: DiscoverKind) => items.filter(it => it.kind === k).length;
+  const activeTab: DiscoverKind = tabCount(tab) > 0 ? tab : (DISCOVER_ORDER.find(k => tabCount(k) > 0) || tab);
+  const shown = scoped.filter(it => it.kind === activeTab).slice(0, 8);
 
   // El mapa siempre muestra las 4 categorías con ubicación real (Planes/Abiertos/Eventos/En directo),
   // cada una con su propio color y alarma parpadeante — independiente de la pestaña activa.
@@ -926,7 +926,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
 
           {/* Actividad ahora (real: abiertos + directos + planes de hoy) — no es un sistema de alertas inventado.
               En móvil: pastilla compacta clicable de una línea. En escritorio: tarjeta completa. */}
-          <button onClick={() => navigate(DISCOVER_TAB_ROUTE[tab])}
+          <button onClick={() => navigate(DISCOVER_TAB_ROUTE[activeTab])}
             className="flex-shrink-0 flex sm:hidden items-center gap-1.5 bg-gradient-to-br from-brand to-fuchsia-800 rounded-full pl-1.5 pr-2.5 py-1 shadow-lg shadow-pink-950/50">
             <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
               <RouteIcon className="w-2.5 h-2.5 text-white" />
@@ -946,7 +946,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
                 <p className="text-white/80 text-[10px] mt-0.5 leading-tight">{activityNow > 0 ? `${activityNow} cosas pasando cerca de ti` : 'Sé el primero en crear un plan'}</p>
               </div>
             </div>
-            <button onClick={() => navigate(DISCOVER_TAB_ROUTE[tab])}
+            <button onClick={() => navigate(DISCOVER_TAB_ROUTE[activeTab])}
               className="w-full mt-2.5 bg-white/15 hover:bg-white/25 border border-white/25 rounded-lg py-1.5 text-white text-[11px] font-extrabold transition-colors">
               Ver todos
             </button>
@@ -975,28 +975,32 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
             En móvil: cuadrícula de 2 columnas (2 líneas) para que quepan enteras sin scroll horizontal.
             En escritorio: fila con scroll, como antes. Cada pestaña lleva el mismo punto de alarma
             parpadeante y color que su pin en el mapa, para reconocer la categoría de un vistazo. */}
-        <div className="grid grid-cols-2 gap-2 pt-3 pb-1">
+        <div className="flex flex-col gap-2 pt-3 pb-1">
           {DISCOVER_TABS.map(t => {
             const Icon = t.icon;
-            const isActive = tab === t.key;
+            const isActive = activeTab === t.key;
             const trueCounts: Record<DiscoverKind, number> = { plan: stats.plan, venue: stats.abiertos, local: stats.local, pareja: stats.pareja, evento: stats.evento, vivo: stats.vivo };
-            const count = t.key === 'todos' ? items.length : trueCounts[t.key];
-            if (t.key !== 'todos' && count === 0) return null;
+            const count = trueCounts[t.key];
+            if (count === 0) return null;
             const dot = DISCOVER_TAB_DOT[t.key];
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
-                className={`card-float inline-flex items-center gap-2 px-3 py-2.5 rounded-full text-[12px] font-extrabold transition-all ${
+                className={`card-float w-full flex items-center gap-3 pl-2 pr-3.5 py-2 rounded-full text-sm font-extrabold transition-all ${
                   isActive ? 'bg-brand text-white' : 'bg-white text-gray-800 hover:bg-gray-50'
                 }`}>
-                {dot && (
-                  <span className="relative flex h-2 w-2 flex-shrink-0">
-                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${dot.ring} opacity-75`} />
-                    <span className={`relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br ${dot.grad}`} />
-                  </span>
-                )}
-                <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-brand'}`} />
-                <span className="truncate">{t.label}</span>
-                <span className={`ml-auto text-[10px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0 ${isActive ? 'bg-white/25 text-white' : 'bg-gray-100 text-gray-600'}`}>{count}</span>
+                {/* Icono en círculo, como ancla visual de la categoría */}
+                <span className={`relative w-9 h-9 rounded-full grid place-items-center flex-shrink-0 ${isActive ? 'bg-white/20' : 'bg-brand/10'}`}>
+                  <Icon className={`w-[18px] h-[18px] ${isActive ? 'text-white' : 'text-brand'}`} />
+                  {dot && (
+                    <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
+                      <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${dot.ring} opacity-75`} />
+                      <span className={`relative inline-flex w-2.5 h-2.5 rounded-full bg-gradient-to-br ${dot.grad} ring-2 ${isActive ? 'ring-brand' : 'ring-white'}`} />
+                    </span>
+                  )}
+                </span>
+                {/* Etiqueta completa: ya no se corta */}
+                <span className="flex-1 text-left leading-tight">{t.label}</span>
+                <span className={`text-xs font-black px-2.5 py-1 rounded-full flex-shrink-0 ${isActive ? 'bg-white/25 text-white' : 'bg-brand/10 text-brand'}`}>{count}</span>
               </button>
             );
           })}
@@ -1074,7 +1078,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
               </button>
             );
           })}
-          <SeeAllTile onClick={() => navigate(DISCOVER_TAB_ROUTE[tab])} className="tile-2" />
+          <SeeAllTile onClick={() => navigate(DISCOVER_TAB_ROUTE[activeTab])} className="tile-2" />
         </HScroll>
         </div>
       </div>
