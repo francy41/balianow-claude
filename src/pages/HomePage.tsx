@@ -975,7 +975,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
             En móvil: cuadrícula de 2 columnas (2 líneas) para que quepan enteras sin scroll horizontal.
             En escritorio: fila con scroll, como antes. Cada pestaña lleva el mismo punto de alarma
             parpadeante y color que su pin en el mapa, para reconocer la categoría de un vistazo. */}
-        <div className="flex items-center gap-1.5 pt-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+        <div className="grid grid-cols-2 gap-2 pt-3 pb-1">
           {DISCOVER_TABS.map(t => {
             const Icon = t.icon;
             const isActive = tab === t.key;
@@ -985,8 +985,8 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
             const dot = DISCOVER_TAB_DOT[t.key];
             return (
               <button key={t.key} onClick={() => setTab(t.key)}
-                className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg text-[11px] font-extrabold transition-all ${
-                  isActive ? 'bg-gradient-to-br from-brand to-brand text-white shadow-lg shadow-brand-deep/40' : 'bg-white/15 text-pink-100 border border-white/25 shadow-md shadow-black/10 hover:bg-white/20'
+                className={`card-float inline-flex items-center gap-2 px-3 py-2.5 rounded-full text-[12px] font-extrabold transition-all ${
+                  isActive ? 'bg-brand text-white' : 'bg-white text-gray-800 hover:bg-gray-50'
                 }`}>
                 {dot && (
                   <span className="relative flex h-2 w-2 flex-shrink-0">
@@ -994,8 +994,9 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
                     <span className={`relative inline-flex w-2 h-2 rounded-full bg-gradient-to-br ${dot.grad}`} />
                   </span>
                 )}
-                <Icon className="w-3.5 h-3.5 flex-shrink-0" /> <span className="truncate">{t.label}</span>
-                <span className={`ml-auto text-[9px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0 ${isActive ? 'bg-white/25' : 'bg-white/10'}`}>{count}</span>
+                <Icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-brand'}`} />
+                <span className="truncate">{t.label}</span>
+                <span className={`ml-auto text-[10px] font-black px-1.5 py-0.5 rounded-full flex-shrink-0 ${isActive ? 'bg-white/25 text-white' : 'bg-gray-100 text-gray-600'}`}>{count}</span>
               </button>
             );
           })}
