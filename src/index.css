@@ -201,6 +201,14 @@ body {
     box-shadow: 0 2px 8px rgb(var(--shadow-tint) / 0.06), 0 1px 3px rgb(var(--shadow-tint) / 0.05);
   }
 
+  /* Fila del Home: exactamente 5 tarjetas visibles por pantalla (móvil y
+     escritorio); el resto se descubre desplazando. El gap del contenedor es
+     gap-3 (0.75rem) → 4 huecos = 3rem que hay que descontar del 100%. */
+  .tile-5 {
+    flex: 0 0 calc((100% - 3rem) / 5);
+    width: calc((100% - 3rem) / 5);
+  }
+
   /* Tarjeta flotante sobre el fondo rosa del Home: contorno blanco + sombra
      marcada para que se despegue del fondo, y elevación al pasar por encima. */
   .card-float {
