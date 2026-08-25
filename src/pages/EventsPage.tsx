@@ -157,7 +157,7 @@ const EventsList: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6">
+    <div className="min-h-screen bg-surface py-6">
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-6 relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-fuchsia-950 to-black p-6 sm:p-8 text-white">
           <div className="absolute -top-10 -right-10 w-48 h-48 bg-brand/25 rounded-full blur-3xl pointer-events-none" />
@@ -174,11 +174,11 @@ const EventsList: React.FC = () => {
             <FilterFacet label="Categoría" icon={<span>🎵</span>} options={CATEGORIES} selected={selectedCat} onChange={setSelectedCat} collapsible limit={8} />
             <FilterFacet label="Ciudad" icon={<span>📍</span>} options={CITIES} selected={selectedCity} onChange={setSelectedCity} collapsible limit={8} />
             <div>
-              <span className="text-gray-400 text-xs font-semibold uppercase tracking-wide">Opciones</span>
+              <span className="text-ink-tertiary text-xs font-semibold uppercase tracking-wide">Opciones</span>
               <div className="flex gap-2 flex-wrap mt-2">
                 <button
                   onClick={() => setOnlyOnline(!onlyOnline)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${onlyOnline ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-500 hover:text-blue-600'}`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${onlyOnline ? 'bg-blue-600 text-white border-blue-600' : 'bg-surface-elevated text-ink-secondary border-hairline/10 hover:border-blue-500 hover:text-blue-600'}`}
                 >
                   🌐 Solo Online
                 </button>
@@ -377,8 +377,8 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
   if (!event) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-3 p-6 text-center">
       <p className="text-5xl">📅</p>
-      <h2 className="font-display font-black text-xl text-gray-900">Evento no encontrado</h2>
-      <p className="text-gray-400 text-sm">Este evento ya no existe o fue eliminado.</p>
+      <h2 className="font-display font-black text-xl text-ink-primary">Evento no encontrado</h2>
+      <p className="text-ink-tertiary text-sm">Este evento ya no existe o fue eliminado.</p>
       <button onClick={() => navigate('/eventos')} className="btn-orange px-6 py-2">Ver eventos</button>
     </div>
   );
@@ -412,7 +412,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
   ).filter((t: any) => isModuleOn(t.module));
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-10">
+    <div className="min-h-screen bg-surface pb-10">
       {/* ── HERO BANNER ── */}
       <section className="relative h-72 sm:h-[420px] overflow-hidden">
         <img src={event.cover} alt={event.title} className="w-full h-full object-cover" />
@@ -491,7 +491,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
       </section>
 
       {/* ── STICKY ACTION BAR ── */}
-      <div className="sticky top-14 z-30 bg-white border-b border-gray-100 shadow-sm">
+      <div className="sticky top-14 z-30 bg-surface-elevated border-b border-hairline/10 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
           <button onClick={handleBuy} disabled={!claimed}
             title={!claimed ? 'Perfil no reclamado — venta no disponible' : undefined}
@@ -507,27 +507,27 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
             addToast({ message: following ? 'Dejaste de seguir' : '¡Evento guardado!', type: 'success' });
           }}
             className={`text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-all ${
-              following ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              following ? 'bg-gray-900 text-white' : 'bg-surface-elevated-2 text-ink-secondary hover:bg-hairline/10'
             }`}>
             <Bell className="w-4 h-4" /> {following ? 'Guardado' : 'Guardar'}
           </button>
           <button onClick={() => setLiked(l => !l)}
             className={`text-sm font-bold py-2 px-3 rounded-lg whitespace-nowrap transition-all ${
-              liked ? 'bg-red-50 text-red-500' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              liked ? 'bg-red-50 text-red-500' : 'bg-surface-elevated-2 text-ink-secondary hover:bg-hairline/10'
             }`}>
             <Heart className={`w-4 h-4 ${liked ? 'fill-red-500' : ''}`} />
           </button>
           <button onClick={() => { navigator.clipboard.writeText(window.location.href); addToast({ message: 'Enlace copiado', type: 'success' }); }}
-            className="text-sm font-bold py-2 px-3 rounded-lg whitespace-nowrap bg-gray-100 text-gray-700 hover:bg-gray-200">
+            className="text-sm font-bold py-2 px-3 rounded-lg whitespace-nowrap bg-surface-elevated-2 text-ink-secondary hover:bg-hairline/10">
             <Share2 className="w-4 h-4" />
           </button>
 
           {/* Capacity bar in action bar */}
-          <div className="hidden md:flex ml-auto items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg">
+          <div className="hidden md:flex ml-auto items-center gap-2 bg-surface px-3 py-1.5 rounded-lg">
             <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
               <div className={`h-full rounded-full ${pct > 80 ? 'bg-red-500' : 'bg-brand-orange'}`} style={{ width: `${pct}%` }} />
             </div>
-            <span className="text-xs font-bold text-gray-600">{pct}% vendido</span>
+            <span className="text-xs font-bold text-ink-secondary">{pct}% vendido</span>
           </div>
         </div>
 
@@ -536,7 +536,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
           {tabs.map(t => (
             <button key={t.id} onClick={() => setActiveTab(t.id as typeof activeTab)}
               className={`flex items-center gap-1.5 px-4 py-3 text-sm font-bold whitespace-nowrap border-b-2 transition-colors ${
-                activeTab === t.id ? 'border-brand-orange text-brand-orange' : 'border-transparent text-gray-500 hover:text-gray-800'
+                activeTab === t.id ? 'border-brand-orange text-brand-orange' : 'border-transparent text-ink-secondary hover:text-ink-primary'
               }`}>
               {t.icon} {t.label}
             </button>
@@ -554,21 +554,21 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
             <div className="lg:col-span-2 space-y-4">
               {/* Description */}
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 mb-3">Descripción</h3>
-                <p className="text-gray-600 leading-relaxed">{event.description}</p>
+                <h3 className="font-display font-bold text-ink-primary mb-3">Descripción</h3>
+                <p className="text-ink-secondary leading-relaxed">{event.description}</p>
               </div>
 
               {/* Event details card */}
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 mb-4">📋 Detalles del evento</h3>
+                <h3 className="font-display font-bold text-ink-primary mb-4">📋 Detalles del evento</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-start gap-3">
                     <div className="w-10 h-10 bg-pink-50 rounded-xl flex items-center justify-center flex-shrink-0">
                       <Calendar className="w-5 h-5 text-brand-orange" />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400 font-medium">Fecha</p>
-                      <p className="text-gray-900 font-semibold text-sm">
+                      <p className="text-xs text-ink-tertiary font-medium">Fecha</p>
+                      <p className="text-ink-primary font-semibold text-sm">
                         {dateObj.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                       </p>
                     </div>
@@ -578,8 +578,8 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                       <Clock className="w-5 h-5 text-blue-500" />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400 font-medium">Horario</p>
-                      <p className="text-gray-900 font-semibold text-sm">{event.time} – {event.endTime}</p>
+                      <p className="text-xs text-ink-tertiary font-medium">Horario</p>
+                      <p className="text-ink-primary font-semibold text-sm">{event.time} – {event.endTime}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -587,9 +587,9 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                       <MapPin className="w-5 h-5 text-green-500" />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400 font-medium">Lugar</p>
-                      <p className="text-gray-900 font-semibold text-sm">{event.venueName}</p>
-                      <p className="text-gray-400 text-xs">{event.city}</p>
+                      <p className="text-xs text-ink-tertiary font-medium">Lugar</p>
+                      <p className="text-ink-primary font-semibold text-sm">{event.venueName}</p>
+                      <p className="text-ink-tertiary text-xs">{event.city}</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -597,9 +597,9 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                       <Ticket className="w-5 h-5 text-brand" />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400 font-medium">Precio</p>
-                      <p className="text-gray-900 font-semibold text-sm">€{event.price}</p>
-                      <p className="text-gray-400 text-xs">{event.attending}/{event.capacity} asistentes</p>
+                      <p className="text-xs text-ink-tertiary font-medium">Precio</p>
+                      <p className="text-ink-primary font-semibold text-sm">€{event.price}</p>
+                      <p className="text-ink-tertiary text-xs">{event.attending}/{event.capacity} asistentes</p>
                     </div>
                   </div>
                 </div>
@@ -608,20 +608,20 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
               {/* Linked Artists — compact row */}
               {linkedArtists.length > 0 && (
                 <div className="card-white rounded-2xl p-5">
-                  <h3 className="font-display font-bold text-gray-900 mb-4">🎤 Artistas & Bailarines confirmados</h3>
+                  <h3 className="font-display font-bold text-ink-primary mb-4">🎤 Artistas & Bailarines confirmados</h3>
                   <div className="space-y-3">
                     {linkedArtists.map(artist => (
                       <div key={artist.id}
                         onClick={() => navigate(`/artistas/${artist.id}`)}
-                        className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-pink-50 cursor-pointer transition-colors group">
+                        className="flex items-center gap-3 p-3 bg-surface rounded-xl hover:bg-pink-50 cursor-pointer transition-colors group">
                         <img src={artist.avatar} alt={artist.name} className="w-12 h-12 rounded-xl object-cover ring-2 ring-brand-orange/20 group-hover:ring-brand-orange/50 transition-all" />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-gray-900 text-sm">{artist.name}</span>
+                            <span className="font-bold text-ink-primary text-sm">{artist.name}</span>
                             {artist.isVerified && <CheckCircle className="w-3.5 h-3.5 text-blue-400 fill-blue-400" />}
                             {artist.isPremium && <span className="text-[9px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded font-bold">PRO</span>}
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-gray-400">
+                          <div className="flex items-center gap-2 text-xs text-ink-tertiary">
                             <span className="capitalize">{artist.type === 'dj' ? 'DJ' : artist.type === 'dancer' ? 'Bailarín/a' : artist.type === 'band' ? 'Banda' : artist.type === 'singer' ? 'Cantante' : 'Instructor/a'}</span>
                             <span>·</span>
                             <span className="flex items-center gap-0.5"><Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> {artist.rating}</span>
@@ -629,7 +629,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                             <span>{artist.genre.slice(0, 2).join(', ')}</span>
                           </div>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-brand-orange transition-colors" />
+                        <ChevronRight className="w-4 h-4 text-ink-tertiary group-hover:text-brand-orange transition-colors" />
                       </div>
                     ))}
                   </div>
@@ -638,7 +638,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
 
               {/* Tags */}
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 mb-3">Categorías & Tags</h3>
+                <h3 className="font-display font-bold text-ink-primary mb-3">Categorías & Tags</h3>
                 <div className="flex flex-wrap gap-2">
                   {event.category.map((c: string) => (
                     <span key={c} className="bg-pink-50 text-brand-orange border border-pink-100 text-sm font-semibold px-3 py-1 rounded-full">{c}</span>
@@ -655,7 +655,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                 return (
                   <div className="card-white rounded-2xl overflow-hidden">
                     <div className="p-5 pb-3 flex items-center justify-between">
-                      <h3 className="font-display font-bold text-gray-900 flex items-center gap-2">
+                      <h3 className="font-display font-bold text-ink-primary flex items-center gap-2">
                         🎬 Vídeo destacado
                       </h3>
                       <a href={video.url} target="_blank" rel="noreferrer"
@@ -672,9 +672,9 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                         allowFullScreen
                       />
                     </div>
-                    <div className="px-5 py-3 border-t border-gray-100">
-                      <p className="text-sm font-semibold text-gray-900">{video.title}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{event.title} · YouTube</p>
+                    <div className="px-5 py-3 border-t border-hairline/10">
+                      <p className="text-sm font-semibold text-ink-primary">{video.title}</p>
+                      <p className="text-xs text-ink-tertiary mt-0.5">{event.title} · YouTube</p>
                     </div>
                   </div>
                 );
@@ -687,19 +687,19 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
               <div className="card-white rounded-2xl p-5 border-2 border-brand-orange/20">
                 <div className="text-center mb-4">
                   <p className="text-3xl font-black text-brand-orange">€{event.price}</p>
-                  <p className="text-gray-400 text-xs mt-1">por persona</p>
+                  <p className="text-ink-tertiary text-xs mt-1">por persona</p>
                 </div>
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Disponibilidad</span>
+                    <span className="text-ink-secondary">Disponibilidad</span>
                     <span className={`font-bold ${pct > 80 ? 'text-red-500' : 'text-green-600'}`}>
                       {pct > 90 ? '¡Últimas plazas!' : pct > 70 ? 'Pocas plazas' : 'Disponible'}
                     </span>
                   </div>
-                  <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2.5 bg-surface-elevated-2 rounded-full overflow-hidden">
                     <div className={`h-full rounded-full transition-all ${pct > 80 ? 'bg-red-500' : 'bg-brand-orange'}`} style={{ width: `${pct}%` }} />
                   </div>
-                  <p className="text-xs text-gray-400 text-right">{event.attending}/{event.capacity} asistentes</p>
+                  <p className="text-xs text-ink-tertiary text-right">{event.attending}/{event.capacity} asistentes</p>
                 </div>
                 {claimed ? (
                   <Button variant="orange" className="w-full" onClick={handleBuy}>
@@ -715,8 +715,8 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
               {/* Map (physical events only) */}
               {!event.isOnline && event.lat !== 0 && (
                 <div className="card-white rounded-2xl p-5">
-                  <h3 className="font-display font-bold text-gray-900 mb-3">📍 Ubicación</h3>
-                  <div className="rounded-xl overflow-hidden border border-gray-100">
+                  <h3 className="font-display font-bold text-ink-primary mb-3">📍 Ubicación</h3>
+                  <div className="rounded-xl overflow-hidden border border-hairline/10">
                     <iframe
                       title={`Mapa de ${event.venueName}`}
                       src={`https://www.openstreetmap.org/export/embed.html?bbox=${event.lng - 0.015}%2C${event.lat - 0.01}%2C${event.lng + 0.015}%2C${event.lat + 0.01}&layer=mapnik&marker=${event.lat}%2C${event.lng}`}
@@ -726,13 +726,13 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                   </div>
                   {venue && (
                     <button onClick={() => navigate(`/venues/${venue.id}`)}
-                      className="w-full mt-3 flex items-center gap-3 p-3 bg-gray-50 rounded-xl hover:bg-pink-50 cursor-pointer transition-colors group">
+                      className="w-full mt-3 flex items-center gap-3 p-3 bg-surface rounded-xl hover:bg-pink-50 cursor-pointer transition-colors group">
                       <img src={venue.avatar} alt={venue.name} className="w-10 h-10 rounded-lg object-cover" />
                       <div className="flex-1 text-left">
-                        <p className="font-semibold text-gray-900 text-sm">{venue.name}</p>
-                        <p className="text-gray-400 text-xs capitalize">{venue.type} · {venue.city}</p>
+                        <p className="font-semibold text-ink-primary text-sm">{venue.name}</p>
+                        <p className="text-ink-tertiary text-xs capitalize">{venue.type} · {venue.city}</p>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-gray-300" />
+                      <ChevronRight className="w-4 h-4 text-ink-tertiary" />
                     </button>
                   )}
                 </div>
@@ -741,7 +741,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
               {/* Gallery preview */}
               <div className="card-white rounded-2xl p-5">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-display font-bold text-gray-900">📸 Galería</h3>
+                  <h3 className="font-display font-bold text-ink-primary">📸 Galería</h3>
                   <button onClick={() => setActiveTab('gallery')} className="text-[10px] text-brand-orange font-bold hover:underline">
                     Ver todo ↗
                   </button>
@@ -762,7 +762,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
 
               {/* Quick stats */}
               <div className="card-white rounded-2xl p-5">
-                <h3 className="font-display font-bold text-gray-900 mb-3">📊 Estadísticas</h3>
+                <h3 className="font-display font-bold text-ink-primary mb-3">📊 Estadísticas</h3>
                 <div className="space-y-3">
                   {[
                     { label: 'Asistentes confirmados', value: event.attending.toLocaleString() },
@@ -771,7 +771,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                     { label: 'Interesados', value: Math.round(event.attending * 1.8).toLocaleString() },
                   ].map(row => (
                     <div key={row.label} className="flex justify-between items-center">
-                      <span className="text-gray-500 text-sm">{row.label}</span>
+                      <span className="text-ink-secondary text-sm">{row.label}</span>
                       <span className="font-black text-brand-orange">{row.value}</span>
                     </div>
                   ))}
@@ -785,8 +785,8 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
         {activeTab === 'sections' && !event.isOnline && (
           <div className="space-y-4">
             <div className="card-white rounded-2xl p-5">
-              <h3 className="font-display font-bold text-gray-900 mb-2">🎫 Selecciona tu localidad</h3>
-              <p className="text-gray-400 text-sm">Elige tu zona, selecciona cantidad y compra tus entradas. Reserva temporal de 10 minutos.</p>
+              <h3 className="font-display font-bold text-ink-primary mb-2">🎫 Selecciona tu localidad</h3>
+              <p className="text-ink-tertiary text-sm">Elige tu zona, selecciona cantidad y compra tus entradas. Reserva temporal de 10 minutos.</p>
             </div>
             <VenueSectionsSelector
               eventId={event.id}
@@ -803,13 +803,13 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
             {/* Lineup from DB (new system) */}
             {event.lineup && event.lineup.length > 0 && (
               <div>
-                <h3 className="font-display font-bold text-gray-900 mb-3">🎤 Lineup confirmado</h3>
+                <h3 className="font-display font-bold text-ink-primary mb-3">🎤 Lineup confirmado</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {event.lineup.map((entry: any, i: number) => (
                     <div
                       key={i}
                       onClick={() => entry.artist_id ? navigate(`/artistas/${entry.artist_id}`) : undefined}
-                      className={`flex items-center gap-4 bg-white border border-gray-100 rounded-2xl p-4 shadow-sm ${entry.artist_id ? 'cursor-pointer hover:shadow-md hover:border-brand-orange/30 transition-all' : ''}`}
+                      className={`flex items-center gap-4 bg-surface-elevated border border-hairline/10 rounded-2xl p-4 shadow-sm ${entry.artist_id ? 'cursor-pointer hover:shadow-md hover:border-brand-orange/30 transition-all' : ''}`}
                     >
                       <div className="w-14 h-14 rounded-xl overflow-hidden bg-pink-100 flex-shrink-0">
                         {entry.avatar
@@ -817,14 +817,14 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                           : <div className="w-full h-full flex items-center justify-center text-brand font-black text-lg">{entry.name[0]}</div>}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold text-gray-900">{entry.name}</p>
+                        <p className="font-bold text-ink-primary">{entry.name}</p>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded-full font-semibold">{entry.role}</span>
-                          {entry.time_slot && <span className="text-xs text-gray-400">⏰ {entry.time_slot}</span>}
+                          {entry.time_slot && <span className="text-xs text-ink-tertiary">⏰ {entry.time_slot}</span>}
                         </div>
-                        {entry.genre && <p className="text-xs text-gray-400 mt-0.5">{entry.genre}</p>}
+                        {entry.genre && <p className="text-xs text-ink-tertiary mt-0.5">{entry.genre}</p>}
                       </div>
-                      {entry.artist_id && <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" />}
+                      {entry.artist_id && <ChevronRight className="w-4 h-4 text-ink-tertiary flex-shrink-0" />}
                     </div>
                   ))}
                 </div>
@@ -834,7 +834,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
             {/* Linked mock artists (legacy) */}
             {linkedArtists.length > 0 && (
               <div>
-                {event.lineup?.length > 0 && <h3 className="font-display font-bold text-gray-900 mb-3">Artistas vinculados</h3>}
+                {event.lineup?.length > 0 && <h3 className="font-display font-bold text-ink-primary mb-3">Artistas vinculados</h3>}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {linkedArtists.map(artist => (
                     <div key={artist.id}
@@ -858,7 +858,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                         </div>
                       </div>
                       <div className="p-4">
-                        <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                        <div className="flex items-center gap-2 text-xs text-ink-tertiary mb-2">
                           <span className="flex items-center gap-0.5"><Star className="w-3 h-3 fill-yellow-400 text-yellow-400" /> {artist.rating} ({artist.reviews})</span>
                           <span>·</span>
                           <span>{artist.city}</span>
@@ -889,7 +889,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
           <div className="space-y-4">
             {event.sponsors && event.sponsors.length > 0 ? (
               <>
-                <p className="text-gray-400 text-sm">{event.sponsors.length} patrocinadores de este evento</p>
+                <p className="text-ink-tertiary text-sm">{event.sponsors.length} patrocinadores de este evento</p>
                 {/* Platinum / Gold first big */}
                 {(['platinum', 'gold'] as const).map(tier => {
                   const list = event.sponsors.filter((s: any) => s.tier === tier);
@@ -898,15 +898,15 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                   const tierColor = tier === 'platinum' ? 'bg-purple-100 border-purple-200' : 'bg-yellow-50 border-yellow-200';
                   return (
                     <div key={tier}>
-                      <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">{tierLabel}</p>
+                      <p className="text-xs font-black uppercase tracking-widest text-ink-tertiary mb-3">{tierLabel}</p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {list.map((s: any, i: number) => (
                           <a key={i} href={s.url || '#'} target="_blank" rel="noreferrer"
                             className={`flex flex-col items-center gap-3 p-5 rounded-2xl border bg-gradient-to-br ${tierColor} hover:shadow-md transition-all`}>
                             {s.logo
                               ? <img src={s.logo} alt={s.name} className="h-12 object-contain" />
-                              : <Award className="w-10 h-10 text-gray-300" />}
-                            <span className="font-bold text-gray-900 text-sm text-center">{s.name}</span>
+                              : <Award className="w-10 h-10 text-ink-tertiary" />}
+                            <span className="font-bold text-ink-primary text-sm text-center">{s.name}</span>
                           </a>
                         ))}
                       </div>
@@ -920,15 +920,15 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                   const tierLabel = tier === 'silver' ? 'Plata' : 'Bronce';
                   return (
                     <div key={tier}>
-                      <p className="text-xs font-black uppercase tracking-widest text-gray-400 mb-3">{tierLabel}</p>
+                      <p className="text-xs font-black uppercase tracking-widest text-ink-tertiary mb-3">{tierLabel}</p>
                       <div className="flex flex-wrap gap-3">
                         {list.map((s: any, i: number) => (
                           <a key={i} href={s.url || '#'} target="_blank" rel="noreferrer"
-                            className="flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-3 hover:shadow-sm transition-all">
+                            className="flex items-center gap-3 bg-surface-elevated border border-hairline/10 rounded-xl px-4 py-3 hover:shadow-sm transition-all">
                             {s.logo
                               ? <img src={s.logo} alt={s.name} className="h-8 object-contain" />
-                              : <Award className="w-6 h-6 text-gray-300" />}
-                            <span className="font-semibold text-gray-700 text-sm">{s.name}</span>
+                              : <Award className="w-6 h-6 text-ink-tertiary" />}
+                            <span className="font-semibold text-ink-secondary text-sm">{s.name}</span>
                           </a>
                         ))}
                       </div>
@@ -945,7 +945,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
         {/* ═══ GALLERY TAB ═══ */}
         {activeTab === 'gallery' && (
           <div>
-            <p className="text-gray-400 text-sm mb-4">Fotos y vídeos del evento</p>
+            <p className="text-ink-tertiary text-sm mb-4">Fotos y vídeos del evento</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {eventGallery(event.id).map((img, i) => (
                 <div key={i} className="aspect-square rounded-xl overflow-hidden relative group cursor-pointer">
@@ -971,13 +971,13 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
           <div className="space-y-4">
             <div className="card-white rounded-2xl p-5 flex flex-col sm:flex-row items-center gap-6">
               <div className="text-center">
-                <p className="font-black text-5xl text-gray-900">4.8</p>
+                <p className="font-black text-5xl text-ink-primary">4.8</p>
                 <div className="flex items-center gap-0.5 mt-1 justify-center">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star key={i} className={`w-4 h-4 ${i < 5 ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} />
                   ))}
                 </div>
-                <p className="text-gray-400 text-xs mt-1">{event.attending} asistentes</p>
+                <p className="text-ink-tertiary text-xs mt-1">{event.attending} asistentes</p>
               </div>
               <div className="flex-1 w-full space-y-1.5">
                 {[
@@ -985,12 +985,12 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                   { stars: 3, pct: 6 },  { stars: 2, pct: 3 }, { stars: 1, pct: 1 },
                 ].map(r => (
                   <div key={r.stars} className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400 w-3">{r.stars}</span>
+                    <span className="text-xs text-ink-tertiary w-3">{r.stars}</span>
                     <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="flex-1 h-2 bg-surface-elevated-2 rounded-full overflow-hidden">
                       <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${r.pct}%` }} />
                     </div>
-                    <span className="text-xs text-gray-400 w-8 text-right">{r.pct}%</span>
+                    <span className="text-xs text-ink-tertiary w-8 text-right">{r.pct}%</span>
                   </div>
                 ))}
               </div>
@@ -1005,8 +1005,8 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-10 h-10 bg-brand-orange/10 rounded-full flex items-center justify-center text-brand-orange font-bold">{r.avatar}</div>
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-900 text-sm">{r.name}</p>
-                    <p className="text-gray-400 text-xs">{r.time}</p>
+                    <p className="font-semibold text-ink-primary text-sm">{r.name}</p>
+                    <p className="text-ink-tertiary text-xs">{r.time}</p>
                   </div>
                   <div className="flex items-center gap-0.5">
                     {Array.from({ length: r.rating }).map((_, j) => (
@@ -1014,7 +1014,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                     ))}
                   </div>
                 </div>
-                <p className="text-gray-600 text-sm leading-relaxed">{r.text}</p>
+                <p className="text-ink-secondary text-sm leading-relaxed">{r.text}</p>
               </div>
             ))}
           </div>
