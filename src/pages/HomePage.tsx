@@ -1614,7 +1614,6 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
 
 // ── SECCIONES DE DESCUBRIMIENTO (Fase 4) ──
 const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
-  const trends = ['Salsa', 'Bachata', 'Kizomba', 'Reggaetón', 'Merengue', 'Cumbia', 'Timba', 'Afrobeat'];
 
   const [dbClases, setDbClases] = React.useState<any[]>([]);
   React.useEffect(() => {
@@ -1651,20 +1650,6 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
 
   return (
     <>
-      {/* Tendencias */}
-      <section className="mx-3 sm:mx-4 mt-8">
-        <Header icon="📈" title="Tendencias" onAll={() => navigate('/explorar')} />
-        <HScroll>
-          {trends.map((t, i) => (
-            <button key={t} onClick={() => navigate(`/artistas?q=${encodeURIComponent(t)}`)}
-              className="card-float inline-flex items-center gap-1.5 bg-white dark:bg-gray-900 rounded-full px-3.5 py-2 text-sm font-bold text-gray-700 dark:text-gray-200 hover:text-brand">
-              <span className="text-brand font-black">#{i + 1}</span> {t}
-            </button>
-          ))}
-          <SeeAllTile onClick={() => navigate('/explorar')} className="tile-2" />
-        </HScroll>
-      </section>
-
       {/* Clases Populares */}
       {clases.length > 0 && (
       <section className="mx-3 sm:mx-4 mt-8">
@@ -2146,7 +2131,7 @@ const HomePage: React.FC = () => {
       {/* ── FILA 3 COLUMNAS: Eventos destacados · Artistas recomendados · BailaNow TV ── */}
       <FeaturedTripleRow navigate={navigate} />
 
-      {/* ── SECCIONES DE DESCUBRIMIENTO (Tendencias, Clases, Profesores, Trabajos) ── */}
+      {/* ── SECCIONES DE DESCUBRIMIENTO (Clases, Profesores, Trabajos) ── */}
       <DiscoverySections navigate={navigate} />
 
       {/* ── DONDE BAILAR EN LA CIUDAD ── */}
