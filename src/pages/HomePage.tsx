@@ -601,13 +601,15 @@ interface DiscoverItem {
   crowdCount?: number; crowdAvatars?: (string | null)[]; isToday?: boolean;
 }
 
-const DISCOVER_TABS: { key: DiscoverKind; label: string; desc: string; icon: React.FC<any> }[] = [
-  { key: 'plan',   label: 'Planes de baile',  desc: 'Salidas en grupo para bailar',       icon: RouteIcon },
-  { key: 'venue',  label: 'Abiertos ahora',   desc: 'Locales con las puertas abiertas',   icon: Building2 },
-  { key: 'local',  label: 'Locales',          desc: 'Discotecas, bares y academias',      icon: MapPin },
-  { key: 'pareja', label: 'Pareja de baile',  desc: 'Encuentra con quién bailar',         icon: Heart },
-  { key: 'evento', label: 'Eventos',          desc: 'Fiestas, congresos y talleres',      icon: GraduationCap },
-  { key: 'vivo',   label: 'Eventos en vivo',  desc: 'Retransmisiones ahora mismo',        icon: Calendar },
+// `desc` solo en "Planes de baile": es el módulo principal y merece la explicación.
+// En el resto el nombre ya se entiende solo y la descripción no aportaba.
+const DISCOVER_TABS: { key: DiscoverKind; label: string; desc?: string; icon: React.FC<any> }[] = [
+  { key: 'plan',   label: 'Planes de baile', desc: 'Salidas en grupo para bailar', icon: RouteIcon },
+  { key: 'venue',  label: 'Abiertos ahora',  icon: Building2 },
+  { key: 'local',  label: 'Locales',         icon: MapPin },
+  { key: 'pareja', label: 'Pareja de baile', icon: Heart },
+  { key: 'evento', label: 'Eventos',         icon: GraduationCap },
+  { key: 'vivo',   label: 'Eventos en vivo', icon: Calendar },
 ];
 const DISCOVER_TAB_ROUTE: Record<DiscoverKind, string> = {
   plan: '/rutas', venue: '/venues', local: '/venues', pareja: '/parejas', evento: '/eventos', vivo: '/live',
@@ -980,7 +982,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
                 </span>
                 <span className="flex-1 min-w-0">
                   <span className="block text-sm font-extrabold leading-tight">{t.label}</span>
-                  <span className="block text-[11px] font-medium text-gray-500 leading-tight mt-0.5">{t.desc}</span>
+                  {t.desc && <span className="block text-[11px] font-medium text-gray-500 leading-tight mt-0.5">{t.desc}</span>}
                 </span>
                 <span className="text-xs font-black px-2.5 py-1 rounded-full flex-shrink-0 bg-brand/10 text-brand">{count}</span>
                 <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" />
