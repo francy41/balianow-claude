@@ -132,9 +132,9 @@ const FeaturedSlider: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = (
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
           <div className="w-1 h-3 rounded-full bg-brand-orange" />
-          <span className="text-[11px] font-black uppercase tracking-widest text-white/80">🔥 Lo más destacado</span>
+          <span className="text-[11px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">🔥 Lo más destacado</span>
         </div>
-        <button onClick={() => navigate('/destacados')} className="flex items-center gap-0.5 text-[10px] font-bold text-white hover:text-white/70 transition-colors">
+        <button onClick={() => navigate('/destacados')} className="flex items-center gap-0.5 text-[10px] font-bold text-brand hover:text-brand-orange-dark transition-colors">
           Ver todos <ChevronRight className="w-2.5 h-2.5" />
         </button>
       </div>
@@ -187,7 +187,7 @@ const SponsorsFooterStrip: React.FC<{ navigate: ReturnType<typeof useNavigate> }
     <section className="mt-8 mx-4">
       <div className="flex items-center gap-1.5 mb-3">
         <div className="w-1 h-3 rounded-full bg-gray-800" />
-        <span className="text-[10px] font-black uppercase tracking-widest text-white/70">Nuestros Patrocinadores</span>
+        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Nuestros Patrocinadores</span>
       </div>
       <div className="relative overflow-hidden" style={{
         maskImage: 'linear-gradient(to right, transparent 0%, black 5%, black 95%, transparent 100%)',
@@ -1145,8 +1145,8 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
           <div>
             <div className="flex items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-5 rounded-full bg-white" />
-                <h3 className="font-display font-black text-sm sm:text-base text-white uppercase tracking-wider">
+                <span className="w-1.5 h-5 rounded-full bg-brand" />
+                <h3 className="font-display font-black text-sm sm:text-base text-gray-900 dark:text-white uppercase tracking-wider">
                   Principales
                 </h3>
               </div>
@@ -1192,7 +1192,7 @@ const HomeSectionWithSearch: React.FC<HomeSectionProps> = ({
     <section className={`mx-4 mt-10 ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
-        <h2 className="font-display font-black text-xl sm:text-2xl tracking-tight text-white">
+        <h2 className="font-display font-black text-xl sm:text-2xl tracking-tight text-gray-900 dark:text-white">
           {title}
         </h2>
         {actionLabel && onAction && (
@@ -1200,14 +1200,14 @@ const HomeSectionWithSearch: React.FC<HomeSectionProps> = ({
             onClick={onAction}
             className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform flex-shrink-0"
           >
-            <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-lg shadow-black/20">
-              <ArrowRight className="w-4 h-4 text-brand" />
+            <div className="w-9 h-9 rounded-full bg-brand flex items-center justify-center shadow-lg shadow-brand/30">
+              <ArrowRight className="w-4 h-4 text-white" />
             </div>
-            <span className="text-[9px] font-black uppercase tracking-widest text-white">{actionLabel}</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-brand">{actionLabel}</span>
           </button>
         )}
       </div>
-      {subtitle && <p className="text-white/75 text-xs sm:text-sm mb-3 mt-1">{subtitle}</p>}
+      {subtitle && <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm mb-3 mt-1">{subtitle}</p>}
 
       {/* Content — el buscador global (arriba) es el único punto de búsqueda */}
       {children('')}
@@ -1237,10 +1237,10 @@ const HScroll: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 const SeeAllTile: React.FC<{ onClick: () => void; className?: string }> = ({ onClick, className = '' }) => (
   <button
     onClick={onClick}
-    className={`card-float rounded-2xl bg-white/15 backdrop-blur-sm flex flex-col items-center justify-center gap-1.5 px-1 py-3 text-white ${className}`}
+    className={`card-float rounded-2xl bg-white dark:bg-gray-900 flex flex-col items-center justify-center gap-1.5 px-1 py-3 text-brand ${className}`}
   >
-    <span className="w-11 h-11 rounded-full bg-white grid place-items-center flex-shrink-0">
-      <ArrowRight className="w-5 h-5 text-brand" />
+    <span className="w-11 h-11 rounded-full bg-brand grid place-items-center flex-shrink-0">
+      <ArrowRight className="w-5 h-5 text-white" />
     </span>
     <span className="text-[11px] font-black uppercase tracking-widest text-center leading-tight">Ver<br />más</span>
   </button>
@@ -1283,7 +1283,7 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500" />
           </span>
-          <h2 className="font-display font-black text-base sm:text-lg text-white">En Directo Ahora</h2>
+          <h2 className="font-display font-black text-base sm:text-lg text-gray-900 dark:text-white">En Directo Ahora</h2>
         </div>
         <button onClick={() => navigate('/live')} className="flex flex-col items-center gap-1 group hover:scale-105 transition-transform">
           <div className="w-9 h-9 rounded-full bg-red-500 flex items-center justify-center shadow-lg shadow-red-500/30">
@@ -1304,8 +1304,8 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
                 <span className="absolute top-2 right-2 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">👁 {s.viewers}</span>
               )}
             </div>
-            <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{s.title}</p>
-            <p className="text-white/70 text-[11px] leading-tight truncate capitalize">{[s.category, s.city].filter(Boolean).join(' · ')}</p>
+            <p className="mt-2 text-gray-900 dark:text-white font-black text-[13px] uppercase leading-tight truncate">{s.title}</p>
+            <p className="text-gray-500 dark:text-gray-400 text-[11px] leading-tight truncate capitalize">{[s.category, s.city].filter(Boolean).join(' · ')}</p>
           </button>
         ))}
         <SeeAllTile onClick={() => navigate('/live')} className="tile-2 tile-cover" />
@@ -1344,8 +1344,8 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
 
   const ColHeader = ({ title, onAll }: { title: string; onAll: () => void }) => (
     <div className="flex items-center justify-between mb-3 px-1">
-      <h3 className="font-display font-black text-base text-white">{title}</h3>
-      <button onClick={onAll} className="text-white hover:text-white/70 text-[11px] font-bold hover:underline">Ver todos →</button>
+      <h3 className="font-display font-black text-base text-gray-900 dark:text-white">{title}</h3>
+      <button onClick={onAll} className="text-brand hover:text-brand-orange-dark text-[11px] font-bold hover:underline">Ver todos →</button>
     </div>
   );
 
@@ -1363,8 +1363,8 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
                   {(e as any).cover && <img src={(e as any).cover} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                   <span className="absolute bottom-2 left-2 right-2 bg-black/75 backdrop-blur-sm text-white text-[11px] font-black text-center py-1 rounded-md">{day(e.date)} {month(e.date)}</span>
                 </div>
-                <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{e.title}</p>
-                <p className="text-white/70 text-[11px] leading-tight truncate">{e.venueName || e.city}</p>
+                <p className="mt-2 text-gray-900 dark:text-white font-black text-[13px] uppercase leading-tight truncate">{e.title}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-[11px] leading-tight truncate">{e.venueName || e.city}</p>
               </button>
             ))}
             <SeeAllTile onClick={() => navigate('/eventos')} className="tile-2 tile-cover" />
@@ -1380,8 +1380,8 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
                 <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
                   {a.avatar && <img src={a.avatar} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 </div>
-                <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{a.name}</p>
-                <p className="text-white/70 text-[11px] leading-tight truncate">{a.genre.slice(0, 2).join(' · ')}</p>
+                <p className="mt-2 text-gray-900 dark:text-white font-black text-[13px] uppercase leading-tight truncate">{a.name}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-[11px] leading-tight truncate">{a.genre.slice(0, 2).join(' · ')}</p>
               </button>
             ))}
             <SeeAllTile onClick={() => navigate('/artistas')} className="tile-2 tile-cover" />
@@ -1403,8 +1403,8 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
                   )}
                   {c.tag && <span className="absolute top-2 left-2 bg-brand text-white text-[9px] font-black px-2 py-0.5 rounded-full">{c.tag}</span>}
                 </div>
-                <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{c.title}</p>
-                <p className="text-white/70 text-[11px] leading-tight truncate">{c.subtitle}</p>
+                <p className="mt-2 text-gray-900 dark:text-white font-black text-[13px] uppercase leading-tight truncate">{c.title}</p>
+                <p className="text-gray-500 dark:text-gray-400 text-[11px] leading-tight truncate">{c.subtitle}</p>
               </button>
             );})}
             <SeeAllTile onClick={() => navigate('/tv')} className="tile-2 tile-cover" />
@@ -1413,7 +1413,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
 
         {/* Explora más — también en una sola fila */}
         <div>
-          <p className="mb-2 px-1 text-[11px] font-black uppercase tracking-widest text-white/70">Explora más</p>
+          <p className="mb-2 px-1 text-[11px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Explora más</p>
           <HScroll>
             <button onClick={() => navigate('/cerca')}
               className="card-float tile-2 flex flex-col items-center justify-center gap-1 rounded-2xl p-2 bg-gradient-to-br from-brand to-rose-700 text-white">
@@ -1453,11 +1453,11 @@ const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
     <section className="mx-3 sm:mx-4 mt-8">
       <div className="flex items-center justify-between mb-4 px-1">
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-5 rounded-full bg-white" />
-          <h2 className="font-display font-black text-xl text-white">Más para ti</h2>
+          <span className="w-1.5 h-5 rounded-full bg-brand" />
+          <h2 className="font-display font-black text-xl text-gray-900 dark:text-white">Más para ti</h2>
         </div>
         <button onClick={() => navigate('/explorar')}
-          className="text-xs font-bold text-white hover:text-white/70 flex items-center gap-1 transition-colors">
+          className="text-xs font-bold text-brand hover:text-brand-orange-dark flex items-center gap-1 transition-colors">
           Ver todas <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -1517,8 +1517,8 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
   return (
     <section className="mx-3 sm:mx-4 mt-8">
       <div className="flex items-center justify-between mb-3 px-1">
-        <h2 className="font-display font-black text-lg text-white flex items-center gap-2">📺 BailaNow TV</h2>
-        <button onClick={() => navigate('/tv')} className="text-white text-xs font-bold hover:underline">Ver todo →</button>
+        <h2 className="font-display font-black text-lg text-gray-900 dark:text-white flex items-center gap-2">📺 BailaNow TV</h2>
+        <button onClick={() => navigate('/tv')} className="text-brand hover:text-brand-orange-dark text-xs font-bold hover:underline">Ver todo →</button>
       </div>
       <HScroll>
         {shows.map(s => (
@@ -1534,8 +1534,8 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
                 <span className="w-11 h-11 rounded-full bg-white/90 grid place-items-center text-brand"><Play className="w-5 h-5" fill="currentColor" /></span>
               </span>
             </div>
-            <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{s.title}</p>
-            {s.meta && <p className="text-white/70 text-[11px] leading-tight truncate capitalize">{s.meta}</p>}
+            <p className="mt-2 text-gray-900 dark:text-white font-black text-[13px] uppercase leading-tight truncate">{s.title}</p>
+            {s.meta && <p className="text-gray-500 dark:text-gray-400 text-[11px] leading-tight truncate capitalize">{s.meta}</p>}
           </button>
         ))}
         <SeeAllTile onClick={() => navigate('/tv')} className="tile-2 tile-cover" />
@@ -1575,8 +1575,8 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
 
   const Header = ({ icon, title, onAll }: { icon: string; title: string; onAll: () => void }) => (
     <div className="flex items-center justify-between mb-3 px-1">
-      <h2 className="font-display font-black text-lg text-white flex items-center gap-2">{icon} {title}</h2>
-      <button onClick={onAll} className="text-white text-xs font-bold hover:underline">Ver todo →</button>
+      <h2 className="font-display font-black text-lg text-gray-900 dark:text-white flex items-center gap-2">{icon} {title}</h2>
+      <button onClick={onAll} className="text-brand hover:text-brand-orange-dark text-xs font-bold hover:underline">Ver todo →</button>
     </div>
   );
 
@@ -1599,8 +1599,8 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
                   <span className="w-11 h-11 rounded-full bg-white/90 grid place-items-center text-brand"><Play className="w-5 h-5" fill="currentColor" /></span>
                 </span>
               </div>
-              <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{c.title}</p>
-              {c.meta && <p className="text-white/70 text-[11px] leading-tight truncate">{c.meta}</p>}
+              <p className="mt-2 text-gray-900 dark:text-white font-black text-[13px] uppercase leading-tight truncate">{c.title}</p>
+              {c.meta && <p className="text-gray-500 dark:text-gray-400 text-[11px] leading-tight truncate">{c.meta}</p>}
             </button>
           ))}
           <SeeAllTile onClick={() => navigate('/clases')} className="tile-2 tile-cover" />
@@ -1625,8 +1625,8 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
                   </span>
                 )}
               </div>
-              <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{t.name}</p>
-              <p className="text-white/70 text-[11px] leading-tight truncate">{t.genre.slice(0, 2).join(' · ')}</p>
+              <p className="mt-2 text-gray-900 dark:text-white font-black text-[13px] uppercase leading-tight truncate">{t.name}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-[11px] leading-tight truncate">{t.genre.slice(0, 2).join(' · ')}</p>
             </button>
           ))}
           <SeeAllTile onClick={() => navigate('/artistas')} className="tile-2 tile-cover" />
@@ -1886,10 +1886,10 @@ const HomePage: React.FC = () => {
 
       {/* ── Título de marca, justo bajo el hero ── */}
       <div className="text-center mt-6 px-4">
-        <h2 className="font-display font-black text-xl sm:text-2xl text-white mb-1">
+        <h2 className="font-display font-black text-xl sm:text-2xl text-gray-900 dark:text-white mb-1">
           💃 Baila Now
         </h2>
-        <p className="text-white/75 text-xs sm:text-sm max-w-lg mx-auto">
+        <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm max-w-lg mx-auto">
           Todo lo que amas del baile, en un solo lugar
         </p>
       </div>
@@ -2093,8 +2093,8 @@ const HomePage: React.FC = () => {
                       {city.venues} locales · {city.events} eventos
                     </span>
                   </div>
-                  <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{city.name}</p>
-                  <p className="text-white/70 text-[11px] leading-tight truncate">{city.landmark}</p>
+                  <p className="mt-2 text-gray-900 dark:text-white font-black text-[13px] uppercase leading-tight truncate">{city.name}</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-[11px] leading-tight truncate">{city.landmark}</p>
                 </button>
               ))}
               <SeeAllTile onClick={() => navigate('/venues')} className="tile-2 tile-cover" />
@@ -2183,23 +2183,23 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* ── FOOTER LEGAL ── */}
-      <footer className="mt-10 mx-4 mb-4 pb-2 border-t border-white/25 pt-6">
+      <footer className="mt-10 mx-4 mb-4 pb-2 border-t border-gray-200 dark:border-gray-800 pt-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-1.5">
-            <span className="font-display font-black text-sm text-white">Baila</span>
-            <span className="font-display font-black text-sm text-white">Now</span>
-            <span className="text-white/70 text-xs ml-1">© 2025</span>
+            <span className="font-display font-black text-sm text-gray-900 dark:text-white">Baila</span>
+            <span className="font-display font-black text-sm text-brand">Now</span>
+            <span className="text-gray-400 text-xs ml-1">© 2025</span>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-white/80">
-            <a href="/legal/terminos" className="hover:text-white transition-colors">Términos</a>
-            <a href="/legal/privacidad" className="hover:text-white transition-colors">Privacidad</a>
-            <a href="/legal/cookies" className="hover:text-white transition-colors">Cookies</a>
-            <button onClick={() => window.dispatchEvent(new Event('bn:open-cookie-settings'))} className="hover:text-white transition-colors">Gestionar cookies</button>
-            <a href="/legal/aviso" className="hover:text-white transition-colors">Aviso Legal</a>
-            <a href="/legal/reembolsos" className="hover:text-white transition-colors">Reembolsos</a>
-            <a href="/legal/vendedores" className="hover:text-white transition-colors">Vendedores</a>
-            <a href="/legal/conducta" className="hover:text-white transition-colors">Conducta</a>
-            <a href="mailto:hola@bailanow.com" className="hover:text-white transition-colors">Contacto</a>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs text-gray-400">
+            <a href="/legal/terminos" className="hover:text-brand transition-colors">Términos</a>
+            <a href="/legal/privacidad" className="hover:text-brand transition-colors">Privacidad</a>
+            <a href="/legal/cookies" className="hover:text-brand transition-colors">Cookies</a>
+            <button onClick={() => window.dispatchEvent(new Event('bn:open-cookie-settings'))} className="hover:text-brand transition-colors">Gestionar cookies</button>
+            <a href="/legal/aviso" className="hover:text-brand transition-colors">Aviso Legal</a>
+            <a href="/legal/reembolsos" className="hover:text-brand transition-colors">Reembolsos</a>
+            <a href="/legal/vendedores" className="hover:text-brand transition-colors">Vendedores</a>
+            <a href="/legal/conducta" className="hover:text-brand transition-colors">Conducta</a>
+            <a href="mailto:hola@bailanow.com" className="hover:text-brand transition-colors">Contacto</a>
           </div>
         </div>
       </footer>
@@ -2229,8 +2229,8 @@ const ArtistCard: React.FC<{ artist: typeof ARTISTS[0]; onClick: () => void }> =
         </span>
       )}
     </div>
-    <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{artist.name}</p>
-    <p className="text-white/70 text-[11px] leading-tight truncate">{artist.city}</p>
+    <p className="mt-2 text-gray-900 dark:text-white font-black text-[13px] uppercase leading-tight truncate">{artist.name}</p>
+    <p className="text-gray-500 dark:text-gray-400 text-[11px] leading-tight truncate">{artist.city}</p>
   </div>
 );
 
@@ -2251,8 +2251,8 @@ const EventCard: React.FC<{ event: typeof EVENTS[0]; onClick: () => void }> = ({
           {day} {event.price === 0 ? '· GRATIS' : `· €${event.price}`}
         </span>
       </div>
-      <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{event.title}</p>
-      <p className="text-white/70 text-[11px] leading-tight truncate">{event.venueName || event.city}</p>
+      <p className="mt-2 text-gray-900 dark:text-white font-black text-[13px] uppercase leading-tight truncate">{event.title}</p>
+      <p className="text-gray-500 dark:text-gray-400 text-[11px] leading-tight truncate">{event.venueName || event.city}</p>
     </div>
   );
 };

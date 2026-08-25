@@ -158,7 +158,9 @@ const App: React.FC = () => {
           <div className="lg:ml-60">
             <Navbar onMenuToggle={() => setSidebarOpen(s => !s)} />
 
-            <main className="pt-14 pb-24 lg:pb-6 min-h-screen">
+            {/* max-w: sin él, en un monitor ancho el contenido se estiraba de
+                borde a borde y todo salía desproporcionado. */}
+            <main className="pt-14 pb-24 lg:pb-6 min-h-screen max-w-[1280px] mx-auto w-full">
               <Suspense fallback={<FullPageLoader />}>
                 <RouteErrorBoundary>
                 <Routes>
