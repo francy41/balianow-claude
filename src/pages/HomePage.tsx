@@ -1122,20 +1122,20 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
     return bySection !== 0 ? bySection : a.display_order - b.display_order;
   });
 
-  // 12 por fila; se muestran 2 filas (24) y el resto tras "Ver más categorías".
+  // Se muestran 9 (3 filas de 3) y el resto queda tras "Ver todas".
+  const VISIBLES = 9;
 
-  const CategoryButton: React.FC<{ cat: HomeCategory }> = ({ cat }) => {
-    return (
-      <button
-        onClick={() => navigate(cat.route)}
-        className="card-float group relative w-full h-full bg-white dark:bg-gray-800/70 rounded-2xl p-3 flex flex-col items-center justify-center gap-2 active:scale-95"
-      >
-        {/* Solo el icono grande y el texto debajo — sin chip de color de fondo */}
-        <span className="text-5xl leading-none group-hover:scale-110 transition-transform duration-300">{cat.icon}</span>
-        <span className="text-gray-700 dark:text-gray-200 text-xs font-bold leading-tight text-center line-clamp-2 group-hover:text-brand-orange transition-colors">{cat.name}</span>
-      </button>
-    );
-  };
+  // Mismo formato que las píldoras compactas del menú de "Planes de baile":
+  // misma forma, color, tamaño e icono en círculo rosa.
+  const CategoryButton: React.FC<{ cat: HomeCategory }> = ({ cat }) => (
+    <button
+      onClick={() => navigate(cat.route)}
+      className="card-float w-full flex items-center gap-2 pl-1.5 pr-2 py-1.5 rounded-2xl bg-white text-gray-800 hover:bg-gray-50 transition-all text-left active:scale-95"
+    >
+      <span className="w-8 h-8 rounded-full grid place-items-center flex-shrink-0 bg-brand/10 text-base leading-none">{cat.icon}</span>
+      <span className="flex-1 min-w-0 text-[11px] font-extrabold leading-tight line-clamp-2">{cat.name}</span>
+    </button>
+  );
 
   return (
     <section className="mt-4 px-2 sm:px-4">
@@ -1151,15 +1151,20 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
                 </h3>
               </div>
             </div>
-            {/* Una sola fila horizontal; "Ver todas" cierra la fila */}
-            <HScroll>
-              {visibleCats.map(cat => (
-                <div key={cat.id} className="tile-2">
-                  <CategoryButton cat={cat} />
-                </div>
+            {/* Cuadrícula de 3 x 3; el resto de categorías se ven en "Ver todas" */}
+            <div className="grid grid-cols-3 gap-2">
+              {visibleCats.slice(0, VISIBLES).map(cat => (
+                <CategoryButton key={cat.id} cat={cat} />
               ))}
-              <SeeAllTile onClick={() => navigate('/explorar')} className="tile-2 tile-cover" />
-            </HScroll>
+            </div>
+            {visibleCats.length > VISIBLES && (
+              <button
+                onClick={() => navigate('/explorar')}
+                className="card-float w-full mt-2 flex items-center justify-center gap-2 py-2.5 rounded-2xl bg-white text-brand hover:bg-gray-50 transition-all text-[11px] font-black uppercase tracking-widest"
+              >
+                Ver todas <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
           </div>
         )}
       </div>
