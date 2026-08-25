@@ -1154,11 +1154,11 @@ const DynamicCategoriesSection: React.FC<{ navigate: any }> = ({ navigate }) => 
             {/* Una sola fila horizontal; "Ver todas" cierra la fila */}
             <HScroll>
               {visibleCats.map(cat => (
-                <div key={cat.id} className="tile-2 [&>*]:h-full">
+                <div key={cat.id} className="tile-2">
                   <CategoryButton cat={cat} />
                 </div>
               ))}
-              <SeeAllTile onClick={() => navigate('/explorar')} className="tile-2" />
+              <SeeAllTile onClick={() => navigate('/explorar')} className="tile-2 tile-cover" />
             </HScroll>
           </div>
         )}
@@ -1289,27 +1289,21 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
       </div>
       <HScroll>
         {lives.map(s => (
-          <button key={s.id} onClick={() => navigate(`/live/session/${s.id}`)}
-            className="card-float tile-2 rounded-2xl overflow-hidden group relative">
-            <AppImage src={s.cover || ''} alt={s.title} fallback="portrait" className="w-full h-44 sm:h-48 object-cover group-hover:scale-105 transition-transform duration-500" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-            <div className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded flex items-center gap-1 shadow-lg animate-pulse">
-              <span className="w-1.5 h-1.5 bg-white rounded-full" /> LIVE
+          <button key={s.id} onClick={() => navigate(`/live/session/${s.id}`)} className="tile-2 text-left group">
+            <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
+              <AppImage src={s.cover || ''} alt={s.title} fallback="portrait" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+              <span className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded flex items-center gap-1 shadow-lg animate-pulse">
+                <span className="w-1.5 h-1.5 bg-white rounded-full" /> LIVE
+              </span>
+              {s.viewers > 0 && (
+                <span className="absolute top-2 right-2 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">👁 {s.viewers}</span>
+              )}
             </div>
-            {s.viewers > 0 && (
-              <div className="absolute top-2 right-2 bg-black/60 text-white text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur-sm">
-                👁 {s.viewers}
-              </div>
-            )}
-            <div className="absolute bottom-2 left-2 right-2">
-              <p className="text-white font-bold text-xs truncate">{s.title}</p>
-              {s.category && <p className="text-white/70 text-[10px] capitalize">{s.category}</p>}
-              {s.city && <p className="text-white/50 text-[9px] flex items-center gap-0.5 mt-0.5"><MapPin className="w-2.5 h-2.5" />{s.city}</p>}
-            </div>
-            <div className="absolute inset-0 rounded-2xl ring-1 ring-red-500/50 group-hover:ring-2 group-hover:ring-red-500 transition-all" />
+            <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{s.title}</p>
+            <p className="text-white/70 text-[11px] leading-tight truncate capitalize">{[s.category, s.city].filter(Boolean).join(' · ')}</p>
           </button>
         ))}
-        <SeeAllTile onClick={() => navigate('/live')} className="tile-2" />
+        <SeeAllTile onClick={() => navigate('/live')} className="tile-2 tile-cover" />
       </HScroll>
     </section>
   );
@@ -1359,22 +1353,16 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <ColHeader title="🎫 Eventos destacados" onAll={() => navigate('/eventos')} />
           <HScroll>
             {events.map(e => (
-              <button key={e.id} onClick={() => navigate(`/eventos/${e.id}`)}
-                className="card-float tile-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-900 text-left group">
-                {(e as any).cover && <img src={(e as any).cover} alt="" className="absolute inset-0 w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-                <div className="absolute top-2 left-2 bg-white/90 text-gray-900 rounded-lg px-1.5 py-0.5 text-center leading-none">
-                  <div className="font-black text-sm">{day(e.date)}</div>
-                  <div className="text-[8px] font-bold text-brand">{month(e.date)}</div>
+              <button key={e.id} onClick={() => navigate(`/eventos/${e.id}`)} className="tile-2 text-left group">
+                <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
+                  {(e as any).cover && <img src={(e as any).cover} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
+                  <span className="absolute bottom-2 left-2 right-2 bg-black/75 backdrop-blur-sm text-white text-[11px] font-black text-center py-1 rounded-md">{day(e.date)} {month(e.date)}</span>
                 </div>
-                <span className="absolute top-2 right-2 bg-brand text-white text-[9px] font-black px-2 py-0.5 rounded-full">Entradas</span>
-                <div className="absolute bottom-2 left-2 right-2">
-                  <p className="text-white font-bold text-xs leading-tight truncate">{e.title}</p>
-                  <p className="text-white/70 text-[9px] truncate flex items-center gap-1 mt-0.5"><MapPin className="w-2.5 h-2.5" />{e.venueName || e.city}</p>
-                </div>
+                <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{e.title}</p>
+                <p className="text-white/70 text-[11px] leading-tight truncate">{e.venueName || e.city}</p>
               </button>
             ))}
-            <SeeAllTile onClick={() => navigate('/eventos')} className="tile-2" />
+            <SeeAllTile onClick={() => navigate('/eventos')} className="tile-2 tile-cover" />
           </HScroll>
         </div>
 
@@ -1383,17 +1371,15 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <ColHeader title="🎧 Artistas recomendados" onAll={() => navigate('/artistas')} />
           <HScroll>
             {artists.map(a => (
-              <button key={a.id} onClick={() => navigate(`/artistas/${a.id}`)}
-                className="card-float tile-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand-deep/60 via-rose-900/40 to-gray-900 text-left group">
-                {a.avatar && <img src={a.avatar} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/15 to-transparent" />
-                <div className="absolute bottom-2 left-2 right-2">
-                  <p className="text-white font-bold text-xs leading-tight truncate">{a.name}</p>
-                  <p className="text-white/70 text-[9px] truncate">{a.genre.slice(0, 2).join(' · ')}</p>
+              <button key={a.id} onClick={() => navigate(`/artistas/${a.id}`)} className="tile-2 text-left group">
+                <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
+                  {a.avatar && <img src={a.avatar} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />}
                 </div>
+                <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{a.name}</p>
+                <p className="text-white/70 text-[11px] leading-tight truncate">{a.genre.slice(0, 2).join(' · ')}</p>
               </button>
             ))}
-            <SeeAllTile onClick={() => navigate('/artistas')} className="tile-2" />
+            <SeeAllTile onClick={() => navigate('/artistas')} className="tile-2 tile-cover" />
           </HScroll>
         </div>
 
@@ -1403,22 +1389,20 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <HScroll>
             {tv.map((c, i) => {
               return (
-              <button key={i} onClick={() => navigate(c.link || '/tv')}
-                className="card-float tile-2 relative rounded-2xl overflow-hidden group text-left bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-950">
-                {c.image ? (
-                  <img src={c.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:scale-105 group-hover:opacity-80 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
-                ) : (
-                  <Video className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-white/15" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/40 to-transparent" />
-                {c.tag && <span className="absolute top-2.5 left-2.5 bg-brand text-white text-[9px] font-black px-2 py-0.5 rounded-full">{c.tag}</span>}
-                <div className="absolute bottom-3 left-3 right-3">
-                  <p className="text-white font-black text-sm leading-tight">{c.title}</p>
-                  <p className="text-white/60 text-[10px] mt-0.5">{c.subtitle}</p>
+              <button key={i} onClick={() => navigate(c.link || '/tv')} className="tile-2 text-left group">
+                <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
+                  {c.image ? (
+                    <img src={c.image} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
+                  ) : (
+                    <Video className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-white/25" />
+                  )}
+                  {c.tag && <span className="absolute top-2 left-2 bg-brand text-white text-[9px] font-black px-2 py-0.5 rounded-full">{c.tag}</span>}
                 </div>
+                <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{c.title}</p>
+                <p className="text-white/70 text-[11px] leading-tight truncate">{c.subtitle}</p>
               </button>
             );})}
-            <SeeAllTile onClick={() => navigate('/tv')} className="tile-2" />
+            <SeeAllTile onClick={() => navigate('/tv')} className="tile-2 tile-cover" />
           </HScroll>
         </div>
 
@@ -1494,7 +1478,7 @@ const MoreForYou: React.FC<{ navigate: any }> = ({ navigate }) => {
             </span>
           </button>
         ))}
-        <SeeAllTile onClick={() => navigate('/explorar')} className="tile-2" />
+        <SeeAllTile onClick={() => navigate('/explorar')} className="tile-2 tile-cover" />
       </HScroll>
     </section>
   );
@@ -1533,23 +1517,23 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
       </div>
       <HScroll>
         {shows.map(s => (
-          <button key={s.id} onClick={() => navigate(`/tv/${s.id}`)}
-            className="card-float tile-2 relative rounded-2xl overflow-hidden group text-left bg-gradient-to-br from-brand-deep/70 via-brand-deep/45 to-gray-950">
-            {s.img ? (
-              <img src={s.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
-            ) : (
-              <Video className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-white/15" />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
-            <span className={`absolute top-2.5 left-2.5 ${s.tagColor} text-white text-[9px] font-black px-2 py-0.5 rounded-full`}>{s.tag}</span>
-            <span className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm grid place-items-center text-white opacity-0 group-hover:opacity-100 transition"><Play className="w-4 h-4" fill="currentColor" /></span>
-            <div className="absolute bottom-3 left-3 right-3">
-              <p className="text-white font-black text-sm leading-tight">{s.title}</p>
-              {s.meta && <p className="text-white/60 text-[10px] mt-0.5 capitalize">{s.meta}</p>}
+          <button key={s.id} onClick={() => navigate(`/tv/${s.id}`)} className="tile-2 text-left group">
+            <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
+              {s.img ? (
+                <img src={s.img} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
+              ) : (
+                <Video className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-white/25" />
+              )}
+              <span className={`absolute top-2 left-2 ${s.tagColor} text-white text-[9px] font-black px-2 py-0.5 rounded-full`}>{s.tag}</span>
+              <span className="absolute inset-0 grid place-items-center opacity-0 group-hover:opacity-100 transition bg-black/25">
+                <span className="w-11 h-11 rounded-full bg-white/90 grid place-items-center text-brand"><Play className="w-5 h-5" fill="currentColor" /></span>
+              </span>
             </div>
+            <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{s.title}</p>
+            {s.meta && <p className="text-white/70 text-[11px] leading-tight truncate capitalize">{s.meta}</p>}
           </button>
         ))}
-        <SeeAllTile onClick={() => navigate('/tv')} className="tile-2" />
+        <SeeAllTile onClick={() => navigate('/tv')} className="tile-2 tile-cover" />
       </HScroll>
     </section>
   );
@@ -1599,22 +1583,22 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
         <Header icon="🎓" title="Clases Populares" onAll={() => navigate('/clases')} />
         <HScroll>
           {clases.map(c => (
-            <button key={c.id} onClick={() => navigate('/clases')}
-              className="card-float tile-2 relative rounded-2xl overflow-hidden group text-left bg-gradient-to-br from-brand/30 via-fuchsia-700/20 to-gray-900">
-              {c.img ? (
-                <img src={c.img} alt="" className="absolute inset-0 w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-              ) : (
-                <Video className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-7 h-7 text-white/15" />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-950/30 to-transparent" />
-              <span className="absolute top-2.5 right-2.5 w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm grid place-items-center text-white opacity-0 group-hover:opacity-100 transition"><Play className="w-4 h-4" fill="currentColor" /></span>
-              <div className="absolute bottom-3 left-3 right-3">
-                <p className="text-white font-black text-sm leading-tight">{c.title}</p>
-                {c.meta && <p className="text-white/60 text-[10px] mt-0.5">{c.meta}</p>}
+            <button key={c.id} onClick={() => navigate('/clases')} className="tile-2 text-left group">
+              <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
+                {c.img ? (
+                  <img src={c.img} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                ) : (
+                  <Video className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-7 h-7 text-white/25" />
+                )}
+                <span className="absolute inset-0 grid place-items-center opacity-0 group-hover:opacity-100 transition bg-black/25">
+                  <span className="w-11 h-11 rounded-full bg-white/90 grid place-items-center text-brand"><Play className="w-5 h-5" fill="currentColor" /></span>
+                </span>
               </div>
+              <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{c.title}</p>
+              {c.meta && <p className="text-white/70 text-[11px] leading-tight truncate">{c.meta}</p>}
             </button>
           ))}
-          <SeeAllTile onClick={() => navigate('/clases')} className="tile-2" />
+          <SeeAllTile onClick={() => navigate('/clases')} className="tile-2 tile-cover" />
         </HScroll>
       </section>
       )}
@@ -1625,22 +1609,22 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
         <Header icon="⭐" title="Profesores Destacados" onAll={() => navigate('/artistas')} />
         <HScroll>
           {teachers.map(t => (
-            <button key={t.id} onClick={() => navigate(`/artistas/${t.id}`)}
-              className="card-float tile-2 bg-white dark:bg-gray-900 rounded-2xl p-3 text-center flex flex-col items-center justify-center overflow-hidden">
-              <div className="relative">
-                <div className="w-14 h-14 rounded-full overflow-hidden grid place-items-center bg-gradient-to-br from-brand to-brand-secondary text-white font-black text-lg">
-                  <span>{t.name?.[0] || '?'}</span>
-                  <img src={t.avatar} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                </div>
-                <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-gray-900" title="Disponible" />
+            <button key={t.id} onClick={() => navigate(`/artistas/${t.id}`)} className="tile-2 text-left group">
+              <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-gradient-to-br from-brand to-brand-secondary grid place-items-center">
+                <span className="text-white font-black text-3xl">{t.name?.[0] || '?'}</span>
+                <img src={t.avatar} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                <span className="absolute top-2 right-2 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-white" title="Disponible" />
+                {t.rating > 0 && (
+                  <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 bg-black/75 backdrop-blur-sm text-white text-[10px] font-black px-1.5 py-0.5 rounded">
+                    <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />{t.rating}
+                  </span>
+                )}
               </div>
-              <p className="font-black text-gray-900 dark:text-white text-[13px] mt-1.5 truncate max-w-full">{t.name}</p>
-              <p className="text-gray-400 text-[11px] truncate max-w-full">{t.genre.slice(0, 2).join(' · ')}</p>
-              <div className="flex items-center gap-1 mt-0.5 text-amber-500 text-[10px] font-bold"><Star className="w-3 h-3 fill-amber-500" />{t.rating}</div>
-              <span className="mt-1 text-[10px] font-bold text-brand dark:text-pink-400">Ver perfil →</span>
+              <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{t.name}</p>
+              <p className="text-white/70 text-[11px] leading-tight truncate">{t.genre.slice(0, 2).join(' · ')}</p>
             </button>
           ))}
-          <SeeAllTile onClick={() => navigate('/artistas')} className="tile-2" />
+          <SeeAllTile onClick={() => navigate('/artistas')} className="tile-2 tile-cover" />
         </HScroll>
       </section>
       )}
@@ -2095,29 +2079,20 @@ const HomePage: React.FC = () => {
           return (
             <HScroll>
               {filtered.map(city => (
-                <button
-                  key={city.name}
-                  onClick={() => navigate(`/venues?city=${city.name}`)}
-                  className="card-float tile-2 relative rounded-3xl overflow-hidden group"
-                >
-                  <img src={city.img} alt={city.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-                  <div className="absolute inset-0 rounded-3xl border-2 border-transparent group-hover:border-brand/40 transition-all duration-300" />
-                  <div className="absolute top-2 left-2 w-7 h-7 sm:w-10 sm:h-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-base sm:text-2xl shadow-lg">
-                    {city.monument}
+                <button key={city.name} onClick={() => navigate(`/venues?city=${city.name}`)} className="tile-2 text-left group">
+                  <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
+                    <img src={city.img} alt={city.name}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <span className="absolute top-2 left-2 w-8 h-8 rounded-lg bg-black/50 backdrop-blur-sm grid place-items-center text-lg">{city.monument}</span>
+                    <span className="absolute bottom-2 left-2 right-2 bg-black/75 backdrop-blur-sm text-white text-[10px] font-black text-center py-1 rounded-md">
+                      {city.venues} locales · {city.events} eventos
+                    </span>
                   </div>
-                  <div className="absolute bottom-2 left-2 right-2 text-left">
-                    <p className="text-white font-display font-black text-lg sm:text-xl leading-tight drop-shadow-lg line-clamp-2">{city.name}</p>
-                    <p className="text-white/70 text-[11px] font-medium truncate">{city.landmark}</p>
-                    <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                      <span className="bg-white/15 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">🏠 {city.venues} locales</span>
-                      <span className="bg-white/15 backdrop-blur-sm text-white text-[10px] font-bold px-2 py-1 rounded-full">🎟 {city.events} eventos</span>
-                    </div>
-                  </div>
+                  <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{city.name}</p>
+                  <p className="text-white/70 text-[11px] leading-tight truncate">{city.landmark}</p>
                 </button>
               ))}
-              <SeeAllTile onClick={() => navigate('/venues')} className="tile-2" />
+              <SeeAllTile onClick={() => navigate('/venues')} className="tile-2 tile-cover" />
             </HScroll>
           );
         }}
@@ -2142,11 +2117,11 @@ const HomePage: React.FC = () => {
           return (
             <HScroll>
               {filtered.slice(0, 12).map(artist => (
-                <div key={artist.id} className="tile-2 [&>*]:h-full">
+                <div key={artist.id} className="tile-2">
                   <ArtistCard artist={artist} onClick={() => navigate(`/artistas/${artist.id}`)} />
                 </div>
               ))}
-              {filtered.length > 0 && <SeeAllTile onClick={() => navigate('/artistas')} className="tile-2" />}
+              {filtered.length > 0 && <SeeAllTile onClick={() => navigate('/artistas')} className="tile-2 tile-cover" />}
               {searchQ && filtered.length === 0 && (
                 <div className="w-full text-center py-8">
                   <p className="text-3xl mb-2">🔍</p>
@@ -2177,11 +2152,11 @@ const HomePage: React.FC = () => {
           return (
             <HScroll>
               {filtered.slice(0, 12).map(event => (
-                <div key={event.id} className="tile-2 [&>*]:h-full">
+                <div key={event.id} className="tile-2">
                   <EventCard event={event} onClick={() => navigate(`/eventos/${event.id}`)} />
                 </div>
               ))}
-              {filtered.length > 0 && <SeeAllTile onClick={() => navigate('/eventos')} className="tile-2" />}
+              {filtered.length > 0 && <SeeAllTile onClick={() => navigate('/eventos')} className="tile-2 tile-cover" />}
               {searchQ && filtered.length === 0 && (
                 <div className="w-full text-center py-8">
                   <p className="text-3xl mb-2">🔍</p>
@@ -2236,29 +2211,21 @@ const HomePage: React.FC = () => {
 
 // ── ARTIST CARD ─────────────────────────────────────────────────────────────
 const ArtistCard: React.FC<{ artist: typeof ARTISTS[0]; onClick: () => void }> = ({ artist, onClick }) => (
-  <div onClick={onClick} className="card-white card-float overflow-hidden cursor-pointer group rounded-2xl flex flex-col">
-    <div className="relative overflow-hidden h-[55%] flex-shrink-0">
-      <img
-        src={artist.cover}
-        alt={artist.name}
-        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-      />
+  <div onClick={onClick} className="cursor-pointer group text-left">
+    <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
+      <img src={artist.cover} alt={artist.name}
+        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
       {artist.isPremium && (
-        <span className="absolute top-1.5 left-1.5 bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wide">
-          DESTACADO
+        <span className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wide">DESTACADO</span>
+      )}
+      {artist.rating > 0 && (
+        <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 bg-black/75 backdrop-blur-sm text-white text-[10px] font-black px-1.5 py-0.5 rounded">
+          <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />{artist.rating}
         </span>
       )}
     </div>
-    <div className="p-2.5 flex-1 min-h-0 overflow-hidden">
-      <h3 className="font-display font-bold text-gray-900 text-[13px] sm:text-[13px] leading-tight line-clamp-2">{artist.name}</h3>
-      <p className="text-gray-400 text-[11px] flex items-center gap-1 mt-1 truncate">
-        <MapPin className="w-2.5 h-2.5 flex-shrink-0" /> {artist.city}
-      </p>
-      <div className="flex items-center gap-1 mt-1">
-        <Star className="w-3 h-3 fill-brand-orange text-brand-orange" />
-        <span className="text-gray-700 text-[10px] font-semibold">{artist.rating}</span>
-      </div>
-    </div>
+    <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{artist.name}</p>
+    <p className="text-white/70 text-[11px] leading-tight truncate">{artist.city}</p>
   </div>
 );
 
@@ -2268,31 +2235,19 @@ const EventCard: React.FC<{ event: typeof EVENTS[0]; onClick: () => void }> = ({
   const day = d.toLocaleDateString('es-ES', { day: '2-digit', month: 'long' }).toUpperCase();
 
   return (
-    <div onClick={onClick} className="card-white card-float overflow-hidden cursor-pointer group rounded-2xl flex flex-col">
-      <div className="relative overflow-hidden h-[55%] flex-shrink-0">
-        <img
-          src={event.cover}
-          alt={event.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
-        <div className="absolute top-1.5 left-1.5">
-          <span className="bg-black/70 text-white text-[9px] font-bold px-2 py-0.5 rounded">{day}</span>
-        </div>
+    <div onClick={onClick} className="cursor-pointer group text-left">
+      <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
+        <img src={event.cover} alt={event.title}
+          className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         {event.isFeatured && (
-          <span className="absolute top-1.5 right-1.5 bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded uppercase">
-            DESTACADO
-          </span>
+          <span className="absolute top-2 right-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded uppercase">DESTACADO</span>
         )}
+        <span className="absolute bottom-2 left-2 right-2 bg-black/75 backdrop-blur-sm text-white text-[11px] font-black text-center py-1 rounded-md">
+          {day} {event.price === 0 ? '· GRATIS' : `· €${event.price}`}
+        </span>
       </div>
-      <div className="p-2.5 flex-1 min-h-0 overflow-hidden">
-        <h3 className="font-display font-bold text-gray-900 text-[13px] sm:text-[13px] leading-tight line-clamp-2">{event.title}</h3>
-        <p className="text-gray-400 text-[11px] flex items-center gap-1 mt-1 truncate">
-          <MapPin className="w-2.5 h-2.5 flex-shrink-0" /> {event.city}
-        </p>
-        <p className="text-gray-700 text-[10px] font-semibold mt-1">
-          {event.price === 0 ? 'GRATIS' : `Desde €${event.price}`}
-        </p>
-      </div>
+      <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{event.title}</p>
+      <p className="text-white/70 text-[11px] leading-tight truncate">{event.venueName || event.city}</p>
     </div>
   );
 };
