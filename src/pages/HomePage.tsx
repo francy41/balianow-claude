@@ -601,26 +601,16 @@ interface DiscoverItem {
   crowdCount?: number; crowdAvatars?: (string | null)[]; isToday?: boolean;
 }
 
-const DISCOVER_TABS: { key: DiscoverKind; label: string; icon: React.FC<any> }[] = [
-  { key: 'plan', label: 'Planes de baile', icon: RouteIcon },
-  { key: 'venue', label: 'Abiertos ahora', icon: Building2 },
-  { key: 'local', label: 'Locales', icon: MapPin },
-  { key: 'pareja', label: 'Pareja de baile', icon: Heart },
-  { key: 'evento', label: 'Eventos', icon: GraduationCap },
-  { key: 'vivo', label: 'Eventos en vivo', icon: Calendar },
+const DISCOVER_TABS: { key: DiscoverKind; label: string; desc: string; icon: React.FC<any> }[] = [
+  { key: 'plan',   label: 'Planes de baile',  desc: 'Salidas en grupo para bailar',       icon: RouteIcon },
+  { key: 'venue',  label: 'Abiertos ahora',   desc: 'Locales con las puertas abiertas',   icon: Building2 },
+  { key: 'local',  label: 'Locales',          desc: 'Discotecas, bares y academias',      icon: MapPin },
+  { key: 'pareja', label: 'Pareja de baile',  desc: 'Encuentra con quién bailar',         icon: Heart },
+  { key: 'evento', label: 'Eventos',          desc: 'Fiestas, congresos y talleres',      icon: GraduationCap },
+  { key: 'vivo',   label: 'Eventos en vivo',  desc: 'Retransmisiones ahora mismo',        icon: Calendar },
 ];
-const DISCOVER_ORDER: DiscoverKind[] = ['plan', 'venue', 'local', 'vivo', 'evento', 'pareja'];
 const DISCOVER_TAB_ROUTE: Record<DiscoverKind, string> = {
   plan: '/rutas', venue: '/venues', local: '/venues', pareja: '/parejas', evento: '/eventos', vivo: '/live',
-};
-
-const DISCOVER_BADGE: Record<DiscoverKind, { label: string; className: string; cta: string }> = {
-  plan:   { label: 'PLAN',          className: 'bg-brand',    cta: 'border-brand text-brand' },
-  venue:  { label: 'ABIERTO AHORA', className: 'bg-rose-600',    cta: 'border-rose-500 text-rose-600' },
-  local:  { label: 'LOCAL',         className: 'bg-brand-secondary', cta: 'border-brand-secondary text-brand-secondary' },
-  pareja: { label: 'PAREJA',        className: 'bg-brand-secondary', cta: 'border-brand-secondary text-brand-secondary' },
-  evento: { label: 'EVENTO',        className: 'bg-rose-600',    cta: 'border-rose-500 text-rose-600' },
-  vivo:   { label: 'EN VIVO',       className: 'bg-red-600',     cta: 'bg-gradient-to-r from-red-600 to-rose-700 text-white border-transparent' },
 };
 
 // Punto de alarma parpadeante por categoría en las pestañas — mismos colores que el mapa y las tarjetas.
@@ -721,7 +711,6 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
   const [loaded, setLoaded] = useState(false);
   const [items, setItems] = useState<DiscoverItem[]>([]);
   const [stats, setStats] = useState({ abiertos: 0, pareja: 0, vivo: 0, rating: 0, plan: 0, evento: 0, local: 0 });
-  const [tab, setTab] = useState<DiscoverKind>('plan');
 
   useEffect(() => {
     let cancelled = false;
@@ -852,12 +841,6 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
     ? items.filter(it => it.city.toLowerCase().includes(cityFilter.trim().toLowerCase()))
     : items;
 
-  // Si la pestaña activa se queda sin contenido real, se cae a la primera que sí lo tenga
-  // (antes ese caso lo absorbía la pestaña "Todos", que ya no existe).
-  const tabCount = (k: DiscoverKind) => items.filter(it => it.kind === k).length;
-  const activeTab: DiscoverKind = tabCount(tab) > 0 ? tab : (DISCOVER_ORDER.find(k => tabCount(k) > 0) || tab);
-  const shown = scoped.filter(it => it.kind === activeTab).slice(0, 8);
-
   // El mapa siempre muestra las 4 categorías con ubicación real (Planes/Abiertos/Eventos/En directo),
   // cada una con su propio color y alarma parpadeante — independiente de la pestaña activa.
   const MAPPABLE: DiscoverKind[] = ['plan', 'venue', 'evento', 'vivo'];
@@ -868,7 +851,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
     : [40.4168, -3.7038];
 
   // Actividad real ahora mismo (no "alertas" ficticias): abiertos + directos + planes de hoy.
-  const activityNow = stats.abiertos + stats.vivo + shown.filter(it => it.kind === 'plan' && it.isToday).length;
+  const activityNow = stats.abiertos + stats.vivo + items.filter(it => it.kind === 'plan' && it.isToday).length;
 
   return (
     <section className="mx-3 sm:mx-4 mt-8">
@@ -926,7 +909,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
 
           {/* Actividad ahora (real: abiertos + directos + planes de hoy) — no es un sistema de alertas inventado.
               En móvil: pastilla compacta clicable de una línea. En escritorio: tarjeta completa. */}
-          <button onClick={() => navigate(DISCOVER_TAB_ROUTE[activeTab])}
+          <button onClick={() => navigate('/rutas')}
             className="flex-shrink-0 flex sm:hidden items-center gap-1.5 bg-gradient-to-br from-brand to-fuchsia-800 rounded-full pl-1.5 pr-2.5 py-1 shadow-lg shadow-pink-950/50">
             <span className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
               <RouteIcon className="w-2.5 h-2.5 text-white" />
@@ -946,7 +929,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
                 <p className="text-white/80 text-[10px] mt-0.5 leading-tight">{activityNow > 0 ? `${activityNow} cosas pasando cerca de ti` : 'Sé el primero en crear un plan'}</p>
               </div>
             </div>
-            <button onClick={() => navigate(DISCOVER_TAB_ROUTE[activeTab])}
+            <button onClick={() => navigate('/rutas')}
               className="w-full mt-2.5 bg-white/15 hover:bg-white/25 border border-white/25 rounded-lg py-1.5 text-white text-[11px] font-extrabold transition-colors">
               Ver todos
             </button>
@@ -978,35 +961,35 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         <div className="flex flex-col gap-2 pt-3 pb-1">
           {DISCOVER_TABS.map(t => {
             const Icon = t.icon;
-            const isActive = activeTab === t.key;
             const trueCounts: Record<DiscoverKind, number> = { plan: stats.plan, venue: stats.abiertos, local: stats.local, pareja: stats.pareja, evento: stats.evento, vivo: stats.vivo };
             const count = trueCounts[t.key];
             if (count === 0) return null;
             const dot = DISCOVER_TAB_DOT[t.key];
             return (
-              <button key={t.key} onClick={() => setTab(t.key)}
-                className={`card-float w-full flex items-center gap-3 pl-2 pr-3.5 py-2 rounded-full text-sm font-extrabold transition-all ${
-                  isActive ? 'bg-brand text-white' : 'bg-white text-gray-800 hover:bg-gray-50'
-                }`}>
+              <button key={t.key} onClick={() => navigate(DISCOVER_TAB_ROUTE[t.key])}
+                className="card-float w-full flex items-center gap-3 pl-2 pr-3 py-2 rounded-2xl bg-white text-gray-800 hover:bg-gray-50 transition-all text-left">
                 {/* Icono en círculo, como ancla visual de la categoría */}
-                <span className={`relative w-9 h-9 rounded-full grid place-items-center flex-shrink-0 ${isActive ? 'bg-white/20' : 'bg-brand/10'}`}>
-                  <Icon className={`w-[18px] h-[18px] ${isActive ? 'text-white' : 'text-brand'}`} />
+                <span className="relative w-10 h-10 rounded-full grid place-items-center flex-shrink-0 bg-brand/10">
+                  <Icon className="w-5 h-5 text-brand" />
                   {dot && (
                     <span className="absolute -top-0.5 -right-0.5 flex h-2.5 w-2.5">
                       <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${dot.ring} opacity-75`} />
-                      <span className={`relative inline-flex w-2.5 h-2.5 rounded-full bg-gradient-to-br ${dot.grad} ring-2 ${isActive ? 'ring-brand' : 'ring-white'}`} />
+                      <span className={`relative inline-flex w-2.5 h-2.5 rounded-full bg-gradient-to-br ${dot.grad} ring-2 ring-white`} />
                     </span>
                   )}
                 </span>
-                {/* Etiqueta completa: ya no se corta */}
-                <span className="flex-1 text-left leading-tight">{t.label}</span>
-                <span className={`text-xs font-black px-2.5 py-1 rounded-full flex-shrink-0 ${isActive ? 'bg-white/25 text-white' : 'bg-brand/10 text-brand'}`}>{count}</span>
+                <span className="flex-1 min-w-0">
+                  <span className="block text-sm font-extrabold leading-tight">{t.label}</span>
+                  <span className="block text-[11px] font-medium text-gray-500 leading-tight mt-0.5">{t.desc}</span>
+                </span>
+                <span className="text-xs font-black px-2.5 py-1 rounded-full flex-shrink-0 bg-brand/10 text-brand">{count}</span>
+                <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0" />
               </button>
             );
           })}
         </div>
 
-        {cityFilter?.trim() && shown.length === 0 && (
+        {cityFilter?.trim() && scoped.length === 0 && (
           <div className="text-center py-6">
             <p className="text-pink-200/70 text-xs">Aún no hay nada real publicado en «{cityFilter}» — sé el primero en crear un plan.</p>
             <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
@@ -1022,65 +1005,6 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
           </div>
         )}
 
-        {/* Tarjetas — fotos reales para locales/eventos/directos; degradado+icono para planes (sin foto propia) */}
-        <div className="mt-3">
-        <HScroll>
-          {shown.map(it => {
-            const badge = DISCOVER_BADGE[it.kind];
-            return (
-              <button key={it.id} onClick={() => navigate(it.route)}
-                className="card-float tile-2 text-left rounded-2xl overflow-hidden bg-white flex flex-col">
-                <div className="relative h-[52%] flex-shrink-0 bg-gradient-to-br from-pink-700 to-brand-deep overflow-hidden">
-                  {it.cover ? (
-                    <img src={it.cover} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy"
-                      onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center"><RouteIcon className="w-8 h-8 text-white/25" /></div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
-                  <span className={`absolute top-2 left-2 inline-flex items-center gap-1 ${badge.className} text-white text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full`}>
-                    {(it.kind === 'vivo' || it.isToday) && (
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
-                      </span>
-                    )}
-                    {badge.label}
-                  </span>
-                </div>
-                <div className="p-2.5 flex-1 min-h-0 overflow-hidden">
-                  <p className="text-gray-900 font-bold text-[13px] sm:text-[13px] leading-tight line-clamp-2">{it.title}</p>
-                  <p className="text-gray-500 text-[11px] mt-1 flex items-center gap-1 truncate">
-                    <MapPin className="w-2.5 h-2.5 flex-shrink-0" /> {it.city}
-                  </p>
-                  <div className="flex items-center justify-between mt-1.5">
-                    {it.rating > 0 ? (
-                      <span className="inline-flex items-center gap-1 text-amber-500 font-bold text-[11px]">
-                        <Star className="w-3 h-3 fill-amber-400" /> {it.rating.toFixed(1)}
-                      </span>
-                    ) : it.kind === 'plan' && it.crowdCount ? (
-                      <span className="flex items-center">
-                        <span className="flex">
-                          {(it.crowdAvatars || []).map((a, ai) => (
-                            <span key={ai} className="-mr-2 last:mr-0 ring-2 ring-white rounded-full">
-                              <Avatar src={a || ''} name="?" size="xs" />
-                            </span>
-                          ))}
-                        </span>
-                        <span className="text-[10px] font-bold text-gray-600 ml-2.5">{it.crowdCount} {it.crowdCount === 1 ? 'va' : 'van'}</span>
-                      </span>
-                    ) : (
-                      <span className="text-[10px] text-gray-400">{it.kind === 'plan' ? 'Sé el primero' : 'Ver más'}</span>
-                    )}
-                    <span className={`text-[10px] font-black border rounded-full px-2 py-0.5 ${badge.cta}`}>Ver</span>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-          <SeeAllTile onClick={() => navigate(DISCOVER_TAB_ROUTE[activeTab])} className="tile-2" />
-        </HScroll>
-        </div>
       </div>
     </section>
   );
