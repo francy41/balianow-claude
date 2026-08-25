@@ -6,6 +6,7 @@ import MapErrorBoundary from '../components/MapErrorBoundary';
 import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2, GraduationCap } from 'lucide-react';
 import { ARTISTS, EVENTS } from '../data/mockData';
 import { TOP_DANCE_CITIES } from '../data/topDanceCities';
+import { distanceKm, pointFor, type LatLng } from '../lib/geo';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_TV, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
 import { Avatar, StarRating, SearchBar, AppImage } from '../components/ui';
@@ -711,8 +712,39 @@ const FitDiscoverPins: React.FC<{ pins: { lat: number; lng: number }[] }> = ({ p
 
 const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; onCityChange: (city: string) => void }> = ({ navigate, cityFilter, onCityChange }) => {
   const [loaded, setLoaded] = useState(false);
+  // Ubicación del usuario para calcular distancias reales. No se pide permiso
+  // aquí: solo se lee si YA fue concedido (p. ej. desde el buscador), para no
+  // lanzar un diálogo del navegador nada más entrar en el Home.
+  const [userPos, setUserPos] = useState<LatLng | null>(null);
+  const [planFilter, setPlanFilter] = useState<'todos' | 'abierto' | 'pronto' | 'hoy' | 'manana'>('todos');
   const [items, setItems] = useState<DiscoverItem[]>([]);
   const [stats, setStats] = useState({ abiertos: 0, pareja: 0, vivo: 0, rating: 0, plan: 0, evento: 0, local: 0 });
+
+  // Lee la ubicación SOLO si el permiso ya está concedido — así la distancia
+  // aparece para quien ya la dio, y a nadie le salta un diálogo al entrar.
+  useEffect(() => {
+    if (!navigator.geolocation || !navigator.permissions) return;
+    let cancelled = false;
+    navigator.permissions.query({ name: 'geolocation' as PermissionName })
+      .then(res => {
+        if (cancelled || res.state !== 'granted') return;
+        navigator.geolocation.getCurrentPosition(
+          pos => { if (!cancelled) setUserPos({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
+          () => {},
+          { maximumAge: 300000, timeout: 8000 },
+        );
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  // Distancia real al usuario; null si no hay ubicación o el item no tiene coordenadas.
+  const distOf = (it: DiscoverItem): number | null => {
+    if (!userPos) return null;
+    const p = pointFor(it);
+    return p ? distanceKm(userPos, p) : null;
+  };
+  const fmtDist = (km: number) => (km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`);
 
   useEffect(() => {
     let cancelled = false;
@@ -999,6 +1031,92 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
                 <div className="grid grid-cols-2 gap-2">
                   {resto.map(t => <Pildora key={t.key} t={t} full={false} />)}
                 </div>
+              )}
+            </div>
+          );
+        })()}
+
+        {/* Filtros y tarjetas de planes — todo derivado de datos reales ya cargados.
+            Cada filtro se calcula de `isToday`/`meta`/`kind`; no hay estados inventados. */}
+        {scoped.length > 0 && (() => {
+          const PLAN_FILTERS: { key: typeof planFilter; label: string }[] = [
+            { key: 'todos',   label: 'Todos' },
+            { key: 'abierto', label: 'Abierto ahora' },
+            { key: 'pronto',  label: 'En directo' },
+            { key: 'hoy',     label: 'Hoy' },
+            { key: 'manana',  label: 'Próximos' },
+          ];
+          const matches = (it: DiscoverItem) => {
+            if (planFilter === 'abierto') return it.kind === 'venue';
+            if (planFilter === 'pronto')  return it.kind === 'vivo';
+            if (planFilter === 'hoy')     return !!it.isToday;
+            if (planFilter === 'manana')  return it.kind === 'evento' || (it.kind === 'plan' && !it.isToday);
+            return true;
+          };
+          const visibles = scoped.filter(matches);
+          // Insignia de estado, siempre derivada del tipo/fecha reales del item.
+          const badgeOf = (it: DiscoverItem) => {
+            if (it.kind === 'vivo')  return { label: 'EN VIVO',       cls: 'bg-red-500' };
+            if (it.kind === 'venue') return { label: 'ABIERTO AHORA', cls: 'bg-emerald-500' };
+            if (it.kind === 'evento')return { label: 'EVENTO',        cls: 'bg-violet-500' };
+            if (it.kind === 'pareja')return { label: 'PAREJA',        cls: 'bg-fuchsia-500' };
+            if (it.isToday)          return { label: 'HOY',           cls: 'bg-amber-500' };
+            return { label: 'PLAN', cls: 'bg-accent' };
+          };
+          return (
+            <div className="pt-1 pb-1">
+              <div className="flex items-center gap-2 overflow-x-auto pb-3" style={{ scrollbarWidth: 'none' }}>
+                {PLAN_FILTERS.map(f => (
+                  <button key={f.key} onClick={() => setPlanFilter(f.key)}
+                    className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-[12px] font-bold border transition-colors ${
+                      planFilter === f.key
+                        ? 'bg-white text-accent border-white'
+                        : 'bg-white/15 text-white border-white/30 hover:bg-white/25'
+                    }`}>
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+
+              {visibles.length === 0 ? (
+                <p className="text-pink-100/80 text-xs py-4">No hay nada en esta categoría ahora mismo.</p>
+              ) : (
+                <HScroll>
+                  {visibles.slice(0, 12).map(it => {
+                    const b = badgeOf(it);
+                    const d = distOf(it);
+                    return (
+                      <button key={it.id} onClick={() => navigate(it.route)} className="tile-2 text-left group">
+                        <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
+                          {it.cover ? (
+                            <img src={it.cover} alt="" loading="lazy"
+                              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                          ) : (
+                            <RouteIcon className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-white/25" />
+                          )}
+                          <span className={`absolute top-2 left-2 ${b.cls} text-white text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full`}>{b.label}</span>
+                          {d !== null && (
+                            <span className="absolute bottom-2 left-2 bg-black/75 backdrop-blur-sm text-white text-[10px] font-black px-1.5 py-0.5 rounded">{fmtDist(d)}</span>
+                          )}
+                          {it.rating > 0 && (
+                            <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 bg-black/75 backdrop-blur-sm text-white text-[10px] font-black px-1.5 py-0.5 rounded">
+                              <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />{it.rating.toFixed(1)}
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-2 text-white font-black text-[13px] uppercase leading-tight truncate">{it.title}</p>
+                        <p className="text-white/70 text-[11px] leading-tight truncate">
+                          {[it.city, it.meta].filter(Boolean).join(' · ')}
+                        </p>
+                        {!!it.crowdCount && (
+                          <p className="text-white/60 text-[10px] mt-0.5">{it.crowdCount} {it.crowdCount === 1 ? 'persona' : 'personas'}</p>
+                        )}
+                      </button>
+                    );
+                  })}
+                  <SeeAllTile onClick={() => navigate('/rutas')} className="tile-2 tile-cover" />
+                </HScroll>
               )}
             </div>
           );
