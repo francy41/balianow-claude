@@ -201,15 +201,20 @@ body {
     box-shadow: 0 2px 8px rgb(var(--shadow-tint) / 0.06), 0 1px 3px rgb(var(--shadow-tint) / 0.05);
   }
 
-  /* Fila del Home: exactamente 4 tarjetas cuadradas visibles por pantalla
-     (móvil y escritorio); el resto se descubre desplazando. El gap del
-     contenedor es gap-3 (0.75rem) → 3 huecos = 2.25rem a descontar del 100%.
-     Todas las tarjetas comparten proporción 1:1 para que la fila quede
-     perfectamente alineada. */
-  .tile-4 {
-    flex: 0 0 calc((100% - 2.25rem) / 4);
-    width: calc((100% - 2.25rem) / 4);
+  /* Fila del Home: 2 tarjetas cuadradas visibles por pantalla en móvil y 4 en
+     escritorio (a partir de 640px una tarjeta de media pantalla sería enorme);
+     el resto se descubre desplazando. El gap del contenedor es gap-3 (0.75rem).
+     Todas comparten proporción 1:1 para que la fila quede alineada. */
+  .tile-2 {
+    flex: 0 0 calc((100% - 0.75rem) / 2);
+    width: calc((100% - 0.75rem) / 2);
     aspect-ratio: 1 / 1;
+  }
+  @media (min-width: 640px) {
+    .tile-2 {
+      flex-basis: calc((100% - 2.25rem) / 4);
+      width: calc((100% - 2.25rem) / 4);
+    }
   }
 
   /* Tarjeta flotante sobre el fondo rosa del Home: contorno blanco + sombra
