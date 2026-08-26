@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import MapErrorBoundary from '../components/MapErrorBoundary';
-import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2, GraduationCap, Music2 } from 'lucide-react';
+import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2, GraduationCap, Music2, Handshake } from 'lucide-react';
 import { ARTISTS, EVENTS } from '../data/mockData';
 import { TOP_DANCE_CITIES } from '../data/topDanceCities';
 import { distanceKm, pointFor, type LatLng } from '../lib/geo';
@@ -2890,6 +2890,118 @@ const PARTNER_LINKS: { label: string; desc: string; to: string; icon: string }[]
   { label: 'DanceFlow IA',desc: 'Entrena con tu cámara',        to: '/danceflow',   icon: '🤖' },
 ];
 
+// ── FONDO DEL BANNER DE PARTNERS ────────────────────────────────────────────
+// Mundo de puntos, chinchetas con halo y arcos que las unen. Todo SVG: ni una
+// imagen, escala sin pixelarse y no añade peticiones de red.
+const WorldMapBackdrop: React.FC = () => {
+  const puntos = React.useMemo(() => {
+    // Rejilla de puntos recortada con una silueta muy libre de los continentes.
+    // Determinista: mismas coordenadas en cada render, sin Math.random.
+    const masas: [number, number, number, number][] = [
+      [46, 26, 108, 60], [58, 86, 88, 74],      // América
+      [176, 22, 96, 44], [186, 66, 74, 88],     // Europa y África
+      [286, 26, 150, 76], [352, 104, 56, 34],   // Asia y Oceanía
+    ];
+    const out: { x: number; y: number; o: number }[] = [];
+    for (const [mx, my, mw, mh] of masas) {
+      for (let x = mx; x < mx + mw; x += 7) {
+        for (let y = my; y < my + mh; y += 7) {
+          // Borde irregular a partir de una función periódica, no aleatoria
+          const borde = Math.sin(x * 0.09) * 6 + Math.cos(y * 0.11) * 5;
+          if (x > mx + 4 + borde && x < mx + mw - 4 - borde && y > my + 3 && y < my + mh - 3) {
+            out.push({ x, y, o: 0.10 + ((x + y) % 5) * 0.035 });
+          }
+        }
+      }
+    }
+    return out;
+  }, []);
+
+  const pines: { x: number; y: number; r: number }[] = [
+    { x: 96, y: 62, r: 1 }, { x: 214, y: 96, r: 1.55 },
+    { x: 268, y: 118, r: 0.85 }, { x: 330, y: 104, r: 1.15 }, { x: 392, y: 88, r: 1 },
+  ];
+
+  return (
+    <svg aria-hidden viewBox="0 0 460 200" preserveAspectRatio="xMidYMid slice"
+      className="pointer-events-none absolute inset-0 w-full h-full">
+      <g fill="#FF3D9A">
+        {puntos.map((p, i) => <circle key={i} cx={p.x} cy={p.y} r="1.15" opacity={p.o} />)}
+      </g>
+      {/* Arcos entre chinchetas */}
+      <g fill="none" stroke="#FF3D9A" strokeOpacity="0.5" strokeWidth="0.9">
+        <path d="M96 62 Q160 34 214 96" />
+        <path d="M214 96 Q250 62 330 104" />
+        <path d="M214 96 Q244 132 268 118" />
+        <path d="M330 104 Q364 68 392 88" />
+      </g>
+      {pines.map((p, i) => (
+        <g key={i} transform={`translate(${p.x} ${p.y}) scale(${p.r})`}>
+          <ellipse cx="0" cy="7" rx="9" ry="3" fill="#FF3D9A" opacity="0.18" />
+          <ellipse cx="0" cy="7" rx="5" ry="1.7" fill="#FF3D9A" opacity="0.3" />
+          <path d="M0 7 C-5 0 -6.5 -4 -4.4 -7.2 C-2.3 -10.4 2.3 -10.4 4.4 -7.2 C6.5 -4 5 0 0 7 Z" fill="#FF3D9A" />
+          <circle cx="0" cy="-6" r="2.1" fill="#0E0418" />
+        </g>
+      ))}
+    </svg>
+  );
+};
+
+// ── CIFRAS DEL PROGRAMA DE PARTNERS ─────────────────────────────────────────
+// Todas salen de consultas reales. Las que dan cero no se pintan: en un banner
+// de captación, un contador inflado es una afirmación falsa sobre el negocio.
+const PartnerStatsBar: React.FC<{ navigate: any }> = ({ navigate }) => {
+  const [stats, setStats] = useState<{ partners: number; ciudades: number; eventos: number } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const [pt, ev, vn] = await Promise.all([
+        supabase.from('partners').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+        supabase.from('events').select('id', { count: 'exact', head: true }).is('deleted_at', null),
+        supabase.from('venues').select('city').is('deleted_at', null).limit(2000),
+      ]);
+      if (cancelled) return;
+      const ciudades = new Set(
+        (vn.data || []).map((v: any) => String(v.city || '').trim().toLowerCase()).filter(Boolean)
+      ).size;
+      setStats({ partners: pt.count || 0, eventos: ev.count || 0, ciudades });
+    })().catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const items = [
+    { icon: Users,    valor: stats?.partners, label: 'Partners activos' },
+    { icon: MapPin,   valor: stats?.ciudades, label: 'Ciudades' },
+    { icon: Calendar, valor: stats?.eventos,  label: 'Eventos publicados' },
+  ].filter(i => (i.valor ?? 0) > 0);
+
+  return (
+    <div className="mt-7 grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-4 rounded-2xl
+      border border-white/10 bg-white/[0.04] p-4 sm:p-5">
+      {items.map(i => (
+        <div key={i.label} className="flex items-center gap-3">
+          <i.icon className="w-6 h-6 text-brand flex-shrink-0" />
+          <span className="min-w-0">
+            <span className="block font-display font-black text-xl sm:text-2xl leading-none">
+              {i.valor!.toLocaleString('es-ES')}
+            </span>
+            <span className="block text-white/55 text-[12px] leading-tight">{i.label}</span>
+          </span>
+        </div>
+      ))}
+      {/* Esto no es un dato: es la propuesta. Va siempre. */}
+      <button onClick={() => navigate('/partner/aplicar')} className="flex items-center gap-3 text-left">
+        <TrendingUp className="w-6 h-6 text-brand flex-shrink-0" />
+        <span className="min-w-0">
+          <span className="block font-bold text-[14px] leading-tight">Gana comisiones</span>
+          <span className="block text-white/55 text-[12px] leading-tight">por cada reserva</span>
+        </span>
+      </button>
+    </div>
+  );
+};
+
 const PartnerCitySection: React.FC<{ navigate: any }> = ({ navigate }) => {
   const hero = useSiteConfigStore(s => s.homePartnerHero);
   const heroFull = useSiteConfigStore(s => s.homePartnerHeroFull);
@@ -2906,20 +3018,37 @@ const PartnerCitySection: React.FC<{ navigate: any }> = ({ navigate }) => {
           onError={ev => { ev.currentTarget.style.display = 'none'; }} />
       </button>
     ) : (
-    <button onClick={() => navigate('/partner/aplicar')}
-      className="card-float relative w-full overflow-hidden rounded-3xl p-5 sm:p-7 text-left text-white bg-gradient-to-br from-brand-deep via-brand to-brand-secondary">
-      <div className="absolute -top-12 -right-12 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="relative flex items-center justify-between gap-4 flex-wrap">
-        <div className="min-w-0">
-          <span className="inline-block text-[10px] font-black uppercase tracking-widest bg-white/20 rounded-full px-2.5 py-1">🌍 Programa de partners</span>
-          <h2 className="font-display font-black text-xl sm:text-2xl mt-2 leading-tight">Sé el partner de BailaNow en tu ciudad</h2>
-          <p className="text-white/80 text-sm mt-1.5 max-w-lg">Represéntanos en tu zona, gestiona locales y eventos, y gana comisiones por cada reserva.</p>
-        </div>
-        <span className="inline-flex items-center gap-1.5 bg-white text-brand font-black rounded-xl px-5 py-3 text-sm flex-shrink-0">
-          Quiero ser partner <ArrowRight className="w-4 h-4" />
+    <div className="card-float relative overflow-hidden rounded-3xl bg-[#0E0418] text-white ring-1 ring-brand/50">
+      {/* Fondo: mundo de puntos con chinchetas y arcos, dibujado en SVG */}
+      <WorldMapBackdrop />
+      <span aria-hidden className="absolute inset-0 bg-gradient-to-r from-[#0E0418] via-[#0E0418]/85 to-transparent" />
+
+      <div className="relative p-5 sm:p-8">
+        <span className="inline-flex items-center gap-2 rounded-full border border-brand/70 px-3.5 py-1.5
+          text-[10px] sm:text-[11px] font-black uppercase tracking-[0.14em] text-white/90">
+          <Handshake className="w-4 h-4 text-brand" /> Programa de partners
         </span>
+
+        <h2 className="font-display font-black text-3xl sm:text-5xl mt-4 leading-[1.05] max-w-[16ch]">
+          Sé el partner de<br />
+          <span className="text-white">Baila</span><span className="text-brand">Now</span><br />
+          en tu ciudad
+        </h2>
+
+        <p className="text-white/70 mt-4 text-sm sm:text-base leading-relaxed max-w-[38ch] text-balance">
+          Represéntanos en tu zona, gestiona locales y eventos, y gana comisiones por cada reserva.
+        </p>
+
+        <button onClick={() => navigate('/partner/aplicar')}
+          className="mt-6 inline-flex items-center gap-3 rounded-full px-7 py-3.5 font-black text-white
+            bg-gradient-to-r from-brand to-brand-secondary shadow-lg shadow-brand/30
+            transition-transform hover:scale-[1.03] active:scale-95">
+          Quiero ser partner <ArrowRight className="w-5 h-5" />
+        </button>
+
+        <PartnerStatsBar navigate={navigate} />
       </div>
-    </button>
+    </div>
     )}
 
     {/* Accesos a los módulos que ya existían pero no se veían desde el Home */}
