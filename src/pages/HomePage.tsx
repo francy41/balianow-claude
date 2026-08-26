@@ -1853,7 +1853,11 @@ const DanceCoupleSilhouette: React.FC<{ className?: string }> = ({ className }) 
   );
 };
 
-const TvPromoCard: React.FC<{ navigate: any; onOpenTv: () => void; compact?: boolean }> = ({ navigate, onOpenTv, compact }) => (
+const TvPromoCard: React.FC<{ navigate: any; onOpenTv: () => void; compact?: boolean }> = ({ navigate, onOpenTv, compact }) => {
+  // Ilustración editable desde Admin → Home · BailaNow TV. Si no hay imagen
+  // subida, se dibuja la pareja: la tarjeta nunca se queda coja.
+  const hero = useSiteConfigStore(s => s.homeTvHero);
+  return (
   <div className={`card-float group relative isolate flex flex-col overflow-hidden rounded-2xl bg-[#1A0210]
     ${compact ? 'p-4 min-h-[210px]' : 'p-5 min-h-[236px]'}`}>
     {/* Fondo: foco rosa desde la esquina superior derecha */}
@@ -1867,11 +1871,22 @@ const TvPromoCard: React.FC<{ navigate: any; onOpenTv: () => void; compact?: boo
     {/* Viñeta inferior para que el texto siempre tenga contraste */}
     <span aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-2/3 bg-gradient-to-t from-black/55 to-transparent" />
 
-    {/* La pareja: apoyada en el borde inferior y recortada por la derecha,
-        como si bailara dentro del plano en vez de estar pegada encima */}
-    <DanceCoupleSilhouette
-      className={`pointer-events-none absolute -z-10 bottom-0 w-auto transition-transform duration-700 group-hover:scale-[1.04]
-        origin-bottom-right ${compact ? '-right-3 h-[168px]' : '-right-2 h-[196px]'}`} />
+    {/* La ilustración: imagen subida por el admin, o la pareja dibujada.
+        En ambos casos se apoya a la derecha y se funde hacia el texto. */}
+    {hero ? (
+      <img src={hero} alt="" loading="lazy"
+        style={{
+          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, #000 34%)',
+          maskImage: 'linear-gradient(to right, transparent 0%, #000 34%)',
+        }}
+        className="pointer-events-none absolute -z-10 inset-y-0 right-0 h-full w-[54%] object-cover object-right
+          transition-transform duration-700 group-hover:scale-[1.04] origin-right"
+        onError={ev => { ev.currentTarget.style.display = 'none'; }} />
+    ) : (
+      <DanceCoupleSilhouette
+        className={`pointer-events-none absolute -z-10 bottom-0 w-auto transition-transform duration-700 group-hover:scale-[1.04]
+          origin-bottom-right ${compact ? '-right-3 h-[168px]' : '-right-2 h-[196px]'}`} />
+    )}
 
     {/* Cintillo de canal */}
     <div className="flex items-center justify-between gap-2">
@@ -1909,7 +1924,8 @@ const TvPromoCard: React.FC<{ navigate: any; onOpenTv: () => void; compact?: boo
       </button>
     </div>
   </div>
-);
+  );
+};
 
 // ── TV + RADIO para móvil y tablet ──────────────────────────────────────────
 // El raíl derecho es `hidden xl:flex`, así que por debajo de 1280px la TV y la
