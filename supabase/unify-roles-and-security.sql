@@ -125,27 +125,10 @@ $$;
 grant execute on function public.has_role(text) to anon, authenticated;
 grant execute on function public.is_admin() to anon, authenticated;
 
--- Mantiene user_roles sincronizada con el rol principal, para que nadie pierda
--- acceso al cambiar profiles.role y las dos fuentes no se separen.
-create or replace function public.sync_primary_role_to_user_roles()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  if new.role is not null then
-    insert into public.user_roles (user_id, role)
-    values (new.id, new.role)
-    on conflict (user_id, role) do nothing;
-  end if;
-  return new;
-end $$;
-
-drop trigger if exists profiles_sync_role on public.profiles;
-create trigger profiles_sync_role
-  after insert or update of role on public.profiles
-  for each row execute function public.sync_primary_role_to_user_roles();
+-- NOTA: aquí había un disparador `profiles_sync_role` para mantener user_roles
+-- sincronizada con el rol principal. Se retiró al descubrir que producción ya
+-- tenía `trg_sync_primary_role` haciendo exactamente lo mismo: eran duplicados.
+-- Ver supabase/fix-test-admin-and-dup-trigger.sql.
 
 -- Vuelca los roles principales que ya existen, para partir sincronizados.
 insert into public.user_roles (user_id, role)
