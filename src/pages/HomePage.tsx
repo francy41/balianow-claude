@@ -222,13 +222,19 @@ const SponsorsFooterStrip: React.FC<{ navigate: ReturnType<typeof useNavigate> }
   );
 };
 
-// ── COMMUNITY POSTS (Ruta de Hoy) ────────────────────────────────────────
-const COMMUNITY_POSTS = [
-  { id: 1, user: 'Carlos Méndez', fullText: 'El viernes voy a Madrid, ¿dónde puedo salir a bailar? Prefiero salsa y ambiente latino auténtico.', location: 'Madrid', category: 'localidades', status: 'APROBADO', time: 'Hace 15 min' },
-  { id: 2, user: 'Daniel Cruz', fullText: '¿Cuál es la mejor discoteca latina abierta ahora en Valencia? Queremos bailar el sábado por la noche.', location: 'Valencia', category: 'localidades', status: 'APROBADO', time: 'Hace 1 hora' },
-  { id: 3, user: 'Laura Silva', fullText: 'Busco pareja para ir a la social de salsa de este jueves. ¡Nivel intermedio! ¿Quién se apunta?', location: 'Barcelona', category: 'bailarines', status: 'APROBADO', time: 'Hace 2 horas' },
-  { id: 4, user: 'Andrés Molina', fullText: '¿Dónde hay social de bachata dominicana los domingos en Sevilla? Busco buen ambiente.', location: 'Sevilla', category: 'localidades', status: 'APROBADO', time: 'Hace 3 horas' },
-];
+// ── COMMUNITY POSTS ──────────────────────────────────────────────────────
+// Solo el tipo: los posts salen de la tabla community_posts. Antes había aquí
+// 4 ejemplos inventados como estado inicial; al pasar a renderizarse habrían
+// sido datos falsos en pantalla, así que se eliminan.
+interface CommunityPost {
+  id: string | number;
+  user: string;
+  fullText: string;
+  location: string;
+  category: string;
+  status: string;
+  time: string;
+}
 
 // ── CITIES ────────────────────────────────────────────────────────────────
 const CITIES = [
@@ -1929,7 +1935,7 @@ const HomePage: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   // ── Ruta de Hoy: posts de comunidad desde Supabase (fallback a ejemplos) ──
-  const [communityPosts, setCommunityPosts] = useState(COMMUNITY_POSTS);
+  const [communityPosts, setCommunityPosts] = useState<CommunityPost[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1952,7 +1958,7 @@ const HomePage: React.FC = () => {
             time: '',
           })));
         }
-      } catch { /* mantiene ejemplos de reserva */ }
+      } catch { /* sin conexión: la sección no se pinta, en vez de enseñar ejemplos falsos */ }
     })();
     return () => { cancelled = true; };
   }, []);
@@ -2149,6 +2155,35 @@ const HomePage: React.FC = () => {
 
       {/* ── MÁS PARA TI (justo bajo el escaparate, segun brief) ── */}
       <MoreForYou navigate={navigate} />
+
+      {/* ── COMUNIDAD — 102 posts reales que se cargaban y no se pintaban nunca ── */}
+      {communityPosts.length > 0 && (
+        <section className="mx-3 sm:mx-4 mt-8">
+          <div className="flex items-center justify-between mb-3 px-1">
+            <h2 className="font-display font-black text-lg text-ink-primary flex items-center gap-2">💬 La comunidad pregunta</h2>
+            <button onClick={() => navigate('/comunidad')} className="text-brand hover:text-brand-orange-dark text-xs font-bold hover:underline">Ver todo →</button>
+          </div>
+          <HScroll>
+            {communityPosts.slice(0, 10).map(post => (
+              <button key={post.id} onClick={() => navigate(`/comunidad?post=${post.id}`)}
+                className="card-float tile-2 bg-surface-elevated rounded-2xl p-3.5 text-left flex flex-col gap-2 hover:bg-surface transition-colors">
+                <span className="flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-full bg-accent/10 grid place-items-center text-accent font-black text-xs flex-shrink-0">
+                    {(post.user || '?').charAt(0).toUpperCase()}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-[12px] font-bold text-ink-primary truncate">{fixText(post.user || '')}</span>
+                    {post.location && <span className="block text-[10px] text-ink-tertiary truncate">📍 {fixText(post.location)}</span>}
+                  </span>
+                </span>
+                <span className="text-[12px] text-ink-secondary leading-snug line-clamp-4 flex-1">{fixText(post.fullText || '')}</span>
+                <span className="text-[10px] font-black uppercase tracking-wide text-accent">Responder →</span>
+              </button>
+            ))}
+            <SeeAllTile onClick={() => navigate('/comunidad')} className="tile-2" />
+          </HScroll>
+        </section>
+      )}
 
       {/* ── PARTNER DE CIUDAD + módulos que no se enlazaban desde el Home ── */}
       <PartnerCitySection navigate={navigate} />
