@@ -7,7 +7,7 @@ import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDa
 import { ARTISTS, EVENTS } from '../data/mockData';
 import { TOP_DANCE_CITIES } from '../data/topDanceCities';
 import { distanceKm, pointFor, type LatLng } from '../lib/geo';
-import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_TV, type HomeCategory } from '../store/appStore';
+import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
 import { Avatar, StarRating, SearchBar, AppImage, Skeleton } from '../components/ui';
 import { supabase } from '../lib/supabase';
@@ -1545,10 +1545,6 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
     .map((a: any) => ({ id: a.id, name: fixText(a.name || 'Artista'), avatar: a.avatar || a.cover || '', genre: Array.isArray(a.genre) ? a.genre : (a.genre ? [a.genre] : []) }))
     .slice(0, 6);
 
-  // Tarjetas de BailaNow TV — editables desde Admin → Home destacados (site_config global)
-  const tvCards = useSiteConfigStore(s => s.homeTvCards);
-  const tv = (tvCards && tvCards.length ? tvCards : DEFAULT_HOME_TV).slice(0, 4);
-
   const ColHeader = ({ title, onAll }: { title: string; onAll: () => void }) => (
     <div className="flex items-center justify-between mb-3 px-1">
       <h3 className="font-display font-black text-base text-gray-900 dark:text-white">{title}</h3>
@@ -1592,56 +1588,6 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
               </button>
             ))}
             <SeeAllTile onClick={() => navigate('/artistas')} className="tile-2 tile-cover" />
-          </HScroll>
-        </div>
-
-        {/* Col 3: BailaNow TV */}
-        <div>
-          <ColHeader title="📺 BailaNow TV" onAll={() => navigate('/tv')} />
-          <HScroll>
-            {tv.map((c, i) => {
-              return (
-              <button key={i} onClick={() => navigate(c.link || '/tv')} className={`${tv.length <= 3 ? 'tile-wide' : 'tile-2'} text-left group`}>
-                <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
-                  {c.image ? (
-                    <img src={c.image} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
-                  ) : (
-                    <Video className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-white/25" />
-                  )}
-                  {c.tag && <span className="absolute top-2 left-2 bg-brand text-white text-[9px] font-black px-2 py-0.5 rounded-full">{c.tag}</span>}
-                </div>
-                <p className="mt-2 text-gray-900 dark:text-white font-black text-[13px] uppercase leading-tight truncate">{c.title}</p>
-                <p className="text-gray-500 dark:text-gray-400 text-[11px] leading-tight truncate">{c.subtitle}</p>
-              </button>
-            );})}
-            <SeeAllTile onClick={() => navigate('/tv')} className={`${tv.length <= 3 ? 'tile-wide' : 'tile-2'} tile-cover`} />
-          </HScroll>
-        </div>
-
-        {/* Explora más — también en una sola fila */}
-        <div>
-          <p className="mb-2 px-1 text-[11px] font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Explora más</p>
-          <HScroll>
-            <button onClick={() => navigate('/cerca')}
-              className="card-float tile-2 flex flex-col items-center justify-center gap-1 rounded-2xl p-2 bg-gradient-to-br from-brand to-rose-700 text-white">
-              <span className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl flex-shrink-0">📍</span>
-              <p className="font-black text-xs sm:text-sm leading-tight text-center line-clamp-2">Cerca de ti</p>
-            </button>
-            <button onClick={() => navigate('/clases')}
-              className="card-float tile-2 flex flex-col items-center justify-center gap-1 rounded-2xl p-2 bg-gradient-to-br from-rose-500 to-brand text-white">
-              <span className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl flex-shrink-0">🎓</span>
-              <p className="font-black text-xs sm:text-sm leading-tight text-center line-clamp-2">Clases online</p>
-            </button>
-            <button onClick={() => navigate('/subscripciones')}
-              className="card-float tile-2 flex flex-col items-center justify-center gap-1 rounded-2xl p-2 bg-gradient-to-br from-brand-secondary to-pink-700 text-white">
-              <span className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl flex-shrink-0">👑</span>
-              <p className="font-black text-xs sm:text-sm leading-tight text-center line-clamp-2">Hazte Premium</p>
-            </button>
-            <button onClick={() => navigate('/promocionate')}
-              className="card-float tile-2 flex flex-col items-center justify-center gap-1 rounded-2xl p-2 bg-gradient-to-br from-brand to-brand-secondary text-white">
-              <span className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center text-2xl flex-shrink-0">📢</span>
-              <p className="font-black text-xs sm:text-sm leading-tight text-center line-clamp-2">Promociona tu evento</p>
-            </button>
           </HScroll>
         </div>
 
