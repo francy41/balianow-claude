@@ -148,6 +148,15 @@ export function isAllowedFileType(file: File, allowedMimes: string[]): boolean {
 
 // ═════════════════════════════════════════════════════════════════
 //   CLIENT-SIDE RATE LIMIT (acciones costosas: upload, signup, etc.)
+//
+//   ⚠️ ESTO NO ES UNA PROTECCIÓN. Vive en localStorage: se salta borrando una
+//   clave desde la consola, o llamando a la API de Supabase sin pasar por la
+//   web. Sirve para dar una respuesta inmediata y ahorrar viajes al servidor,
+//   nada más.
+//
+//   El límite de verdad está en la base de datos: disparadores BEFORE INSERT
+//   con `public.enforce_rate_limit()` (ver supabase/anti-spam.sql), que sí es
+//   inesquivable porque se aplica en la propia escritura.
 // ═════════════════════════════════════════════════════════════════
 const RL_PREFIX = 'bn-rl-';
 
