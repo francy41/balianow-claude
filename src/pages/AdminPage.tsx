@@ -932,6 +932,203 @@ const RADIO_FIELDS = [
     options: [{ value: 'active', label: 'Activa' }, { value: 'offline', label: 'Offline' }] },
 ];
 
+// ── LOCUTORES DE RADIO ─────────────────────────────────────────────────────
+// Alimenta la sección "Locutores en vivo" de /radio. Si la tabla todavía no
+// existe (falta ejecutar supabase/radio-hosts.sql), se avisa aquí en vez de
+// fallar en silencio; la web pública simplemente no pinta la sección.
+const RadioHostsPanel: React.FC<{ addToast: Function }> = ({ addToast }) => {
+  const [hosts, setHosts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [missingTable, setMissingTable] = useState(false);
+  const [showForm, setShowForm] = useState(false);
+  const [editTarget, setEditTarget] = useState<any | null>(null);
+  const [form, setForm] = useState<Record<string, string>>({});
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const load = async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from('radio_hosts').select('*').order('sort_order');
+    if (error) {
+      // 42P01 = relation does not exist
+      setMissingTable(error.code === '42P01' || /does not exist/i.test(error.message));
+      setHosts([]);
+    } else {
+      setMissingTable(false);
+      setHosts(data || []);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { load(); }, []);
+
+  const openNew = () => {
+    setEditTarget(null);
+    setForm({ name: '', tagline: '', avatar_url: '', schedule: '', sort_order: String(hosts.length) });
+    setShowForm(true);
+  };
+
+  const openEdit = (h: any) => {
+    setEditTarget(h);
+    setForm({
+      name: h.name || '', tagline: h.tagline || '', avatar_url: h.avatar_url || '',
+      schedule: h.schedule || '', sort_order: String(h.sort_order ?? 0),
+    });
+    setShowForm(true);
+  };
+
+  const uploadAvatar = async (file?: File) => {
+    if (!file) return;
+    setUploading(true);
+    const { url, error } = await uploadImage(file, 'radio-hosts');
+    setUploading(false);
+    if (url) setForm(p => ({ ...p, avatar_url: url }));
+    else addToast({ message: `Error al subir: ${error}`, type: 'error' });
+  };
+
+  const save = async () => {
+    if (!form.name?.trim()) { addToast({ message: 'El nombre es obligatorio', type: 'error' }); return; }
+    setSaving(true);
+    const payload = {
+      name: form.name.trim(),
+      tagline: form.tagline?.trim() || null,
+      avatar_url: form.avatar_url?.trim() || null,
+      schedule: form.schedule?.trim() || null,
+      sort_order: parseInt(form.sort_order) || 0,
+      updated_at: new Date().toISOString(),
+    };
+    const { error } = editTarget
+      ? await supabase.from('radio_hosts').update(payload).eq('id', editTarget.id)
+      : await supabase.from('radio_hosts').insert(payload);
+    setSaving(false);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: editTarget ? 'Locutor actualizado' : 'Locutor creado', type: 'success' });
+    setShowForm(false);
+    load();
+  };
+
+  const toggleLive = async (h: any) => {
+    const { error } = await supabase.from('radio_hosts').update({ is_live: !h.is_live }).eq('id', h.id);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: `${h.name} ${!h.is_live ? 'está en vivo' : 'ya no está en vivo'}`, type: !h.is_live ? 'success' : 'error' });
+    load();
+  };
+
+  const toggleActive = async (h: any) => {
+    const { error } = await supabase.from('radio_hosts').update({ active: !h.active }).eq('id', h.id);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    load();
+  };
+
+  const remove = async (h: any) => {
+    if (!window.confirm(`¿Eliminar a "${h.name}"?`)) return;
+    const { error } = await supabase.from('radio_hosts').delete().eq('id', h.id);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: `${h.name} eliminado`, type: 'success' });
+    load();
+  };
+
+  const liveNow = hosts.filter(h => h.is_live && h.active).length;
+
+  return (
+    <div className="mt-10 pt-8 border-t border-gray-200">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
+        <h2 className="font-black text-2xl text-gray-900">Locutores</h2>
+        {!missingTable && <Button variant="orange" icon={<Plus className="w-4 h-4" />} onClick={openNew}>Añadir locutor</Button>}
+      </div>
+      <p className="text-gray-400 text-sm mb-5">
+        Alimentan la sección «Locutores en vivo» de la página /radio.{' '}
+        {!missingTable && (loading ? 'Cargando…' : `${hosts.length} dados de alta · ${liveNow} en vivo ahora.`)}
+        {' '}La sección pública solo aparece si hay alguien dado de alta.
+      </p>
+
+      {missingTable ? (
+        <div className="card-white p-5 border-2 border-amber-300/60 bg-amber-50">
+          <p className="font-black text-gray-900 mb-1">Falta crear la tabla</p>
+          <p className="text-sm text-gray-600">
+            Ejecuta <code className="bg-white px-1.5 py-0.5 rounded border text-[12px]">supabase/radio-hosts.sql</code> en el
+            SQL Editor de Supabase y vuelve a entrar. Hasta entonces la sección de locutores no se muestra en la web,
+            así que no se ve nada roto de cara al público.
+          </p>
+        </div>
+      ) : (
+        <>
+          {showForm && (
+            <div className="card-white p-5 mb-6 border-2 border-brand-orange/20">
+              <h3 className="font-black text-gray-900 mb-4">{editTarget ? 'Editar locutor' : 'Nuevo locutor'}</h3>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-16 h-16 rounded-xl bg-gray-900 overflow-hidden flex-shrink-0 grid place-items-center">
+                  {form.avatar_url
+                    ? <img src={form.avatar_url} alt="" className="w-full h-full object-cover" />
+                    : <span className="text-white/40 text-[10px]">Sin foto</span>}
+                </div>
+                <label className="text-xs font-bold bg-gray-100 hover:bg-gray-200 rounded-lg px-3 py-2 cursor-pointer flex items-center gap-1.5">
+                  {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                  {uploading ? 'Subiendo…' : 'Subir foto'}
+                  <input type="file" accept="image/*" hidden disabled={uploading} onChange={e => uploadAvatar(e.target.files?.[0])} />
+                </label>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  { key: 'name', label: 'Nombre', ph: 'María', required: true },
+                  { key: 'tagline', label: 'Apodo o lema', ph: 'La Salsera' },
+                  { key: 'schedule', label: 'Horario (informativo)', ph: 'L-V 18:00-20:00' },
+                  { key: 'sort_order', label: 'Orden', ph: '0' },
+                ].map(f => (
+                  <div key={f.key}>
+                    <label className="block text-xs font-bold text-gray-500 mb-1">
+                      {f.label}{f.required && <span className="text-red-400 ml-1">*</span>}
+                    </label>
+                    <input type="text" value={form[f.key] || ''} placeholder={f.ph}
+                      onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}
+                      className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-orange/30" />
+                  </div>
+                ))}
+              </div>
+              <div className="flex gap-3 mt-4">
+                <Button variant="orange" onClick={save} disabled={saving}>{saving ? 'Guardando…' : editTarget ? 'Actualizar' : 'Crear'}</Button>
+                <Button variant="dark" onClick={() => setShowForm(false)}>Cancelar</Button>
+              </div>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="text-center py-10 text-gray-400">Cargando locutores…</div>
+          ) : hosts.length === 0 ? (
+            <div className="text-center py-10 text-gray-400">Todavía no hay locutores. Añade el primero.</div>
+          ) : (
+            <AdminTable
+              headers={['Locutor', 'Horario', 'En vivo', 'Visible', 'Acciones']}
+              rows={hosts.map(h => [
+                <div className="flex items-center gap-2">
+                  {h.avatar_url
+                    ? <img src={h.avatar_url} alt="" className="w-9 h-9 rounded-lg object-cover bg-gray-100" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    : <div className="w-9 h-9 rounded-lg bg-pink-100 flex items-center justify-center text-brand text-xs font-bold">{(h.name || '?')[0]}</div>}
+                  <span>
+                    <span className="block font-semibold text-sm">{h.name}</span>
+                    {h.tagline && <span className="block text-[11px] text-gray-400">{h.tagline}</span>}
+                  </span>
+                </div>,
+                <span className="text-xs text-gray-500">{h.schedule || '—'}</span>,
+                h.is_live ? <Badge variant="live">🔴 En vivo</Badge> : <Badge variant="gray">No</Badge>,
+                h.active ? <Badge variant="gray">Sí</Badge> : <Badge variant="gray">Oculto</Badge>,
+                <div className="flex gap-1">
+                  <button onClick={() => openEdit(h)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400" title="Editar"><Edit className="w-4 h-4" /></button>
+                  <button onClick={() => toggleLive(h)} className={`p-1.5 rounded-lg ${h.is_live ? 'hover:bg-red-50 text-red-400' : 'hover:bg-green-50 text-green-500'}`} title={h.is_live ? 'Quitar de en vivo' : 'Poner en vivo'}>
+                    {h.is_live ? <XCircle className="w-4 h-4" /> : <CheckCircle className="w-4 h-4" />}
+                  </button>
+                  <button onClick={() => toggleActive(h)} className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400" title={h.active ? 'Ocultar de la web' : 'Mostrar en la web'}><Eye className="w-4 h-4" /></button>
+                  <button onClick={() => remove(h)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-300 hover:text-red-500" title="Eliminar"><Trash2 className="w-4 h-4" /></button>
+                </div>,
+              ])}
+            />
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
 const RadioSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const [stations, setStations] = useState<any[]>([]);
   const [loading, setLoading]   = useState(true);
@@ -1073,6 +1270,8 @@ const RadioSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
           ])}
         />
       )}
+
+      <RadioHostsPanel addToast={addToast} />
     </div>
   );
 };
