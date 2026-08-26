@@ -236,25 +236,57 @@ interface CommunityPost {
   time: string;
 }
 
+// Cuenta locales y eventos reales por ciudad. Antes estos numeros estaban
+// escritos a mano en el array CITIES ("Madrid: 16 locales, 8 eventos") y no
+// tenian ninguna relacion con la base de datos.
+function useCityCounts() {
+  const [counts, setCounts] = useState<Record<string, { venues: number; events: number }>>({});
+  useEffect(() => {
+    let cancelled = false;
+    const norm = (c: string | null) => (c || '').split(/[,\-\/(]/)[0].trim().toLowerCase();
+    Promise.all([
+      supabase.from('venues').select('city').is('deleted_at', null),
+      supabase.from('events').select('city').is('deleted_at', null),
+    ]).then(([v, e]) => {
+      if (cancelled) return;
+      const acc: Record<string, { venues: number; events: number }> = {};
+      (v.data || []).forEach((r: any) => {
+        const k = norm(r.city); if (!k) return;
+        acc[k] = acc[k] || { venues: 0, events: 0 }; acc[k].venues++;
+      });
+      (e.data || []).forEach((r: any) => {
+        const k = norm(r.city); if (!k) return;
+        acc[k] = acc[k] || { venues: 0, events: 0 }; acc[k].events++;
+      });
+      setCounts(acc);
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+  return counts;
+}
+
 // ── CITIES ────────────────────────────────────────────────────────────────
+// Catálogo de ciudades destacadas: nombre, foto y referencia cultural.
+// Los contadores de locales/eventos NO viven aquí — se calculan de la BD
+// con useCityCounts(); antes eran números inventados a mano.
 const CITIES = [
-  { name: 'Madrid',           venues: 16, events: 8,  img: 'https://picsum.photos/seed/madrid2024/800/400',         monument: '🏛️', landmark: 'Puerta de Alcalá' },
-  { name: 'Cali',             venues: 11, events: 6,  img: 'https://picsum.photos/seed/cali2024/800/400',           monument: '💃', landmark: 'Capital Mundial de la Salsa' },
-  { name: 'Buenos Aires',     venues: 10, events: 7,  img: 'https://picsum.photos/seed/buenosaires2024/800/400',    monument: '🥩', landmark: 'La Boca & Tango' },
-  { name: 'La Habana',        venues: 8,  events: 5,  img: 'https://picsum.photos/seed/habana2024/800/400',         monument: '🎺', landmark: 'Malecón Habanero' },
-  { name: 'Barcelona',        venues: 9,  events: 5,  img: 'https://picsum.photos/seed/barcelona2024/800/400',      monument: '⛪', landmark: 'Sagrada Familia' },
-  { name: 'Santo Domingo',    venues: 7,  events: 4,  img: 'https://picsum.photos/seed/santodomingo2024/800/400',   monument: '🌴', landmark: 'Zona Colonial' },
-  { name: 'Miami',            venues: 7,  events: 5,  img: 'https://picsum.photos/seed/miami2024/800/400',          monument: '🌅', landmark: 'Calle Ocho – Little Havana' },
-  { name: 'Medellín',         venues: 6,  events: 4,  img: 'https://picsum.photos/seed/medellin2024/800/400',       monument: '🌺', landmark: 'Plaza Botero' },
-  { name: 'Paris',            venues: 7,  events: 4,  img: 'https://picsum.photos/seed/paris2024/800/400',          monument: '🗼', landmark: 'Torre Eiffel' },
-  { name: 'Valencia',         venues: 7,  events: 3,  img: 'https://picsum.photos/seed/valencia2024/800/400',       monument: '🏟️', landmark: 'Ciudad de las Artes' },
-  { name: 'New York',         venues: 6,  events: 4,  img: 'https://picsum.photos/seed/newyork2024/800/400',        monument: '🗽', landmark: 'El Barrio – Spanish Harlem' },
-  { name: 'Ciudad de México', venues: 6,  events: 4,  img: 'https://picsum.photos/seed/mexicocity2024/800/400',     monument: '🏛️', landmark: 'Teotihuacán' },
-  { name: 'London',           venues: 5,  events: 3,  img: 'https://picsum.photos/seed/london2024/800/400',         monument: '🎡', landmark: 'London Eye' },
-  { name: 'Bogotá',           venues: 5,  events: 3,  img: 'https://picsum.photos/seed/bogota2024/800/400',         monument: '🏔️', landmark: 'Monserrate' },
-  { name: 'Berlin',           venues: 4,  events: 2,  img: 'https://picsum.photos/seed/berlin2024/800/400',         monument: '🐻', landmark: 'Puerta de Brandeburgo' },
-  { name: 'Caracas',          venues: 4,  events: 2,  img: 'https://picsum.photos/seed/caracas2024/800/400',        monument: '⛰️', landmark: 'El Ávila' },
-  { name: 'Sevilla',          venues: 4,  events: 3,  img: 'https://picsum.photos/seed/sevilla2024/800/400',        monument: '💃', landmark: 'Alcázar de Sevilla' },
+  { name: 'Madrid',           img: 'https://picsum.photos/seed/madrid2024/800/400',         monument: '🏛️', landmark: 'Puerta de Alcalá' },
+  { name: 'Cali',             img: 'https://picsum.photos/seed/cali2024/800/400',           monument: '💃', landmark: 'Capital Mundial de la Salsa' },
+  { name: 'Buenos Aires',     img: 'https://picsum.photos/seed/buenosaires2024/800/400',    monument: '🥩', landmark: 'La Boca & Tango' },
+  { name: 'La Habana',        img: 'https://picsum.photos/seed/habana2024/800/400',         monument: '🎺', landmark: 'Malecón Habanero' },
+  { name: 'Barcelona',        img: 'https://picsum.photos/seed/barcelona2024/800/400',      monument: '⛪', landmark: 'Sagrada Familia' },
+  { name: 'Santo Domingo',    img: 'https://picsum.photos/seed/santodomingo2024/800/400',   monument: '🌴', landmark: 'Zona Colonial' },
+  { name: 'Miami',            img: 'https://picsum.photos/seed/miami2024/800/400',          monument: '🌅', landmark: 'Calle Ocho – Little Havana' },
+  { name: 'Medellín',         img: 'https://picsum.photos/seed/medellin2024/800/400',       monument: '🌺', landmark: 'Plaza Botero' },
+  { name: 'Paris',            img: 'https://picsum.photos/seed/paris2024/800/400',          monument: '🗼', landmark: 'Torre Eiffel' },
+  { name: 'Valencia',         img: 'https://picsum.photos/seed/valencia2024/800/400',       monument: '🏟️', landmark: 'Ciudad de las Artes' },
+  { name: 'New York',         img: 'https://picsum.photos/seed/newyork2024/800/400',        monument: '🗽', landmark: 'El Barrio – Spanish Harlem' },
+  { name: 'Ciudad de México', img: 'https://picsum.photos/seed/mexicocity2024/800/400',     monument: '🏛️', landmark: 'Teotihuacán' },
+  { name: 'London',           img: 'https://picsum.photos/seed/london2024/800/400',         monument: '🎡', landmark: 'London Eye' },
+  { name: 'Bogotá',           img: 'https://picsum.photos/seed/bogota2024/800/400',         monument: '🏔️', landmark: 'Monserrate' },
+  { name: 'Berlin',           img: 'https://picsum.photos/seed/berlin2024/800/400',         monument: '🐻', landmark: 'Puerta de Brandeburgo' },
+  { name: 'Caracas',          img: 'https://picsum.photos/seed/caracas2024/800/400',        monument: '⛰️', landmark: 'El Ávila' },
+  { name: 'Sevilla',          img: 'https://picsum.photos/seed/sevilla2024/800/400',        monument: '💃', landmark: 'Alcázar de Sevilla' },
 ];
 
 // ── CATEGORIES ────────────────────────────────────────────────────────────
@@ -1840,6 +1872,7 @@ const HomePage: React.FC = () => {
   const heroYtId = heroMedia.type === 'youtube' ? getYouTubeId(heroMedia.url) : null;
   // Portada del hero: la primera imagen del slider que gestiona el admin
   // (Admin → Diseño). Es contenido configurable real, no una foto inventada.
+  const cityCounts = useCityCounts();
   const heroSliderImages = useSiteConfigStore(s => s.heroSliderImages);
   const heroImage = heroSliderImages?.[0]?.url || '';
 
@@ -2358,9 +2391,16 @@ const HomePage: React.FC = () => {
         onSearch={(q) => navigate(`/venues?city=${encodeURIComponent(q)}`)}
       >
         {(searchQ) => {
+          // Solo ciudades con contenido real, ordenadas por volumen. Antes se
+          // mostraban las 9 primeras del array fijo, tuvieran datos o no.
+          const norm = (c: string) => c.split(/[,\-\/(]/)[0].trim().toLowerCase();
+          const withData = CITIES
+            .map(c => ({ ...c, real: cityCounts[norm(c.name)] || { venues: 0, events: 0 } }))
+            .filter(c => c.real.venues + c.real.events > 0)
+            .sort((a, b) => (b.real.venues + b.real.events) - (a.real.venues + a.real.events));
           const filtered = searchQ
-            ? CITIES.filter(c => c.name.toLowerCase().includes(searchQ.toLowerCase()))
-            : CITIES.slice(0, 9);
+            ? withData.filter(c => c.name.toLowerCase().includes(searchQ.toLowerCase()))
+            : withData.slice(0, 12);
           return (
             <HScroll>
               {filtered.map(city => (
@@ -2370,7 +2410,10 @@ const HomePage: React.FC = () => {
                       className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     <span className="absolute top-2 left-2 w-8 h-8 rounded-lg bg-black/50 backdrop-blur-sm grid place-items-center text-lg">{city.monument}</span>
                     <span className="absolute bottom-2 left-2 right-2 bg-black/75 backdrop-blur-sm text-white text-[10px] font-black text-center py-1 rounded-md">
-                      {city.venues} locales · {city.events} eventos
+                      {[
+                        city.real.venues > 0 ? `${city.real.venues} ${city.real.venues === 1 ? 'local' : 'locales'}` : '',
+                        city.real.events > 0 ? `${city.real.events} ${city.real.events === 1 ? 'evento' : 'eventos'}` : '',
+                      ].filter(Boolean).join(' · ')}
                     </span>
                   </div>
                   <p className="mt-2 text-gray-900 dark:text-white font-black text-[13px] uppercase leading-tight truncate">{city.name}</p>
