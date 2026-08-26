@@ -39,6 +39,40 @@ const EqualizerBackdrop: React.FC = () => (
   </span>
 );
 
+interface Host {
+  id: string;
+  name: string;
+  tagline: string;
+  avatar: string;
+  schedule: string;
+  isLive: boolean;
+}
+
+// Locutores dados de alta en Admin → Radio Online → Locutores. Si la tabla
+// todavía no existe o no hay nadie, la sección no se pinta: aquí no se inventan
+// presentadores.
+function useRadioHosts(): Host[] {
+  const [hosts, setHosts] = useState<Host[]>([]);
+  useEffect(() => {
+    let cancelled = false;
+    supabase.from('radio_hosts').select('id,name,tagline,avatar_url,schedule,is_live,sort_order')
+      .eq('active', true).order('is_live', { ascending: false }).order('sort_order')
+      .then(({ data, error }) => {
+        if (cancelled || error) return;
+        setHosts((data || []).map((h: any) => ({
+          id: h.id,
+          name: fixText(h.name || ''),
+          tagline: fixText(h.tagline || ''),
+          avatar: h.avatar_url || '',
+          schedule: fixText(h.schedule || ''),
+          isLive: h.is_live === true,
+        })));
+      }, () => {});
+    return () => { cancelled = true; };
+  }, []);
+  return hosts;
+}
+
 const VENTAJAS = [
   { icon: Music2, title: 'Música sin parar', sub: '24 horas en directo' },
   { icon: Globe2, title: 'Los mejores éxitos', sub: 'Latinos y más' },
@@ -66,6 +100,7 @@ const RadioPage: React.FC = () => {
 
   const playing = stations.find(s => s.id === playingId) || null;
   const main = stations[0] || null;
+  const hosts = useRadioHosts();
 
   // "Ahora suena" del servidor de la emisora que se esté escuchando; si no hay
   // ninguna sonando, el de la principal. Devuelve null si el servidor no habla.
@@ -183,6 +218,42 @@ const RadioPage: React.FC = () => {
                 ) : null}
               </div>
             </div>
+
+            {/* Locutores. Solo si hay alguien dado de alta en el panel. */}
+            {hosts.length > 0 && (
+              <div className="relative mt-8">
+                <p className="text-brand text-[11px] font-black uppercase tracking-widest mb-3">
+                  {hosts.some(h => h.isLive) ? 'Locutores en vivo' : 'Nuestros locutores'}
+                </p>
+                <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
+                  {hosts.map(h => (
+                    <div key={h.id}
+                      className="snap-start flex-shrink-0 w-[150px] sm:w-[168px] rounded-2xl overflow-hidden bg-black/40 ring-1 ring-white/10">
+                      <span className="relative block aspect-[3/4] bg-white/5">
+                        {h.avatar
+                          ? <img src={h.avatar} alt={h.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover"
+                              onError={ev => { ev.currentTarget.style.display = 'none'; }} />
+                          : <span className="absolute inset-0 grid place-items-center font-display font-black text-3xl text-white/25">
+                              {(h.name || '?').charAt(0)}
+                            </span>}
+                        <span className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 to-transparent" />
+                      </span>
+                      <div className="p-3 -mt-10 relative">
+                        <p className="font-black text-[14px] leading-tight truncate">{h.name}</p>
+                        {h.tagline && <p className="text-white/60 text-[12px] leading-tight truncate">{h.tagline}</p>}
+                        {h.isLive
+                          ? <span className="inline-flex items-center gap-1 mt-2 bg-brand text-white text-[9px] font-black uppercase tracking-wide px-2 py-0.5 rounded">
+                              <span className="w-1 h-1 rounded-full bg-white tv-halo" /> En vivo
+                            </span>
+                          : h.schedule
+                            ? <span className="inline-block mt-2 text-white/50 text-[10px]">{h.schedule}</span>
+                            : null}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Tira de ventajas */}
             <div className="relative mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3 rounded-2xl bg-black/55 backdrop-blur-sm ring-1 ring-white/10 p-4">
