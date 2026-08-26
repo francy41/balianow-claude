@@ -1927,51 +1927,119 @@ const TvPromoCard: React.FC<{ navigate: any; onOpenTv: () => void; compact?: boo
   );
 };
 
-// ── TV + RADIO para móvil y tablet ──────────────────────────────────────────
-// El raíl derecho es `hidden xl:flex`, así que por debajo de 1280px la TV y la
-// radio se quedaban sin ningún acceso desde el Home. Esta tira los devuelve y
-// se oculta en xl para no duplicar lo que ya muestra el raíl.
-const TvRadioStrip: React.FC<{ navigate: any; onOpenTv: () => void; onOpenRadio: () => void }> = ({ navigate, onOpenTv, onOpenRadio }) => {
-  const [station, setStation] = useState<{ name: string; genre: string | null } | null>(null);
+// ── TARJETA DE RADIO ────────────────────────────────────────────────────────
+// Hermana de la de TV: mismo lenguaje (chapa de marca, foco, CTA de play) pero
+// con motivo propio — vinilo girando, ondas de emisión y ecualizador — y el
+// foco entrando por la izquierda, para que juntas hagan pareja simétrica.
+const RadioPromoCard: React.FC<{ onOpenRadio: () => void; navigate: any; compact?: boolean }> = ({ onOpenRadio, navigate, compact }) => {
+  const hero = useSiteConfigStore(s => s.homeRadioHero);
+  const [station, setStation] = useState<{ name: string; genre: string | null; bitrate: string | null } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    supabase.from('radio_stations').select('name,genre')
+    supabase.from('radio_stations').select('name,genre,bitrate')
       .eq('status', 'active').order('sort_order', { ascending: true }).limit(1)
       .then(({ data }) => { if (!cancelled && data && data[0]) setStation(data[0] as any); }, () => {});
     return () => { cancelled = true; };
   }, []);
 
-  return (
-    <section className="xl:hidden mx-3 sm:mx-4 mt-8">
-      <div className="flex items-center gap-2 mb-3 px-1">
-        <span className="w-1.5 h-5 rounded-full bg-brand" />
-        <h2 className="font-display font-black text-lg text-ink-primary">En directo</h2>
-      </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {/* BailaNow TV */}
-        <TvPromoCard navigate={navigate} onOpenTv={onOpenTv} />
+  // Solo se pinta lo que existe de verdad en `radio_stations`.
+  const meta = [station?.genre && fixText(station.genre), station?.bitrate].filter(Boolean).join(' · ');
 
-        {/* Radio online */}
-        <button onClick={onOpenRadio}
-          className="card-float bg-surface-elevated rounded-2xl p-4 flex items-center gap-3 text-left hover:bg-surface transition-colors">
-          <span className="w-12 h-12 rounded-xl bg-accent/10 grid place-items-center flex-shrink-0">
-            <Radio className="w-6 h-6 text-accent" />
+  return (
+    <div className={`card-float group relative isolate flex flex-col overflow-hidden rounded-2xl bg-[#12010C]
+      ${compact ? 'p-4 min-h-[210px]' : 'p-5 min-h-[236px]'}`}>
+      {/* Foco desde la izquierda: espejo del de la tarjeta de TV */}
+      <span aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(120%_105%_at_0%_0%,#FF3D9A_0%,#D4106F_24%,#7A0A4C_52%,#2A0521_80%,#12010C_100%)]" />
+      <span aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-2/3 bg-gradient-to-t from-black/55 to-transparent" />
+
+      {/* Ilustración: imagen del admin, o el vinilo dibujado */}
+      {hero ? (
+        <img src={hero} alt="" loading="lazy"
+          style={{
+            WebkitMaskImage: 'linear-gradient(to right, transparent 0%, #000 34%)',
+            maskImage: 'linear-gradient(to right, transparent 0%, #000 34%)',
+          }}
+          className="pointer-events-none absolute -z-10 inset-y-0 right-0 h-full w-[54%] object-cover object-right
+            transition-transform duration-700 group-hover:scale-[1.04] origin-right"
+          onError={ev => { ev.currentTarget.style.display = 'none'; }} />
+      ) : (
+        <span aria-hidden className={`pointer-events-none absolute -z-10 grid place-items-center
+          ${compact ? '-right-8 top-1/2 -translate-y-1/2 w-40 h-40' : '-right-8 top-1/2 -translate-y-1/2 w-48 h-48'}`}>
+          {/* Ondas de emisión */}
+          <span className="radio-ripple absolute inset-0 rounded-full border-2 border-white/25" />
+          <span className="radio-ripple absolute inset-0 rounded-full border-2 border-white/20" style={{ animationDelay: '1.6s' }} />
+          {/* Vinilo */}
+          <span className="radio-spin relative grid place-items-center w-[72%] h-[72%] rounded-full bg-black/45 border border-white/15">
+            <span className="absolute inset-[12%] rounded-full border border-white/10" />
+            <span className="absolute inset-[26%] rounded-full border border-white/10" />
+            <span className="absolute inset-[40%] rounded-full border border-white/10" />
+            <span className="w-[18%] h-[18%] rounded-full bg-white/85" />
+            <span className="absolute w-[6%] h-[6%] rounded-full bg-[#12010C]" />
           </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-[14px] font-extrabold text-ink-primary leading-tight">
-              {station ? fixText(station.name) : 'Radio Online'}
-            </span>
-            <span className="block text-[11px] text-ink-tertiary leading-tight">
-              {station?.genre ? `${fixText(station.genre)} · en directo 24/7` : 'Música latina en directo 24/7'}
-            </span>
+        </span>
+      )}
+
+      {/* Cintillo: en directo de verdad — la emisora está activa en la BD */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-white/70">
+          <span className="relative flex w-1.5 h-1.5">
+            <span className="tv-halo absolute inset-0 rounded-full bg-white/80" />
+            <span className="relative w-1.5 h-1.5 rounded-full bg-white" />
           </span>
-          <ChevronRight className="w-4 h-4 text-ink-tertiary flex-shrink-0" />
-        </button>
+          En directo
+        </span>
+        <button onClick={() => navigate('/radio')}
+          className="text-white/70 text-[11px] font-bold hover:text-white transition-colors">Ver más →</button>
       </div>
-    </section>
+
+      <div className={`flex items-center gap-2 ${compact ? 'mt-2.5' : 'mt-3'}`}>
+        <h3 className={`font-display font-black text-white leading-none ${compact ? 'text-xl' : 'text-2xl'}`}>BailaNow</h3>
+        <span className={`grid place-items-center rounded-md bg-white font-display font-black leading-none text-brand shadow-lg shadow-black/25
+          ${compact ? 'px-1.5 py-1 text-[15px]' : 'px-2 py-1.5 text-lg'}`}>FM</span>
+      </div>
+
+      <p className={`text-white/75 leading-snug ${compact ? 'mt-1.5 text-[11px] max-w-[62%]' : 'mt-2 text-[12.5px] max-w-[58%]'}`}>
+        {station ? `${fixText(station.name)}${meta ? ` · ${meta}` : ''}` : 'Música latina sonando ahora mismo'}
+      </p>
+
+      <div className={`mt-auto flex items-center gap-3 ${compact ? 'pt-4' : 'pt-5'}`}>
+        <button onClick={onOpenRadio}
+          className={`relative inline-flex items-center gap-2 rounded-full bg-white pr-4 py-1.5 pl-1.5 font-black text-brand
+            shadow-lg shadow-black/25 transition-transform hover:scale-[1.03] active:scale-95
+            ${compact ? 'text-[12px]' : 'text-[13px]'}`}>
+          <span className={`grid place-items-center rounded-full bg-brand text-white ${compact ? 'w-6 h-6' : 'w-7 h-7'}`}>
+            <Play className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} fill="currentColor" />
+          </span>
+          Escuchar
+        </button>
+        {/* Ecualizador: decorativo, marca que hay señal */}
+        <span aria-hidden className="flex items-end gap-[3px] h-5">
+          {[0, 0.18, 0.36, 0.1, 0.28].map((d, i) => (
+            <span key={i} className="radio-bar w-[3px] h-full rounded-full bg-white/55" style={{ animationDelay: `${d}s` }} />
+          ))}
+        </span>
+      </div>
+    </div>
   );
 };
+
+// ── TV + RADIO para móvil y tablet ──────────────────────────────────────────
+// El raíl derecho es `hidden xl:flex`, así que por debajo de 1280px la TV y la
+// radio se quedaban sin ningún acceso desde el Home. Esta tira los devuelve y
+// se oculta en xl para no duplicar lo que ya muestra el raíl.
+const TvRadioStrip: React.FC<{ navigate: any; onOpenTv: () => void; onOpenRadio: () => void }> = ({ navigate, onOpenTv, onOpenRadio }) => (
+  <section className="xl:hidden mx-3 sm:mx-4 mt-8">
+    <div className="flex items-center gap-2 mb-3 px-1">
+      <span className="w-1.5 h-5 rounded-full bg-brand" />
+      <h2 className="font-display font-black text-lg text-ink-primary">En directo</h2>
+    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <TvPromoCard navigate={navigate} onOpenTv={onOpenTv} />
+      <RadioPromoCard navigate={navigate} onOpenRadio={onOpenRadio} />
+    </div>
+  </section>
+);
 
 // ── SECCIONES DE DESCUBRIMIENTO (Fase 4) ──
 const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
@@ -2923,17 +2991,7 @@ const HomeSideRail: React.FC<{ navigate: any; onOpenTv: () => void; onOpenRadio:
     <TvPromoCard navigate={navigate} onOpenTv={onOpenTv} compact />
 
     {/* Radio — sale del sitio de honor del hero a un widget compacto */}
-    <button onClick={onOpenRadio}
-      className="card-float bg-surface-elevated rounded-2xl p-4 flex items-center gap-3 text-left hover:bg-surface transition-colors">
-      <span className="w-11 h-11 rounded-xl bg-accent/10 grid place-items-center flex-shrink-0">
-        <Radio className="w-5 h-5 text-accent" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block text-[13px] font-extrabold text-ink-primary leading-tight">Radio Online</span>
-        <span className="block text-[11px] text-ink-tertiary leading-tight">Música latina en directo 24/7</span>
-      </span>
-      <ChevronRight className="w-4 h-4 text-ink-tertiary flex-shrink-0" />
-    </button>
+    <RadioPromoCard navigate={navigate} onOpenRadio={onOpenRadio} compact />
   </aside>
   );
 };
