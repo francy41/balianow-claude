@@ -9,7 +9,7 @@ import { TOP_DANCE_CITIES } from '../data/topDanceCities';
 import { distanceKm, pointFor, type LatLng } from '../lib/geo';
 import { useAuthStore, useSiteConfigStore, getYouTubeId, usePerformerStore, useSponsorsStore, PLATFORM_COMMISSION_RATE, DEFAULT_HOME_TV, type HomeCategory } from '../store/appStore';
 import { useCMSStore, visibleHomeModules, activeCategories } from '../store/cmsStore';
-import { Avatar, StarRating, SearchBar, AppImage } from '../components/ui';
+import { Avatar, StarRating, SearchBar, AppImage, Skeleton } from '../components/ui';
 import { supabase } from '../lib/supabase';
 import { fixText } from '../lib/text';
 import NewsletterForm from '../components/NewsletterForm';
@@ -2087,6 +2087,45 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* ── LOCALES — el inventario con más volumen (139). En un marketplace lo
+             primero que ve el usuario tras el hero es el catálogo, no una funcionalidad. ── */}
+      <VenuesHomeRow navigate={navigate} />
+
+      {/* ── PRÓXIMOS EVENTOS ── */}
+      {isModuleOn('cta') && homeEvents.length > 0 && (
+      <HomeSectionWithSearch
+        title="🎉 Proximos Eventos"
+        subtitle="Conciertos, festivales, sociales y mas"
+        searchPlaceholder="Buscar evento, ciudad, tipo..."
+        actionLabel="Ver Todos"
+        onAction={() => navigate('/eventos')}
+        onSearch={(q) => navigate(`/eventos?q=${encodeURIComponent(q)}`)}
+        className="mb-12"
+      >
+        {(searchQ) => {
+          const filtered = searchQ
+            ? homeEvents.filter(e => e.title.toLowerCase().includes(searchQ.toLowerCase()) || e.city.toLowerCase().includes(searchQ.toLowerCase()) || e.category.some(c => c.toLowerCase().includes(searchQ.toLowerCase())))
+            : homeEvents;
+          return (
+            <HScroll>
+              {filtered.slice(0, 12).map(event => (
+                <div key={event.id} className="tile-2">
+                  <EventCard event={event} onClick={() => navigate(`/eventos/${event.id}`)} />
+                </div>
+              ))}
+              {filtered.length > 0 && <SeeAllTile onClick={() => navigate('/eventos')} className="tile-2 tile-cover" />}
+              {searchQ && filtered.length === 0 && (
+                <div className="w-full text-center py-8">
+                  <p className="text-3xl mb-2">🔍</p>
+                  <p className="text-white/80 text-sm">No encontramos eventos para "{searchQ}"</p>
+                </div>
+              )}
+            </HScroll>
+          );
+        }}
+      </HomeSectionWithSearch>
+      )}
+
       {/* ── PLANES DE BAILE (con el súper buscador integrado dentro) — módulo "Planes Para Bailar" (Admin → Constructor Home) ── */}
       {isModuleOn('ruta') && (
         <PlanesDeBaileHomeSection navigate={navigate} cityFilter={homeCity} onCityChange={setHomeCity} />
@@ -2335,41 +2374,6 @@ const HomePage: React.FC = () => {
       </HomeSectionWithSearch>
       )}
 
-      {/* ── PRÓXIMOS EVENTOS ── */}
-      {isModuleOn('cta') && homeEvents.length > 0 && (
-      <HomeSectionWithSearch
-        title="🎉 Proximos Eventos"
-        subtitle="Conciertos, festivales, sociales y mas"
-        searchPlaceholder="Buscar evento, ciudad, tipo..."
-        actionLabel="Ver Todos"
-        onAction={() => navigate('/eventos')}
-        onSearch={(q) => navigate(`/eventos?q=${encodeURIComponent(q)}`)}
-        className="mb-12"
-      >
-        {(searchQ) => {
-          const filtered = searchQ
-            ? homeEvents.filter(e => e.title.toLowerCase().includes(searchQ.toLowerCase()) || e.city.toLowerCase().includes(searchQ.toLowerCase()) || e.category.some(c => c.toLowerCase().includes(searchQ.toLowerCase())))
-            : homeEvents;
-          return (
-            <HScroll>
-              {filtered.slice(0, 12).map(event => (
-                <div key={event.id} className="tile-2">
-                  <EventCard event={event} onClick={() => navigate(`/eventos/${event.id}`)} />
-                </div>
-              ))}
-              {filtered.length > 0 && <SeeAllTile onClick={() => navigate('/eventos')} className="tile-2 tile-cover" />}
-              {searchQ && filtered.length === 0 && (
-                <div className="w-full text-center py-8">
-                  <p className="text-3xl mb-2">🔍</p>
-                  <p className="text-white/80 text-sm">No encontramos eventos para "{searchQ}"</p>
-                </div>
-              )}
-            </HScroll>
-          );
-        }}
-      </HomeSectionWithSearch>
-      )}
-
       {/* ── PATROCINADORES (pie de página) ── */}
       <SponsorsFooterStrip navigate={navigate} />
 
@@ -2414,6 +2418,65 @@ const HomePage: React.FC = () => {
       <RadioWidgetModal open={radioWidgetOpen} onClose={() => setRadioWidgetOpen(false)} />
       <TvPreviewModal open={tvWidgetOpen} onClose={() => setTvWidgetOpen(false)} />
     </div>
+  );
+};
+
+// ── LOCALES (venues) — el mayor inventario de la plataforma (139 filas) y no
+// tenía sección propia en el Home: solo salía como pestaña dentro de Planes de
+// baile. En un marketplace el inventario manda, así que sube al principio. ──
+const VenuesHomeRow: React.FC<{ navigate: any }> = ({ navigate }) => {
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.from('venues')
+      .select('id,name,city,cover,image_url,avatar,rating,reviews,type,is_premium')
+      .is('deleted_at', null)
+      .order('is_premium', { ascending: false })
+      .order('rating', { ascending: false })
+      .limit(12)
+      .then(({ data }) => { if (!cancelled) { setRows(data || []); setLoading(false); } },
+            () => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
+
+  if (!loading && rows.length === 0) return null;
+
+  return (
+    <section className="mx-3 sm:mx-4 mt-8">
+      <div className="flex items-center justify-between mb-3 px-1">
+        <h2 className="font-display font-black text-lg text-ink-primary flex items-center gap-2">🏠 Locales para bailar</h2>
+        <button onClick={() => navigate('/venues')} className="text-brand hover:text-brand-orange-dark text-xs font-bold hover:underline">Ver todos →</button>
+      </div>
+      {loading ? (
+        <div className="flex gap-3">{Array.from({ length: 4 }).map((_, i) => <div key={i} className="tile-2"><Skeleton className="tile-cover rounded-2xl" /></div>)}</div>
+      ) : (
+        <HScroll>
+          {rows.map(v => (
+            <button key={v.id} onClick={() => navigate(`/venues/${v.id}`)} className="tile-2 text-left group">
+              <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
+                <AppImage src={v.cover || v.image_url || v.avatar || ''} alt={v.name} fallback="landscape"
+                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                {v.is_premium && (
+                  <span className="absolute top-2 left-2 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[9px] font-black px-2 py-0.5 rounded-full">👑 PRO</span>
+                )}
+                {Number(v.rating) > 0 && (
+                  <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 bg-black/75 backdrop-blur-sm text-white text-[10px] font-black px-1.5 py-0.5 rounded">
+                    <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />{Number(v.rating).toFixed(1)}
+                  </span>
+                )}
+              </div>
+              <p className="mt-2 text-ink-primary font-black text-[13px] uppercase leading-tight truncate">{fixText(v.name)}</p>
+              <p className="text-ink-tertiary text-[11px] leading-tight truncate capitalize">
+                {[fixText(v.city || ''), v.type].filter(Boolean).join(' · ')}
+              </p>
+            </button>
+          ))}
+          <SeeAllTile onClick={() => navigate('/venues')} className="tile-2 tile-cover" />
+        </HScroll>
+      )}
+    </section>
   );
 };
 
