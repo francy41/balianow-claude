@@ -1754,8 +1754,108 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
 // Identidad de canal: fondo de pantalla encendida (glow radial + líneas de
 // barrido + haz de luz), logotipo "TV" como chapa y play como elemento héroe.
 // Todo es CSS, sin imágenes: pesa nada y no depende de que haya contenido.
+// Pareja bailando, dibujada a mano en SVG: silueta en vuelta de bachata, con
+// las manos unidas en alto y la falda abierta por el giro. Sin imágenes, así
+// que escala sin pixelarse y no añade ni una petición de red.
+const DanceCoupleSilhouette: React.FC<{ className?: string }> = ({ className }) => {
+  const uid = React.useId().replace(/:/g, '');
+  const ink = `tvInk-${uid}`;
+  const spot = `tvSpot-${uid}`;
+  return (
+    <svg viewBox="0 0 240 300" className={className} aria-hidden focusable="false">
+      <defs>
+        {/* Iluminada desde arriba: brilla en la cabeza y se apaga hacia los pies */}
+        <linearGradient id={ink} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#fff" stopOpacity="0.96" />
+          <stop offset="55%" stopColor="#fff" stopOpacity="0.82" />
+          <stop offset="88%" stopColor="#fff" stopOpacity="0.58" />
+          <stop offset="100%" stopColor="#fff" stopOpacity="0.34" />
+        </linearGradient>
+        <radialGradient id={spot} cx="50%" cy="38%" r="55%">
+          <stop offset="0%" stopColor="#fff" stopOpacity="0.18" />
+          <stop offset="62%" stopColor="#fff" stopOpacity="0.05" />
+          <stop offset="100%" stopColor="#fff" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+
+      {/* Foco de escenario detrás de la pareja */}
+      <ellipse cx="126" cy="140" rx="116" ry="132" fill={`url(#${spot})`} />
+      {/* Sombra en el suelo, para que no floten */}
+      <ellipse cx="120" cy="276" rx="92" ry="9" fill="#fff" opacity="0.12" />
+
+      <g fill={`url(#${ink})`}>
+        {/* ── ÉL: un solo contorno — cabeza, cuello, torso, brazos y piernas ── */}
+        <path d="M66 30.5
+          C73.5 30.5 78.5 36.5 78.5 44 C78.5 50.5 75.5 55.5 71 58 L71 71
+          C79.5 73 85 77.5 88 85
+          C96 76.5 104 67.5 111 58.5 C116 52.5 120 48 123 44
+          L131.5 49.5 C128 54.5 123.5 60.5 118 67.5
+          C110.5 76.5 102 86.5 94 94.5 C89 99.5 86.5 102 86 105
+          C85 113 82 122 79 130
+          C82 138 85.5 146 86.5 154
+          L92 205 L99 257
+          C104.5 261 112 265.5 117 267.5 C120.5 269 120 273.5 116 273.5
+          L93 273.5 C89 273.5 87 270.5 87 266.5
+          L81.5 205.5 L67 160.5 L60 160.5
+          L48 204 C46 214 47 226 51 236 C54 244 51.5 252 46 253
+          C41 254 37.5 250 37 245 C36 234 37 220 40 208
+          L42 154 C43 146 46 138 49 130
+          C46.5 122 45 113 44.5 105
+          C43 113.5 41 124 40 135 C39.3 142 39 147.5 39 151.5
+          C39 155.5 35 157.5 31 156.5 C27 155.5 25 152 25.5 148
+          C26.5 136.5 28 124 30.5 113 C32.5 103.5 35 95.5 38.5 89.5
+          C41.5 79.5 47.5 74 57 71.5 L57 58
+          C52.5 55.5 49.5 50.5 49.5 44 C49.5 36.5 55 30.5 66 30.5 Z" />
+
+        {/* ── ELLA ── melena suelta, que cae por detrás con el giro */}
+        <path d="M179 39
+          C190 36.5 199.5 43 201 53.5
+          C202.5 63 198.5 71.5 191.5 75
+          C193 66 191.5 56 186.5 48
+          C184.5 44.5 182 41.5 179 39 Z" />
+        {/* cabeza, cuello, torso y los dos brazos, de una pieza */}
+        <path d="M174 36.5
+          C181.5 36.5 186.5 42.5 186.5 50 C186.5 56 184 60.5 180 63 L180 74
+          C188 76 194 81 197 88.5
+          C205.5 90.5 214 95.5 220 101.5 C223 104.5 226 106.5 228.5 107.5
+          C232 109 231 115 227 114.5 C221.5 114 214 109 206 104
+          C198 99 192 97 187 100
+          L185.5 126 L163 126 L161.5 100
+          C157 88.5 153 74 151.5 60.5 C151 54.5 151 50 151.5 46.5
+          L141 44 C140 49 140 54.5 141 61.5
+          C143 76 147 89.5 152 97.5
+          C156 92.5 160.5 88.5 165.5 86.5 L168 74 L168 63
+          C164 60.5 161.5 56 161.5 50 C161.5 42.5 166.5 36.5 174 36.5 Z" />
+
+        {/* Manos unidas: el eje del giro */}
+        <path d="M132 40 C137 37.5 143.5 39.5 145 44.5 C146.5 49.5 143 54 137.5 54
+          C132 54 128.5 50 129 45.5 C129.3 43 130.5 41 132 40 Z" />
+
+        {/* Falda abierta por la fuerza del giro, con vuelo asimétrico */}
+        <path d="M162 122
+          C155 149 145 176 131 197 C123 209 117.5 216.5 120 221.5
+          C133 230 152 234.5 170 234 C189 233.5 207 228 216.5 221
+          C221 217.5 221 211.5 217 204.5 C204 179 194 149 190 122 Z" />
+
+        {/* Sus piernas: una apoyada, la otra en punta por el giro */}
+        <path d="M163 224 L177 224 L173 258 C172.5 263 170 266.5 166 267.5
+          L150.5 271.5 C147 272.5 145 269 147.5 266.5 L160 255 Z" />
+        <path d="M182 226 L194 226 C196 238 200 250 206 259
+          C209 263 206.5 267 202.5 265.5 L190.5 261 C187 259.5 185 256 185 252 Z" />
+      </g>
+
+      {/* Pliegues de la falda: dan volumen sin ensuciar la silueta */}
+      <g fill="none" stroke="#fff" strokeOpacity="0.13" strokeWidth="2.5" strokeLinecap="round">
+        <path d="M170 132 C166 160 160 186 151 208" />
+        <path d="M183 132 C186 160 192 186 200 206" />
+      </g>
+    </svg>
+  );
+};
+
 const TvPromoCard: React.FC<{ navigate: any; onOpenTv: () => void; compact?: boolean }> = ({ navigate, onOpenTv, compact }) => (
-  <div className={`card-float group relative isolate overflow-hidden rounded-2xl bg-[#1A0210] ${compact ? 'p-4' : 'p-5'}`}>
+  <div className={`card-float group relative isolate flex flex-col overflow-hidden rounded-2xl bg-[#1A0210]
+    ${compact ? 'p-4 min-h-[210px]' : 'p-5 min-h-[236px]'}`}>
     {/* Fondo: foco rosa desde la esquina superior derecha */}
     <span aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(125%_105%_at_100%_0%,#FF3D9A_0%,#E5127D_26%,#8E0A48_55%,#2C0219_80%,#14010C_100%)]" />
     {/* Líneas de barrido finísimas, guiño a una pantalla encendida */}
@@ -1767,13 +1867,11 @@ const TvPromoCard: React.FC<{ navigate: any; onOpenTv: () => void; compact?: boo
     {/* Viñeta inferior para que el texto siempre tenga contraste */}
     <span aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-2/3 bg-gradient-to-t from-black/55 to-transparent" />
 
-    {/* Play gigante de decorado, recortado por la esquina */}
-    <span aria-hidden className={`absolute -z-10 grid place-items-center rounded-full border border-white/15 bg-white/[0.07]
-      ${compact ? '-right-7 -bottom-9 w-32 h-32' : '-right-8 -bottom-10 w-40 h-40'}`}>
-      <span className={`grid place-items-center rounded-full border border-white/10 ${compact ? 'w-20 h-20' : 'w-24 h-24'}`}>
-        <Play className={compact ? 'w-7 h-7 text-white/25' : 'w-9 h-9 text-white/25'} fill="currentColor" />
-      </span>
-    </span>
+    {/* La pareja: apoyada en el borde inferior y recortada por la derecha,
+        como si bailara dentro del plano en vez de estar pegada encima */}
+    <DanceCoupleSilhouette
+      className={`pointer-events-none absolute -z-10 bottom-0 w-auto transition-transform duration-700 group-hover:scale-[1.04]
+        origin-bottom-right ${compact ? '-right-3 h-[168px]' : '-right-2 h-[196px]'}`} />
 
     {/* Cintillo de canal */}
     <div className="flex items-center justify-between gap-2">
@@ -1795,19 +1893,21 @@ const TvPromoCard: React.FC<{ navigate: any; onOpenTv: () => void; compact?: boo
         ${compact ? 'px-1.5 py-1 text-[15px]' : 'px-2 py-1.5 text-lg'}`}>TV</span>
     </div>
 
-    <p className={`text-white/75 leading-snug ${compact ? 'mt-1.5 text-[11px]' : 'mt-2 text-[12.5px] max-w-[30ch]'}`}>
+    <p className={`text-white/75 leading-snug ${compact ? 'mt-1.5 text-[11px] max-w-[62%]' : 'mt-2 text-[12.5px] max-w-[58%]'}`}>
       Vídeos, entrevistas y lo mejor del mundo del baile
     </p>
 
-    <button onClick={onOpenTv}
-      className={`relative inline-flex items-center gap-2 rounded-full bg-white pr-4 font-black text-brand
-        shadow-lg shadow-black/25 transition-transform hover:scale-[1.03] active:scale-95
-        ${compact ? 'mt-3 pl-1 py-1 text-[12px]' : 'mt-4 pl-1.5 py-1.5 text-[13px]'}`}>
-      <span className={`grid place-items-center rounded-full bg-brand text-white ${compact ? 'w-6 h-6' : 'w-7 h-7'}`}>
-        <Play className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} fill="currentColor" />
-      </span>
-      Ver ahora
-    </button>
+    <div className={`mt-auto ${compact ? 'pt-4' : 'pt-5'}`}>
+      <button onClick={onOpenTv}
+        className={`relative inline-flex items-center gap-2 rounded-full bg-white pr-4 py-1.5 pl-1.5 font-black text-brand
+          shadow-lg shadow-black/25 transition-transform hover:scale-[1.03] active:scale-95
+          ${compact ? 'text-[12px]' : 'text-[13px]'}`}>
+        <span className={`grid place-items-center rounded-full bg-brand text-white ${compact ? 'w-6 h-6' : 'w-7 h-7'}`}>
+          <Play className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} fill="currentColor" />
+        </span>
+        Ver ahora
+      </button>
+    </div>
   </div>
 );
 
