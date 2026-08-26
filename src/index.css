@@ -93,6 +93,24 @@
 .kenburns { animation: kenburns 18s ease-in-out infinite alternate; }
 @media (prefers-reduced-motion: reduce) { .kenburns { animation: none; } }
 
+/* ── BailaNow TV: haz de luz que barre la tarjeta, tipo pantalla encendida ── */
+@keyframes tvSweep {
+  0%        { transform: translateX(-140%) skewX(-18deg); opacity: 0; }
+  12%       { opacity: 1; }
+  55%, 100% { transform: translateX(240%) skewX(-18deg); opacity: 0; }
+}
+.tv-sweep { animation: tvSweep 5.5s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
+
+@keyframes tvHalo {
+  0%, 100% { transform: scale(1);    opacity: 0.55; }
+  50%      { transform: scale(1.14); opacity: 0.85; }
+}
+.tv-halo { animation: tvHalo 3.4s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tv-sweep, .tv-halo { animation: none; }
+}
+
 /* ── Marquee animations (auto-scroll left) ──────────────────────── */
 @keyframes marquee-left {
   0%   { transform: translateX(0); }

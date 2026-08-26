@@ -1750,6 +1750,67 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
   );
 };
 
+// ── TARJETA DE BAILANOW TV ──────────────────────────────────────────────────
+// Identidad de canal: fondo de pantalla encendida (glow radial + líneas de
+// barrido + haz de luz), logotipo "TV" como chapa y play como elemento héroe.
+// Todo es CSS, sin imágenes: pesa nada y no depende de que haya contenido.
+const TvPromoCard: React.FC<{ navigate: any; onOpenTv: () => void; compact?: boolean }> = ({ navigate, onOpenTv, compact }) => (
+  <div className={`card-float group relative isolate overflow-hidden rounded-2xl bg-[#1A0210] ${compact ? 'p-4' : 'p-5'}`}>
+    {/* Fondo: foco rosa desde la esquina superior derecha */}
+    <span aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(125%_105%_at_100%_0%,#FF3D9A_0%,#E5127D_26%,#8E0A48_55%,#2C0219_80%,#14010C_100%)]" />
+    {/* Líneas de barrido finísimas, guiño a una pantalla encendida */}
+    <span aria-hidden className="absolute inset-0 -z-10 opacity-[0.18] mix-blend-overlay
+      bg-[repeating-linear-gradient(to_bottom,rgba(255,255,255,.9)_0px,rgba(255,255,255,.9)_1px,transparent_1px,transparent_4px)]" />
+    {/* Haz de luz que cruza en bucle */}
+    <span aria-hidden className="tv-sweep pointer-events-none absolute inset-y-[-30%] -z-10 w-1/3
+      bg-gradient-to-r from-transparent via-white/25 to-transparent blur-[6px]" />
+    {/* Viñeta inferior para que el texto siempre tenga contraste */}
+    <span aria-hidden className="absolute inset-x-0 bottom-0 -z-10 h-2/3 bg-gradient-to-t from-black/55 to-transparent" />
+
+    {/* Play gigante de decorado, recortado por la esquina */}
+    <span aria-hidden className={`absolute -z-10 grid place-items-center rounded-full border border-white/15 bg-white/[0.07]
+      ${compact ? '-right-7 -bottom-9 w-32 h-32' : '-right-8 -bottom-10 w-40 h-40'}`}>
+      <span className={`grid place-items-center rounded-full border border-white/10 ${compact ? 'w-20 h-20' : 'w-24 h-24'}`}>
+        <Play className={compact ? 'w-7 h-7 text-white/25' : 'w-9 h-9 text-white/25'} fill="currentColor" />
+      </span>
+    </span>
+
+    {/* Cintillo de canal */}
+    <div className="flex items-center justify-between gap-2">
+      <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-white/70">
+        <span className="relative flex w-1.5 h-1.5">
+          <span className="tv-halo absolute inset-0 rounded-full bg-white/80" />
+          <span className="relative w-1.5 h-1.5 rounded-full bg-white" />
+        </span>
+        Canal BailaNow
+      </span>
+      <button onClick={() => navigate('/tv')}
+        className="text-white/70 text-[11px] font-bold hover:text-white transition-colors">Ver más →</button>
+    </div>
+
+    {/* Logotipo: la chapa "TV" da identidad de marca sin necesitar imagen */}
+    <div className={`flex items-center gap-2 ${compact ? 'mt-2.5' : 'mt-3'}`}>
+      <h3 className={`font-display font-black text-white leading-none ${compact ? 'text-xl' : 'text-2xl'}`}>BailaNow</h3>
+      <span className={`grid place-items-center rounded-md bg-white font-display font-black leading-none text-brand shadow-lg shadow-black/25
+        ${compact ? 'px-1.5 py-1 text-[15px]' : 'px-2 py-1.5 text-lg'}`}>TV</span>
+    </div>
+
+    <p className={`text-white/75 leading-snug ${compact ? 'mt-1.5 text-[11px]' : 'mt-2 text-[12.5px] max-w-[30ch]'}`}>
+      Vídeos, entrevistas y lo mejor del mundo del baile
+    </p>
+
+    <button onClick={onOpenTv}
+      className={`relative inline-flex items-center gap-2 rounded-full bg-white pr-4 font-black text-brand
+        shadow-lg shadow-black/25 transition-transform hover:scale-[1.03] active:scale-95
+        ${compact ? 'mt-3 pl-1 py-1 text-[12px]' : 'mt-4 pl-1.5 py-1.5 text-[13px]'}`}>
+      <span className={`grid place-items-center rounded-full bg-brand text-white ${compact ? 'w-6 h-6' : 'w-7 h-7'}`}>
+        <Play className={compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} fill="currentColor" />
+      </span>
+      Ver ahora
+    </button>
+  </div>
+);
+
 // ── TV + RADIO para móvil y tablet ──────────────────────────────────────────
 // El raíl derecho es `hidden xl:flex`, así que por debajo de 1280px la TV y la
 // radio se quedaban sin ningún acceso desde el Home. Esta tira los devuelve y
@@ -1773,19 +1834,7 @@ const TvRadioStrip: React.FC<{ navigate: any; onOpenTv: () => void; onOpenRadio:
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* BailaNow TV */}
-        <div className="card-float relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#4A0530] via-[#C00E68] to-[#E5127D] p-4">
-          <div className="flex items-center justify-between mb-1">
-            <h3 className="font-display font-black text-base text-white flex items-center gap-2">
-              <Video className="w-4 h-4" /> BailaNow TV
-            </h3>
-            <button onClick={() => navigate('/tv')} className="text-white/80 text-[11px] font-bold hover:text-white">Ver más →</button>
-          </div>
-          <p className="text-white/75 text-[12px] leading-snug mb-3">Vídeos, entrevistas y lo mejor del mundo del baile</p>
-          <button onClick={onOpenTv}
-            className="inline-flex items-center gap-2 bg-white text-brand text-[12px] font-black px-4 py-2 rounded-full hover:bg-white/90 transition-colors">
-            <Play className="w-3.5 h-3.5" fill="currentColor" /> Ver ahora
-          </button>
-        </div>
+        <TvPromoCard navigate={navigate} onOpenTv={onOpenTv} />
 
         {/* Radio online */}
         <button onClick={onOpenRadio}
@@ -2755,17 +2804,7 @@ const HomeSideRail: React.FC<{ navigate: any; onOpenTv: () => void; onOpenRadio:
     )}
 
     {/* BailaNow TV */}
-    <div className="card-float relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#4A0530] via-[#C00E68] to-[#E5127D] p-4">
-      <div className="flex items-center justify-between mb-1">
-        <h3 className="font-display font-black text-sm text-white">BailaNow TV</h3>
-        <button onClick={() => navigate('/tv')} className="text-white/80 text-[11px] font-bold hover:text-white">Ver más →</button>
-      </div>
-      <p className="text-white/75 text-[11px] leading-snug mb-3">Vídeos, entrevistas y lo mejor del mundo del baile</p>
-      <button onClick={onOpenTv}
-        className="inline-flex items-center gap-2 bg-white text-brand text-[12px] font-black px-4 py-2 rounded-full hover:bg-white/90 transition-colors">
-        <Play className="w-3.5 h-3.5" fill="currentColor" /> Ver ahora
-      </button>
-    </div>
+    <TvPromoCard navigate={navigate} onOpenTv={onOpenTv} compact />
 
     {/* Radio — sale del sitio de honor del hero a un widget compacto */}
     <button onClick={onOpenRadio}
