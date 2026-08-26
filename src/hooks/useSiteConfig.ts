@@ -12,7 +12,7 @@ import { applyBrandColors, type BrandColors } from '../lib/color';
 
 // ── Load config from Supabase on mount ────────────────────────────────────
 export function useSiteConfigLoader() {
-  const { setHeroSliderImages, setHeroMedia, setSiteLogo, setHomeCategories, setProfileModules, setHomeTvCards, setHomeTvHero, setCommissions } = useSiteConfigStore();
+  const { setHeroSliderImages, setHeroMedia, setSiteLogo, setHomeCategories, setProfileModules, setHomeTvCards, setHomeTvHero, setHomeRadioHero, setCommissions } = useSiteConfigStore();
 
   useEffect(() => {
     const load = async () => {
@@ -44,6 +44,9 @@ export function useSiteConfigLoader() {
           // propósito: es como el admin vuelve a la silueta dibujada.
           if (row.key === 'home_tv_hero' && row.value && typeof row.value === 'object') {
             setHomeTvHero(typeof row.value.url === 'string' ? row.value.url : '');
+          }
+          if (row.key === 'home_radio_hero' && row.value && typeof row.value === 'object') {
+            setHomeRadioHero(typeof row.value.url === 'string' ? row.value.url : '');
           }
           if (row.key === 'commission_config' && row.value && typeof row.value === 'object') {
             setCommissions(row.value as CommissionConfig);
