@@ -103,6 +103,10 @@ function template(type: string, d: Record<string, any>): { subject: string; html
     case 'admin_creator':
       return { subject: '🔔 Nueva solicitud de creador · BailaNow', html: shell('Nueva solicitud de creador',
         `<p>Se ha recibido una solicitud de creador${d.name ? ` de <b>${esc(d.name)}</b>` : ''}.</p>${btn(`${APP}/admin/solicitudes-creador`, 'Revisar solicitud')}`) };
+    case 'admin_signup':
+      return { subject: `👤 Alta nueva en BailaNow${d.role ? ` · ${esc(d.role)}` : ''}`, html: shell('Se ha registrado alguien',
+        `<p><b>${esc(d.name) || 'Un usuario'}</b> ha creado una cuenta${d.role ? ` como <b>${esc(d.role)}</b>` : ''}${d.city ? ` en ${esc(d.city)}` : ''}.</p>
+         <p style="color:#6b7280;font-size:13px">Si estos avisos te resultan demasiados, se pueden agrupar en un resumen diario.</p>${btn(`${APP}/admin/usuarios`, 'Ver usuarios')}`) };
     case 'admin_dispute':
       return { subject: '⚠️ Disputa abierta · BailaNow', html: shell('Se ha abierto una disputa',
         `<p>Hay una disputa esperando mediación. Conviene atenderla pronto: hay dinero retenido de por medio.</p>${btn(`${APP}/admin/disputas`, 'Ver disputa')}`) };
