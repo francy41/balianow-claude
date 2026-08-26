@@ -2984,6 +2984,12 @@ const HomeSideRail: React.FC<{ navigate: any; onOpenTv: () => void; onOpenRadio:
 
   return (
   <aside className="hidden xl:flex xl:flex-col gap-4 w-[300px] flex-shrink-0">
+    {/* BailaNow TV */}
+    <TvPromoCard navigate={navigate} onOpenTv={onOpenTv} compact />
+
+    {/* Radio — sale del sitio de honor del hero a un widget compacto */}
+    <RadioPromoCard navigate={navigate} onOpenRadio={onOpenRadio} compact />
+
     {/* Cerca de ti — mapa compacto + lista de locales reales */}
     {near.length > 0 && (
       <div className="card-float bg-surface-elevated rounded-2xl overflow-hidden">
@@ -3019,12 +3025,6 @@ const HomeSideRail: React.FC<{ navigate: any; onOpenTv: () => void; onOpenRadio:
         </button>
       </div>
     )}
-
-    {/* BailaNow TV */}
-    <TvPromoCard navigate={navigate} onOpenTv={onOpenTv} compact />
-
-    {/* Radio — sale del sitio de honor del hero a un widget compacto */}
-    <RadioPromoCard navigate={navigate} onOpenRadio={onOpenRadio} compact />
   </aside>
   );
 };
