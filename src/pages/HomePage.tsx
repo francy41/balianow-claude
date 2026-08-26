@@ -2460,6 +2460,11 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
+      {/* ── TV + RADIO (solo por debajo de xl: en xl ya viven en el raíl) —
+             van pegados al hero para igualar la jerarquía del escritorio, donde
+             encabezan el raíl. ── */}
+      <TvRadioStrip navigate={navigate} onOpenTv={() => setTvWidgetOpen(true)} onOpenRadio={() => setRadioWidgetOpen(true)} />
+
       {/* ── LOCALES — el inventario con más volumen (139). En un marketplace lo
              primero que ve el usuario tras el hero es el catálogo, no una funcionalidad. ── */}
       <VenuesHomeRow navigate={navigate} />
@@ -2512,9 +2517,6 @@ const HomePage: React.FC = () => {
 
       {/* ── MÁS PARA TI (justo bajo el escaparate, segun brief) ── */}
       <MoreForYou navigate={navigate} />
-
-      {/* ── TV + RADIO (solo por debajo de xl: en xl ya viven en el raíl) ── */}
-      <TvRadioStrip navigate={navigate} onOpenTv={() => setTvWidgetOpen(true)} onOpenRadio={() => setRadioWidgetOpen(true)} />
 
       {/* ── COMUNIDAD — 102 posts reales que se cargaban y no se pintaban nunca ── */}
       {communityPosts.length > 0 && (
