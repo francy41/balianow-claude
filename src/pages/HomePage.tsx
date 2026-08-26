@@ -2101,6 +2101,9 @@ const HomePage: React.FC = () => {
       {/* ── MÁS PARA TI (justo bajo el escaparate, segun brief) ── */}
       <MoreForYou navigate={navigate} />
 
+      {/* ── PARTNER DE CIUDAD + módulos que no se enlazaban desde el Home ── */}
+      <PartnerCitySection navigate={navigate} />
+
       {/* Elemento de audio real para la radio en vivo */}
       <audio ref={audioRef} className="hidden" preload="none" />
 
@@ -2413,6 +2416,52 @@ const HomePage: React.FC = () => {
     </div>
   );
 };
+
+// ── PARTNER DE CIUDAD + MÓDULOS SIN ENLAZAR ──
+// La funcionalidad de partner existe entera (/partner/aplicar, panel, políticas)
+// pero no se enlazaba desde ninguna parte del Home: de ahí 0 solicitudes.
+// Lo mismo con Retos, DanceFlow, Marketplace, Comunidad y el Mapa.
+const PARTNER_LINKS: { label: string; desc: string; to: string; icon: string }[] = [
+  { label: 'Comunidad',   desc: 'Ofertas, demandas y anuncios', to: '/comunidad',   icon: '💬' },
+  { label: 'Marketplace', desc: 'Servicios para bailarines',    to: '/marketplace', icon: '🛍️' },
+  { label: 'Retos',       desc: 'Compite y sube en el ranking', to: '/retos',       icon: '🏆' },
+  { label: 'DanceFlow IA',desc: 'Entrena con tu cámara',        to: '/danceflow',   icon: '🤖' },
+];
+
+const PartnerCitySection: React.FC<{ navigate: any }> = ({ navigate }) => (
+  <section className="mx-3 sm:mx-4 mt-8">
+    {/* CTA principal — el módulo estaba invisible pese a estar terminado */}
+    <button onClick={() => navigate('/partner/aplicar')}
+      className="card-float relative w-full overflow-hidden rounded-3xl p-5 sm:p-7 text-left text-white bg-gradient-to-br from-brand-deep via-brand to-brand-secondary">
+      <div className="absolute -top-12 -right-12 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="relative flex items-center justify-between gap-4 flex-wrap">
+        <div className="min-w-0">
+          <span className="inline-block text-[10px] font-black uppercase tracking-widest bg-white/20 rounded-full px-2.5 py-1">🌍 Programa de partners</span>
+          <h2 className="font-display font-black text-xl sm:text-2xl mt-2 leading-tight">Sé el partner de BailaNow en tu ciudad</h2>
+          <p className="text-white/80 text-sm mt-1.5 max-w-lg">Represéntanos en tu zona, gestiona locales y eventos, y gana comisiones por cada reserva.</p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 bg-white text-brand font-black rounded-xl px-5 py-3 text-sm flex-shrink-0">
+          Quiero ser partner <ArrowRight className="w-4 h-4" />
+        </span>
+      </div>
+    </button>
+
+    {/* Accesos a los módulos que ya existían pero no se veían desde el Home */}
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mt-3">
+      {PARTNER_LINKS.map(l => (
+        <button key={l.to} onClick={() => navigate(l.to)}
+          className="card-float bg-surface-elevated rounded-2xl p-3 flex items-center gap-3 text-left hover:bg-surface transition-colors">
+          <span className="w-10 h-10 rounded-xl bg-accent/10 grid place-items-center text-lg flex-shrink-0">{l.icon}</span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[13px] font-extrabold text-ink-primary leading-tight truncate">{l.label}</span>
+            <span className="block text-[11px] text-ink-tertiary leading-tight truncate">{l.desc}</span>
+          </span>
+          <ChevronRight className="w-4 h-4 text-ink-tertiary flex-shrink-0" />
+        </button>
+      ))}
+    </div>
+  </section>
+);
 
 // ── RAÍL DERECHO (solo escritorio) — accesos al mapa real y a BailaNow TV.
 // No incluye el panel de "Alertas activas" de la referencia: hoy no existe un
