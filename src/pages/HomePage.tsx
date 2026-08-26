@@ -1174,7 +1174,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
                     const b = badgeOf(it);
                     const d = distOf(it);
                     return (
-                      <button key={it.id} onClick={() => navigate(it.route)} className="tile-2 text-left group">
+                      <button key={it.id} onClick={() => navigate(it.route)} className={`${visibles.length <= 3 ? 'tile-wide' : 'tile-2'} text-left group`}>
                         <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
                           {it.cover ? (
                             <img src={it.cover} alt="" loading="lazy"
@@ -1203,7 +1203,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
                       </button>
                     );
                   })}
-                  <SeeAllTile onClick={() => navigate('/rutas')} className="tile-2 tile-cover" />
+                  <SeeAllTile onClick={() => navigate('/rutas')} className={`${visibles.length <= 3 ? 'tile-wide' : 'tile-2'} tile-cover`} />
                 </HScroll>
               )}
             </div>
@@ -1500,7 +1500,7 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
       </div>
       <HScroll>
         {lives.map(s => (
-          <button key={s.id} onClick={() => navigate(`/live/session/${s.id}`)} className="tile-2 text-left group">
+          <button key={s.id} onClick={() => navigate(`/live/session/${s.id}`)} className={`${lives.length <= 3 ? 'tile-wide' : 'tile-2'} text-left group`}>
             <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
               <AppImage src={s.cover || ''} alt={s.title} fallback="portrait" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
               <span className="absolute top-2 left-2 bg-red-500 text-white text-[9px] font-black px-2 py-0.5 rounded flex items-center gap-1 shadow-lg animate-pulse">
@@ -1514,7 +1514,7 @@ const LiveNowHomeSection: React.FC<{ navigate: any }> = ({ navigate }) => {
             <p className="text-gray-500 dark:text-gray-400 text-[11px] leading-tight truncate capitalize">{[s.category, s.city].filter(Boolean).join(' · ')}</p>
           </button>
         ))}
-        <SeeAllTile onClick={() => navigate('/live')} className="tile-2 tile-cover" />
+        <SeeAllTile onClick={() => navigate('/live')} className={`${lives.length <= 3 ? 'tile-wide' : 'tile-2'} tile-cover`} />
       </HScroll>
     </section>
   );
@@ -1600,7 +1600,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
           <HScroll>
             {tv.map((c, i) => {
               return (
-              <button key={i} onClick={() => navigate(c.link || '/tv')} className="tile-2 text-left group">
+              <button key={i} onClick={() => navigate(c.link || '/tv')} className={`${tv.length <= 3 ? 'tile-wide' : 'tile-2'} text-left group`}>
                 <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
                   {c.image ? (
                     <img src={c.image} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
@@ -1613,7 +1613,7 @@ const FeaturedTripleRow: React.FC<{ navigate: any }> = ({ navigate }) => {
                 <p className="text-gray-500 dark:text-gray-400 text-[11px] leading-tight truncate">{c.subtitle}</p>
               </button>
             );})}
-            <SeeAllTile onClick={() => navigate('/tv')} className="tile-2 tile-cover" />
+            <SeeAllTile onClick={() => navigate('/tv')} className={`${tv.length <= 3 ? 'tile-wide' : 'tile-2'} tile-cover`} />
           </HScroll>
         </div>
 
@@ -1728,7 +1728,7 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
       </div>
       <HScroll>
         {shows.map(s => (
-          <button key={s.id} onClick={() => navigate(`/tv/${s.id}`)} className="tile-2 text-left group">
+          <button key={s.id} onClick={() => navigate(`/tv/${s.id}`)} className={`${shows.length <= 3 ? 'tile-wide' : 'tile-2'} text-left group`}>
             <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
               {s.img ? (
                 <img src={s.img} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(ev) => { ev.currentTarget.style.display = 'none'; }} />
@@ -1794,7 +1794,7 @@ const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
         <Header icon="🎓" title="Clases Populares" onAll={() => navigate('/clases')} />
         <HScroll>
           {clases.map(c => (
-            <button key={c.id} onClick={() => navigate('/clases')} className="tile-2 text-left group">
+            <button key={c.id} onClick={() => navigate('/clases')} className={`${clases.length <= 3 ? 'tile-wide' : 'tile-2'} text-left group`}>
               <div className="card-float tile-cover relative rounded-2xl overflow-hidden bg-brand-deep">
                 {c.img ? (
                   <img src={c.img} alt="" className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
