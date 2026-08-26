@@ -2944,9 +2944,22 @@ const PARTNER_LINKS: { label: string; desc: string; to: string; icon: string }[]
   { label: 'DanceFlow IA',desc: 'Entrena con tu cámara',        to: '/danceflow',   icon: '🤖' },
 ];
 
-const PartnerCitySection: React.FC<{ navigate: any }> = ({ navigate }) => (
+const PartnerCitySection: React.FC<{ navigate: any }> = ({ navigate }) => {
+  const hero = useSiteConfigStore(s => s.homePartnerHero);
+  const heroFull = useSiteConfigStore(s => s.homePartnerHeroFull);
+  return (
   <section className="mx-3 sm:mx-4 mt-8">
-    {/* CTA principal — el módulo estaba invisible pese a estar terminado */}
+    {/* Banner del programa de partners. Si hay una maqueta subida desde el
+        admin que ya trae título y botón, se usa a sangre y no se pinta el
+        texto propio, para que no salga duplicado. */}
+    {hero && heroFull ? (
+      <button onClick={() => navigate('/partner/aplicar')}
+        aria-label="Sé el partner de BailaNow en tu ciudad — quiero ser partner"
+        className="card-float group relative block w-full overflow-hidden rounded-3xl bg-brand-deep">
+        <img src={hero} alt="" className="w-full h-auto block transition-transform duration-700 group-hover:scale-[1.02]"
+          onError={ev => { ev.currentTarget.style.display = 'none'; }} />
+      </button>
+    ) : (
     <button onClick={() => navigate('/partner/aplicar')}
       className="card-float relative w-full overflow-hidden rounded-3xl p-5 sm:p-7 text-left text-white bg-gradient-to-br from-brand-deep via-brand to-brand-secondary">
       <div className="absolute -top-12 -right-12 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
@@ -2961,6 +2974,7 @@ const PartnerCitySection: React.FC<{ navigate: any }> = ({ navigate }) => (
         </span>
       </div>
     </button>
+    )}
 
     {/* Accesos a los módulos que ya existían pero no se veían desde el Home */}
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mt-3">
@@ -2977,7 +2991,8 @@ const PartnerCitySection: React.FC<{ navigate: any }> = ({ navigate }) => (
       ))}
     </div>
   </section>
-);
+  );
+};
 
 // ── RAÍL DERECHO (solo escritorio) — accesos al mapa real y a BailaNow TV.
 // No incluye el panel de "Alertas activas" de la referencia: hoy no existe un

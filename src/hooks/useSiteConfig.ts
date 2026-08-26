@@ -12,7 +12,7 @@ import { applyBrandColors, type BrandColors } from '../lib/color';
 
 // ── Load config from Supabase on mount ────────────────────────────────────
 export function useSiteConfigLoader() {
-  const { setHeroSliderImages, setHeroMedia, setSiteLogo, setHomeCategories, setProfileModules, setHomeTvCards, setHomeTvHero, setHomeRadioHero, setHomeHeroFull, setCommissions } = useSiteConfigStore();
+  const { setHeroSliderImages, setHeroMedia, setSiteLogo, setHomeCategories, setProfileModules, setHomeTvCards, setHomeTvHero, setHomeRadioHero, setHomePartnerHero, setHomeHeroFull, setCommissions } = useSiteConfigStore();
 
   useEffect(() => {
     const load = async () => {
@@ -49,6 +49,10 @@ export function useSiteConfigLoader() {
           if (row.key === 'home_radio_hero' && row.value && typeof row.value === 'object') {
             setHomeRadioHero(typeof row.value.url === 'string' ? row.value.url : '');
             setHomeHeroFull('radio', row.value.full === true);
+          }
+          if (row.key === 'home_partner_hero' && row.value && typeof row.value === 'object') {
+            setHomePartnerHero(typeof row.value.url === 'string' ? row.value.url : '');
+            setHomeHeroFull('partner', row.value.full === true);
           }
           if (row.key === 'commission_config' && row.value && typeof row.value === 'object') {
             setCommissions(row.value as CommissionConfig);
