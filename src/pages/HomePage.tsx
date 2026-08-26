@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import MapErrorBoundary from '../components/MapErrorBoundary';
-import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2, GraduationCap } from 'lucide-react';
+import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2, GraduationCap, Music2 } from 'lucide-react';
 import { ARTISTS, EVENTS } from '../data/mockData';
 import { TOP_DANCE_CITIES } from '../data/topDanceCities';
 import { distanceKm, pointFor, type LatLng } from '../lib/geo';
@@ -898,8 +898,23 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
 
   return (
     <section className="mx-3 sm:mx-4 mt-8">
-      {/* Súper buscador — justo encima del mapa: primero se elige ciudad y debajo
-          se ve reflejada en el mapa y en los contadores de cada categoría. */}
+      {/* Banner del módulo — tarjeta horizontal con icono grande, como en la referencia */}
+      <button onClick={() => navigate('/rutas')}
+        className="card-float w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-3xl bg-surface-elevated text-left mb-3 hover:bg-surface transition-colors">
+        <span className="relative w-14 h-14 rounded-2xl bg-accent/10 grid place-items-center flex-shrink-0">
+          <RouteIcon className="w-7 h-7 text-accent" />
+          {stats.plan > 0 && <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-accent ring-2 ring-surface-elevated" />}
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block font-display font-black text-lg text-ink-primary leading-tight">Planes de baile</span>
+          <span className="block text-[13px] text-ink-tertiary leading-tight mt-0.5">Salidas en grupo para bailar</span>
+        </span>
+        <span className="inline-flex items-center gap-1.5 bg-accent text-white text-[13px] font-black px-4 py-2.5 rounded-full flex-shrink-0">
+          Ver todos <ArrowRight className="w-4 h-4" />
+        </span>
+      </button>
+
+      {/* Súper buscador de ciudad — filtra el mapa y los contadores de abajo */}
       <div className="mb-3">
         <SuperSearchBar cityValue={cityFilter || ''} onCitySelect={onCityChange} />
       </div>
@@ -930,7 +945,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         })}
       </div>
 
-      <div className="card-float relative overflow-hidden rounded-3xl min-h-[80px] sm:min-h-[240px]">
+      <div className="card-float relative overflow-hidden rounded-3xl min-h-[80px] sm:min-h-[130px]">
         {/* Mapa real de fondo — Planes/Abiertos ahora/Eventos/En directo a la vez, cada uno con su color y alarma */}
         <div className="absolute inset-0">
           {pins.length > 0 ? (
@@ -953,7 +968,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         <div className="absolute inset-0 bg-gradient-to-r from-brand-deep via-brand-deep/70 to-brand-deep/15 pointer-events-none" />
         <div className="absolute inset-0 bg-gradient-to-t from-brand-deep/85 via-transparent to-transparent pointer-events-none" />
 
-        <div className="relative p-2.5 sm:p-5 flex items-start justify-between gap-2 sm:gap-3 flex-wrap sm:flex-nowrap min-h-[80px] sm:min-h-[240px]">
+        <div className="relative p-2.5 sm:p-4 flex items-start justify-between gap-2 sm:gap-3 flex-wrap sm:flex-nowrap min-h-[80px] sm:min-h-[130px]">
           <div className="min-w-0 pointer-events-none">
             <h2 className="font-display font-black text-sm sm:text-xl text-white flex items-center gap-1.5 sm:gap-2">
               <RouteIcon className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-pink-300" /> Planes de baile
@@ -1821,6 +1836,36 @@ const HomePage: React.FC = () => {
   // (Admin → Diseño). Es contenido configurable real, no una foto inventada.
   const heroSliderImages = useSiteConfigStore(s => s.heroSliderImages);
   const heroImage = heroSliderImages?.[0]?.url || '';
+
+  // Métricas del hero — conteos reales del catálogo, no cifras de marketing.
+  // Si una está a 0 no se pinta, para no enseñar un contador vacío.
+  const [catalogCounts, setCatalogCounts] = useState({ venues: 0, events: 0, artists: 0, cities: 0, clases: 0 });
+  useEffect(() => {
+    let cancelled = false;
+    const head = { count: 'exact' as const, head: true };
+    Promise.all([
+      supabase.from('venues').select('*', head).is('deleted_at', null),
+      supabase.from('events').select('*', head).is('deleted_at', null),
+      supabase.from('artists').select('*', head),
+      supabase.from('cities').select('*', head),
+      supabase.from('class_offerings').select('*', head).eq('status', 'active'),
+    ]).then(([v, e, a, c, cl]) => {
+      if (cancelled) return;
+      setCatalogCounts({
+        venues: v.count || 0, events: e.count || 0, artists: a.count || 0,
+        cities: c.count || 0, clases: cl.count || 0,
+      });
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  const heroStats: { label: string; val: number; icon: React.FC<any> }[] = [
+    { label: 'Locales',   val: catalogCounts.venues,  icon: Building2 },
+    { label: 'Eventos',   val: catalogCounts.events,  icon: Calendar },
+    { label: 'Artistas',  val: catalogCounts.artists, icon: Music2 },
+    { label: 'Ciudades',  val: catalogCounts.cities,  icon: MapPin },
+    { label: 'Clases',    val: catalogCounts.clases,  icon: GraduationCap },
+  ];
   const heroHasVideoFile = heroMedia.type === 'video' && !!heroMedia.url;
   const cmsModules = useCMSStore(s => s.modules);
   const cmsCategories = useCMSStore(s => s.categories);
@@ -1990,99 +2035,64 @@ const HomePage: React.FC = () => {
       <div className="xl:flex xl:gap-4 xl:items-start xl:pr-4">
       <div className="min-w-0 flex-1">
 
-      {/* ── HERO: TV con el vídeo real visible sin pulsar, Radio con emisoras reales clicables ── */}
-      <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 grid grid-cols-2 gap-2.5 sm:gap-3">
-        {/* TV: se ve el contenido en directo, no hace falta pulsar para verlo */}
-        <div className="card-float relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-[#4A0530] via-[#C00E68] to-[#E5127D] flex flex-col">
-          <div className="relative w-full h-24 sm:h-32 lg:h-52 bg-black">
-            {heroYtId ? (
-              <iframe
-                src={`https://www.youtube.com/embed/${heroYtId}?autoplay=1&mute=1&loop=1&playlist=${heroYtId}&controls=0&modestbranding=1&rel=0`}
-                title="BailaNow TV" allow="autoplay; encrypted-media" className="w-full h-full pointer-events-none" style={{ border: 0 }} />
-            ) : heroHasVideoFile ? (
-              <video src={heroMedia.url} autoPlay muted loop playsInline className="w-full h-full object-cover" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Tv className="w-9 h-9 sm:w-11 sm:h-11 text-white/25" />
+      {/* ── HERO PRINCIPAL — panel claro, mensaje a la izquierda y foto a la derecha.
+             Las métricas viven dentro del propio hero, como en la referencia. ── */}
+      <section className="mx-3 sm:mx-4 mt-4">
+        <div className="card-float relative overflow-hidden rounded-3xl bg-surface-elevated">
+          <div className="relative flex items-stretch">
+            <div className="relative z-10 p-5 sm:p-8 flex-1 min-w-0">
+              <p className="font-display font-black text-sm sm:text-base tracking-tight">
+                <span className="text-brand">VIVE.</span> <span className="text-ink-primary">CONECTA.</span> <span className="text-brand">BAILA.</span>
+              </p>
+              <h1 className="font-display font-black text-2xl sm:text-4xl text-ink-primary leading-[1.1] mt-1">
+                Todo el baile latino,<br />
+                <span className="text-brand">en un solo lugar</span>
+              </h1>
+
+              {/* Métricas reales del catálogo — se ocultan solas si están a 0 */}
+              <div className="flex flex-wrap gap-x-5 gap-y-3 mt-5">
+                {heroStats.filter(m => m.val > 0).map(m => {
+                  const Icon = m.icon;
+                  return (
+                    <div key={m.label} className="flex items-center gap-2">
+                      <span className="w-9 h-9 rounded-xl bg-accent/10 grid place-items-center flex-shrink-0">
+                        <Icon className="w-4 h-4 text-accent" />
+                      </span>
+                      <span>
+                        <span className="block font-display font-black text-base text-ink-primary leading-none">{m.val}</span>
+                        <span className="block text-[10px] text-ink-tertiary leading-tight mt-0.5">{m.label}</span>
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="flex flex-wrap gap-2 mt-5">
+                {HERO_ACTIONS.map(a => {
+                  const Icon = a.icon;
+                  return (
+                    <button key={a.to} onClick={() => navigate(a.to)}
+                      className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-[13px] font-extrabold transition-all ${
+                        a.primary
+                          ? 'bg-accent text-white hover:bg-brand-pink-dark shadow-elevation-2'
+                          : 'bg-surface-elevated text-ink-primary border border-hairline/15 hover:border-accent/40 shadow-elevation-1'
+                      }`}>
+                      <Icon className="w-4 h-4" /> {a.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Foto a la derecha, solo cuando hay ancho para que luzca */}
+            {heroImage && (
+              <div className="hidden md:block relative w-[42%] flex-shrink-0">
+                <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover"
+                  onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                {/* Difuminado hacia el texto para que no haya un corte duro */}
+                <div className="absolute inset-0 bg-gradient-to-r from-surface-elevated via-surface-elevated/40 to-transparent" />
               </div>
             )}
-            <span className="absolute top-2 left-2 flex items-center gap-1 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded z-10">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" /> EN VIVO
-            </span>
-          </div>
-          <button onClick={() => setTvWidgetOpen(true)}
-            className="flex items-center justify-center gap-1.5 py-1.5 sm:py-2 lg:py-3.5 text-white font-display font-black text-xs sm:text-base lg:text-lg hover:bg-white/10 transition-colors">
-            <Tv className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5" /> BailaNow TV
-          </button>
-        </div>
-
-        {/* Radio: emisoras reales visibles, cada una se pulsa para escucharla directamente */}
-        <div className="card-float relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-bl from-[#E5127D] via-[#C00E68] to-[#4A0530] flex flex-col justify-center p-2 sm:p-3 lg:p-5">
-          <p className="text-white font-display font-black text-xs sm:text-base lg:text-lg flex items-center gap-1.5 mb-1.5 lg:mb-3">
-            <Radio className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5" /> Radio Online
-          </p>
-          <div className="grid grid-cols-2 gap-1.5 sm:gap-2 lg:gap-3">
-            {radioStations.slice(0, 4).map((s, i) => {
-              const isPlaying = playing === i;
-              return (
-                <button key={s.id} onClick={() => setPlaying(p => p === i ? null : i)}
-                  className={`flex items-center gap-1.5 rounded-lg sm:rounded-xl px-1.5 sm:px-2 lg:px-3 py-1.5 lg:py-2.5 text-left transition-colors ${isPlaying ? 'bg-white/25' : 'bg-white/10 hover:bg-white/15'}`}>
-                  <span className="w-6 h-6 sm:w-7 sm:h-7 lg:w-9 lg:h-9 rounded-full overflow-hidden flex-shrink-0 bg-white/20">
-                    <img src={s.img} alt="" className="w-full h-full object-cover" onError={e => { (e.target as HTMLImageElement).style.visibility = 'hidden'; }} />
-                  </span>
-                  <span className="min-w-0 flex-1 text-white text-[9px] sm:text-[11px] lg:text-sm font-bold truncate">{s.name}</span>
-                  {isPlaying
-                    ? (radioStatus === 'loading' ? <Loader2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 text-white flex-shrink-0 animate-spin" /> : <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 text-white flex-shrink-0" />)
-                    : <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 lg:w-4 lg:h-4 text-white flex-shrink-0" />}
-                </button>
-              );
-            })}
-          </div>
-          {radioStations.length > 4 && (
-            <button onClick={() => setRadioWidgetOpen(true)} className="text-white/70 hover:text-white text-[10px] sm:text-xs lg:text-sm font-bold text-center mt-1.5 lg:mt-3">
-              Ver todas las emisoras →
-            </button>
-          )}
-        </div>
-      </section>
-
-      {/* ── HERO PRINCIPAL — foto de portada + accesos rápidos a módulos reales ── */}
-      <section className="mx-3 sm:mx-4 mt-4">
-        <div className="card-float relative overflow-hidden rounded-3xl min-h-[240px] sm:min-h-[300px] flex items-end">
-          {/* Portada: la que el admin haya configurado en el slider; si no, una de respaldo */}
-          <img
-            src={heroImage}
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover"
-            loading="eager"
-            onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-          />
-          {/* Velos oscuros para que el texto se lea siempre sobre cualquier foto */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/20" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-
-          <div className="relative p-5 sm:p-8 w-full">
-            <h1 className="font-display font-black text-2xl sm:text-4xl text-white leading-tight">
-              ¿Qué quieres hacer hoy?
-            </h1>
-            <p className="text-white/80 text-sm sm:text-base mt-1.5 max-w-md">
-              Descubre, conecta y vive tu pasión por el baile
-            </p>
-            <div className="flex flex-wrap gap-2 mt-4">
-              {HERO_ACTIONS.map(a => {
-                const Icon = a.icon;
-                return (
-                  <button key={a.to} onClick={() => navigate(a.to)}
-                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-[13px] font-extrabold transition-all ${
-                      a.primary
-                        ? 'bg-accent text-white hover:bg-brand-pink-dark shadow-elevation-2'
-                        : 'bg-white/15 text-white border border-white/30 backdrop-blur-sm hover:bg-white/25'
-                    }`}>
-                    <Icon className="w-4 h-4" /> {a.label}
-                  </button>
-                );
-              })}
-            </div>
           </div>
         </div>
       </section>
@@ -2380,7 +2390,7 @@ const HomePage: React.FC = () => {
       </div>{/* /columna de contenido */}
 
       <div className="xl:sticky xl:top-16">
-        <HomeSideRail navigate={navigate} />
+        <HomeSideRail navigate={navigate} onOpenTv={() => setTvWidgetOpen(true)} onOpenRadio={() => setRadioWidgetOpen(true)} />
       </div>
       </div>{/* /layout de 2 columnas */}
 
@@ -2529,39 +2539,110 @@ const PartnerCitySection: React.FC<{ navigate: any }> = ({ navigate }) => (
 // ── RAÍL DERECHO (solo escritorio) — accesos al mapa real y a BailaNow TV.
 // No incluye el panel de "Alertas activas" de la referencia: hoy no existe un
 // sistema de alertas configurable en la BD, y no se pinta lo que no hay. ──
-const HomeSideRail: React.FC<{ navigate: any }> = ({ navigate }) => (
-  <aside className="hidden xl:flex xl:flex-col gap-4 w-[300px] flex-shrink-0">
-    <div className="card-float bg-surface-elevated rounded-2xl overflow-hidden">
-      <div className="flex items-center justify-between px-4 pt-3.5 pb-2">
-        <h3 className="font-display font-black text-sm text-ink-primary">Cerca de ti</h3>
-        <button onClick={() => navigate('/cerca')} className="text-accent text-[11px] font-bold hover:underline">Ver mapa →</button>
-      </div>
-      <button onClick={() => navigate('/cerca')} className="block w-full text-left group">
-        <span className="block relative h-40 bg-brand-deep overflow-hidden">
-          <span className="absolute inset-0 grid place-items-center">
-            <MapPin className="w-8 h-8 text-white/40" />
-          </span>
-        </span>
-        <span className="block px-4 py-3">
-          <span className="block text-[13px] font-bold text-ink-primary">Explora tu ciudad</span>
-          <span className="block text-[11px] text-ink-tertiary mt-0.5">Locales, eventos y planes cerca</span>
-        </span>
-      </button>
-    </div>
+const HomeSideRail: React.FC<{ navigate: any; onOpenTv: () => void; onOpenRadio: () => void }> = ({ navigate, onOpenTv, onOpenRadio }) => {
+  const [near, setNear] = useState<any[]>([]);
 
+  // Locales reales, ordenados por valoración. Si el usuario ya concedió la
+  // ubicación se muestra la distancia; si no, la ciudad.
+  const [pos, setPos] = useState<LatLng | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    supabase.from('venues')
+      .select('id,name,city,lat,lng,cover,image_url,avatar,open_time,close_time,is_open')
+      .is('deleted_at', null).order('rating', { ascending: false }).limit(6)
+      .then(({ data }) => { if (!cancelled) setNear(data || []); }, () => {});
+    if (navigator.geolocation && navigator.permissions) {
+      navigator.permissions.query({ name: 'geolocation' as PermissionName })
+        .then(r => {
+          if (cancelled || r.state !== 'granted') return;
+          navigator.geolocation.getCurrentPosition(
+            g => { if (!cancelled) setPos({ lat: g.coords.latitude, lng: g.coords.longitude }); },
+            () => {}, { maximumAge: 300000, timeout: 8000 });
+        }).catch(() => {});
+    }
+    return () => { cancelled = true; };
+  }, []);
+
+  const openNow = (v: any) => {
+    if (v.is_open === true) return true;
+    if (!v.open_time || !v.close_time) return false;
+    const toMin = (x: string) => { const [h, m] = String(x).split(':').map(Number); return (h || 0) * 60 + (m || 0); };
+    const o = toMin(v.open_time), c = toMin(v.close_time);
+    const now = new Date(); const cur = now.getHours() * 60 + now.getMinutes();
+    return c > o ? (cur >= o && cur <= c) : (cur >= o || cur <= c);
+  };
+  const distOf = (v: any) => {
+    if (!pos) return null;
+    const pt = pointFor(v);
+    return pt ? distanceKm(pos, pt) : null;
+  };
+
+  return (
+  <aside className="hidden xl:flex xl:flex-col gap-4 w-[300px] flex-shrink-0">
+    {/* Cerca de ti — mapa compacto + lista de locales reales */}
+    {near.length > 0 && (
+      <div className="card-float bg-surface-elevated rounded-2xl overflow-hidden">
+        <div className="flex items-center justify-between px-4 pt-3.5 pb-2">
+          <h3 className="font-display font-black text-sm text-ink-primary">Cerca de ti</h3>
+          <button onClick={() => navigate('/cerca')} className="text-accent text-[11px] font-bold hover:underline">Ver mapa →</button>
+        </div>
+        <div className="px-2 pb-2 space-y-1">
+          {near.slice(0, 4).map(v => {
+            const d = distOf(v);
+            const abierto = openNow(v);
+            return (
+              <button key={v.id} onClick={() => navigate(`/venues/${v.id}`)}
+                className="w-full flex items-center gap-2.5 p-2 rounded-xl hover:bg-surface transition-colors text-left">
+                <span className="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 bg-brand-deep">
+                  <AppImage src={v.cover || v.image_url || v.avatar || ''} alt={v.name} fallback="square" className="w-full h-full object-cover" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[12px] font-bold text-ink-primary truncate">{fixText(v.name)}</span>
+                  <span className="block text-[10px] text-ink-tertiary truncate">
+                    {d !== null ? (d < 1 ? `${Math.round(d * 1000)} m` : `${d.toFixed(1)} km`) : fixText(v.city || '')}
+                  </span>
+                </span>
+                {abierto && (
+                  <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex-shrink-0">ABIERTO</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <button onClick={() => navigate('/venues')} className="w-full text-accent text-[11px] font-black py-2.5 border-t border-hairline/10 hover:bg-surface transition-colors">
+          Ver más lugares →
+        </button>
+      </div>
+    )}
+
+    {/* BailaNow TV */}
     <div className="card-float relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#4A0530] via-[#C00E68] to-[#E5127D] p-4">
       <div className="flex items-center justify-between mb-1">
         <h3 className="font-display font-black text-sm text-white">BailaNow TV</h3>
         <button onClick={() => navigate('/tv')} className="text-white/80 text-[11px] font-bold hover:text-white">Ver más →</button>
       </div>
       <p className="text-white/75 text-[11px] leading-snug mb-3">Vídeos, entrevistas y lo mejor del mundo del baile</p>
-      <button onClick={() => navigate('/tv')}
+      <button onClick={onOpenTv}
         className="inline-flex items-center gap-2 bg-white text-brand text-[12px] font-black px-4 py-2 rounded-full hover:bg-white/90 transition-colors">
         <Play className="w-3.5 h-3.5" fill="currentColor" /> Ver ahora
       </button>
     </div>
+
+    {/* Radio — sale del sitio de honor del hero a un widget compacto */}
+    <button onClick={onOpenRadio}
+      className="card-float bg-surface-elevated rounded-2xl p-4 flex items-center gap-3 text-left hover:bg-surface transition-colors">
+      <span className="w-11 h-11 rounded-xl bg-accent/10 grid place-items-center flex-shrink-0">
+        <Radio className="w-5 h-5 text-accent" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[13px] font-extrabold text-ink-primary leading-tight">Radio Online</span>
+        <span className="block text-[11px] text-ink-tertiary leading-tight">Música latina en directo 24/7</span>
+      </span>
+      <ChevronRight className="w-4 h-4 text-ink-tertiary flex-shrink-0" />
+    </button>
   </aside>
-);
+  );
+};
 
 // ── ARTIST CARD ─────────────────────────────────────────────────────────────
 const ArtistCard: React.FC<{ artist: typeof ARTISTS[0]; onClick: () => void }> = ({ artist, onClick }) => (
