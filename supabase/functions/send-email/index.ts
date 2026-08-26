@@ -30,6 +30,31 @@ const shell = (title: string, body: string) => `
   </div>
 </div>`;
 
+// Nada de HTML venido de fuera dentro de un correo.
+const esc = (v: unknown) => String(v ?? '')
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').slice(0, 120);
+
+// Destinatarios de los avisos internos: quien tenga admin o superadmin en la
+// base de datos. Así, al añadir o quitar un administrador, los avisos siguen
+// solos — no hay ninguna dirección escrita a mano en el código.
+async function resolveAdmins(): Promise<string[]> {
+  const url = Deno.env.get('SUPABASE_URL') ?? '';
+  const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  if (!url || !key) return [];
+  try {
+    const r = await fetch(
+      `${url}/rest/v1/profiles?select=email&role=in.(admin,superadmin)`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } },
+    );
+    if (!r.ok) return [];
+    const rows = await r.json();
+    return (rows as { email?: string }[])
+      .map(x => String(x.email ?? '').trim())
+      .filter(e => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
+  } catch { return []; }
+}
+
 const btn = (href: string, text: string) =>
   `<a href="${href}" style="display:inline-block;background:linear-gradient(135deg,#f97316,#d946ef);color:#fff;font-weight:700;text-decoration:none;padding:12px 22px;border-radius:10px;margin-top:12px">${text}</a>`;
 
@@ -65,6 +90,23 @@ function template(type: string, d: Record<string, any>): { subject: string; html
         `<p>Estamos revisando tu solicitud para reclamar <b>${d.targetName || 'el perfil'}</b>, pero necesitamos más información antes de continuar:</p>
          <p style="background:#faf7fb;padding:12px 14px;border-radius:10px"><i>${d.reason || 'Por favor contáctanos con más detalles.'}</i></p>
          <p>Responde a este correo con la información solicitada.</p>`) };
+    // ── Avisos internos al equipo. El destinatario NO llega en la petición:
+    //    se resuelve en el servidor (ver resolveAdmins), así el navegador nunca
+    //    ve las direcciones del equipo. El detalle va escapado.
+    case 'admin_claim':
+      return { subject: '🔔 Nueva reclamación de perfil · BailaNow', html: shell('Hay una reclamación esperando',
+        `<p>Alguien ha solicitado reclamar <b>${esc(d.targetName) || 'un perfil'}</b>.</p>
+         <p>Revísala y apruébala o recházala desde el panel.</p>${btn(`${APP}/admin/reclamaciones`, 'Revisar reclamación')}`) };
+    case 'admin_partner':
+      return { subject: '🔔 Nueva solicitud de partner · BailaNow', html: shell('Nueva solicitud de partner',
+        `<p>Se ha recibido una solicitud para el programa de partners${d.city ? ` en <b>${esc(d.city)}</b>` : ''}.</p>${btn(`${APP}/admin/partner`, 'Revisar solicitud')}`) };
+    case 'admin_creator':
+      return { subject: '🔔 Nueva solicitud de creador · BailaNow', html: shell('Nueva solicitud de creador',
+        `<p>Se ha recibido una solicitud de creador${d.name ? ` de <b>${esc(d.name)}</b>` : ''}.</p>${btn(`${APP}/admin/solicitudes-creador`, 'Revisar solicitud')}`) };
+    case 'admin_dispute':
+      return { subject: '⚠️ Disputa abierta · BailaNow', html: shell('Se ha abierto una disputa',
+        `<p>Hay una disputa esperando mediación. Conviene atenderla pronto: hay dinero retenido de por medio.</p>${btn(`${APP}/admin/disputas`, 'Ver disputa')}`) };
+
     default:
       // Sin contenido libre del usuario: evita usar esta función como relay de phishing.
       return { subject: 'BailaNow', html: shell('BailaNow', '<p>Tienes una novedad en BailaNow.</p>' + btn(APP, 'Abrir BailaNow')) };
@@ -82,15 +124,29 @@ serve(async (req) => {
 
   let body: Record<string, any>;
   try { body = await req.json(); } catch { return json({ error: 'Body inválido' }, 400); }
-  const to = String(body.to ?? '').trim();
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return json({ error: 'Email destino no válido' }, 400);
 
-  const { subject, html } = template(String(body.type ?? 'generic'), body.data || {});
+  const type = String(body.type ?? 'generic');
+  const esAviso = type.startsWith('admin_');
+
+  // En los avisos internos el destinatario lo pone el servidor. Si viniera en la
+  // petición, cualquiera podría usar esta función para mandar correos a quien
+  // quisiera con la imagen de BailaNow.
+  let destinatarios: string[];
+  if (esAviso) {
+    destinatarios = await resolveAdmins();
+    if (destinatarios.length === 0) return json({ sent: false, sinDestinatarios: true });
+  } else {
+    const to = String(body.to ?? '').trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return json({ error: 'Email destino no válido' }, 400);
+    destinatarios = [to];
+  }
+
+  const { subject, html } = template(type, body.data || {});
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: FROM, to, subject, html }),
+    body: JSON.stringify({ from: FROM, to: destinatarios, subject, html }),
   });
   if (!res.ok) { console.error('[send-email]', await res.text()); return json({ error: 'No se pudo enviar' }, 502); }
-  return json({ sent: true });
+  return json({ sent: true, destinatarios: destinatarios.length });
 });

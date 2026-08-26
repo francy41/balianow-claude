@@ -49,6 +49,11 @@ const RecruitPage: React.FC = () => {
     });
     setSending(false);
     if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    // Aviso al equipo: hasta ahora nadie se enteraba de que había algo
+    // pendiente hasta que abría el panel. No bloquea el envío si falla.
+    supabase.functions.invoke('send-email', {
+      body: { type: 'admin_creator', data: { name: form.name.trim() } },
+    }).catch(() => {});
     setSent(true);
   };
 
