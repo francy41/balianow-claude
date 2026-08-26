@@ -15,6 +15,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/appStore';
 import type { UserRole } from '../store/appStore';
 import { FullPageLoader } from './ui';
+import { canAccess } from '../lib/permissions';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -40,13 +41,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRole 
   // Se comprueba tanto el rol activo (user.role) como TODOS los roles de la
   // cuenta (user.roles) — así alguien con rol activo "dancer" pero que
   // también tiene "instructor" asignado no pierde acceso a rutas de instructor.
-  if (requiredRole) {
-    const hasAccess =
-      user.role === requiredRole ||
-      user.role === 'superadmin' ||
-      (user.roles || []).includes(requiredRole) ||
-      (user.roles || []).includes('superadmin');
-    if (!hasAccess) return <Navigate to="/dashboard" replace />;
+  if (requiredRole && !canAccess(user, requiredRole)) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;

@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuthStore } from '../store/appStore';
 import VideoAdOverlay, { VideoAd } from './VideoAdOverlay';
 import VastAdPlayer from './VastAdPlayer';
+import { isAdmin as isAdminUser, hasRole } from '../lib/permissions';
 
 // Categorías donde puede saltar el pre-roll (primer segmento de la ruta)
 // 'tv' NO va aquí: BailaNow TV tiene su propio pre-roll por vídeo (con atribución al creador).
@@ -21,7 +22,7 @@ const StreamingAds: React.FC = () => {
   const lastSeg = useRef<string>('');
 
   // Los Premium y el staff no ven anuncios (gancho para vender Premium).
-  const adsDisabled = !!user && (user.isPremium || user.role === 'admin' || user.role === 'superadmin' || user.role === 'partner');
+  const adsDisabled = !!user && (user.isPremium || isAdminUser(user) || hasRole(user, 'partner'));
 
   useEffect(() => {
     if (adsDisabled) return;

@@ -4,6 +4,7 @@ import { MapPin, Send, Loader2, Instagram, Facebook, Music2, MessageCircle, Cale
 import { supabase } from '../lib/supabase';
 import { useUIStore } from '../store/appStore';
 import { useSeo } from '../hooks/useSeo';
+import NotFoundPage from './NotFoundPage';
 
 interface CityPartner { partner_id: string; display_name: string | null; socials: { provider: string; handle: string | null }[]; }
 interface CityEvent { id: string; title: string; date: string | null; cover: string | null; }
@@ -34,6 +35,7 @@ const CityPartnerPage: React.FC = () => {
   const city = useMemo(() => titleCase(decodeURIComponent(cityParam || '')), [cityParam]);
 
   const [loading, setLoading] = useState(true);
+  const [noExiste, setNoExiste] = useState(false);
   const [partner, setPartner] = useState<CityPartner | null>(null);
   const [events, setEvents] = useState<CityEvent[]>([]);
   const [venues, setVenues] = useState<CityVenue[]>([]);
@@ -72,13 +74,14 @@ const CityPartnerPage: React.FC = () => {
     let cancelled = false;
     const safety = setTimeout(() => { if (!cancelled) setLoading(false); }, 8000);
     (async () => {
-      const [{ data: cp }, { data: ev }, { data: vn }, { data: ar }] = await Promise.all([
+      const res = await Promise.all([
         supabase.rpc('city_partner', { p_city: city }),
         supabase.from('events').select('id,title,date,cover').is('deleted_at', null).ilike('city', city).order('date', { ascending: true }).limit(6),
         supabase.from('venues').select('id,name,cover,type').is('deleted_at', null).ilike('city', city).limit(6),
         supabase.from('artists').select('id,name,avatar,cover,type').ilike('city', city).limit(8),
       ]);
       if (cancelled) return;
+      const [{ data: cp }, { data: ev }, { data: vn }, { data: ar }] = res;
       const row = Array.isArray(cp) ? cp[0] : cp;
       setPartner(row ? { partner_id: row.partner_id, display_name: row.display_name, socials: row.socials || [] } : null);
       const evs = (ev as CityEvent[]) || [];
@@ -88,6 +91,17 @@ const CityPartnerPage: React.FC = () => {
       setVenues(vns);
       setArtists(ars);
       setOgImage(evs[0]?.cover || vns[0]?.cover || ars.find(a => a.cover)?.cover || undefined);
+
+      // `/:city` es un comodín al final de App.tsx: captura CUALQUIER ruta de un
+      // segmento que ninguna otra reclamó. Una errata en un enlace acababa aquí
+      // mostrando una ciudad inventada en vez de un 404, y Google la indexaba.
+      // Si las cuatro consultas fueron bien y no hay NADA de esta ciudad, el
+      // segmento no es una ciudad: es un 404. Si alguna falló (red, permisos)
+      // no se concluye nada y se sigue pintando la página, para no empeorar.
+      const algunaFallo = res.some(r => (r as any).error);
+      if (!algunaFallo && !row && evs.length === 0 && vns.length === 0 && ars.length === 0) {
+        setNoExiste(true);
+      }
       setLoading(false);
     })().catch(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; clearTimeout(safety); };
@@ -112,6 +126,8 @@ const CityPartnerPage: React.FC = () => {
   };
 
   if (loading) return <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-fuchsia-500" /></div>;
+  // El segmento no corresponde a ninguna ciudad con contenido: 404 honesto.
+  if (noExiste) return <NotFoundPage />;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white pb-24">
