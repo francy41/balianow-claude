@@ -1750,6 +1750,33 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
   );
 };
 
+// ── ONDAS DE EMISIÓN ────────────────────────────────────────────────────────
+// Se pintan POR ENCIMA de la ilustración (dibujada o subida) y por debajo del
+// texto, para que la tarjeta se lea como una señal en directo. El trazado tiene
+// periodo 360 y mide 1440 de ancho: al desplazar la mitad (720 = dos periodos
+// exactos) el bucle cierra sin costura.
+const WAVE_PATH = 'M0,60 C60,30 120,30 180,60 C240,90 300,90 360,60 C420,30 480,30 540,60 '
+  + 'C600,90 660,90 720,60 C780,30 840,30 900,60 C960,90 1020,90 1080,60 '
+  + 'C1140,30 1200,30 1260,60 C1320,90 1380,90 1440,60 L1440,120 L0,120 Z';
+
+const WAVE_LAYERS = [
+  { fill: '#ffffff', opacity: 0.13, duration: '13s', height: '58%', bottom: '-6%' },
+  { fill: '#FF3D9A', opacity: 0.36, duration: '9s',  height: '48%', bottom: '-2%' },
+  { fill: '#ffffff', opacity: 0.20, duration: '6.5s', height: '36%', bottom: '0%' },
+];
+
+const LiveWaves: React.FC = () => (
+  <span aria-hidden className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+    {WAVE_LAYERS.map((w, i) => (
+      <svg key={i} viewBox="0 0 1440 120" preserveAspectRatio="none"
+        className="wave-drift absolute left-0 w-[200%]"
+        style={{ animationDuration: w.duration, height: w.height, bottom: w.bottom, opacity: w.opacity }}>
+        <path d={WAVE_PATH} fill={w.fill} />
+      </svg>
+    ))}
+  </span>
+);
+
 // ── TARJETA DE BAILANOW TV ──────────────────────────────────────────────────
 // Identidad de canal: fondo de pantalla encendida (glow radial + líneas de
 // barrido + haz de luz), logotipo "TV" como chapa y play como elemento héroe.
@@ -1888,6 +1915,9 @@ const TvPromoCard: React.FC<{ navigate: any; onOpenTv: () => void; compact?: boo
           origin-bottom-right ${compact ? '-right-3 h-[168px]' : '-right-2 h-[196px]'}`} />
     )}
 
+    {/* Ondas por encima de la ilustración: la señal en directo */}
+    <LiveWaves />
+
     {/* Cintillo de canal */}
     <div className="flex items-center justify-between gap-2">
       <span className="inline-flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.18em] text-white/70">
@@ -1979,6 +2009,9 @@ const RadioPromoCard: React.FC<{ onOpenRadio: () => void; navigate: any; compact
           </span>
         </span>
       )}
+
+      {/* Ondas por encima de la ilustración: la señal en directo */}
+      <LiveWaves />
 
       {/* Cintillo: en directo de verdad — la emisora está activa en la BD */}
       <div className="flex items-center justify-between gap-2">

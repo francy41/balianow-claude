@@ -132,6 +132,18 @@
   .radio-bar { transform: scaleY(0.6); }
 }
 
+/* ── Ondas de emisión: el trazado mide el doble de ancho y se desplaza media
+      vuelta, así el bucle no tiene costura. Sensación de señal en directo. ── */
+@keyframes waveDrift {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.wave-drift { animation: waveDrift 9s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .wave-drift { animation: none; }
+}
+
 /* ── Marquee animations (auto-scroll left) ──────────────────────── */
 @keyframes marquee-left {
   0%   { transform: translateX(0); }
