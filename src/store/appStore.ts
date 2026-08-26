@@ -303,6 +303,9 @@ interface SiteConfigState {
   /** La imagen ya trae título y botón: se usa a sangre y la tarjeta no pinta su texto. */
   homeTvHeroFull: boolean;
   homeRadioHeroFull: boolean;
+  /** Ilustración del módulo de Partners del home. */
+  homePartnerHero: string;
+  homePartnerHeroFull: boolean;
   setHeroMedia: (media: Partial<HeroMedia>) => void;
   setHeroSliderImages: (images: HeroSliderImage[]) => void;
   setCommission: (source: CommissionSource, rate: number) => void;
@@ -317,7 +320,8 @@ interface SiteConfigState {
   setHomeTvCards: (cards: HomeTvCard[]) => void;
   setHomeTvHero: (url: string) => void;
   setHomeRadioHero: (url: string) => void;
-  setHomeHeroFull: (modulo: 'tv' | 'radio', full: boolean) => void;
+  setHomePartnerHero: (url: string) => void;
+  setHomeHeroFull: (modulo: 'tv' | 'radio' | 'partner', full: boolean) => void;
 }
 
 export interface HomeTvCard { title: string; subtitle: string; tag: string; image: string; link: string; }
@@ -351,6 +355,8 @@ export const useSiteConfigStore = create<SiteConfigState>()(
       homeRadioHero: '',
       homeTvHeroFull: false,
       homeRadioHeroFull: false,
+      homePartnerHero: '',
+      homePartnerHeroFull: false,
       setHeroMedia: (media) =>
         set((state) => ({ heroMedia: { ...state.heroMedia, ...media } })),
       setHeroSliderImages: (images) => set({ heroSliderImages: images }),
@@ -360,8 +366,11 @@ export const useSiteConfigStore = create<SiteConfigState>()(
       setHomeTvCards: (cards) => set({ homeTvCards: cards }),
       setHomeTvHero: (url) => set({ homeTvHero: url }),
       setHomeRadioHero: (url) => set({ homeRadioHero: url }),
+      setHomePartnerHero: (url) => set({ homePartnerHero: url }),
       setHomeHeroFull: (modulo, full) =>
-        set(modulo === 'tv' ? { homeTvHeroFull: full } : { homeRadioHeroFull: full }),
+        set(modulo === 'tv' ? { homeTvHeroFull: full }
+          : modulo === 'radio' ? { homeRadioHeroFull: full }
+          : { homePartnerHeroFull: full }),
       setCommission: (source, rate) =>
         set((state) => ({
           commissions: {

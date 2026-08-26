@@ -5923,7 +5923,8 @@ const HomeModuleHeroEditor: React.FC<{
 // ── HOME · BAILANOW TV (edita las 4 tarjetas del home, guardado global en site_config) ──
 const HomeFeaturedSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
   const { homeTvCards, setHomeTvCards, homeTvHero, setHomeTvHero, homeRadioHero, setHomeRadioHero,
-          homeTvHeroFull, homeRadioHeroFull, setHomeHeroFull } = useSiteConfigStore();
+          homeTvHeroFull, homeRadioHeroFull, setHomeHeroFull,
+          homePartnerHero, setHomePartnerHero, homePartnerHeroFull } = useSiteConfigStore();
   const [cards, setCards] = useState<HomeTvCard[]>(homeTvCards && homeTvCards.length ? homeTvCards : DEFAULT_HOME_TV);
   const [saving, setSaving] = useState(false);
   const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
@@ -5957,6 +5958,12 @@ const HomeFeaturedSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
       </div>
       {/* Ilustraciones de los dos módulos "En directo" del home */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <HomeModuleHeroEditor
+          title="Imagen del módulo de Partners"
+          hint="Banner del programa de partners del home. Marca la casilla si la imagen ya trae el título y el botón. Vacío = el banner de siempre."
+          configKey="home_partner_hero" folder="home-partner" emptyLabel="Banner de siempre"
+          value={homePartnerHero} full={homePartnerHeroFull}
+          onSaved={(u, f) => { setHomePartnerHero(u); setHomeHeroFull('partner', f); }} addToast={addToast} />
         <HomeModuleHeroEditor
           title="Imagen del módulo de TV"
           hint="Ocupa la mitad derecha de la tarjeta de BailaNow TV, con el borde izquierdo fundido. Sube un apaisado y encuadra lo importante a la derecha. Vacío = pareja dibujada."
