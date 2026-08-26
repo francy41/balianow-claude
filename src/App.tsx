@@ -158,9 +158,12 @@ const App: React.FC = () => {
           <div className="lg:ml-60">
             <Navbar onMenuToggle={() => setSidebarOpen(s => !s)} />
 
-            {/* max-w: sin él, en un monitor ancho el contenido se estiraba de
-                borde a borde y todo salía desproporcionado. */}
-            <main className="pt-14 pb-24 lg:pb-6 min-h-screen max-w-[1280px] mx-auto w-full">
+            {/* El tope existe para que en un monitor muy ancho el contenido no se
+                estire de borde a borde. Estaba en 1280, pero la columna ya viene
+                recortada por la barra lateral (240 px): en una pantalla de 1920
+                sobraban casi 200 px muertos a cada lado y parecía un fallo.
+                1600 aprovecha el ancho normal y sigue frenando en pantallas 4K. */}
+            <main className="pt-14 pb-24 lg:pb-6 min-h-screen max-w-[1600px] mx-auto w-full">
               <Suspense fallback={<FullPageLoader />}>
                 <RouteErrorBoundary>
                 <Routes>

@@ -300,6 +300,9 @@ interface SiteConfigState {
   homeTvHero: string;
   /** Ilustración del módulo de Radio del home. Vacío = se dibuja el vinilo. */
   homeRadioHero: string;
+  /** La imagen ya trae título y botón: se usa a sangre y la tarjeta no pinta su texto. */
+  homeTvHeroFull: boolean;
+  homeRadioHeroFull: boolean;
   setHeroMedia: (media: Partial<HeroMedia>) => void;
   setHeroSliderImages: (images: HeroSliderImage[]) => void;
   setCommission: (source: CommissionSource, rate: number) => void;
@@ -314,6 +317,7 @@ interface SiteConfigState {
   setHomeTvCards: (cards: HomeTvCard[]) => void;
   setHomeTvHero: (url: string) => void;
   setHomeRadioHero: (url: string) => void;
+  setHomeHeroFull: (modulo: 'tv' | 'radio', full: boolean) => void;
 }
 
 export interface HomeTvCard { title: string; subtitle: string; tag: string; image: string; link: string; }
@@ -345,6 +349,8 @@ export const useSiteConfigStore = create<SiteConfigState>()(
       homeTvCards: DEFAULT_HOME_TV,
       homeTvHero: '',
       homeRadioHero: '',
+      homeTvHeroFull: false,
+      homeRadioHeroFull: false,
       setHeroMedia: (media) =>
         set((state) => ({ heroMedia: { ...state.heroMedia, ...media } })),
       setHeroSliderImages: (images) => set({ heroSliderImages: images }),
@@ -354,6 +360,8 @@ export const useSiteConfigStore = create<SiteConfigState>()(
       setHomeTvCards: (cards) => set({ homeTvCards: cards }),
       setHomeTvHero: (url) => set({ homeTvHero: url }),
       setHomeRadioHero: (url) => set({ homeRadioHero: url }),
+      setHomeHeroFull: (modulo, full) =>
+        set(modulo === 'tv' ? { homeTvHeroFull: full } : { homeRadioHeroFull: full }),
       setCommission: (source, rate) =>
         set((state) => ({
           commissions: {

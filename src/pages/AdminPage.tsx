@@ -5851,18 +5851,21 @@ const PlanificadorSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
 // vuelve a dibujar su ilustración por defecto.
 const HomeModuleHeroEditor: React.FC<{
   title: string; hint: string; configKey: string; folder: string;
-  emptyLabel: string; value: string; onSaved: (url: string) => void; addToast: Function;
-}> = ({ title, hint, configKey, folder, emptyLabel, value, onSaved, addToast }) => {
+  emptyLabel: string; value: string; full: boolean;
+  onSaved: (url: string, full: boolean) => void; addToast: Function;
+}> = ({ title, hint, configKey, folder, emptyLabel, value, full, onSaved, addToast }) => {
   const [url, setUrl] = useState(value || '');
+  const [aSangre, setASangre] = useState(!!full);
   const [busy, setBusy] = useState(false);
 
-  const persist = async (next: string) => {
+  const persist = async (next: string, nextFull = aSangre) => {
     setBusy(true);
-    const { error } = await saveSiteConfigKey(configKey, { url: next });
+    const { error } = await saveSiteConfigKey(configKey, { url: next, full: nextFull });
     setBusy(false);
     if (error) { addToast({ type: 'error', message: `Error al guardar: ${error}` }); return; }
     setUrl(next);
-    onSaved(next);
+    setASangre(nextFull);
+    onSaved(next, nextFull);
     addToast({ type: 'success', message: next ? '✅ Imagen del módulo guardada.' : '✅ Vuelta a la ilustración dibujada.' });
   };
 
@@ -5902,13 +5905,25 @@ const HomeModuleHeroEditor: React.FC<{
         <button onClick={() => persist(url.trim())} disabled={busy}
           className="bg-brand-orange text-white font-bold px-4 py-2 rounded-lg text-sm disabled:opacity-50">Guardar</button>
       </div>
+      <label className="flex items-start gap-2 cursor-pointer">
+        <input type="checkbox" checked={aSangre} disabled={busy || !url}
+          onChange={e => persist(url.trim(), e.target.checked)}
+          className="mt-0.5 w-4 h-4 accent-pink-600" />
+        <span className="text-xs text-gray-600">
+          <b>La imagen ya trae el título y el botón.</b> Ocupa la tarjeta entera y se dejan de
+          pintar los textos propios, para que no salgan duplicados. Toda la tarjeta se vuelve
+          pulsable. Úsalo cuando subas una maqueta completa; déjalo sin marcar si la imagen es
+          solo la ilustración.
+        </span>
+      </label>
     </div>
   );
 };
 
 // ── HOME · BAILANOW TV (edita las 4 tarjetas del home, guardado global en site_config) ──
 const HomeFeaturedSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
-  const { homeTvCards, setHomeTvCards, homeTvHero, setHomeTvHero, homeRadioHero, setHomeRadioHero } = useSiteConfigStore();
+  const { homeTvCards, setHomeTvCards, homeTvHero, setHomeTvHero, homeRadioHero, setHomeRadioHero,
+          homeTvHeroFull, homeRadioHeroFull, setHomeHeroFull } = useSiteConfigStore();
   const [cards, setCards] = useState<HomeTvCard[]>(homeTvCards && homeTvCards.length ? homeTvCards : DEFAULT_HOME_TV);
   const [saving, setSaving] = useState(false);
   const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
@@ -5946,12 +5961,14 @@ const HomeFeaturedSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
           title="Imagen del módulo de TV"
           hint="Ocupa la mitad derecha de la tarjeta de BailaNow TV, con el borde izquierdo fundido. Sube un apaisado y encuadra lo importante a la derecha. Vacío = pareja dibujada."
           configKey="home_tv_hero" folder="home-tv" emptyLabel="Pareja dibujada"
-          value={homeTvHero} onSaved={setHomeTvHero} addToast={addToast} />
+          value={homeTvHero} full={homeTvHeroFull}
+          onSaved={(u, f) => { setHomeTvHero(u); setHomeHeroFull('tv', f); }} addToast={addToast} />
         <HomeModuleHeroEditor
           title="Imagen del módulo de Radio"
           hint="Ocupa la mitad derecha de la tarjeta de Radio, con el borde izquierdo fundido. Mismo encuadre que la de TV. Vacío = vinilo dibujado."
           configKey="home_radio_hero" folder="home-radio" emptyLabel="Vinilo dibujado"
-          value={homeRadioHero} onSaved={setHomeRadioHero} addToast={addToast} />
+          value={homeRadioHero} full={homeRadioHeroFull}
+          onSaved={(u, f) => { setHomeRadioHero(u); setHomeHeroFull('radio', f); }} addToast={addToast} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

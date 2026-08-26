@@ -1885,6 +1885,18 @@ const TvPromoCard: React.FC<{ navigate: any; onOpenTv: () => void; compact?: boo
   // Ilustración editable desde Admin → Home · BailaNow TV. Si no hay imagen
   // subida, se dibuja la pareja: la tarjeta nunca se queda coja.
   const hero = useSiteConfigStore(s => s.homeTvHero);
+  const heroFull = useSiteConfigStore(s => s.homeTvHeroFull);
+  // La maqueta subida ya trae título y botón: se usa a sangre y la tarjeta deja
+  // de pintar los suyos, para que no salgan duplicados. Toda ella abre la TV.
+  if (hero && heroFull) return (
+    <button onClick={onOpenTv} aria-label="BailaNow TV — ver ahora"
+      className={`card-float group relative block w-full overflow-hidden rounded-2xl bg-[#1A0210]
+        ${compact ? 'min-h-[210px]' : 'min-h-[236px]'}`}>
+      <img src={hero} alt="" className="absolute inset-0 w-full h-full object-cover
+        transition-transform duration-700 group-hover:scale-[1.03]" />
+      <LiveWaves />
+    </button>
+  );
   return (
   <div className={`card-float group relative isolate flex flex-col overflow-hidden rounded-2xl bg-[#1A0210]
     ${compact ? 'p-4 min-h-[210px]' : 'p-5 min-h-[236px]'}`}>
@@ -1902,14 +1914,20 @@ const TvPromoCard: React.FC<{ navigate: any; onOpenTv: () => void; compact?: boo
     {/* La ilustración: imagen subida por el admin, o la pareja dibujada.
         En ambos casos se apoya a la derecha y se funde hacia el texto. */}
     {hero ? (
+      <>
       <img src={hero} alt="" loading="lazy"
         style={{
           WebkitMaskImage: 'linear-gradient(to right, transparent 0%, #000 34%)',
           maskImage: 'linear-gradient(to right, transparent 0%, #000 34%)',
         }}
-        className="pointer-events-none absolute -z-10 inset-y-0 right-0 h-full w-[54%] object-cover object-right
-          transition-transform duration-700 group-hover:scale-[1.04] origin-right"
+        className="pointer-events-none absolute -z-10 inset-y-0 right-0 h-full w-[58%] object-cover scale-[1.14]
+          [object-position:56%_50%] transition-transform duration-700 group-hover:scale-[1.19] origin-right"
         onError={ev => { ev.currentTarget.style.display = 'none'; }} />
+    {/* Velo superior: las maquetas subidas suelen traer su propio "Ver más"
+        incrustado en la esquina. Esto lo tapa y da fondo al cintillo. */}
+    <span aria-hidden className="pointer-events-none absolute -z-10 inset-x-0 top-0 h-[44%]
+      bg-gradient-to-b from-black/95 via-black/60 to-transparent" />
+      </>
     ) : (
       <DanceCoupleSilhouette
         className={`pointer-events-none absolute -z-10 bottom-0 w-auto transition-transform duration-700 group-hover:scale-[1.04]
@@ -1964,6 +1982,7 @@ const TvPromoCard: React.FC<{ navigate: any; onOpenTv: () => void; compact?: boo
 // foco entrando por la izquierda, para que juntas hagan pareja simétrica.
 const RadioPromoCard: React.FC<{ onOpenRadio: () => void; navigate: any; compact?: boolean }> = ({ onOpenRadio, navigate, compact }) => {
   const hero = useSiteConfigStore(s => s.homeRadioHero);
+  const heroFull = useSiteConfigStore(s => s.homeRadioHeroFull);
   const [station, setStation] = useState<{ name: string; genre: string | null; bitrate: string | null } | null>(null);
 
   useEffect(() => {
@@ -1977,6 +1996,16 @@ const RadioPromoCard: React.FC<{ onOpenRadio: () => void; navigate: any; compact
   // Solo se pinta lo que existe de verdad en `radio_stations`.
   const meta = [station?.genre && fixText(station.genre), station?.bitrate].filter(Boolean).join(' · ');
 
+  if (hero && heroFull) return (
+    <button onClick={onOpenRadio} aria-label="BailaNow FM — escuchar en directo"
+      className={`card-float group relative block w-full overflow-hidden rounded-2xl bg-[#12010C]
+        ${compact ? 'min-h-[210px]' : 'min-h-[236px]'}`}>
+      <img src={hero} alt="" className="absolute inset-0 w-full h-full object-cover
+        transition-transform duration-700 group-hover:scale-[1.03]" />
+      <LiveWaves />
+    </button>
+  );
+
   return (
     <div className={`card-float group relative isolate flex flex-col overflow-hidden rounded-2xl bg-[#12010C]
       ${compact ? 'p-4 min-h-[210px]' : 'p-5 min-h-[236px]'}`}>
@@ -1986,14 +2015,20 @@ const RadioPromoCard: React.FC<{ onOpenRadio: () => void; navigate: any; compact
 
       {/* Ilustración: imagen del admin, o el vinilo dibujado */}
       {hero ? (
+        <>
         <img src={hero} alt="" loading="lazy"
           style={{
             WebkitMaskImage: 'linear-gradient(to right, transparent 0%, #000 34%)',
             maskImage: 'linear-gradient(to right, transparent 0%, #000 34%)',
           }}
-          className="pointer-events-none absolute -z-10 inset-y-0 right-0 h-full w-[54%] object-cover object-right
-            transition-transform duration-700 group-hover:scale-[1.04] origin-right"
+          className="pointer-events-none absolute -z-10 inset-y-0 right-0 h-full w-[58%] object-cover scale-[1.14]
+            [object-position:56%_50%] transition-transform duration-700 group-hover:scale-[1.19] origin-right"
           onError={ev => { ev.currentTarget.style.display = 'none'; }} />
+        {/* Velo superior: las maquetas subidas suelen traer su propio "Ver más"
+            incrustado en la esquina. Esto lo tapa y da fondo al cintillo. */}
+        <span aria-hidden className="pointer-events-none absolute -z-10 inset-x-0 top-0 h-[44%]
+          bg-gradient-to-b from-black/95 via-black/60 to-transparent" />
+        </>
       ) : (
         <span aria-hidden className={`pointer-events-none absolute -z-10 grid place-items-center
           ${compact ? '-right-8 top-1/2 -translate-y-1/2 w-40 h-40' : '-right-8 top-1/2 -translate-y-1/2 w-48 h-48'}`}>
