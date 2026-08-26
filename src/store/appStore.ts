@@ -296,6 +296,8 @@ interface SiteConfigState {
   homeCategories: HomeCategory[];
   profileModules: ProfileModule[];
   homeTvCards: HomeTvCard[];
+  /** Ilustración del módulo BailaNow TV del home. Vacío = se dibuja la silueta. */
+  homeTvHero: string;
   setHeroMedia: (media: Partial<HeroMedia>) => void;
   setHeroSliderImages: (images: HeroSliderImage[]) => void;
   setCommission: (source: CommissionSource, rate: number) => void;
@@ -308,6 +310,7 @@ interface SiteConfigState {
   setHomeCategories: (cats: HomeCategory[]) => void;
   setProfileModules: (mods: ProfileModule[]) => void;
   setHomeTvCards: (cards: HomeTvCard[]) => void;
+  setHomeTvHero: (url: string) => void;
 }
 
 export interface HomeTvCard { title: string; subtitle: string; tag: string; image: string; link: string; }
@@ -337,6 +340,7 @@ export const useSiteConfigStore = create<SiteConfigState>()(
       homeCategories: DEFAULT_HOME_CATEGORIES,
       profileModules: DEFAULT_PROFILE_MODULES,
       homeTvCards: DEFAULT_HOME_TV,
+      homeTvHero: '',
       setHeroMedia: (media) =>
         set((state) => ({ heroMedia: { ...state.heroMedia, ...media } })),
       setHeroSliderImages: (images) => set({ heroSliderImages: images }),
@@ -344,6 +348,7 @@ export const useSiteConfigStore = create<SiteConfigState>()(
       setHomeCategories: (cats) => set({ homeCategories: cats }),
       setProfileModules: (mods) => set({ profileModules: mods }),
       setHomeTvCards: (cards) => set({ homeTvCards: cards }),
+      setHomeTvHero: (url) => set({ homeTvHero: url }),
       setCommission: (source, rate) =>
         set((state) => ({
           commissions: {

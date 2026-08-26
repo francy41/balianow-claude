@@ -5648,10 +5648,31 @@ const PlanificadorSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
 
 // ── HOME · BAILANOW TV (edita las 4 tarjetas del home, guardado global en site_config) ──
 const HomeFeaturedSection: React.FC<{ addToast: Function }> = ({ addToast }) => {
-  const { homeTvCards, setHomeTvCards } = useSiteConfigStore();
+  const { homeTvCards, setHomeTvCards, homeTvHero, setHomeTvHero } = useSiteConfigStore();
   const [cards, setCards] = useState<HomeTvCard[]>(homeTvCards && homeTvCards.length ? homeTvCards : DEFAULT_HOME_TV);
   const [saving, setSaving] = useState(false);
   const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
+  const [hero, setHero] = useState(homeTvHero || '');
+  const [heroBusy, setHeroBusy] = useState(false);
+
+  const saveHero = async (url: string) => {
+    setHeroBusy(true);
+    const { error } = await saveSiteConfigKey('home_tv_hero', { url });
+    setHeroBusy(false);
+    if (error) { addToast({ type: 'error', message: `Error al guardar: ${error}` }); return; }
+    setHero(url);
+    setHomeTvHero(url);
+    addToast({ type: 'success', message: url ? '✅ Imagen del módulo guardada.' : '✅ Vuelta a la ilustración dibujada.' });
+  };
+
+  const uploadHero = async (file?: File) => {
+    if (!file) return;
+    setHeroBusy(true);
+    const { url, error } = await uploadImage(file, 'home-tv');
+    setHeroBusy(false);
+    if (!url) { addToast({ type: 'error', message: `Error al subir: ${error}` }); return; }
+    await saveHero(url);
+  };
 
   const update = (i: number, patch: Partial<HomeTvCard>) =>
     setCards(cs => cs.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
@@ -5680,6 +5701,39 @@ const HomeFeaturedSection: React.FC<{ addToast: Function }> = ({ addToast }) => 
         <h2 className="font-black text-2xl text-gray-900 flex items-center gap-2"><Tv className="w-6 h-6 text-brand" /> Home · BailaNow TV</h2>
         <p className="text-gray-400 text-sm mt-1">Edita las <b>4 tarjetas de BailaNow TV</b> del home (título, subtítulo, imagen, etiqueta y enlace). Los bloques de <b>Eventos</b> y <b>Artistas</b> del home se llenan solos con lo que tengas en sus secciones del admin.</p>
       </div>
+      {/* Ilustración del módulo del home: sustituye a la pareja dibujada */}
+      <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
+        <div>
+          <h3 className="font-black text-base text-gray-900">Imagen del módulo en el home</h3>
+          <p className="text-gray-400 text-xs mt-0.5">
+            Ocupa la mitad derecha de la tarjeta de BailaNow TV, con el borde izquierdo fundido.
+            Sube un apaisado (recomendado 1200×900 o similar) y encuadra lo importante a la derecha.
+            Déjalo vacío para volver a la pareja dibujada.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="w-40 h-24 rounded-lg bg-gray-900 overflow-hidden flex-shrink-0 grid place-items-center">
+            {hero ? <img src={hero} alt="" className="w-full h-full object-cover object-right" />
+                  : <span className="text-white/40 text-[10px]">Pareja dibujada</span>}
+          </div>
+          <label className="text-xs font-bold bg-gray-100 hover:bg-gray-200 rounded-lg px-3 py-2 cursor-pointer flex items-center gap-1.5">
+            {heroBusy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+            {heroBusy ? 'Subiendo…' : 'Subir imagen'}
+            <input type="file" accept="image/*" hidden disabled={heroBusy} onChange={e => uploadHero(e.target.files?.[0])} />
+          </label>
+          {hero && (
+            <button onClick={() => saveHero('')} disabled={heroBusy}
+              className="text-xs font-bold text-gray-500 hover:text-red-600 disabled:opacity-50">Quitar imagen</button>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <input value={hero} onChange={e => setHero(e.target.value)} placeholder="…o pega aquí la URL de la imagen"
+            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-300" />
+          <button onClick={() => saveHero(hero.trim())} disabled={heroBusy}
+            className="bg-brand-orange text-white font-bold px-4 py-2 rounded-lg text-sm disabled:opacity-50">Guardar</button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {cards.map((c, i) => (
           <div key={i} className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
