@@ -38,6 +38,15 @@ interface Category {
   active: boolean;
 }
 
+// Accesos rápidos del hero. Todas las rutas existen ya en App.tsx: /rutas,
+// /eventos, /parejas y /clases — no se inventa ningún destino.
+const HERO_ACTIONS: { label: string; to: string; icon: React.FC<any>; primary?: boolean }[] = [
+  { label: 'Bailar esta noche', to: '/rutas',   icon: RouteIcon, primary: true },
+  { label: 'Eventos',           to: '/eventos', icon: Calendar },
+  { label: 'Pareja de baile',   to: '/parejas', icon: Heart },
+  { label: 'Clases',            to: '/clases',  icon: GraduationCap },
+];
+
 // ── SPONSORS ─────────────────────────────────────────────────────────────
 const SPONSORS = [
   {
@@ -893,6 +902,32 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
           se ve reflejada en el mapa y en los contadores de cada categoría. */}
       <div className="mb-3">
         <SuperSearchBar cityValue={cityFilter || ''} onCitySelect={onCityChange} />
+      </div>
+
+      {/* Fila de métricas — todas se calculan con consultas reales ya cargadas
+          (count exact sobre venues abiertos, live_sessions, eventos y planes).
+          Antes iban apretadas dentro del panel del mapa; aquí se leen mejor. */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 mb-3">
+        {[
+          { icon: Building2,      label: 'Abiertos ahora',  sub: 'Locales con las puertas abiertas', val: stats.abiertos },
+          { icon: Heart,          label: 'Buscando pareja', sub: 'Personas activas',                 val: stats.pareja },
+          { icon: Calendar,       label: 'Eventos en vivo', sub: 'Ahora mismo',                      val: stats.vivo },
+          { icon: GraduationCap,  label: 'Eventos',         sub: 'Próximos',                         val: stats.evento },
+        ].filter(m => m.val > 0).map(m => {
+          const Icon = m.icon;
+          return (
+            <div key={m.label} className="card-float bg-surface-elevated rounded-2xl p-3 flex items-center gap-3">
+              <span className="w-10 h-10 rounded-xl bg-accent/10 grid place-items-center flex-shrink-0">
+                <Icon className="w-5 h-5 text-accent" />
+              </span>
+              <span className="min-w-0">
+                <span className="block font-display font-black text-xl text-ink-primary leading-none">{m.val}</span>
+                <span className="block text-[11px] font-bold text-ink-secondary leading-tight mt-0.5 truncate">{m.label}</span>
+                <span className="hidden sm:block text-[10px] text-ink-tertiary leading-tight truncate">{m.sub}</span>
+              </span>
+            </div>
+          );
+        })}
       </div>
 
       <div className="card-float relative overflow-hidden rounded-3xl min-h-[80px] sm:min-h-[240px]">
@@ -1782,6 +1817,10 @@ const HomePage: React.FC = () => {
   const { isAuthenticated, user } = useAuthStore();
   const { heroMedia } = useSiteConfigStore();
   const heroYtId = heroMedia.type === 'youtube' ? getYouTubeId(heroMedia.url) : null;
+  // Portada del hero: la primera imagen del slider que gestiona el admin
+  // (Admin → Diseño). Es contenido configurable real, no una foto inventada.
+  const heroSliderImages = useSiteConfigStore(s => s.heroSliderImages);
+  const heroImage = heroSliderImages?.[0]?.url || '';
   const heroHasVideoFile = heroMedia.type === 'video' && !!heroMedia.url;
   const cmsModules = useCMSStore(s => s.modules);
   const cmsCategories = useCMSStore(s => s.categories);
@@ -1946,6 +1985,11 @@ const HomePage: React.FC = () => {
       {/* Fondo flotante decorativo en toda la home */}
       <HomeBackground />
 
+      {/* Dos columnas en pantallas anchas: contenido + raíl derecho.
+          Por debajo de xl el raíl se oculta y el contenido ocupa todo. */}
+      <div className="xl:flex xl:gap-4 xl:items-start xl:pr-4">
+      <div className="min-w-0 flex-1">
+
       {/* ── HERO: TV con el vídeo real visible sin pulsar, Radio con emisoras reales clicables ── */}
       <section className="mx-3 sm:mx-4 mt-3 sm:mt-4 grid grid-cols-2 gap-2.5 sm:gap-3">
         {/* TV: se ve el contenido en directo, no hace falta pulsar para verlo */}
@@ -2002,15 +2046,46 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* ── Título de marca, justo bajo el hero ── */}
-      <div className="text-center mt-6 px-4">
-        <h2 className="font-display font-black text-xl sm:text-2xl text-gray-900 dark:text-white mb-1">
-          💃 Baila Now
-        </h2>
-        <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm max-w-lg mx-auto">
-          Todo lo que amas del baile, en un solo lugar
-        </p>
-      </div>
+      {/* ── HERO PRINCIPAL — foto de portada + accesos rápidos a módulos reales ── */}
+      <section className="mx-3 sm:mx-4 mt-4">
+        <div className="card-float relative overflow-hidden rounded-3xl min-h-[240px] sm:min-h-[300px] flex items-end">
+          {/* Portada: la que el admin haya configurado en el slider; si no, una de respaldo */}
+          <img
+            src={heroImage}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            loading="eager"
+            onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+          />
+          {/* Velos oscuros para que el texto se lea siempre sobre cualquier foto */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/55 to-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+
+          <div className="relative p-5 sm:p-8 w-full">
+            <h1 className="font-display font-black text-2xl sm:text-4xl text-white leading-tight">
+              ¿Qué quieres hacer hoy?
+            </h1>
+            <p className="text-white/80 text-sm sm:text-base mt-1.5 max-w-md">
+              Descubre, conecta y vive tu pasión por el baile
+            </p>
+            <div className="flex flex-wrap gap-2 mt-4">
+              {HERO_ACTIONS.map(a => {
+                const Icon = a.icon;
+                return (
+                  <button key={a.to} onClick={() => navigate(a.to)}
+                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-[13px] font-extrabold transition-all ${
+                      a.primary
+                        ? 'bg-accent text-white hover:bg-brand-pink-dark shadow-elevation-2'
+                        : 'bg-white/15 text-white border border-white/30 backdrop-blur-sm hover:bg-white/25'
+                    }`}>
+                    <Icon className="w-4 h-4" /> {a.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ── PLANES DE BAILE (con el súper buscador integrado dentro) — módulo "Planes Para Bailar" (Admin → Constructor Home) ── */}
       {isModuleOn('ruta') && (
@@ -2295,6 +2370,13 @@ const HomePage: React.FC = () => {
       {/* ── PATROCINADORES (pie de página) ── */}
       <SponsorsFooterStrip navigate={navigate} />
 
+      </div>{/* /columna de contenido */}
+
+      <div className="xl:sticky xl:top-16">
+        <HomeSideRail navigate={navigate} />
+      </div>
+      </div>{/* /layout de 2 columnas */}
+
       {/* ── NEWSLETTER (al final, debajo de patrocinadores) ── */}
       <section className="mx-3 sm:mx-4 mt-6">
         <NewsletterForm variant="banner" />
@@ -2331,6 +2413,43 @@ const HomePage: React.FC = () => {
     </div>
   );
 };
+
+// ── RAÍL DERECHO (solo escritorio) — accesos al mapa real y a BailaNow TV.
+// No incluye el panel de "Alertas activas" de la referencia: hoy no existe un
+// sistema de alertas configurable en la BD, y no se pinta lo que no hay. ──
+const HomeSideRail: React.FC<{ navigate: any }> = ({ navigate }) => (
+  <aside className="hidden xl:flex xl:flex-col gap-4 w-[300px] flex-shrink-0">
+    <div className="card-float bg-surface-elevated rounded-2xl overflow-hidden">
+      <div className="flex items-center justify-between px-4 pt-3.5 pb-2">
+        <h3 className="font-display font-black text-sm text-ink-primary">Cerca de ti</h3>
+        <button onClick={() => navigate('/cerca')} className="text-accent text-[11px] font-bold hover:underline">Ver mapa →</button>
+      </div>
+      <button onClick={() => navigate('/cerca')} className="block w-full text-left group">
+        <span className="block relative h-40 bg-brand-deep overflow-hidden">
+          <span className="absolute inset-0 grid place-items-center">
+            <MapPin className="w-8 h-8 text-white/40" />
+          </span>
+        </span>
+        <span className="block px-4 py-3">
+          <span className="block text-[13px] font-bold text-ink-primary">Explora tu ciudad</span>
+          <span className="block text-[11px] text-ink-tertiary mt-0.5">Locales, eventos y planes cerca</span>
+        </span>
+      </button>
+    </div>
+
+    <div className="card-float relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#4A0530] via-[#C00E68] to-[#E5127D] p-4">
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="font-display font-black text-sm text-white">BailaNow TV</h3>
+        <button onClick={() => navigate('/tv')} className="text-white/80 text-[11px] font-bold hover:text-white">Ver más →</button>
+      </div>
+      <p className="text-white/75 text-[11px] leading-snug mb-3">Vídeos, entrevistas y lo mejor del mundo del baile</p>
+      <button onClick={() => navigate('/tv')}
+        className="inline-flex items-center gap-2 bg-white text-brand text-[12px] font-black px-4 py-2 rounded-full hover:bg-white/90 transition-colors">
+        <Play className="w-3.5 h-3.5" fill="currentColor" /> Ver ahora
+      </button>
+    </div>
+  </aside>
+);
 
 // ── ARTIST CARD ─────────────────────────────────────────────────────────────
 const ArtistCard: React.FC<{ artist: typeof ARTISTS[0]; onClick: () => void }> = ({ artist, onClick }) => (
