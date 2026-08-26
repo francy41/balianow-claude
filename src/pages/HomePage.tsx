@@ -1750,6 +1750,64 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
   );
 };
 
+// ── TV + RADIO para móvil y tablet ──────────────────────────────────────────
+// El raíl derecho es `hidden xl:flex`, así que por debajo de 1280px la TV y la
+// radio se quedaban sin ningún acceso desde el Home. Esta tira los devuelve y
+// se oculta en xl para no duplicar lo que ya muestra el raíl.
+const TvRadioStrip: React.FC<{ navigate: any; onOpenTv: () => void; onOpenRadio: () => void }> = ({ navigate, onOpenTv, onOpenRadio }) => {
+  const [station, setStation] = useState<{ name: string; genre: string | null } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.from('radio_stations').select('name,genre')
+      .eq('status', 'active').order('sort_order', { ascending: true }).limit(1)
+      .then(({ data }) => { if (!cancelled && data && data[0]) setStation(data[0] as any); }, () => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  return (
+    <section className="xl:hidden mx-3 sm:mx-4 mt-8">
+      <div className="flex items-center gap-2 mb-3 px-1">
+        <span className="w-1.5 h-5 rounded-full bg-brand" />
+        <h2 className="font-display font-black text-lg text-ink-primary">En directo</h2>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* BailaNow TV */}
+        <div className="card-float relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#4A0530] via-[#C00E68] to-[#E5127D] p-4">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="font-display font-black text-base text-white flex items-center gap-2">
+              <Video className="w-4 h-4" /> BailaNow TV
+            </h3>
+            <button onClick={() => navigate('/tv')} className="text-white/80 text-[11px] font-bold hover:text-white">Ver más →</button>
+          </div>
+          <p className="text-white/75 text-[12px] leading-snug mb-3">Vídeos, entrevistas y lo mejor del mundo del baile</p>
+          <button onClick={onOpenTv}
+            className="inline-flex items-center gap-2 bg-white text-brand text-[12px] font-black px-4 py-2 rounded-full hover:bg-white/90 transition-colors">
+            <Play className="w-3.5 h-3.5" fill="currentColor" /> Ver ahora
+          </button>
+        </div>
+
+        {/* Radio online */}
+        <button onClick={onOpenRadio}
+          className="card-float bg-surface-elevated rounded-2xl p-4 flex items-center gap-3 text-left hover:bg-surface transition-colors">
+          <span className="w-12 h-12 rounded-xl bg-accent/10 grid place-items-center flex-shrink-0">
+            <Radio className="w-6 h-6 text-accent" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[14px] font-extrabold text-ink-primary leading-tight">
+              {station ? fixText(station.name) : 'Radio Online'}
+            </span>
+            <span className="block text-[11px] text-ink-tertiary leading-tight">
+              {station?.genre ? `${fixText(station.genre)} · en directo 24/7` : 'Música latina en directo 24/7'}
+            </span>
+          </span>
+          <ChevronRight className="w-4 h-4 text-ink-tertiary flex-shrink-0" />
+        </button>
+      </div>
+    </section>
+  );
+};
+
 // ── SECCIONES DE DESCUBRIMIENTO (Fase 4) ──
 const DiscoverySections: React.FC<{ navigate: any }> = ({ navigate }) => {
 
@@ -2188,6 +2246,9 @@ const HomePage: React.FC = () => {
 
       {/* ── MÁS PARA TI (justo bajo el escaparate, segun brief) ── */}
       <MoreForYou navigate={navigate} />
+
+      {/* ── TV + RADIO (solo por debajo de xl: en xl ya viven en el raíl) ── */}
+      <TvRadioStrip navigate={navigate} onOpenTv={() => setTvWidgetOpen(true)} onOpenRadio={() => setRadioWidgetOpen(true)} />
 
       {/* ── COMUNIDAD — 102 posts reales que se cargaban y no se pintaban nunca ── */}
       {communityPosts.length > 0 && (
