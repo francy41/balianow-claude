@@ -21,6 +21,7 @@ import DanceFlowPromo from '../components/DanceFlowPromo';
 import { usePageMeta } from '../hooks/usePageMeta';
 import { useHomeModules } from '../hooks/useHomeModules';
 import { useJsonLd, organizationLd, websiteLd } from '../lib/structuredData';
+import { isAdmin as isAdminUser } from '../lib/permissions';
 
 // Category interface
 interface Category {
@@ -2237,7 +2238,7 @@ const HomePage: React.FC = () => {
   const dynamicCats = activeCategories(cmsCategories);
   const { balanceFor, offers, classes, transactions, withdrawals, platformTotals } = usePerformerStore();
   const PERFORMER_ROLES = ['artist', 'musician', 'band', 'dj', 'dancer', 'animador', 'venue', 'instructor', 'business', 'promoter'];
-  const isAdmin = !!user && (user.role === 'admin' || user.role === 'superadmin');
+  const isAdmin = isAdminUser(user);
   const isPerformer = !!user && PERFORMER_ROLES.includes(user.role);
   const isBuyer = !!user && user.role === 'user';
   const adminStats = isAdmin ? platformTotals() : null;

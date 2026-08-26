@@ -230,7 +230,7 @@ const ClassBookingModal: React.FC<Props> = ({ offering, onClose, onBooked }) => 
             jitsi_url: `${window.location.origin}/clase/${data.id}`,
             price: offering.price,
           },
-        }).then((r: any) => console.log('[booking] email sent:', r))
+        })
           .catch((e: any) => console.warn('[booking] email failed:', e));
       }
 

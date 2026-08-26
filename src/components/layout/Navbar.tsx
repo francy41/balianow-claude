@@ -8,6 +8,7 @@ import { supabaseLogout } from '../../hooks/useSupabaseAuth';
 import { Avatar } from '../ui';
 import LanguageSelector from '../LanguageSelector';
 import { TOP_DANCE_CITIES } from '../../data/topDanceCities';
+import { isAdmin as isAdminUser } from '../../lib/permissions';
 
 const SELECTED_CITY_KEY = 'bn_selected_city';
 
@@ -76,7 +77,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
     navigate('/');
   };
 
-  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
+  const isAdmin = isAdminUser(user);
   const roleLabel = user ? (ROLE_LABELS[user.role] || user.role) : '';
 
   return (

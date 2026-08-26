@@ -129,6 +129,7 @@ export const useAdminEdit = () => React.useContext(EditContext);
 
 // Field configs por entidad
 import { FIELDS_ARTIST, FIELDS_EVENT, FIELDS_VENUE, FIELDS_SERVICE } from '../config/editFields';
+import { isSuperAdmin as isSuperAdminUser } from '../lib/permissions';
 export { FIELDS_ARTIST, FIELDS_EVENT, FIELDS_VENUE, FIELDS_SERVICE };
 
 export const FIELDS_USER: EditField[] = [
@@ -213,7 +214,7 @@ const AdminPage: React.FC = () => {
     });
   }, []);
 
-  const isSuperAdmin = user?.role === 'superadmin';
+  const isSuperAdmin = isSuperAdminUser(user);
   if (!isAuthenticated || !['admin', 'superadmin'].includes(user?.role ?? '')) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
