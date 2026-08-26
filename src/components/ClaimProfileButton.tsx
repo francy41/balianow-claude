@@ -102,6 +102,12 @@ const ClaimProfileButton: React.FC<Props> = ({ targetTable, targetId, targetName
       return;
     }
 
+    // Aviso al equipo: hasta ahora nadie se enteraba de que había algo
+    // pendiente hasta que abría el panel. No bloquea el envío si falla.
+    supabase.functions.invoke('send-email', {
+      body: { type: 'admin_claim', data: { targetName } },
+    }).catch(() => {});
+
     addToast({ type: 'success', message: '✅ Solicitud enviada. Recibirás un correo cuando sea aprobada.' });
     setSubmitted(true);
     setTimeout(() => setOpen(false), 2000);
