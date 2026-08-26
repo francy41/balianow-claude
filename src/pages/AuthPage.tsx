@@ -265,6 +265,11 @@ const AuthPage: React.FC = () => {
     if (supa.success) {
       // Correo de bienvenida (best-effort; no-op si el email no está configurado).
       supabase.functions.invoke('send-email', { body: { to: email, type: 'welcome', data: { name } } }).catch(() => {});
+      // Y aviso al equipo del alta, con el rol elegido. El destinatario lo
+      // resuelve el servidor: van a todos los administradores.
+      supabase.functions.invoke('send-email', {
+        body: { type: 'admin_signup', data: { name, role: registerRole, city: regCity.trim() || 'Madrid' } },
+      }).catch(() => {});
       if (supa.hasSession) {
         // Autoconfirm ON: el usuario ya tiene sesión → entrar directo
         addToast({ message: `¡Bienvenido/a ${name}! Cuenta creada 🎉`, type: 'success' });
