@@ -9,8 +9,42 @@
 // Se llama desde el frontend (invoke) tras registro/aprobación, o desde otras funciones.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { getCorsHeaders } from '../_shared/cors.ts';
-import { checkRateLimit } from '../_shared/rateLimit.ts';
+
+// CORS y límite de peticiones van EN LÍNEA, sin importar de ../_shared/, para
+// que esta función se pueda desplegar pegándola en el editor del panel de
+// Supabase, que solo maneja un fichero. Antes dependía de módulos compartidos y
+// por eso no se podía actualizar sin la CLI.
+const ORIGENES = [
+  'https://bailanow.com',
+  'https://www.bailanow.com',
+  'https://bailanow.vercel.app',
+];
+if (Deno.env.get('SUPABASE_ENV') !== 'production') {
+  ORIGENES.push('http://localhost:3000', 'http://localhost:5173');
+}
+
+function getCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get('origin') ?? '';
+  return {
+    'Access-Control-Allow-Origin': ORIGENES.includes(origin) ? origin : ORIGENES[0],
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin',
+  };
+}
+
+// Contador en memoria de la instancia. Se reinicia en cada arranque en frío, así
+// que no es una defensa fuerte: solo frena ráfagas obvias.
+const cubos = new Map<string, { n: number; hasta: number }>();
+function limitado(req: Request, max: number, ventanaMs: number): boolean {
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'desconocida';
+  const ahora = Date.now();
+  const c = cubos.get(ip);
+  if (!c || ahora > c.hasta) { cubos.set(ip, { n: 1, hasta: ahora + ventanaMs }); return false; }
+  c.n += 1;
+  return c.n > max;
+}
 
 const RESEND_KEY = Deno.env.get('RESEND_API_KEY') ?? '';
 const FROM = Deno.env.get('EMAIL_FROM') ?? 'BailaNow <onboarding@resend.dev>';
@@ -122,8 +156,7 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   const json = (o: unknown, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { ...cors, 'Content-Type': 'application/json' } });
 
-  const rl = checkRateLimit(req, { max: 20, windowMs: 60_000, keyPrefix: 'email' });
-  if (!rl.ok) return rl.response;
+  if (limitado(req, 20, 60_000)) return json({ error: 'Demasiadas peticiones' }, 429);
   if (!RESEND_KEY) return json({ notConfigured: true });
 
   let body: Record<string, any>;
