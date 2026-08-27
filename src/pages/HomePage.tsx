@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import MapErrorBoundary from '../components/MapErrorBoundary';
-import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2, GraduationCap, Music2, Handshake } from 'lucide-react';
+import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2, GraduationCap, Music2, Handshake, VolumeX } from 'lucide-react';
 import { ARTISTS, EVENTS } from '../data/mockData';
 import { TOP_DANCE_CITIES } from '../data/topDanceCities';
 import { distanceKm, pointFor, type LatLng } from '../lib/geo';
@@ -1701,6 +1701,62 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
   );
 };
 
+// ── VÍDEO DEL HERO ──────────────────────────────────────────────────────────
+// Dos problemas que resuelve:
+//  1) El recorte. El contenedor tenía una proporción fija y el vídeo se cortaba
+//     por arriba, comiéndose las cabezas. Ahora lee la proporción REAL del
+//     fichero al cargar los metadatos y la aplica, así se ve entero sin bandas.
+//  2) El sonido. Los navegadores prohíben la reproducción automática con audio,
+//     así que arranca silenciado y se ofrece un botón para activarlo. No hay
+//     forma legítima de saltarse eso, y tampoco sería buena idea: una web que
+//     suena sola al entrar es la que se cierra.
+const HeroVideo: React.FC<{ poster?: string; className?: string; ajustarProporcion?: boolean }> =
+({ poster, className, ajustarProporcion }) => {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [proporcion, setProporcion] = useState<string | undefined>(undefined);
+  const [conSonido, setConSonido] = useState(false);
+  const [oculto, setOculto] = useState(false);
+
+  const alternarSonido = () => {
+    const v = ref.current;
+    if (!v) return;
+    v.muted = conSonido;
+    setConSonido(!conSonido);
+    if (!conSonido) v.play().catch(() => {});
+  };
+
+  if (oculto) return null;
+
+  return (
+    <div className={`relative ${className || ''}`}
+      style={ajustarProporcion && proporcion ? { aspectRatio: proporcion } : undefined}>
+      {poster && (
+        <img src={poster} alt="" className="absolute inset-0 w-full h-full object-cover"
+          onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+      )}
+      <video
+        ref={ref}
+        className="absolute inset-0 w-full h-full object-cover object-top"
+        src={HERO_VIDEO}
+        poster={poster || undefined}
+        autoPlay muted loop playsInline preload="metadata"
+        aria-hidden
+        onLoadedMetadata={e => {
+          const v = e.currentTarget;
+          if (v.videoWidth && v.videoHeight) setProporcion(`${v.videoWidth} / ${v.videoHeight}`);
+        }}
+        onError={() => setOculto(true)}
+      />
+      <button onClick={alternarSonido}
+        aria-label={conSonido ? 'Silenciar el vídeo' : 'Activar el sonido del vídeo'}
+        className="absolute bottom-3 right-3 z-10 w-10 h-10 rounded-full bg-black/55 backdrop-blur-sm
+          text-white grid place-items-center hover:bg-black/75 transition-colors">
+        {conSonido ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+      </button>
+    </div>
+  );
+};
+
 // ── ONDAS DE EMISIÓN ────────────────────────────────────────────────────────
 // Se pintan POR ENCIMA de la ilustración (dibujada o subida) y por debajo del
 // texto, para que la tarjeta se lea como una señal en directo. El trazado tiene
@@ -2434,20 +2490,8 @@ const HomePage: React.FC = () => {
 
               {/* En móvil no hay columna derecha: el vídeo va debajo del texto,
                   a lo ancho y con proporción fija para que la página no salte. */}
-              <div className="md:hidden relative w-full mt-5 rounded-2xl overflow-hidden aspect-[16/10] bg-brand-deep">
-                {heroImage && (
-                  <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover"
-                    onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-                )}
-                <video
-                  className="absolute inset-0 w-full h-full object-cover"
-                  src={HERO_VIDEO}
-                  poster={heroImage || undefined}
-                  autoPlay muted loop playsInline preload="metadata"
-                  aria-hidden
-                  onError={e => { (e.currentTarget as HTMLVideoElement).style.display = 'none'; }}
-                />
-              </div>
+              <HeroVideo poster={heroImage} ajustarProporcion
+                className="md:hidden w-full mt-5 rounded-2xl overflow-hidden aspect-[16/10] bg-brand-deep" />
             </div>
 
             {/* Vídeo a la derecha. En escritorio va dentro de la fila, con el
@@ -2455,19 +2499,8 @@ const HomePage: React.FC = () => {
                 La foto queda debajo como cartel: se ve mientras el vídeo carga
                 y es lo que queda si el vídeo falla o el navegador no lo permite. */}
             <div className="hidden md:block relative w-[42%] flex-shrink-0">
-              {heroImage && (
-                <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover"
-                  onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-              )}
-              <video
-                className="absolute inset-0 w-full h-full object-cover"
-                src={HERO_VIDEO}
-                poster={heroImage || undefined}
-                autoPlay muted loop playsInline preload="metadata"
-                aria-hidden
-                onError={e => { (e.currentTarget as HTMLVideoElement).style.display = 'none'; }}
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-surface-elevated via-surface-elevated/40 to-transparent" />
+              <HeroVideo poster={heroImage} className="absolute inset-0" />
+              <div className="absolute inset-0 bg-gradient-to-r from-surface-elevated via-surface-elevated/40 to-transparent pointer-events-none" />
             </div>
           </div>
         </div>
