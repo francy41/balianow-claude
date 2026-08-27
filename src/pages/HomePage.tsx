@@ -41,6 +41,10 @@ interface Category {
 
 // Accesos rápidos del hero. Todas las rutas existen ya en App.tsx: /rutas,
 // /eventos, /parejas y /clases — no se inventa ningún destino.
+// Vídeo del hero. Va en una constante y no incrustado en el JSX para que se
+// vea de un vistazo qué se está cargando y se pueda cambiar en un sitio.
+const HERO_VIDEO = 'https://assets.cdn.filesafe.space/7Q3BuQ8WwUJ79DqqX78C/media/6a8f6b7c14ad347ccb716fdf.mp4';
+
 const HERO_ACTIONS: { label: string; to: string; icon: React.FC<any>; primary?: boolean }[] = [
   { label: 'Bailar esta noche', to: '/rutas',   icon: RouteIcon, primary: true },
   { label: 'Eventos',           to: '/eventos', icon: Calendar },
@@ -2427,17 +2431,44 @@ const HomePage: React.FC = () => {
                   );
                 })}
               </div>
+
+              {/* En móvil no hay columna derecha: el vídeo va debajo del texto,
+                  a lo ancho y con proporción fija para que la página no salte. */}
+              <div className="md:hidden relative w-full mt-5 rounded-2xl overflow-hidden aspect-[16/10] bg-brand-deep">
+                {heroImage && (
+                  <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover"
+                    onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                )}
+                <video
+                  className="absolute inset-0 w-full h-full object-cover"
+                  src={HERO_VIDEO}
+                  poster={heroImage || undefined}
+                  autoPlay muted loop playsInline preload="metadata"
+                  aria-hidden
+                  onError={e => { (e.currentTarget as HTMLVideoElement).style.display = 'none'; }}
+                />
+              </div>
             </div>
 
-            {/* Foto a la derecha, solo cuando hay ancho para que luzca */}
-            {heroImage && (
-              <div className="hidden md:block relative w-[42%] flex-shrink-0">
+            {/* Vídeo a la derecha. En escritorio va dentro de la fila, con el
+                mismo difuminado que tenía la foto para que no haya corte duro.
+                La foto queda debajo como cartel: se ve mientras el vídeo carga
+                y es lo que queda si el vídeo falla o el navegador no lo permite. */}
+            <div className="hidden md:block relative w-[42%] flex-shrink-0">
+              {heroImage && (
                 <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover"
                   onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-                {/* Difuminado hacia el texto para que no haya un corte duro */}
-                <div className="absolute inset-0 bg-gradient-to-r from-surface-elevated via-surface-elevated/40 to-transparent" />
-              </div>
-            )}
+              )}
+              <video
+                className="absolute inset-0 w-full h-full object-cover"
+                src={HERO_VIDEO}
+                poster={heroImage || undefined}
+                autoPlay muted loop playsInline preload="metadata"
+                aria-hidden
+                onError={e => { (e.currentTarget as HTMLVideoElement).style.display = 'none'; }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-surface-elevated via-surface-elevated/40 to-transparent" />
+            </div>
           </div>
         </div>
       </section>
