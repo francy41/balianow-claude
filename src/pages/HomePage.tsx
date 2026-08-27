@@ -806,7 +806,7 @@ const PlanesDeBaileHomeSection: React.FC<{ navigate: any; cityFilter?: string; o
         supabase.from('rutas').select('id', { count: 'exact', head: true }).eq('status', 'open').or(`end_date.is.null,end_date.gte.${today}`),
         supabase.from('venues').select('id,name,city,cover,image_url,rating,open_time,close_time,is_open,lat,lng').is('deleted_at', null),
         supabase.from('partner_profiles').select('user_id,name,avatar,city,level,styles').eq('active', true).limit(8),
-        supabase.from('partner_profiles').select('id', { count: 'exact', head: true }).eq('active', true),
+        supabase.from('partner_profiles').select('user_id', { count: 'exact', head: true }).eq('active', true),
         supabase.from('events').select('id,title,city,date,cover,image_url,lat,lng').is('deleted_at', null).gte('date', today).order('date', { ascending: true }).limit(8),
         supabase.from('events').select('id', { count: 'exact', head: true }).is('deleted_at', null).gte('date', today),
         supabase.from('live_sessions').select('id', { count: 'exact', head: true }).eq('status', 'live'),
@@ -2957,7 +2957,7 @@ const PartnerStatsBar: React.FC<{ navigate: any }> = ({ navigate }) => {
     let cancelled = false;
     (async () => {
       const [pt, ev, vn] = await Promise.all([
-        supabase.from('partners').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+        supabase.from('partners').select('user_id', { count: 'exact', head: true }).eq('status', 'active'),
         supabase.from('events').select('id', { count: 'exact', head: true }).is('deleted_at', null),
         supabase.from('venues').select('city').is('deleted_at', null).limit(2000),
       ]);
