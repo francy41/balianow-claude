@@ -1728,7 +1728,7 @@ const HeroVideo: React.FC<{ poster?: string; className?: string; ajustarProporci
   if (oculto) return null;
 
   return (
-    <div className={`relative ${className || ''}`}
+    <div className={className || ''}
       style={ajustarProporcion && proporcion ? { aspectRatio: proporcion } : undefined}>
       {poster && (
         <img src={poster} alt="" className="absolute inset-0 w-full h-full object-cover"
@@ -2491,7 +2491,7 @@ const HomePage: React.FC = () => {
               {/* En móvil no hay columna derecha: el vídeo va debajo del texto,
                   a lo ancho y con proporción fija para que la página no salte. */}
               <HeroVideo poster={heroImage} ajustarProporcion
-                className="md:hidden w-full mt-5 rounded-2xl overflow-hidden aspect-[16/10] bg-brand-deep" />
+                className="md:hidden relative w-full mt-5 rounded-2xl overflow-hidden aspect-[16/10] bg-brand-deep" />
             </div>
 
             {/* Vídeo a la derecha. En escritorio va dentro de la fila, con el
