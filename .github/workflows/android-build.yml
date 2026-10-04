@@ -1,10 +1,12 @@
 name: Build Android App
 
-# Solo MANUAL por ahora: este build falla en el paso "Descifrar keystore" hasta
-# que se corrija el secreto ANDROID_KEYSTORE_PASSWORD (debe coincidir con la
-# contraseña con la que se cifró android/keystore.enc). Mientras tanto, se lanza
-# a mano desde Actions → "Build Android App" → "Run workflow" para no fallar en
-# cada push. Para reactivar el disparo automático, vuelve a añadir el bloque push.
+# Compila una APK de pruebas, para instalar directamente en un móvil sin pasar
+# por Google Play. Para publicar usa "Android Release", que genera el AAB.
+#
+# Único secreto necesario: ANDROID_KEYSTORE_PASSWORD — la contraseña con la que
+# se cifró android/keystore.enc.
+#
+# Solo manual a propósito: firmar en cada push no aporta nada y consume minutos.
 on:
   workflow_dispatch:
 

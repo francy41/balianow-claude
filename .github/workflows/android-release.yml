@@ -2,6 +2,10 @@ name: Android Release (AAB + APK firmados)
 
 # Lánzalo a mano desde GitHub (pestaña Actions → "Run workflow"),
 # también desde la app de GitHub en el móvil.
+#
+# Único secreto necesario: ANDROID_KEYSTORE_PASSWORD — la contraseña con la que
+# se cifró android/keystore.enc. La clave de firma viaja cifrada en el repo, así
+# que no hace falta ningún otro secreto.
 on:
   workflow_dispatch:
   push:
@@ -42,15 +46,19 @@ jobs:
       - name: Capacitor sync
         run: npx cap sync android
 
-      - name: Restaurar keystore de firma
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > android/bailanow-release.keystore
+      - name: Descifrar keystore de firma
+        run: |
+          openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 \
+            -in android/keystore.enc \
+            -out android/bailanow-release.keystore \
+            -pass pass:"${{ secrets.ANDROID_KEYSTORE_PASSWORD }}"
 
       - name: Construir AAB + APK firmados
         working-directory: android
         env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: bailanow
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: ./gradlew bundleRelease assembleRelease --no-daemon
 
       - name: Subir artefactos (descárgalos aquí)
