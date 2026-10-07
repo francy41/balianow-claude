@@ -1,0 +1,10 @@
+import { chromium } from 'playwright';
+const OUT = new URL('../store-assets/android/', import.meta.url).pathname;
+const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
+const p = await b.newPage({ viewport: { width: 1200, height: 900 } });
+await p.goto('file://' + new URL('play-store-graficos.html', import.meta.url).pathname + '', { waitUntil: 'load' });
+await p.waitForTimeout(1200);
+await p.locator('#icono').screenshot({ path: `${OUT}/icono-512.png`, omitBackground: false });
+await p.locator('#cabecera').screenshot({ path: `${OUT}/cabecera-1024x500.png` });
+await b.close();
+console.log('listo');
