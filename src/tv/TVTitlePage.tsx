@@ -23,6 +23,32 @@ const fmtDur = (s: number) => {
 
 // El vídeo puede ser un mp4 directo o un vídeo de Cloudflare Stream
 // (URL de iframe/stream o un UID de 32 hex). Cloudflare se embebe por iframe.
+
+// Firma de reproducción. El UID de Cloudflare no basta para ver un vídeo: hace
+// falta un token de corta duración que la función emite SOLO tras comprobar la
+// suscripción. Así, copiar el enlace del reproductor no sirve para compartirlo.
+function useFirmaDeVideo(lessonId: string | undefined, habilitado: boolean) {
+  const [firma, setFirma] = useState<{ token: string } | null>(null);
+  const [estado, setEstado] = useState<'cargando' | 'listo' | 'procesando' | 'bloqueado' | 'sin_video'>('cargando');
+
+  useEffect(() => {
+    if (!lessonId || !habilitado) { setFirma(null); setEstado('bloqueado'); return; }
+    let cancelado = false;
+    setEstado('cargando'); setFirma(null);
+    supabase.functions.invoke('tv-playback', { body: { lesson_id: lessonId } })
+      .then(({ data, error }) => {
+        if (cancelado) return;
+        if (error || !data) { setEstado('bloqueado'); return; }
+        if (data.token) { setFirma({ token: data.token }); setEstado('listo'); return; }
+        setEstado(data.reason === 'procesando' ? 'procesando'
+          : data.reason === 'sin_video' ? 'sin_video' : 'bloqueado');
+      }, () => { if (!cancelado) setEstado('bloqueado'); });
+    return () => { cancelado = true; };
+  }, [lessonId, habilitado]);
+
+  return { firma, estado };
+}
+
 const isCfStream = (u: string) => /cloudflarestream\.com|videodelivery\.net/i.test(u) || /^[a-f0-9]{32}$/i.test(u);
 const cfEmbedUrl = (u: string) => {
   if (/^[a-f0-9]{32}$/i.test(u)) return `https://iframe.videodelivery.net/${u}`;
@@ -159,13 +185,35 @@ const TVTitlePage: React.FC = () => {
   );
 
   const playable = current && canWatch(current.access);
+  // Los vídeos propios (Cloudflare) van firmados; los externos que ya hubiera
+  // (mp4, YouTube) se siguen sirviendo por su URL como hasta ahora.
+  const esPropio = !!current && !current.video_url;
+  const { firma, estado: estadoFirma } = useFirmaDeVideo(current?.id, !!playable && esPropio);
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white pb-20">
       {showPreroll && <TvPreroll titleId={title.id} onDone={() => setPrerollDone(true)} />}
       {/* Player / gate */}
       <div className="relative bg-black aspect-video max-h-[70vh] w-full flex items-center justify-center">
-        {playable && current?.video_url ? (
+        {playable && esPropio && firma ? (
+          <iframe
+            key={current!.id}
+            src={`https://iframe.videodelivery.net/${firma.token}`}
+            title={current!.name}
+            className="w-full h-full"
+            style={{ border: 'none' }}
+            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
+            allowFullScreen
+          />
+        ) : playable && esPropio ? (
+          <div className="text-center px-6 text-white/60">
+            {estadoFirma === 'procesando'
+              ? <p>El vídeo se está procesando. Vuelve en unos minutos.</p>
+              : estadoFirma === 'cargando'
+                ? <p>Preparando el vídeo…</p>
+                : <p>Esta clase aún no tiene vídeo disponible.</p>}
+          </div>
+        ) : playable && current?.video_url ? (
           isCfStream(current.video_url) ? (
             <iframe
               key={current.id}
