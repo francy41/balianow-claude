@@ -14,6 +14,7 @@ import { useAuthStore, useUIStore, getYouTubeId, useSiteConfigStore } from '../s
 import BookingModal from '../components/BookingModal';
 import VenueReservationModal from '../components/VenueReservationModal';
 import VenueCheckIn from '../components/VenueCheckIn';
+import VenuePresencePanel from '../components/VenuePresencePanel';
 import CallBookingModal from '../components/CallBookingModal';
 import { supabase } from '../lib/supabase';
 import { usePageMeta } from '../hooks/usePageMeta';
@@ -299,7 +300,7 @@ const VENUE_TABS = [
 
 const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   const { addToast } = useUIStore();
   const [venue, setVenue] = useState<Venue | null>(null);
   const [loadingVenue, setLoadingVenue] = useState(true);
@@ -371,6 +372,11 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
         setRealEvents(list.sort((a: any, b: any) => (a.date || '').localeCompare(b.date || '')));
       }, () => {});
     supabase.from('venue_hours').select('*').eq('venue_id', venue.id).then(({ data }) => { if (data) setDayHours(data); }, () => {});
+    if (user) {
+      supabase.from('venue_follows').select('user_id')
+        .eq('user_id', user.id).eq('venue_id', venue.id).maybeSingle()
+        .then(({ data }) => setFollowing(!!data), () => {});
+    }
     supabase.from('reviews').select('id,user_id,rating,comment,created_at').eq('target_type', 'venue').eq('target_id', String(venue.id)).order('created_at', { ascending: false }).then(
       async ({ data }) => {
         const rows = data || [];
@@ -506,9 +512,25 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
             className="text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 whitespace-nowrap bg-surface-elevated-2 text-ink-secondary hover:bg-hairline/10 transition-all">
             <Phone className="w-4 h-4" /> Reservar llamada
           </button>
-          <button onClick={() => {
-            setFollowing(f => !f);
-            addToast({ message: following ? 'Dejaste de seguir' : `¡Ahora sigues a ${venue.name}!`, type: 'success' });
+          <button onClick={async () => {
+            if (!isAuthenticated || !user) { navigate('/auth'); return; }
+            // Antes esto solo cambiaba un useState y lanzaba un aviso: no se
+            // guardaba nada. Ahora se almacena, porque la presencia verificada
+            // exige seguir el local desde antes de marcarse.
+            if (following) {
+              await supabase.from('venue_follows').delete()
+                .eq('user_id', user.id).eq('venue_id', venue.id);
+              setFollowing(false);
+              addToast({ message: 'Dejaste de seguir', type: 'success' });
+            } else {
+              const { error } = await supabase.from('venue_follows')
+                .insert({ user_id: user.id, venue_id: venue.id });
+              if (error && (error as any).code !== '23505') {
+                addToast({ message: 'No se pudo guardar', type: 'error' }); return;
+              }
+              setFollowing(true);
+              addToast({ message: `¡Ahora sigues a ${venue.name}!`, type: 'success' });
+            }
           }}
             className={`text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 whitespace-nowrap transition-all ${
               following ? 'bg-gray-900 text-white' : 'bg-surface-elevated-2 text-ink-secondary hover:bg-hairline/10'
@@ -548,7 +570,14 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
       <div key={activeTab} className="max-w-5xl mx-auto px-4 py-6 animate-fade-up">
 
         {activeTab === 'gente' && (
-          <VenueCheckIn venueId={String(venue.id)} venueName={venue.name} />
+          <div className="space-y-6">
+            {/* El dueño del local confirma quién estuvo de verdad; esa
+                confirmación es lo que permite a esas personas aparecer. */}
+            {!!user && String(venue.userId || '') === String(user.id) && (
+              <VenuePresencePanel venueId={String(venue.id)} venueName={venue.name} />
+            )}
+            <VenueCheckIn venueId={String(venue.id)} venueName={venue.name} />
+          </div>
         )}
 
         {activeTab === 'about' && (

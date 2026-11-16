@@ -41,7 +41,18 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
   const [cropFile, setCropFile] = useState<File | null>(null);
   const [cropField, setCropField] = useState<'avatar' | 'coverPhoto'>('avatar');
 
+  // El género decide si hace falta que el local confirme tu presencia para
+  // aparecer en "quién estuvo aquí". No viaja en el objeto de sesión, así que
+  // se lee aparte del perfil.
+  const [gender, setGender] = useState<string>('');
+
   useEffect(() => { if (user) setForm(user); }, [user]);
+  useEffect(() => {
+    if (!open || !user) return;
+    supabase.from('profiles').select('gender').eq('id', user.id).maybeSingle()
+      .then(({ data }) => setGender(data?.gender || ''), () => {});
+  }, [open, user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (!open || !user) return null;
 
   // ── Upload image (helper unificado: Supabase → Cloudinary → base64) ──
@@ -157,6 +168,7 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
 
       const dbUpdate: Record<string, any> = {
         full_name:      form.name,
+        gender:         gender            || null,
         bio:            form.bio          || null,
         location:       form.city         || null,
         city:           form.city         || null,
@@ -325,6 +337,25 @@ const ProfileEditModal: React.FC<Props> = ({ open, onClose }) => {
                 <Field icon={<Globe className="w-4 h-4" />} label="País">
                   <input value={form.country || ''} onChange={e => setForm({ ...form, country: e.target.value })} className="input-field" placeholder="España" />
                 </Field>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-600 uppercase tracking-wide block mb-1">Género</label>
+                <div className="flex gap-2">
+                  {[['mujer', 'Mujer'], ['hombre', 'Hombre'], ['otro', 'Otro']].map(([val, lbl]) => (
+                    <button key={val} type="button" onClick={() => setGender(gender === val ? '' : val)}
+                      className={`flex-1 px-3 py-2 rounded-xl text-sm font-bold border transition-all ${
+                        gender === val
+                          ? 'bg-brand-orange text-white border-brand-orange'
+                          : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700'
+                      }`}>
+                      {lbl}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[11px] text-gray-400 mt-1.5">
+                  Se usa en "quién estuvo aquí": los hombres necesitan que el local confirme su
+                  presencia para aparecer. No se muestra en tu perfil público.
+                </p>
               </div>
               <div>
                 <label className="text-xs font-bold text-gray-600 uppercase tracking-wide block mb-1">Biografía</label>
