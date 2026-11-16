@@ -172,7 +172,7 @@ const ParejasPage: React.FC = () => {
                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Tus matches ({matches.length})</p>
                 <div className="flex gap-3 overflow-x-auto pb-1">
                   {matches.map(m => (
-                    <button key={m.user_id} onClick={() => navigate('/chat')} className="flex-shrink-0 text-center">
+                    <button key={m.user_id} onClick={() => navigate(`/chat?con=${m.user_id}`)} className="flex-shrink-0 text-center">
                       <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-brand mx-auto">
                         {m.avatar ? <img src={m.avatar} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center">💃</div>}
                       </div>
@@ -234,7 +234,7 @@ const ParejasPage: React.FC = () => {
                 {matchPopup.avatar ? <img src={matchPopup.avatar} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-gray-200 flex items-center justify-center">🕺</div>}
               </div>
             </div>
-            <button onClick={() => { setMatchPopup(null); navigate('/chat'); }} className="w-full bg-brand-orange text-white font-bold rounded-xl py-3 text-sm flex items-center justify-center gap-2">
+            <button onClick={() => { setMatchPopup(null); navigate(`/chat?con=${matchPopup.user_id}`); }} className="w-full bg-brand-orange text-white font-bold rounded-xl py-3 text-sm flex items-center justify-center gap-2">
               <MessageCircle className="w-4 h-4" /> Enviar mensaje
             </button>
             <button onClick={() => setMatchPopup(null)} className="w-full text-gray-400 text-xs mt-2">Seguir buscando</button>

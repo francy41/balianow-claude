@@ -1,16 +1,47 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Send, Lock, Briefcase, Check, X, Shield } from 'lucide-react';
 import { useChatStore, useAuthStore, useUIStore, SUPPORT_CONV_ID } from '../store/appStore';
 import { supabase } from '../lib/supabase';
 import { Avatar } from '../components/ui';
+import DirectThread from '../components/DirectThread';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+
+type Conv = { otro_id: string; nombre: string | null; avatar: string | null; ultimo: string; cuando: string; sin_leer: number };
+type Match = { user_id: string; nombre: string | null; avatar: string | null; ciudad: string | null };
+
+const esUuid = (s: string | null) => !!s && /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(s);
 
 const ChatPage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
   const { conversations, activeConvId, setActiveConv } = useChatStore();
+  const [params] = useSearchParams();
+
+  // Conversaciones reales y matches. Las dos salen de una función en Postgres
+  // para no hacer una consulta por conversación más otra por perfil.
+  const [convs, setConvs] = useState<Conv[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
+
+  const cargar = useCallback(async () => {
+    if (!user) return;
+    const [{ data: c }, { data: m }] = await Promise.all([
+      supabase.rpc('mis_conversaciones'),
+      supabase.rpc('mis_matches'),
+    ]);
+    setConvs((c || []) as Conv[]);
+    setMatches((m || []) as Match[]);
+  }, [user]);
+
+  useEffect(() => { if (isAuthenticated) cargar(); }, [isAuthenticated, cargar]);
+
+  // /chat?con=<uuid> abre el hilo directamente — así el match desde un local
+  // lleva a la conversación en lugar de dejar a la persona buscándola.
+  useEffect(() => {
+    const con = params.get('con');
+    if (con && esUuid(con)) setActiveConv(con);
+  }, [params, setActiveConv]);
 
   if (!isAuthenticated || !user) {
     return (
@@ -61,10 +92,66 @@ const ChatPage: React.FC = () => {
             );
           })()}
 
-          {conversations.filter(c => c.id !== SUPPORT_CONV_ID).length === 0 ? (
+          {/* ── Matches sin conversación todavía: el punto de partida ── */}
+          {(() => {
+            const sinHablar = matches.filter(m => !convs.some(c => c.otro_id === m.user_id));
+            if (sinHablar.length === 0) return null;
+            return (
+              <div className="p-4 border-b border-gray-100 dark:border-gray-800">
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wide mb-2">
+                  Nuevos matches · escribe el primero
+                </p>
+                <div className="flex gap-3 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+                  {sinHablar.map(m => (
+                    <button key={m.user_id} onClick={() => setActiveConv(m.user_id)}
+                      className="flex-shrink-0 text-center w-14">
+                      <div className="w-14 h-14 rounded-full overflow-hidden ring-2 ring-brand-orange mx-auto">
+                        {m.avatar
+                          ? <img src={m.avatar} alt="" className="w-full h-full object-cover" />
+                          : <div className="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">💃</div>}
+                      </div>
+                      <p className="text-[10px] text-gray-600 dark:text-gray-300 mt-1 truncate">{m.nombre || 'Match'}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ── Conversaciones reales ── */}
+          {convs.map(c => (
+            <button key={c.otro_id} onClick={() => setActiveConv(c.otro_id)}
+              className={`w-full flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-left border-b border-gray-50 dark:border-gray-800 ${
+                activeConvId === c.otro_id ? 'bg-pink-50 dark:bg-brand/10 border-r-2 border-brand-orange' : ''
+              }`}>
+              <Avatar src={c.avatar || ''} name={c.nombre || 'Match'} size="md" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-gray-900 dark:text-white font-semibold text-sm truncate">{c.nombre || 'Bailarín/a'}</span>
+                  <span className="text-gray-300 text-xs flex-shrink-0">
+                    {formatDistanceToNow(new Date(c.cuando), { locale: es, addSuffix: false })}
+                  </span>
+                </div>
+                <p className="text-gray-400 text-xs truncate mt-0.5">{c.ultimo}</p>
+              </div>
+              {c.sin_leer > 0 && (
+                <span className="w-5 h-5 bg-brand-orange rounded-full text-white text-xs flex items-center justify-center font-bold flex-shrink-0">
+                  {c.sin_leer}
+                </span>
+              )}
+            </button>
+          ))}
+
+          {convs.length === 0 && matches.length === 0 ? (
             <div className="p-6 text-center">
-              <p className="text-4xl mb-3">💬</p>
-              <p className="text-gray-400 text-sm">No tienes otros mensajes aún</p>
+              <p className="text-4xl mb-3">💃</p>
+              <p className="text-gray-400 text-sm">Todavía no tienes matches</p>
+              <p className="text-gray-400 text-xs mt-1">
+                Márcate en un local y verás a quién más estuvo allí.
+              </p>
+              <button onClick={() => navigate('/venues')} className="btn-orange text-xs px-4 py-2 mt-3">
+                Ver locales
+              </button>
             </div>
           ) : (
             conversations.filter(c => c.id !== SUPPORT_CONV_ID).map(conv => (
@@ -98,6 +185,9 @@ const ChatPage: React.FC = () => {
       <div className={`${activeConvId ? 'flex' : 'hidden sm:flex'} flex-1 flex-col`}>
         {activeConvId === SUPPORT_CONV_ID ? (
           <SupportThread user={user} onBack={() => setActiveConv('')} />
+        ) : esUuid(activeConvId) ? (
+          <DirectThread key={activeConvId} otroId={activeConvId!} miId={user.id}
+            onBack={() => setActiveConv('')} onCambio={cargar} />
         ) : activeConv ? (
           <ChatWindow conv={activeConv} user={user} onBack={() => setActiveConv('')} />
         ) : (

@@ -273,9 +273,9 @@ const VenueCheckIn: React.FC<{ venueId: string; venueName: string }> = ({ venueI
 
                     <div className="flex items-center gap-1.5 mt-2">
                       {p.es_match ? (
-                        <button onClick={() => navigate('/parejas')}
+                        <button onClick={() => navigate(`/chat?con=${p.user_id}`)}
                           className="flex-1 bg-brand-orange text-white font-bold rounded-lg py-1.5 text-xs">
-                          Ver match
+                          Escribir
                         </button>
                       ) : (
                         <button onClick={() => darLike(p)} disabled={p.ya_le_di_like}
@@ -314,8 +314,8 @@ const VenueCheckIn: React.FC<{ venueId: string; venueName: string }> = ({ venueI
             <p className="text-ink-tertiary text-sm mt-1">
               A {match.nombre || 'esta persona'} también le interesas. Coincidisteis en {venueName}.
             </p>
-            <button onClick={() => { setMatch(null); navigate('/parejas'); }}
-              className="btn-orange w-full mt-4 py-2.5 text-sm">Ver mis matches</button>
+            <button onClick={() => { setMatch(null); navigate(`/chat?con=${match.user_id}`); }}
+              className="btn-orange w-full mt-4 py-2.5 text-sm">Escribirle ahora</button>
             <button onClick={() => setMatch(null)}
               className="w-full mt-2 py-2 text-xs font-bold text-ink-tertiary">Seguir mirando</button>
           </div>
