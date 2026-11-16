@@ -30,6 +30,7 @@ const TVCreatorPage: React.FC = () => {
   const [lessons, setLessons] = useState<LessonRow[]>([]);
   const [lessonForm, setLessonForm] = useState(emptyLesson);
   const [addingLesson, setAddingLesson] = useState(false);
+  const [subiendo, setSubiendo] = useState<number | null>(null);
 
   const uid = user?.id;
 
@@ -92,6 +93,50 @@ const TVCreatorPage: React.FC = () => {
     openLessons(selected);
   };
 
+  // Sube el fichero DIRECTO a Cloudflare. La función solo entrega una URL de
+  // un solo uso: el vídeo no pasa por nuestro backend, que es lo que haría esto
+  // lento y caro. Se usa XMLHttpRequest y no fetch porque es lo único que da
+  // progreso de subida, y en un vídeo de 500 MB una barra importa.
+  const subirVideo = async (file?: File) => {
+    if (!file || !selected) return;
+    if (!lessonForm.name.trim()) { addToast({ message: 'Ponle nombre a la clase antes de subir el vídeo', type: 'error' }); return; }
+
+    setSubiendo(0);
+    const { data, error } = await supabase.functions.invoke('tv-upload', {
+      body: {
+        title_id: selected.id,
+        name: lessonForm.name.trim(),
+        access: lessonForm.access,
+        duration_minutes: parseFloat(lessonForm.duration_minutes) || 30,
+      },
+    });
+    if (error || !data?.uploadURL) {
+      setSubiendo(null);
+      addToast({ message: data?.error || 'No se pudo preparar la subida', type: 'error' });
+      return;
+    }
+
+    const form = new FormData();
+    form.append('file', file);
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', data.uploadURL);
+    xhr.upload.onprogress = e => {
+      if (e.lengthComputable) setSubiendo(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () => {
+      setSubiendo(null);
+      if (xhr.status >= 200 && xhr.status < 300) {
+        addToast({ message: 'Vídeo subido. Cloudflare lo está procesando; estará listo en unos minutos.', type: 'success' });
+        setLessonForm(emptyLesson);
+        openLessons(selected);
+      } else {
+        addToast({ message: 'La subida falló. Inténtalo de nuevo.', type: 'error' });
+      }
+    };
+    xhr.onerror = () => { setSubiendo(null); addToast({ message: 'Se cortó la subida', type: 'error' }); };
+    xhr.send(form);
+  };
+
   const deleteLesson = async (id: string) => {
     await supabase.from('tv_lessons').delete().eq('id', id);
     if (selected) openLessons(selected);
@@ -120,7 +165,24 @@ const TVCreatorPage: React.FC = () => {
             <h2 className="font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2"><Film className="w-4 h-4 text-fuchsia-500" /> Añadir clase</h2>
             <div className="space-y-3">
               <input className="input-field" placeholder="Nombre de la clase" value={lessonForm.name} onChange={e => setLessonForm({ ...lessonForm, name: e.target.value })} />
-              <input className="input-field" placeholder="URL o UID de vídeo (Cloudflare Stream / mp4)" value={lessonForm.video_url} onChange={e => setLessonForm({ ...lessonForm, video_url: e.target.value })} />
+              {subiendo === null ? (
+                <label className="flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-xl py-4 cursor-pointer hover:border-fuchsia-400 transition-colors">
+                  <Film className="w-4 h-4 text-fuchsia-500" />
+                  <span className="text-sm font-bold text-gray-700 dark:text-gray-200">Subir vídeo de la clase</span>
+                  <input type="file" accept="video/*" hidden onChange={e => subirVideo(e.target.files?.[0])} />
+                </label>
+              ) : (
+                <div className="border-2 border-fuchsia-400 rounded-xl p-4">
+                  <div className="flex items-center justify-between text-sm font-bold text-gray-700 dark:text-gray-200 mb-2">
+                    <span>Subiendo vídeo…</span><span>{subiendo}%</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+                    <div className="h-full bg-fuchsia-500 transition-[width] duration-200" style={{ width: `${subiendo}%` }} />
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-2">No cierres esta página hasta que termine.</p>
+                </div>
+              )}
+              <input className="input-field" placeholder="…o pega la URL de un vídeo externo (mp4, YouTube)" value={lessonForm.video_url} onChange={e => setLessonForm({ ...lessonForm, video_url: e.target.value })} />
               <div className="grid grid-cols-2 gap-3">
                 <input className="input-field" type="number" placeholder="Duración (min)" value={lessonForm.duration_minutes} onChange={e => setLessonForm({ ...lessonForm, duration_minutes: e.target.value })} />
                 <select className="input-field" value={lessonForm.access} onChange={e => setLessonForm({ ...lessonForm, access: e.target.value })}>
