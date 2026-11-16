@@ -16,6 +16,7 @@ import { supabase, PUBLIC_PROFILE_COLUMNS } from '../lib/supabase';
 import { safeSocialUrl } from '../lib/security';
 import { useAuthStore } from '../store/appStore';
 import ProfileEditModal from '../components/ProfileEditModal';
+import DanceReviews, { ReputacionResumen } from '../components/DanceReviews';
 
 interface PublicProfile {
   id: string;
@@ -253,6 +254,15 @@ const PublicProfilePage: React.FC = () => {
               ))}
             </div>
           )}
+
+          {/* Reputación de baile: lo que dice de ti quien ha bailado contigo */}
+          <div className="mt-4">
+            <ReputacionResumen userId={profile.id} />
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <DanceReviews userId={profile.id} nombre={profile.full_name} />
         </div>
 
         {/* CTAs principales (embudo de ventas) */}

@@ -89,6 +89,25 @@ async function resolveAdmins(): Promise<string[]> {
   } catch { return []; }
 }
 
+// Cuántas veces se ha reportado a esta persona. Se cuenta aquí, con la clave de
+// servicio, porque `user_reports` solo deja a cada usuario ver los suyos: el
+// navegador de quien denuncia no puede saber si hay un patrón.
+async function contarReportes(userId: string): Promise<number> {
+  const url = Deno.env.get('SUPABASE_URL') ?? '';
+  const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+  if (!url || !key || !/^[0-9a-f-]{36}$/i.test(userId)) return 1;
+  try {
+    const r = await fetch(
+      `${url}/rest/v1/user_reports?select=id&reported_id=eq.${userId}`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}`, Prefer: 'count=exact' } },
+    );
+    if (!r.ok) return 1;
+    const rango = r.headers.get('content-range') ?? '';
+    const total = Number(rango.split('/')[1]);
+    return Number.isFinite(total) && total > 0 ? total : 1;
+  } catch { return 1; }
+}
+
 const btn = (href: string, text: string) =>
   `<a href="${href}" style="display:inline-block;background:linear-gradient(135deg,#f97316,#d946ef);color:#fff;font-weight:700;text-decoration:none;padding:12px 22px;border-radius:10px;margin-top:12px">${text}</a>`;
 
@@ -141,6 +160,26 @@ function template(type: string, d: Record<string, any>): { subject: string; html
       return { subject: `👤 Alta nueva en BailaNow${d.role ? ` · ${esc(d.role)}` : ''}`, html: shell('Se ha registrado alguien',
         `<p><b>${esc(d.name) || 'Un usuario'}</b> ha creado una cuenta${d.role ? ` como <b>${esc(d.role)}</b>` : ''}${d.city ? ` en ${esc(d.city)}` : ''}.</p>
          <p style="color:#6b7280;font-size:13px">Si estos avisos te resultan demasiados, se pueden agrupar en un resumen diario.</p>${btn(`${APP}/admin/usuarios`, 'Ver usuarios')}`) };
+    case 'admin_reporte': {
+      // El número de reportes acumulados lo cuenta el servidor (ver contarReportes):
+      // el navegador de quien denuncia solo puede ver sus propios reportes.
+      const veces = Number(d.veces) || 1;
+      const grave = veces >= 3;
+      return {
+        subject: grave
+          ? `🚨 ${veces} reportes acumulados sobre la misma persona · BailaNow`
+          : '🚨 Nuevo reporte de usuario · BailaNow',
+        html: shell(grave ? 'Hay un patrón, no un caso aislado' : 'Se ha reportado a un usuario',
+          `<p>Motivo: <b>${esc(d.reason) || 'sin especificar'}</b>${d.context ? ` · contexto: ${esc(d.context)}` : ''}.</p>
+           ${grave
+             ? `<p style="background:#fef2f2;border-left:4px solid #dc2626;padding:12px 14px;border-radius:8px">
+                  Esta persona acumula <b>${veces} reportes</b>. Conviene revisarlo hoy: desde el panel
+                  se puede suspender la cuenta, lo que la saca de los locales y le impide escribir.
+                </p>`
+             : '<p>Revísalo cuando puedas desde el panel.</p>'}
+           ${btn(`${APP}/admin`, 'Abrir reportes')}`),
+      };
+    }
     case 'admin_dispute':
       return { subject: '⚠️ Disputa abierta · BailaNow', html: shell('Se ha abierto una disputa',
         `<p>Hay una disputa esperando mediación. Conviene atenderla pronto: hay dinero retenido de por medio.</p>${btn(`${APP}/admin/disputas`, 'Ver disputa')}`) };
@@ -178,7 +217,12 @@ serve(async (req) => {
     destinatarios = [to];
   }
 
-  const { subject, html } = template(type, body.data || {});
+  const datos = { ...(body.data || {}) };
+  if (type === 'admin_reporte' && datos.reported_id) {
+    datos.veces = await contarReportes(String(datos.reported_id));
+  }
+
+  const { subject, html } = template(type, datos);
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
