@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Flag, Loader2, AlertTriangle, CheckCircle, XCircle, Eye, ExternalLink, MapPin, MessageSquare } from 'lucide-react';
+import { Flag, Loader2, AlertTriangle, CheckCircle, XCircle, Eye, ExternalLink, MapPin, MessageSquare, Ban, RotateCcw, Clock, Star } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 // ── Panel de reportes ───────────────────────────────────────────────────────
@@ -20,7 +20,11 @@ type Reporte = {
   status: 'pendiente' | 'revisado' | 'accion_tomada' | 'descartado';
   created_at: string;
   veces_reportado: number;
+  reported_suspendido: boolean;
+  reported_rol: string | null;
 };
+
+type Historial = { accion: string; motivo: string | null; admin: string | null; cuando: string };
 
 const ESTADOS = {
   pendiente:     { label: '⏳ Pendiente',   clase: 'bg-yellow-100 text-yellow-800' },
@@ -38,6 +42,9 @@ const ReportsAdminSection: React.FC<Props> = ({ addToast }) => {
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<'todos' | Reporte['status']>('pendiente');
+  const [historial, setHistorial] = useState<Record<string, Historial[]>>({});
+  const [margen, setMargen] = useState<string>('');
+  const [margenGuardando, setMargenGuardando] = useState(false);
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -58,6 +65,58 @@ const ReportsAdminSection: React.FC<Props> = ({ addToast }) => {
   }, [addToast]);
 
   useEffect(() => { cargar(); }, [cargar]);
+
+  useEffect(() => {
+    supabase.from('site_config').select('value').eq('key', 'checkin_margen_seguir_minutos').maybeSingle()
+      .then(({ data }) => setMargen(String(data?.value ?? 120)), () => setMargen('120'));
+  }, []);
+
+  const guardarMargen = async () => {
+    const n = Number(margen);
+    if (!Number.isFinite(n) || n < 0) { addToast({ message: 'Pon un número de minutos', type: 'warning' }); return; }
+    setMargenGuardando(true);
+    const { error } = await supabase.from('site_config')
+      .upsert({ key: 'checkin_margen_seguir_minutos', value: n as any }, { onConflict: 'key' });
+    setMargenGuardando(false);
+    addToast({
+      message: error ? `No se pudo guardar: ${error.message}` : `Margen guardado: ${n} minutos`,
+      type: error ? 'error' : 'success',
+    });
+  };
+
+  // Suspender corta la parte social en el momento: desaparece de los locales,
+  // no puede dar likes ni escribir. No le impide iniciar sesión — eso se hace
+  // desde el panel de Supabase, y el aviso de abajo lo dice.
+  const suspender = async (r: Reporte) => {
+    const motivo = window.prompt(`¿Por qué suspendes a ${r.reported || 'esta persona'}?\n\nQuedará registrado con tu nombre.`);
+    if (motivo === null) return;
+    setGuardando(r.id);
+    const { error } = await supabase.rpc('suspender_usuario', { p_user: r.reported_id, p_motivo: motivo });
+    setGuardando(null);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: `${r.reported || 'Cuenta'} suspendida`, type: 'success' });
+    await supabase.from('user_reports').update({ status: 'accion_tomada' }).eq('id', r.id);
+    cargar();
+  };
+
+  const reactivar = async (r: Reporte) => {
+    if (!window.confirm(`¿Reactivar la cuenta de ${r.reported || 'esta persona'}?`)) return;
+    setGuardando(r.id);
+    const { error } = await supabase.rpc('reactivar_usuario', { p_user: r.reported_id });
+    setGuardando(null);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: 'Cuenta reactivada', type: 'success' });
+    cargar();
+  };
+
+  const verHistorial = async (r: Reporte) => {
+    if (historial[r.reported_id]) {
+      setHistorial(h => { const n = { ...h }; delete n[r.reported_id]; return n; });
+      return;
+    }
+    const { data } = await supabase.rpc('historial_moderacion', { p_user: r.reported_id });
+    setHistorial(h => ({ ...h, [r.reported_id]: (data || []) as Historial[] }));
+  };
 
   const cambiarEstado = async (r: Reporte, status: Reporte['status']) => {
     setGuardando(r.id);
@@ -90,6 +149,7 @@ const ReportsAdminSection: React.FC<Props> = ({ addToast }) => {
   const contexto = (c: string | null) => {
     if (!c) return null;
     if (c === 'chat') return <span className="flex items-center gap-1 text-gray-500"><MessageSquare className="w-3 h-3" /> Chat</span>;
+    if (c === 'review') return <span className="flex items-center gap-1 text-gray-500"><Star className="w-3 h-3" /> Reseña de baile</span>;
     if (c.startsWith('venue:')) return (
       <a href={`/venues/${c.slice(6)}`} target="_blank" rel="noreferrer"
         className="flex items-center gap-1 text-brand hover:underline">
@@ -186,6 +246,9 @@ const ReportsAdminSection: React.FC<Props> = ({ addToast }) => {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-semibold text-gray-900">{r.reported || '(sin nombre)'}</p>
+                      {r.reported_suspendido && (
+                        <span className="bg-red-600 text-white px-2 py-0.5 rounded text-[10px] font-black">SUSPENDIDO</span>
+                      )}
                       <span className={`px-2 py-0.5 rounded text-xs font-semibold ${ESTADOS[r.status].clase}`}>
                         {ESTADOS[r.status].label}
                       </span>
@@ -206,7 +269,24 @@ const ReportsAdminSection: React.FC<Props> = ({ addToast }) => {
                         className="flex items-center gap-1 text-brand hover:underline">
                         <ExternalLink className="w-3 h-3" /> Ver perfil
                       </a>
+                      <button onClick={() => verHistorial(r)} className="text-gray-500 hover:underline">
+                        {historial[r.reported_id] ? 'Ocultar historial' : 'Historial'}
+                      </button>
                     </div>
+
+                    {historial[r.reported_id] && (
+                      <div className="mt-2 rounded-lg bg-gray-50 border border-gray-200 p-2.5">
+                        {historial[r.reported_id].length === 0 ? (
+                          <p className="text-[11px] text-gray-500">Sin acciones de moderación previas.</p>
+                        ) : historial[r.reported_id].map((h, i) => (
+                          <p key={i} className="text-[11px] text-gray-600">
+                            <strong>{h.accion === 'suspender' ? 'Suspendido' : 'Reactivado'}</strong>
+                            {h.admin ? ` por ${h.admin}` : ''} · {new Date(h.cuando).toLocaleString('es-ES')}
+                            {h.motivo ? ` — ${h.motivo}` : ''}
+                          </p>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -224,6 +304,21 @@ const ReportsAdminSection: React.FC<Props> = ({ addToast }) => {
                     className="flex items-center gap-1.5 bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-xs font-bold hover:bg-gray-300 disabled:opacity-40">
                     <XCircle className="w-3.5 h-3.5" /> Descartar
                   </button>
+                  {/* Un administrador no puede suspender a otro: lo rechaza la
+                      función en Postgres, así que aquí no se ofrece. */}
+                  {r.reported_rol !== 'admin' && r.reported_rol !== 'superadmin' && (
+                    r.reported_suspendido ? (
+                      <button onClick={() => reactivar(r)} disabled={guardando === r.id}
+                        className="flex items-center gap-1.5 bg-emerald-600 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-emerald-700 disabled:opacity-40">
+                        <RotateCcw className="w-3.5 h-3.5" /> Reactivar
+                      </button>
+                    ) : (
+                      <button onClick={() => suspender(r)} disabled={guardando === r.id}
+                        className="flex items-center gap-1.5 bg-gray-900 text-white px-3 py-2 rounded-lg text-xs font-bold hover:bg-black disabled:opacity-40">
+                        <Ban className="w-3.5 h-3.5" /> Suspender cuenta
+                      </button>
+                    )
+                  )}
                 </div>
               </div>
             </div>
@@ -231,11 +326,49 @@ const ReportsAdminSection: React.FC<Props> = ({ addToast }) => {
         </div>
       )}
 
-      <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 text-xs text-gray-600 flex gap-2.5">
-        <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" />
-        <p>
-          "Acción tomada" solo deja constancia de la decisión: no suspende la cuenta ni avisa a nadie.
-          Para suspender a alguien hay que hacerlo desde <strong>Usuarios</strong>.
+      {/* ── Regla de presencia, ajustable sin tocar código ── */}
+      <div className="rounded-xl border border-gray-200 bg-white p-4">
+        <p className="font-black text-gray-900 text-sm flex items-center gap-2">
+          <Clock className="w-4 h-4 text-gray-400" /> Margen para seguir un local
+        </p>
+        <p className="text-xs text-gray-500 mt-1 max-w-2xl">
+          Cuánto tiempo antes de marcarse tiene que seguir el local un hombre para que su
+          presencia cuente. Con margen 0 basta con pulsar "Seguir" justo antes, que casi no
+          filtra nada. Por defecto 120 minutos.
+        </p>
+        <div className="flex items-center gap-2 mt-3">
+          <input type="number" min={0} value={margen} onChange={e => setMargen(e.target.value)}
+            className="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+          <span className="text-xs font-bold text-gray-500">minutos</span>
+          <button onClick={guardarMargen} disabled={margenGuardando}
+            className="bg-brand-orange text-white px-4 py-2 rounded-lg text-xs font-bold hover:opacity-90 disabled:opacity-50">
+            {margenGuardando ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Guardar'}
+          </button>
+        </div>
+      </div>
+
+      <div className="rounded-xl bg-gray-50 border border-gray-200 p-4 text-xs text-gray-600 space-y-2">
+        <p className="flex gap-2.5">
+          <Ban className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" />
+          <span>
+            <strong>Suspender</strong> corta la parte social en el momento: la persona desaparece de
+            los locales, no puede dar likes ni escribir mensajes, y sus reseñas dejan de mostrarse.
+            Queda registrado con tu nombre y el motivo.
+            <br />
+            Lo que <strong>no</strong> hace es impedirle iniciar sesión: eso se hace desde el panel de
+            Supabase (Authentication → Users).
+          </span>
+        </p>
+        <p className="flex gap-2.5">
+          <Star className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" />
+          <span>
+            Los reportes con contexto <strong>review</strong> son reseñas de baile denunciadas. Para
+            retirar una, entra en el perfil de quien la recibió.
+          </span>
+        </p>
+        <p className="flex gap-2.5">
+          <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" />
+          <span>"Acción tomada" por sí solo únicamente deja constancia de la decisión.</span>
         </p>
       </div>
     </div>

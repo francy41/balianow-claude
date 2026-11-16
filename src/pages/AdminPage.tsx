@@ -199,6 +199,7 @@ const AdminPage: React.FC = () => {
   const [disputesPendingCount, setDisputesPendingCount] = useState<number | null>(null);
   const [escrowPendingCount, setEscrowPendingCount] = useState<number | null>(null);
   const [supportUnreadCount, setSupportUnreadCount] = useState<number | null>(null);
+  const [reportsPendingCount, setReportsPendingCount] = useState<number | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -207,12 +208,14 @@ const AdminPage: React.FC = () => {
       supabase.from('disputes').select('id', { count: 'exact', head: true }).eq('status', 'open'),
       supabase.from('escrows').select('id', { count: 'exact', head: true }).in('status', ['pending', 'held', 'escrow']),
       supabase.from('support_messages').select('id', { count: 'exact', head: true }).eq('is_admin', false).eq('read', false),
-    ]).then(([claims, radio, disputes, escrow, support]) => {
+      supabase.from('user_reports').select('id', { count: 'exact', head: true }).eq('status', 'pendiente'),
+    ]).then(([claims, radio, disputes, escrow, support, reports]) => {
       setPendingClaimsCount(claims.count ?? 0);
       setRadioLiveCount(radio.count ?? 0);
       setDisputesPendingCount(disputes.count ?? 0);
       setEscrowPendingCount(escrow.count ?? 0);
       setSupportUnreadCount(support.count ?? 0);
+      setReportsPendingCount(reports.count ?? 0);
     });
   }, []);
 
@@ -277,6 +280,7 @@ const AdminPage: React.FC = () => {
                   sec.id === 'disputas'      ? ((disputesPendingCount ?? 0) > 0 ? String(disputesPendingCount) : null) :
                   sec.id === 'mercado'       ? ((escrowPendingCount ?? 0) > 0 ? `${escrowPendingCount} pend.` : null) :
                   sec.id === 'soporte'       ? ((supportUnreadCount ?? 0) > 0 ? String(supportUnreadCount) : null) :
+                  sec.id === 'reportes'      ? ((reportsPendingCount ?? 0) > 0 ? String(reportsPendingCount) : null) :
                   (sec.badge ?? null);
                 return dynBadge ? (
                   <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${active === sec.id ? 'bg-white/20 text-white' : 'bg-brand-orange/10 text-brand-orange'}`}>

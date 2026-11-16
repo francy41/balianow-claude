@@ -42,6 +42,17 @@ type Estado = {
   genero: string | null;
   necesita_verificacion: boolean;
   puedo_ver: boolean;
+  margen_minutos: number;
+  suspendido: boolean;
+};
+
+const margenTexto = (min: number) => {
+  if (!min || min <= 0) return 'antes de marcarte';
+  if (min < 60) return `al menos ${min} minutos antes de marcarte`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `al menos ${h} ${h === 1 ? 'hora' : 'horas'} antes de marcarte`;
+  const d = Math.round(h / 24);
+  return `al menos ${d} ${d === 1 ? 'día' : 'días'} antes de marcarte`;
 };
 
 const MOTIVOS = [
@@ -201,6 +212,11 @@ const VenueCheckIn: React.FC<{ venueId: string; venueName: string }> = ({ venueI
     });
     setReportando(null);
     addToast({ message: 'Gracias. El equipo lo revisará.', type: 'success' });
+    // Aviso al equipo. Es de mejor esfuerzo: el canal fiable es el contador del
+    // panel, que no depende de que esta llamada llegue a tiempo.
+    supabase.functions.invoke('send-email', {
+      body: { type: 'admin_reporte', data: { reason: motivo, context: 'local', reported_id: p.user_id } },
+    }).catch(() => {});
   };
 
   // El módulo aún no está instalado en la base de datos: no se muestra nada.
@@ -293,10 +309,10 @@ const VenueCheckIn: React.FC<{ venueId: string; venueName: string }> = ({ venueI
           <div className="mt-3.5 space-y-2.5">
             <Requisito
               hecho={!!estado?.sigo && !!estado?.sigo_antes}
-              titulo="Seguir este local desde antes de marcarte"
+              titulo={`Seguir este local ${margenTexto(estado?.margen_minutos ?? 120)}`}
               detalle={
                 estado?.sigo && !estado?.sigo_antes
-                  ? 'Sigues el local, pero empezaste después de marcarte. Contará la próxima vez que vengas.'
+                  ? 'Sigues el local, pero empezaste demasiado tarde. Contará la próxima vez que vengas.'
                   : 'Pulsa seguir y quedará registrado con la fecha.'
               }
               accion={!estado?.sigo ? { texto: `Seguir ${venueName}`, onClick: seguirLocal } : undefined}
@@ -377,7 +393,12 @@ const VenueCheckIn: React.FC<{ venueId: string; venueName: string }> = ({ venueI
                     </span>
                   </div>
                   <div className="p-2.5">
-                    <p className="font-bold text-sm text-ink-primary truncate">{p.nombre || 'Bailarín/a'}</p>
+                    {/* Al perfil, que es donde se deja la reseña de baile */}
+                    <button onClick={() => navigate(`/u/${p.user_id}`)} className="text-left w-full">
+                      <p className="font-bold text-sm text-ink-primary truncate hover:text-brand-orange transition-colors">
+                        {p.nombre || 'Bailarín/a'}
+                      </p>
+                    </button>
                     {p.ciudad && <p className="text-[11px] text-ink-tertiary truncate">{p.ciudad}</p>}
 
                     <div className="flex items-center gap-1.5 mt-2">

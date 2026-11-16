@@ -123,6 +123,9 @@ const DirectThread: React.FC<{
     setReportando(false);
     setMenu(false);
     addToast({ message: 'Gracias. El equipo lo revisará.', type: 'success' });
+    supabase.functions.invoke('send-email', {
+      body: { type: 'admin_reporte', data: { reason: motivo, context: 'chat', reported_id: otroId } },
+    }).catch(() => {});
   };
 
   if (cargando) {
