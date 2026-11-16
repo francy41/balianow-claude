@@ -537,53 +537,12 @@ export const useChatStore = create<ChatState>((set) => ({
           timestamp: new Date(), isRead: true
         }
       ]
-    },
-    {
-      id: 'conv1',
-      participantId: 'a1',
-      participantName: 'DJ Mambo King',
-      participantAvatar: 'https://ui-avatars.com/api/?name=Mambo+King&background=7C3AED&color=fff&size=200',
-      lastMessage: '¡Hola! Vi tu propuesta de booking...',
-      lastMessageTime: new Date(Date.now() - 3600000),
-      unread: 2,
-      messages: [
-        {
-          id: 'm1', senderId: 'a1', senderName: 'DJ Mambo King',
-          senderAvatar: 'https://ui-avatars.com/api/?name=Mambo+King&background=7C3AED&color=fff&size=200',
-          text: '¡Hola! Vi tu propuesta de booking para el 15 de junio. Me interesa mucho.',
-          timestamp: new Date(Date.now() - 7200000), isRead: true
-        },
-        {
-          id: 'm2', senderId: 'a1', senderName: 'DJ Mambo King',
-          senderAvatar: 'https://ui-avatars.com/api/?name=Mambo+King&background=7C3AED&color=fff&size=200',
-          text: '¿Cuántas horas necesitas? ¿Es para una boda o evento privado?',
-          timestamp: new Date(Date.now() - 3600000), isRead: false
-        }
-      ]
-    },
-    {
-      id: 'conv2',
-      participantId: 'a2',
-      participantName: 'La Reina del Ritmo',
-      participantAvatar: 'https://ui-avatars.com/api/?name=La+Reina&background=EC4899&color=fff&size=200',
-      lastMessage: 'Perfecto, hasta el sábado entonces 💃',
-      lastMessageTime: new Date(Date.now() - 86400000),
-      unread: 0,
-      messages: [
-        {
-          id: 'm3', senderId: 'u1', senderName: 'Carlos',
-          senderAvatar: 'https://ui-avatars.com/api/?name=Carlos&background=7C3AED&color=fff&size=200',
-          text: 'Hola! Quisiera reservar una clase privada para este sábado.',
-          timestamp: new Date(Date.now() - 172800000), isRead: true
-        },
-        {
-          id: 'm4', senderId: 'a2', senderName: 'La Reina del Ritmo',
-          senderAvatar: 'https://ui-avatars.com/api/?name=La+Reina&background=EC4899&color=fff&size=200',
-          text: 'Perfecto, hasta el sábado entonces 💃',
-          timestamp: new Date(Date.now() - 86400000), isRead: true
-        }
-      ]
     }
+    // Aquí había dos conversaciones de ejemplo ("DJ Mambo King", "La Reina del
+    // Ritmo") que se mostraban a toda persona real que abría el chat, con
+    // mensajes y un contador de no leídos inventados. Las conversaciones reales
+    // viven en la tabla `messages` y las carga ChatPage. El resto de este store
+    // (incluidas las ofertas con escrow) se conserva intacto.
   ],
   activeConvId: null,
 

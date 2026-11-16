@@ -13,6 +13,7 @@ import { FilterFacet, ActiveFilterBar, FilterPanel } from '../components/SmartFi
 import { useAuthStore, useUIStore, getYouTubeId, useSiteConfigStore } from '../store/appStore';
 import BookingModal from '../components/BookingModal';
 import VenueReservationModal from '../components/VenueReservationModal';
+import VenueCheckIn from '../components/VenueCheckIn';
 import CallBookingModal from '../components/CallBookingModal';
 import { supabase } from '../lib/supabase';
 import { usePageMeta } from '../hooks/usePageMeta';
@@ -290,6 +291,7 @@ const SocialIcon: React.FC<{ kind: string }> = ({ kind }) => {
 
 const VENUE_TABS = [
   { id: 'about' as const,   label: 'Sobre el local', icon: '📍', module: 'about' },
+  { id: 'gente' as const,   label: 'Quién estuvo',   icon: '💃', module: 'checkins' },
   { id: 'events' as const,  label: 'Eventos',        icon: '📅', module: 'events' },
   { id: 'gallery' as const, label: 'Galería',        icon: '📸', module: 'gallery' },
   { id: 'reviews' as const, label: 'Reseñas',        icon: '⭐', module: 'reviews' },
@@ -301,7 +303,7 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
   const { addToast } = useUIStore();
   const [venue, setVenue] = useState<Venue | null>(null);
   const [loadingVenue, setLoadingVenue] = useState(true);
-  const [activeTab, setActiveTab] = useState<'about' | 'events' | 'gallery' | 'reviews'>('about');
+  const [activeTab, setActiveTab] = useState<'about' | 'gente' | 'events' | 'gallery' | 'reviews'>('about');
   const profileModules = useSiteConfigStore(s => s.profileModules);
   const isModuleOn = (modId: string) => profileModules.find(m => m.id === modId)?.enabled !== false;
   const visibleVenueTabs = VENUE_TABS.filter(t => isModuleOn(t.module));
@@ -487,8 +489,12 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
       {/* ── ACTION BAR ── */}
       <div className="sticky top-14 z-30 bg-surface-elevated border-b border-hairline/10 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-          <button onClick={() => navigate('/chat')}
+          <button onClick={() => setActiveTab('gente')}
             className="btn-orange text-sm py-2 px-4 flex items-center gap-1.5 whitespace-nowrap">
+            <Users className="w-4 h-4" /> Estoy aquí
+          </button>
+          <button onClick={() => navigate('/chat')}
+            className="text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-1.5 whitespace-nowrap bg-surface-elevated-2 text-ink-secondary hover:bg-hairline/10 transition-all">
             <MessageSquare className="w-4 h-4" /> Chat interno
           </button>
           <button onClick={handleReserve} disabled={!isClaimed(venue.userId as string)}
@@ -540,6 +546,10 @@ const VenueDetail: React.FC<{ venueId: string }> = ({ venueId }) => {
 
       {/* ── TAB CONTENT ── */}
       <div key={activeTab} className="max-w-5xl mx-auto px-4 py-6 animate-fade-up">
+
+        {activeTab === 'gente' && (
+          <VenueCheckIn venueId={String(venue.id)} venueName={venue.name} />
+        )}
 
         {activeTab === 'about' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
