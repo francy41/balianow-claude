@@ -23,6 +23,7 @@ import NewsletterAdminPanel from '../components/NewsletterAdminPanel';
 import DanceChoreoAdmin from '../components/DanceChoreoAdmin';
 import ClaimsAdminSection from '../components/ClaimsAdminSection';
 import SupportAdminSection from '../components/SupportAdminSection';
+import ReportsAdminSection from '../components/ReportsAdminSection';
 import PartnerAdminSection from '../components/PartnerAdminSection';
 import VideoAdsAdminSection from '../components/VideoAdsAdminSection';
 import DonationsAdminSection from '../components/DonationsAdminSection';
@@ -47,7 +48,7 @@ type AdminSection =
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms' | 'home-destacados'
   | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter' | 'danceavatares' | 'afiliados' | 'promocionate'
-  | 'reclamaciones' | 'planificador' | 'soporte'
+  | 'reclamaciones' | 'planificador' | 'soporte' | 'reportes'
   | 'tv' | 'rutas' | 'parejas' | 'retos' | 'partner' | 'publicidad' | 'donaciones' | 'membresias' | 'solicitudes-creador' | 'tv-monetizacion' | 'modulos' | 'app-builder' | 'servicios' | 'en-directo';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
@@ -60,6 +61,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'media',          label: 'Media Manager',           icon: <Palette className="w-4 h-4" />, badge: 'NEW' },
   { id: 'radio',          label: 'Radio Online',            icon: <Radio className="w-4 h-4" /> },
   { id: 'usuarios',       label: 'Usuarios',                icon: <Users className="w-4 h-4" /> },
+  { id: 'reportes',       label: 'Reportes de usuarios',    icon: <Shield className="w-4 h-4" />, badge: 'NEW' },
   { id: 'importar',       label: 'Importar perfiles',       icon: <FileText className="w-4 h-4" />, badge: 'NEW' },
   { id: 'integraciones',  label: 'Integraciones (GHL)',     icon: <Globe className="w-4 h-4" />, badge: 'GHL' },
   { id: 'planificador',   label: 'Planificador de Redes',   icon: <Radio className="w-4 h-4" />, badge: 'LIVE' },
@@ -332,6 +334,7 @@ const AdminPage: React.FC = () => {
         {active === 'resenas'        && <ResenasSection addToast={addToast} />}
         {active === 'patrocinadores'  && <PatrocinadoresSection addToast={addToast} />}
         {active === 'soporte'         && <SupportAdminSection addToast={addToast} />}
+        {active === 'reportes'        && <ReportsAdminSection addToast={addToast} />}
         {active === 'administradores' && <AdministradoresSection addToast={addToast} isSuperAdmin={isSuperAdmin} />}
         {active === 'importar'        && <ProfileImporter />}
         {active === 'integraciones'   && <IntegracionesSection addToast={addToast} />}
