@@ -1710,11 +1710,13 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
 // El fichero es vertical (2160×3840) y se sirve en marcos apaisados, así que
 // hay que elegir qué se sacrifica. De ahí los tres ajustes:
 //   cubrir-arriba  — llena el marco anclado arriba (columna del escritorio).
-//   cubrir-centro  — llena el marco por el centro, que es donde está el móvil
-//                    de la pieza; el banner apaisado de móvil usa este.
+//   cubrir-banner  — llena el marco anclado al 25% de la altura, no al centro:
+//                    con un marco apaisado el centro parte a la gente por la
+//                    cintura, y a un cuarto de altura caen las caras. Lo usa el
+//                    banner de móvil.
 //   contener       — cabe entero y el póster difuminado rellena los lados.
 // Con un vídeo horizontal los tres dan el mismo resultado: sin recorte.
-type AjusteVideo = 'cubrir-arriba' | 'cubrir-centro' | 'contener';
+type AjusteVideo = 'cubrir-arriba' | 'cubrir-banner' | 'contener';
 
 const HeroVideo: React.FC<{
   poster?: string;
@@ -1748,7 +1750,7 @@ const HeroVideo: React.FC<{
         ref={ref}
         className={`absolute inset-0 w-full h-full ${
           ajuste === 'contener' ? 'object-contain object-center'
-            : ajuste === 'cubrir-centro' ? 'object-cover object-center'
+            : ajuste === 'cubrir-banner' ? 'object-cover [object-position:50%_25%]'
             : 'object-cover object-top'
         }`}
         src={HERO_VIDEO}
@@ -2499,12 +2501,19 @@ const HomePage: React.FC = () => {
               </div>
 
               {/* En móvil no hay columna derecha: el vídeo va debajo del texto,
-                  como banner apaisado. La proporción la fija el marco (4/3, el
-                  mismo recorte que ya hace la columna del escritorio) y no el
-                  fichero, que es vertical: así la página no salta y la pieza se
-                  lee en horizontal. */}
-              <HeroVideo poster={heroImage} ajuste="cubrir-centro"
-                className="md:hidden relative w-full mt-5 rounded-2xl overflow-hidden aspect-[4/3] bg-brand-deep" />
+                  como banner apaisado. Dos decisiones lo igualan al escritorio:
+                  la proporción la fija el marco (4/3, el mismo recorte que hace
+                  la columna de al lado) y no el fichero, que es vertical; y sale
+                  a sangre —los márgenes negativos cancelan el padding— con el
+                  mismo degradado de fundido, aquí en vertical, para que emerja
+                  del panel en vez de quedar como un recuadro pegado. Las
+                  esquinas las recorta el redondeo de la tarjeta. */}
+              <div className="md:hidden relative -mx-5 sm:-mx-8 -mb-5 sm:-mb-8 mt-6">
+                <HeroVideo poster={heroImage} ajuste="cubrir-banner"
+                  className="relative w-full aspect-[4/3] bg-brand-deep" />
+                <div className="absolute inset-x-0 top-0 h-2/5 pointer-events-none
+                  bg-gradient-to-b from-surface-elevated via-surface-elevated/40 to-transparent" />
+              </div>
             </div>
 
             {/* Vídeo a la derecha. En escritorio va dentro de la fila, con el
