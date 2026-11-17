@@ -22,9 +22,22 @@ type Reporte = {
   veces_reportado: number;
   reported_suspendido: boolean;
   reported_rol: string | null;
+  acceso_bloqueado: boolean;
 };
 
 type Historial = { accion: string; motivo: string | null; admin: string | null; cuando: string };
+type ResenaRep = {
+  id: string; tags: string[]; comment: string | null;
+  autor: string | null; destino: string | null; destino_id: string; cuando: string;
+};
+
+// El contexto de un reporte sobre una reseña es 'review:<id>'. El antiguo era
+// solo 'review', sin decir cuál — esos no se pueden abrir desde aquí.
+const idDeResena = (c: string | null) => {
+  if (!c || !c.startsWith('review:')) return null;
+  const id = c.slice(7);
+  return /^[0-9a-f-]{36}$/i.test(id) ? id : null;
+};
 
 const ESTADOS = {
   pendiente:     { label: '⏳ Pendiente',   clase: 'bg-yellow-100 text-yellow-800' },
@@ -43,6 +56,7 @@ const ReportsAdminSection: React.FC<Props> = ({ addToast }) => {
   const [guardando, setGuardando] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<'todos' | Reporte['status']>('pendiente');
   const [historial, setHistorial] = useState<Record<string, Historial[]>>({});
+  const [resenas, setResenas] = useState<Record<string, ResenaRep | null>>({});
   const [margen, setMargen] = useState<string>('');
   const [margenGuardando, setMargenGuardando] = useState(false);
 
@@ -84,28 +98,77 @@ const ReportsAdminSection: React.FC<Props> = ({ addToast }) => {
     });
   };
 
-  // Suspender corta la parte social en el momento: desaparece de los locales,
-  // no puede dar likes ni escribir. No le impide iniciar sesión — eso se hace
-  // desde el panel de Supabase, y el aviso de abajo lo dice.
+  // Suspender hace dos cosas que viven en sitios distintos: cortar la parte
+  // social (base de datos) y cerrar el acceso (auth, por la función de borde).
+  // Si la segunda falla, la primera ya está aplicada y se dice claramente —
+  // callarlo dejaría al equipo creyendo que la cuenta está cerrada.
   const suspender = async (r: Reporte) => {
-    const motivo = window.prompt(`¿Por qué suspendes a ${r.reported || 'esta persona'}?\n\nQuedará registrado con tu nombre.`);
+    const motivo = window.prompt(
+      `¿Por qué suspendes a ${r.reported || 'esta persona'}?\n\n` +
+      'Desaparecerá de los locales, no podrá escribir ni dar likes, y no podrá iniciar sesión.\n' +
+      'Quedará registrado con tu nombre.');
     if (motivo === null) return;
     setGuardando(r.id);
+
     const { error } = await supabase.rpc('suspender_usuario', { p_user: r.reported_id, p_motivo: motivo });
+    if (error) { setGuardando(null); addToast({ message: error.message, type: 'error' }); return; }
+
+    const { data: acc, error: errAcc } = await supabase.functions.invoke('moderar-cuenta', {
+      body: { user_id: r.reported_id, accion: 'bloquear' },
+    });
     setGuardando(null);
-    if (error) { addToast({ message: error.message, type: 'error' }); return; }
-    addToast({ message: `${r.reported || 'Cuenta'} suspendida`, type: 'success' });
+
     await supabase.from('user_reports').update({ status: 'accion_tomada' }).eq('id', r.id);
+    addToast({
+      message: errAcc || !acc?.ok
+        ? `${r.reported || 'Cuenta'} suspendida, pero NO se pudo cerrar su acceso. Hazlo en Supabase → Authentication.`
+        : `${r.reported || 'Cuenta'} suspendida y acceso cerrado`,
+      type: errAcc || !acc?.ok ? 'warning' : 'success',
+    });
     cargar();
   };
 
   const reactivar = async (r: Reporte) => {
-    if (!window.confirm(`¿Reactivar la cuenta de ${r.reported || 'esta persona'}?`)) return;
+    if (!window.confirm(`¿Reactivar la cuenta de ${r.reported || 'esta persona'} y devolverle el acceso?`)) return;
     setGuardando(r.id);
     const { error } = await supabase.rpc('reactivar_usuario', { p_user: r.reported_id });
+    const { error: errAcc } = await supabase.functions.invoke('moderar-cuenta', {
+      body: { user_id: r.reported_id, accion: 'desbloquear' },
+    });
     setGuardando(null);
     if (error) { addToast({ message: error.message, type: 'error' }); return; }
-    addToast({ message: 'Cuenta reactivada', type: 'success' });
+    addToast({
+      message: errAcc
+        ? 'Reactivada, pero su acceso sigue bloqueado. Revísalo en Supabase → Authentication.'
+        : 'Cuenta reactivada y acceso devuelto',
+      type: errAcc ? 'warning' : 'success',
+    });
+    cargar();
+  };
+
+  const verResena = async (r: Reporte) => {
+    const id = idDeResena(r.context);
+    if (!id) return;
+    if (resenas[r.id] !== undefined) {
+      setResenas(s => { const n = { ...s }; delete n[r.id]; return n; });
+      return;
+    }
+    const { data } = await supabase.rpc('resena_reportada', { p_id: id });
+    const fila = (Array.isArray(data) ? data[0] : data) as ResenaRep | undefined;
+    setResenas(s => ({ ...s, [r.id]: fila ?? null }));
+  };
+
+  const retirarResena = async (r: Reporte) => {
+    const id = idDeResena(r.context);
+    if (!id) return;
+    if (!window.confirm('¿Retirar esta reseña? Desaparecerá del perfil de quien la recibió.')) return;
+    setGuardando(r.id);
+    const { error } = await supabase.rpc('retirar_resena', { p_id: id, p_motivo: 'Reportada' });
+    setGuardando(null);
+    if (error) { addToast({ message: error.message, type: 'error' }); return; }
+    addToast({ message: 'Reseña retirada', type: 'success' });
+    setResenas(s => ({ ...s, [r.id]: null }));
+    await supabase.from('user_reports').update({ status: 'accion_tomada' }).eq('id', r.id);
     cargar();
   };
 
@@ -149,7 +212,7 @@ const ReportsAdminSection: React.FC<Props> = ({ addToast }) => {
   const contexto = (c: string | null) => {
     if (!c) return null;
     if (c === 'chat') return <span className="flex items-center gap-1 text-gray-500"><MessageSquare className="w-3 h-3" /> Chat</span>;
-    if (c === 'review') return <span className="flex items-center gap-1 text-gray-500"><Star className="w-3 h-3" /> Reseña de baile</span>;
+    if (c === 'review' || c.startsWith('review:')) return <span className="flex items-center gap-1 text-gray-500"><Star className="w-3 h-3" /> Reseña de baile</span>;
     if (c.startsWith('venue:')) return (
       <a href={`/venues/${c.slice(6)}`} target="_blank" rel="noreferrer"
         className="flex items-center gap-1 text-brand hover:underline">
@@ -249,6 +312,9 @@ const ReportsAdminSection: React.FC<Props> = ({ addToast }) => {
                       {r.reported_suspendido && (
                         <span className="bg-red-600 text-white px-2 py-0.5 rounded text-[10px] font-black">SUSPENDIDO</span>
                       )}
+                      {r.acceso_bloqueado && (
+                        <span className="bg-gray-900 text-white px-2 py-0.5 rounded text-[10px] font-black">SIN ACCESO</span>
+                      )}
                       <span className={`px-2 py-0.5 rounded text-xs font-semibold ${ESTADOS[r.status].clase}`}>
                         {ESTADOS[r.status].label}
                       </span>
@@ -272,7 +338,37 @@ const ReportsAdminSection: React.FC<Props> = ({ addToast }) => {
                       <button onClick={() => verHistorial(r)} className="text-gray-500 hover:underline">
                         {historial[r.reported_id] ? 'Ocultar historial' : 'Historial'}
                       </button>
+                      {idDeResena(r.context) && (
+                        <button onClick={() => verResena(r)} className="text-brand hover:underline font-bold">
+                          {resenas[r.id] !== undefined ? 'Ocultar reseña' : 'Ver la reseña'}
+                        </button>
+                      )}
                     </div>
+
+                    {resenas[r.id] !== undefined && (
+                      <div className="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-3">
+                        {resenas[r.id] === null ? (
+                          <p className="text-[11px] text-gray-500">Esta reseña ya no existe.</p>
+                        ) : (
+                          <>
+                            <p className="text-[11px] text-gray-500">
+                              De <strong>{resenas[r.id]!.autor || '—'}</strong> sobre{' '}
+                              <strong>{resenas[r.id]!.destino || '—'}</strong>
+                            </p>
+                            {resenas[r.id]!.tags?.length > 0 && (
+                              <p className="text-[11px] text-gray-600 mt-1">{resenas[r.id]!.tags.join(' · ')}</p>
+                            )}
+                            {resenas[r.id]!.comment && (
+                              <p className="text-sm text-gray-800 mt-1.5 italic">"{resenas[r.id]!.comment}"</p>
+                            )}
+                            <button onClick={() => retirarResena(r)} disabled={guardando === r.id}
+                              className="mt-2 bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-700 disabled:opacity-50">
+                              Retirar reseña
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
 
                     {historial[r.reported_id] && (
                       <div className="mt-2 rounded-lg bg-gray-50 border border-gray-200 p-2.5">
@@ -351,19 +447,20 @@ const ReportsAdminSection: React.FC<Props> = ({ addToast }) => {
         <p className="flex gap-2.5">
           <Ban className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" />
           <span>
-            <strong>Suspender</strong> corta la parte social en el momento: la persona desaparece de
-            los locales, no puede dar likes ni escribir mensajes, y sus reseñas dejan de mostrarse.
-            Queda registrado con tu nombre y el motivo.
+            <strong>Suspender</strong> hace dos cosas a la vez: la persona desaparece de los locales,
+            no puede dar likes ni escribir mensajes y sus reseñas dejan de mostrarse;{' '}
+            <strong>y además se le cierra el acceso</strong> y se cierran sus sesiones abiertas.
+            Queda registrado con tu nombre y el motivo, y se deshace con "Reactivar".
             <br />
-            Lo que <strong>no</strong> hace es impedirle iniciar sesión: eso se hace desde el panel de
-            Supabase (Authentication → Users).
+            Si el cierre de acceso falla, el aviso lo dice y queda pendiente en Supabase
+            (Authentication → Users).
           </span>
         </p>
         <p className="flex gap-2.5">
           <Star className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" />
           <span>
-            Los reportes con contexto <strong>review</strong> son reseñas de baile denunciadas. Para
-            retirar una, entra en el perfil de quien la recibió.
+            Los reportes de <strong>reseña de baile</strong> traen un enlace "Ver la reseña": se lee
+            y se retira desde aquí, sin salir del panel.
           </span>
         </p>
         <p className="flex gap-2.5">

@@ -9,6 +9,7 @@ import { Avatar } from '../ui';
 import LanguageSelector from '../LanguageSelector';
 import { TOP_DANCE_CITIES } from '../../data/topDanceCities';
 import { isAdmin as isAdminUser } from '../../lib/permissions';
+import { supabase } from '../../lib/supabase';
 
 const SELECTED_CITY_KEY = 'bn_selected_city';
 
@@ -43,6 +44,30 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const [citySearch, setCitySearch] = useState('');
+
+  // Mensajes sin leer. Hasta ahora no había forma de saber que te habían
+  // escrito sin entrar al chat a mirar.
+  const [sinLeer, setSinLeer] = useState(0);
+  useEffect(() => {
+    if (!isAuthenticated || !user) { setSinLeer(0); return; }
+    let vivo = true;
+    const contar = () => {
+      supabase.from('messages')
+        .select('id', { count: 'exact', head: true })
+        .eq('receiver_id', user.id).eq('is_read', false)
+        .then(({ count }) => { if (vivo) setSinLeer(count ?? 0); }, () => {});
+    };
+    contar();
+    // Se recuenta cuando llega algo nuevo y cuando se marca como leído, para
+    // que el número baje al abrir la conversación.
+    const canal = supabase
+      .channel(`sin-leer-${user.id}`)
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'messages', filter: `receiver_id=eq.${user.id}` },
+        () => contar())
+      .subscribe();
+    return () => { vivo = false; supabase.removeChannel(canal); };
+  }, [isAuthenticated, user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
   const cityRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -163,10 +188,15 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
           {/* Messages */}
           <button
             onClick={() => navigate('/chat')}
-            className="p-2 rounded-full hover:bg-surface-elevated-2 text-ink-secondary hover:text-pink-500 transition-colors"
-            title="Mensajes"
+            className="relative p-2 rounded-full hover:bg-surface-elevated-2 text-ink-secondary hover:text-pink-500 transition-colors"
+            title={sinLeer > 0 ? `${sinLeer} mensaje${sinLeer === 1 ? '' : 's'} sin leer` : 'Mensajes'}
           >
             <MessageCircle className="w-5 h-5" />
+            {sinLeer > 0 && (
+              <span className="absolute top-0.5 right-0.5 min-w-4 h-4 px-1 bg-pink-500 rounded-full text-[9px] flex items-center justify-center font-black text-white shadow-lg shadow-pink-500/40">
+                {sinLeer > 9 ? '9+' : sinLeer}
+              </span>
+            )}
           </button>
 
           {/* Cart */}

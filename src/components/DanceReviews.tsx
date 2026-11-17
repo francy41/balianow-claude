@@ -149,7 +149,9 @@ const DanceReviews: React.FC<{ userId: string; nombre?: string }> = ({ userId, n
     if (!user) return;
     await supabase.from('user_reports').insert({
       reporter_id: user.id, reported_id: r.autor_id,
-      reason: 'Reseña inapropiada', context: 'review',
+      // El id va en el contexto para que el panel pueda abrirla y retirarla.
+      // Con un 'review' suelto había que buscarla a mano en el perfil.
+      reason: 'Reseña inapropiada', context: `review:${r.id}`,
     });
     addToast({ message: 'Gracias. El equipo revisará esa reseña.', type: 'success' });
     supabase.functions.invoke('send-email', {
