@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import MapErrorBoundary from '../components/MapErrorBoundary';
-import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2, GraduationCap, Music2, Handshake, VolumeX } from 'lucide-react';
+import { Play, Pause, ChevronRight, MapPin, Star, Check, X, ArrowRight, LayoutDashboard, Wallet, Briefcase, Clock, Shield, DollarSign, Users, TrendingUp, Radio, ListMusic, Plus, Volume2, SkipForward, SkipBack, Youtube, Instagram, Download, Smartphone, Video, DoorOpen, Tv, Search, Calendar, Ticket, Loader2, Route as RouteIcon, Heart, Building2, GraduationCap, Music2, Handshake, VolumeX, Sparkles, MessageCircle } from 'lucide-react';
 import { ARTISTS, EVENTS } from '../data/mockData';
 import { TOP_DANCE_CITIES } from '../data/topDanceCities';
 import { distanceKm, pointFor, type LatLng } from '../lib/geo';
@@ -2530,6 +2530,10 @@ const HomePage: React.FC = () => {
              primero que ve el usuario tras el hero es el catálogo, no una funcionalidad. ── */}
       <VenuesHomeRow navigate={navigate} />
 
+      {/* ── MÓDULO SOCIAL — va pegado a los locales porque se entra por la
+             ficha de uno, no por una ruta propia ── */}
+      <VenueSocialSection navigate={navigate} />
+
       {/* ── PRÓXIMOS EVENTOS ── */}
       {isModuleOn('cta') && homeEvents.length > 0 && (
       <HomeSectionWithSearch
@@ -2957,6 +2961,79 @@ const VenuesHomeRow: React.FC<{ navigate: any }> = ({ navigate }) => {
     </section>
   );
 };
+
+// ── MÓDULO SOCIAL DE LOCALES ────────────────────────────────────────────────
+// El módulo vive dentro de la ficha de cada local (pestaña "Quién estuvo"), así
+// que sin un acceso desde el Home nadie lo encuentra. El banner lo anuncia y
+// lleva al catálogo de locales, que es por donde se entra.
+//
+// El pie de garantías no es decoración: la primera reacción a "mira quién
+// estuvo en el local" es pensar que la web va rastreando a la gente. Se dice
+// aquí, antes de entrar, que nadie aparece por geolocalización.
+const PASOS_SOCIAL: { icon: React.ElementType; texto: string }[] = [
+  { icon: MapPin, texto: 'Marcas que estás en el local' },
+  { icon: Heart, texto: 'Veis quién más estuvo esa noche' },
+  { icon: MessageCircle, texto: 'Si hay match, se abre el chat' },
+];
+
+const VenueSocialSection: React.FC<{ navigate: any }> = ({ navigate }) => (
+  <section className="mx-3 sm:mx-4 mt-8">
+    <div className="card-float relative overflow-hidden rounded-3xl bg-[#0E0418] text-white ring-1 ring-brand/50">
+      <span aria-hidden className="pointer-events-none absolute -top-24 -right-20 w-72 h-72 rounded-full bg-brand/30 blur-3xl" />
+      <span aria-hidden className="pointer-events-none absolute -bottom-28 -left-24 w-80 h-80 rounded-full bg-brand-secondary/25 blur-3xl" />
+
+      <div className="relative p-5 sm:p-8">
+        <span className="inline-flex items-center gap-2 rounded-full border border-brand/70 px-3.5 py-1.5
+          text-[10px] sm:text-[11px] font-black uppercase tracking-[0.14em] text-white/90">
+          <Sparkles className="w-4 h-4 text-brand" /> Nuevo · Quién estuvo aquí
+        </span>
+
+        <h2 className="font-display font-black text-[26px] leading-[1.1] sm:text-5xl sm:leading-[1.05] mt-4 max-w-[20ch]">
+          Bailaste con alguien y te fuiste{' '}
+          <span className="text-brand">sin saber su nombre</span>
+        </h2>
+
+        <p className="text-white/70 mt-4 text-sm sm:text-base leading-relaxed max-w-[46ch] text-balance">
+          Marca que estás en el local y mira quién más estuvo esa noche. Si os interesáis los dos,
+          podéis hablar.
+        </p>
+
+        <ol className="flex flex-wrap gap-2 mt-5">
+          {PASOS_SOCIAL.map(({ icon: Icon, texto }, i) => (
+            <li key={texto} className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-2
+              text-[11px] sm:text-xs font-bold text-white/90 backdrop-blur-sm">
+              <span className="grid place-items-center w-5 h-5 rounded-full bg-brand text-white text-[10px] font-black flex-shrink-0">
+                {i + 1}
+              </span>
+              <Icon className="w-4 h-4 text-brand flex-shrink-0" aria-hidden />
+              {texto}
+            </li>
+          ))}
+        </ol>
+
+        <div className="flex flex-wrap items-center gap-2.5 mt-6">
+          <button onClick={() => navigate('/venues')}
+            className="inline-flex items-center gap-3 rounded-full px-7 py-3.5 font-black text-white
+              bg-gradient-to-r from-brand to-brand-secondary shadow-lg shadow-brand/30
+              transition-transform hover:scale-[1.03] active:scale-95">
+            Elegir mi local <ArrowRight className="w-5 h-5" />
+          </button>
+          <button onClick={() => navigate('/mapa')}
+            className="inline-flex items-center gap-2 rounded-full px-5 py-3.5 font-bold text-white/85
+              border border-white/25 hover:bg-white/10 transition-colors">
+            <MapPin className="w-4 h-4" /> Ver el mapa
+          </button>
+        </div>
+
+        <p className="flex items-start gap-2 text-[11px] sm:text-xs text-white/55 mt-5 max-w-[56ch] leading-relaxed">
+          <Shield className="w-4 h-4 flex-shrink-0 mt-0.5" aria-hidden />
+          Solo te ve quien también se marcó en ese local, tu presencia caduca a las 12 horas y puedes
+          borrarla cuando quieras. Nadie aparece por geolocalización: solo sales si lo marcas tú.
+        </p>
+      </div>
+    </div>
+  </section>
+);
 
 // ── PARTNER DE CIUDAD + MÓDULOS SIN ENLAZAR ──
 // La funcionalidad de partner existe entera (/partner/aplicar, panel, políticas)
