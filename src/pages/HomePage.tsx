@@ -2501,19 +2501,12 @@ const HomePage: React.FC = () => {
               </div>
 
               {/* En móvil no hay columna derecha: el vídeo va debajo del texto,
-                  como banner apaisado. Dos decisiones lo igualan al escritorio:
-                  la proporción la fija el marco (4/3, el mismo recorte que hace
-                  la columna de al lado) y no el fichero, que es vertical; y sale
-                  a sangre —los márgenes negativos cancelan el padding— con el
-                  mismo degradado de fundido, aquí en vertical, para que emerja
-                  del panel en vez de quedar como un recuadro pegado. Las
-                  esquinas las recorta el redondeo de la tarjeta. */}
-              <div className="md:hidden relative -mx-5 sm:-mx-8 -mb-5 sm:-mb-8 mt-6">
-                <HeroVideo poster={heroImage} ajuste="cubrir-banner"
-                  className="relative w-full aspect-[4/3] bg-brand-deep" />
-                <div className="absolute inset-x-0 top-0 h-2/5 pointer-events-none
-                  bg-gradient-to-b from-surface-elevated via-surface-elevated/40 to-transparent" />
-              </div>
+                  como banner apaisado y como pieza aparte. Sin degradado de
+                  fundido ni sangrado: aquí el texto queda encima del vídeo y
+                  montarlos ensucia los dos. La proporción la fija el marco
+                  (4/3) y no el fichero, que es vertical. */}
+              <HeroVideo poster={heroImage} ajuste="cubrir-banner"
+                className="md:hidden relative w-full mt-5 rounded-2xl overflow-hidden aspect-[4/3] bg-brand-deep" />
             </div>
 
             {/* Vídeo a la derecha. En escritorio va dentro de la fila, con el
