@@ -1702,18 +1702,28 @@ const BailaNowTVRow: React.FC<{ navigate: any }> = ({ navigate }) => {
 };
 
 // ── VÍDEO DEL HERO ──────────────────────────────────────────────────────────
-// Dos problemas que resuelve:
-//  1) El recorte. El contenedor tenía una proporción fija y el vídeo se cortaba
-//     por arriba, comiéndose las cabezas. Ahora lee la proporción REAL del
-//     fichero al cargar los metadatos y la aplica, así se ve entero sin bandas.
-//  2) El sonido. Los navegadores prohíben la reproducción automática con audio,
-//     así que arranca silenciado y se ofrece un botón para activarlo. No hay
-//     forma legítima de saltarse eso, y tampoco sería buena idea: una web que
-//     suena sola al entrar es la que se cierra.
-const HeroVideo: React.FC<{ poster?: string; className?: string; ajustarProporcion?: boolean }> =
-({ poster, className, ajustarProporcion }) => {
+// El sonido arranca silenciado porque los navegadores prohíben la reproducción
+// automática con audio, y se ofrece un botón para activarlo. No hay forma
+// legítima de saltarse eso, y tampoco sería buena idea: una web que suena sola
+// al entrar es la que se cierra.
+//
+// El fichero es vertical (2160×3840) y se sirve en marcos apaisados, así que
+// hay que elegir qué se sacrifica. De ahí los tres ajustes:
+//   cubrir-arriba  — llena el marco anclado arriba (columna del escritorio).
+//   cubrir-banner  — llena el marco anclado al 25% de la altura, no al centro:
+//                    con un marco apaisado el centro parte a la gente por la
+//                    cintura, y a un cuarto de altura caen las caras. Lo usa el
+//                    banner de móvil.
+//   contener       — cabe entero y el póster difuminado rellena los lados.
+// Con un vídeo horizontal los tres dan el mismo resultado: sin recorte.
+type AjusteVideo = 'cubrir-arriba' | 'cubrir-banner' | 'contener';
+
+const HeroVideo: React.FC<{
+  poster?: string;
+  className?: string;
+  ajuste?: AjusteVideo;
+}> = ({ poster, className, ajuste = 'cubrir-arriba' }) => {
   const ref = useRef<HTMLVideoElement>(null);
-  const [proporcion, setProporcion] = useState<string | undefined>(undefined);
   const [conSonido, setConSonido] = useState(false);
   const [oculto, setOculto] = useState(false);
 
@@ -1728,23 +1738,25 @@ const HeroVideo: React.FC<{ poster?: string; className?: string; ajustarProporci
   if (oculto) return null;
 
   return (
-    <div className={className || ''}
-      style={ajustarProporcion && proporcion ? { aspectRatio: proporcion } : undefined}>
+    <div className={className || ''}>
       {poster && (
-        <img src={poster} alt="" className="absolute inset-0 w-full h-full object-cover"
+        <img src={poster} alt="" aria-hidden={ajuste === 'contener' || undefined}
+          className={`absolute inset-0 w-full h-full object-cover ${
+            ajuste === 'contener' ? 'scale-110 blur-xl' : ''
+          }`}
           onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
       )}
       <video
         ref={ref}
-        className="absolute inset-0 w-full h-full object-cover object-top"
+        className={`absolute inset-0 w-full h-full ${
+          ajuste === 'contener' ? 'object-contain object-center'
+            : ajuste === 'cubrir-banner' ? 'object-cover [object-position:50%_25%]'
+            : 'object-cover object-top'
+        }`}
         src={HERO_VIDEO}
         poster={poster || undefined}
         autoPlay muted loop playsInline preload="metadata"
         aria-hidden
-        onLoadedMetadata={e => {
-          const v = e.currentTarget;
-          if (v.videoWidth && v.videoHeight) setProporcion(`${v.videoWidth} / ${v.videoHeight}`);
-        }}
         onError={() => setOculto(true)}
       />
       <button onClick={alternarSonido}
@@ -2489,9 +2501,12 @@ const HomePage: React.FC = () => {
               </div>
 
               {/* En móvil no hay columna derecha: el vídeo va debajo del texto,
-                  a lo ancho y con proporción fija para que la página no salte. */}
-              <HeroVideo poster={heroImage} ajustarProporcion
-                className="md:hidden relative w-full mt-5 rounded-2xl overflow-hidden aspect-[16/10] bg-brand-deep" />
+                  como banner apaisado y como pieza aparte. Sin degradado de
+                  fundido ni sangrado: aquí el texto queda encima del vídeo y
+                  montarlos ensucia los dos. La proporción la fija el marco
+                  (4/3) y no el fichero, que es vertical. */}
+              <HeroVideo poster={heroImage} ajuste="cubrir-banner"
+                className="md:hidden relative w-full mt-5 rounded-2xl overflow-hidden aspect-[4/3] bg-brand-deep" />
             </div>
 
             {/* Vídeo a la derecha. En escritorio va dentro de la fila, con el
