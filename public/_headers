@@ -10,15 +10,28 @@
 # no hay riesgo de servir uno obsoleto.
 
 # ── Cabeceras de seguridad ──
-# Se aplican a todo. Son las que no pueden romper nada: ninguna restringe de
-# dónde se cargan recursos.
 #
-# NO hay Content-Security-Policy a propósito. BailaNow carga scripts de Stripe,
-# vídeo de Cloudflare Stream, YouTube, mapas y fuentes de Google. Una CSP mal
-# ajustada no da error visible: simplemente deja de funcionar el pago o el
-# reproductor. Hay que escribirla probando en un navegador real, con la consola
-# abierta, y eso no se puede hacer a ciegas.
+# La Content-Security-Policy está PROBADA, no escrita a ojo: se sirvió el build
+# con ella puesta y se cargaron diez rutas en un Chromium real (inicio, locales,
+# eventos, artistas, radio, tv, marketplace, parejas, chat, promociónate). Cero
+# violaciones en todas. Una CSP mal ajustada no da error visible — simplemente
+# deja de funcionar el pago o el reproductor — así que a ciegas no se pone.
+#
+# Decisiones:
+#  · 'unsafe-inline' en style-src es inevitable: Tailwind y React inyectan
+#    estilos en línea. Quitarlo rompe la web entera.
+#  · img-src/media-src/connect-src admiten cualquier https porque las fotos de
+#    locales y las emisoras de radio son URLs que mete el administrador: una
+#    lista cerrada dejaría de mostrar contenido legítimo cada vez que se añade
+#    una emisora.
+#  · Lo que de verdad cierra esto es script-src (la vía de XSS), object-src,
+#    base-uri y form-action.
+#
+# SI ALGÚN DÍA FALLA UN PAGO O UN VÍDEO: mira la consola del navegador. Si sale
+# un mensaje de Content Security Policy, añade ahí el dominio que nombre, o
+# borra la línea Content-Security-Policy para volver atrás al instante.
 /*
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdn.jsdelivr.net https://imasdk.googleapis.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; media-src 'self' blob: https:; worker-src 'self' blob:; connect-src 'self' https: wss:; frame-src 'self' https://js.stripe.com https://hooks.stripe.com https://m.stripe.network https://iframe.videodelivery.net https://www.youtube.com https://www.youtube-nocookie.com https://player.twitch.tv https://open.spotify.com https://w.soundcloud.com https://meet.jit.si https://www.google.com
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: SAMEORIGIN
