@@ -9,6 +9,25 @@
 # assets con hash se cachean para siempre — su nombre cambia en cada build, así que
 # no hay riesgo de servir uno obsoleto.
 
+# ── Cabeceras de seguridad ──
+# Se aplican a todo. Son las que no pueden romper nada: ninguna restringe de
+# dónde se cargan recursos.
+#
+# NO hay Content-Security-Policy a propósito. BailaNow carga scripts de Stripe,
+# vídeo de Cloudflare Stream, YouTube, mapas y fuentes de Google. Una CSP mal
+# ajustada no da error visible: simplemente deja de funcionar el pago o el
+# reproductor. Hay que escribirla probando en un navegador real, con la consola
+# abierta, y eso no se puede hacer a ciegas.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+  # Cámara, micrófono y ubicación SÍ se permiten en el propio sitio: los usan la
+  # sala de cámaras, los directos y "cerca de ti". El resto queda cerrado.
+  Permissions-Policy: camera=(self), microphone=(self), geolocation=(self), payment=(self), usb=(), magnetometer=(), gyroscope=(self), accelerometer=(self), interest-cohort=()
+
 /index.html
   Cache-Control: no-cache, must-revalidate
 

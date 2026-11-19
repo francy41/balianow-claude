@@ -4,9 +4,13 @@
 // Creates a Stripe Checkout Session in 'subscription' mode (recurring).
 // Uses inline price_data so no pre-created Stripe Price IDs are needed.
 //
-// Body: { planId, planName, price (monthly base EUR), period: 'monthly'|'yearly',
-//         currency?, subscriptionRowId, userId }
+// Body: { planId, period: 'monthly'|'yearly', subscriptionRowId }
 // Returns: { url } | { notConfigured: true }
+//
+// El precio NO viaja en la petición. Antes se hacía `Number(body.price)` y se
+// cobraba eso, así que cualquiera podía pedir el plan de 22 € por un céntimo.
+// Ahora se lee de `plan_prices` con la clave de servicio. Si el cliente manda
+// un precio, se ignora.
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno';
@@ -47,15 +51,33 @@ serve(async (req) => {
   try { body = await req.json(); } catch { return json({ error: 'Cuerpo invalido' }, 400); }
 
   const planId = String(body.planId ?? '');
-  const planName = String(body.planName ?? 'Plan');
   const period = body.period === 'yearly' ? 'yearly' : 'monthly';
-  const currency = String(body.currency ?? 'eur').toLowerCase();
   const subscriptionRowId = String(body.subscriptionRowId ?? '');
-  const basePrice = Number(body.price);
 
-  if (!planId || !subscriptionRowId || !Number.isFinite(basePrice) || basePrice <= 0) {
+  if (!planId || !subscriptionRowId) {
     return json({ error: 'Datos de plan invalidos' }, 400);
   }
+
+  // El precio oficial, de la base de datos. La clave de servicio salta el RLS
+  // a propósito: aquí se necesita el precio real, no el que pueda ver nadie.
+  const admin = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+  );
+  const { data: plan } = await admin
+    .from('plan_prices')
+    .select('name, price, currency, active')
+    .eq('plan_id', planId)
+    .maybeSingle();
+
+  if (!plan || plan.active === false) return json({ error: 'Plan no disponible' }, 400);
+
+  const basePrice = Number(plan.price);
+  if (!Number.isFinite(basePrice) || basePrice <= 0) {
+    return json({ error: 'Plan sin precio valido' }, 400);
+  }
+  const planName = String(plan.name ?? 'Plan');
+  const currency = String(plan.currency ?? 'eur').toLowerCase();
 
   // Monthly = base; yearly = base * 12 * 0.8 (20% off, matching the UI).
   const unitAmount = period === 'yearly'

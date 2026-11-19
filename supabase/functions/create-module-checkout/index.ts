@@ -31,9 +31,45 @@ serve(async (req) => {
   let body: Record<string, unknown>;
   try { body = await req.json(); } catch { return json({ error: 'Body inválido' }, 400); }
   const moduleId = String(body.moduleId ?? '');
-  const moduleName = String(body.moduleName ?? 'Módulo');
-  const price = Number(body.price);
-  if (!moduleId || !Number.isFinite(price) || price <= 0) return json({ error: 'Datos no válidos' }, 400);
+  if (!moduleId) return json({ error: 'Datos no válidos' }, 400);
+
+  // El precio NO viene del cliente. Antes se hacía `Number(body.price)` y se
+  // cobraba eso: cualquiera podía comprar un módulo por un céntimo. El catálogo
+  // ya estaba en la base de datos, solo faltaba mirarlo.
+  const admin = createClient(
+    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+  );
+
+  const { data: fila } = await admin
+    .from('module_catalog')
+    .select('module_id, name, price, active')
+    .eq('module_id', moduleId)
+    .maybeSingle();
+  if (!fila) return json({ error: 'Módulo no encontrado' }, 404);
+
+  // Mismo cálculo del precio efectivo que usa la web: un ajuste para este
+  // usuario manda sobre uno para su rol, y este sobre el del catálogo.
+  const { data: perfil } = await admin
+    .from('profiles').select('role').eq('id', user.id).maybeSingle();
+  const { data: ajustes } = await admin
+    .from('module_overrides')
+    .select('scope_type, scope_value, price, active')
+    .eq('module_id', moduleId);
+
+  const lista = ajustes ?? [];
+  const porUsuario = lista.find(o => o.scope_type === 'user' && o.scope_value === user.id);
+  const porRol = perfil?.role
+    ? lista.find(o => o.scope_type === 'role' && o.scope_value === String(perfil.role))
+    : undefined;
+  const ajuste = porUsuario ?? porRol;
+
+  const price = Number(ajuste?.price ?? fila.price);
+  const activo = ajuste?.active ?? fila.active;
+  if (activo === false) return json({ error: 'Módulo no disponible' }, 400);
+  if (!Number.isFinite(price) || price <= 0) return json({ error: 'Módulo sin precio válido' }, 400);
+
+  const moduleName = String(fila.name ?? 'Módulo');
 
   const stripe = new Stripe(SECRET, { apiVersion: '2023-10-16', httpClient: Stripe.createFetchHttpClient() });
   try {
