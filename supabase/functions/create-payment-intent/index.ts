@@ -72,14 +72,12 @@ serve(async (req) => {
     });
   }
 
-  const { amount, currency = 'eur', items, userId, metadata = {} } = body;
+  const { currency = 'eur', items, userId, metadata = {} } = body;
 
-  // Validate amount
-  if (typeof amount !== 'number' || amount < MIN_AMOUNT || amount > MAX_AMOUNT) {
-    return new Response(JSON.stringify({ error: 'Importe fuera de rango permitido' }), {
-      status: 400, headers: { ...corsH, 'Content-Type': 'application/json' },
-    });
-  }
+  // El importe que llegue en la petición se IGNORA. Antes se cobraba
+  // `body.amount` tal cual, dentro de un rango: bastaba con abrir las
+  // herramientas del navegador para pagar 0,50 € por un servicio de 500 €.
+  // El total se calcula más abajo con los precios de la tabla `services`.
 
   // Validate currency
   const ALLOWED_CURRENCIES = ['eur', 'usd', 'gbp'];
@@ -105,20 +103,58 @@ serve(async (req) => {
 
   // ── BUSINESS LOGIC ─────────────────────────────────────────
   try {
+    // El cliente dice QUÉ compra; cuánto cuesta y de quién es lo dice la base
+    // de datos. También el vendedor sale de aquí: si viniera en la petición,
+    // se podría desviar la comisión a otra cuenta.
+    const serviceIds = items.map((i: any) => (i && typeof i.serviceId === 'string' ? i.serviceId : null));
+    if (serviceIds.some((id: string | null) => !id)) {
+      return new Response(JSON.stringify({ error: 'Artículo inválido en el carrito' }), {
+        status: 400, headers: { ...corsH, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const admin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    );
+    const { data: servicios } = await admin
+      .from('services')
+      .select('id, title, name, price, artist_id, owner_id, user_id')
+      .in('id', serviceIds as string[]);
+
+    const porId = new Map((servicios ?? []).map((s: any) => [String(s.id), s]));
+    if (porId.size !== new Set(serviceIds).size) {
+      return new Response(JSON.stringify({ error: 'Algún servicio del carrito ya no existe' }), {
+        status: 400, headers: { ...corsH, 'Content-Type': 'application/json' },
+      });
+    }
+
     const sellerMap = new Map<string, number>();
-    for (const item of items) {
-      if (
-        typeof item !== 'object' || item === null ||
-        typeof (item as any).sellerId !== 'string' ||
-        typeof (item as any).price !== 'number'
-      ) {
-        return new Response(JSON.stringify({ error: 'Artículo inválido en el carrito' }), {
+    let totalCents = 0;
+    for (const id of serviceIds as string[]) {
+      const s = porId.get(id);
+      const precio = Number(s.price);
+      if (!Number.isFinite(precio) || precio <= 0) {
+        return new Response(JSON.stringify({ error: 'Servicio sin precio válido' }), {
           status: 400, headers: { ...corsH, 'Content-Type': 'application/json' },
         });
       }
-      const itemTotal = Math.round(((item as any).price + ((item as any).extrasTotal || 0)) * 100);
-      const sid = (item as any).sellerId as string;
+      const sid = String(s.artist_id ?? s.owner_id ?? s.user_id ?? '');
+      if (!sid) {
+        return new Response(JSON.stringify({ error: 'Servicio sin vendedor asignado' }), {
+          status: 400, headers: { ...corsH, 'Content-Type': 'application/json' },
+        });
+      }
+      const itemTotal = Math.round(precio * 100);
+      totalCents += itemTotal;
       sellerMap.set(sid, (sellerMap.get(sid) ?? 0) + itemTotal);
+    }
+
+    const amount = totalCents / 100;
+    if (amount < MIN_AMOUNT || amount > MAX_AMOUNT) {
+      return new Response(JSON.stringify({ error: 'Importe fuera de rango permitido' }), {
+        status: 400, headers: { ...corsH, 'Content-Type': 'application/json' },
+      });
     }
 
     const sellerBreakdown = Array.from(sellerMap.entries()).map(([sellerId, gross]) => ({
@@ -129,7 +165,7 @@ serve(async (req) => {
     }));
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100),
+      amount: totalCents,
       currency: currency.toLowerCase(),
       automatic_payment_methods: { enabled: true },
       metadata: {
@@ -150,7 +186,8 @@ serve(async (req) => {
         clientSecret: paymentIntent.client_secret,
         paymentIntentId: paymentIntent.id,
         sellerBreakdown,
-        platformFee: Math.round(amount * 100 * PLATFORM_FEE_RATE),
+        amount: totalCents,
+        platformFee: Math.round(totalCents * PLATFORM_FEE_RATE),
       }),
       { headers: { ...corsH, 'Content-Type': 'application/json' } }
     );
