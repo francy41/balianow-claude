@@ -78,6 +78,7 @@ const ResetPasswordPage   = lazy(() => import('./pages/ResetPasswordPage'));
 const AcceptInvitePage    = lazy(() => import('./pages/AcceptInvitePage'));
 const SocialPage          = lazy(() => import('./pages/SocialPage'));
 const ComunidadPage       = lazy(() => import('./pages/ComunidadPage'));
+const FeedPage            = lazy(() => import('./pages/FeedPage'));
 
 // Error boundary
 class ErrorBoundary extends React.Component<
@@ -176,6 +177,7 @@ const App: React.FC = () => {
                   <Route path="/u/:slug"             element={<PublicProfilePage />} />
                   <Route path="/explorar"            element={<Navigate to="/cerca" replace />} />
                   <Route path="/comunidad"           element={<ComunidadPage />} />
+                  <Route path="/muro"                element={<FeedPage />} />
                   <Route path="/destacados"          element={<FeaturedPage />} />
                   <Route path="/academia"            element={<Navigate to="/clases" replace />} />
                   <Route path="/artistas"            element={<ArtistsPage />} />

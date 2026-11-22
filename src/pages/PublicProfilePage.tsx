@@ -17,6 +17,7 @@ import { safeSocialUrl } from '../lib/security';
 import { useAuthStore } from '../store/appStore';
 import ProfileEditModal from '../components/ProfileEditModal';
 import DanceReviews, { ReputacionResumen } from '../components/DanceReviews';
+import ProfilePostsGrid, { SeguirBoton } from '../components/ProfilePostsGrid';
 
 interface PublicProfile {
   id: string;
@@ -255,10 +256,23 @@ const PublicProfilePage: React.FC = () => {
             </div>
           )}
 
+          {/* Seguidores y botón de seguir */}
+          <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+            <SeguirBoton userId={profile.id} />
+          </div>
+
           {/* Reputación de baile: lo que dice de ti quien ha bailado contigo */}
           <div className="mt-4">
             <ReputacionResumen userId={profile.id} />
           </div>
+        </div>
+
+        {/* Sus publicaciones, en cuadrícula */}
+        <div className="bg-white dark:bg-gray-900 rounded-3xl p-3 shadow-md border border-gray-100 dark:border-gray-800 mb-4">
+          <h3 className="font-display font-black text-base text-gray-900 dark:text-white px-2 pb-3 flex items-center gap-2">
+            📸 Publicaciones
+          </h3>
+          <ProfilePostsGrid userId={profile.id} esMiPerfil={user?.id === profile.id} />
         </div>
 
         <div className="mb-4">
