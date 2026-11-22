@@ -4,7 +4,7 @@ import {
   Compass, MapPin, Calendar, Users, Music2,
   Briefcase, BookOpen, Radio, Megaphone, MessageCircle,
   LayoutDashboard, User, ChevronDown, ChevronRight,
-  Ticket, Video, Gift, Sparkles, Home, Tv, Heart, Trophy, LogOut
+  Ticket, Video, Gift, Sparkles, Home, Tv, Heart, Trophy, LogOut, Images
 } from 'lucide-react';
 import { useSiteConfigStore, useAuthStore } from '../../store/appStore';
 import { supabaseLogout } from '../../hooks/useSupabaseAuth';
@@ -59,9 +59,12 @@ const NAV: { section: string; items: NavItem[] }[] = [
     items: [
       { label: '💃 Pareja de baile',  icon: <Heart className="w-4 h-4" />,         to: '/parejas' },
       { label: '🏆 Retos de baile',   icon: <Trophy className="w-4 h-4" />,        to: '/retos' },
+      { label: '📸 El muro',  icon: <Images className="w-4 h-4" />,       to: '/muro' },
       { label: 'Anuncios',  icon: <Megaphone className="w-4 h-4" />,      to: '/comunidad' },
       { label: 'Academia',  icon: <BookOpen className="w-4 h-4" />,       to: '/clases' },
-      { label: 'Comunidad', icon: <MessageCircle className="w-4 h-4" />,  to: '/chat' },
+      // Esta entrada decía "Comunidad" pero lleva a los mensajes privados, y
+      // ahora hay tres cosas distintas en esta sección.
+      { label: 'Mensajes',  icon: <MessageCircle className="w-4 h-4" />,  to: '/chat' },
     ],
   },
   {
