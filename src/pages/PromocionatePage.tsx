@@ -11,6 +11,7 @@ import SplitPaymentModal from '../components/SplitPaymentModal';
 import BusinessToolsHub from '../components/BusinessToolsHub';
 import PaymentGateway from '../components/payment/PaymentGateway';
 import { AD_PLANS } from '../data/adPlans';
+import { contratarPlanNegocio } from '../lib/businessPlans';
 
 const CATEGORY_TABS = [
   { id: 'all', label: 'Todo', icon: '🔥' },
@@ -737,7 +738,12 @@ function normalizeService(r: any): PromoService {
   };
 }
 
-const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate>; onOpenQR: () => void }> = ({ navigate, onOpenQR }) => (
+const AdPlansBanner: React.FC<{
+  navigate: ReturnType<typeof useNavigate>;
+  onOpenQR: () => void;
+  onContratar: (idTarjeta: string, nombre: string, precio: number) => void;
+  cobrando: string | null;
+}> = ({ navigate, onOpenQR, onContratar, cobrando }) => (
   <section className="mb-8">
     <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-gray-900 to-black p-5 sm:p-7">
       <div className="absolute -top-16 -right-16 w-64 h-64 bg-brand-secondary/20 rounded-full blur-3xl" />
@@ -820,13 +826,16 @@ const AdPlansBanner: React.FC<{ navigate: ReturnType<typeof useNavigate>; onOpen
                 ))}
               </ul>
               <button
-                onClick={() => navigate(`/chat?asunto=${encodeURIComponent(`Quiero el plan de publicidad ${plan.name} (€${plan.price}${plan.period})`)}`)}
-                className={`w-full font-bold text-sm rounded-xl py-2.5 transition-all flex items-center justify-center gap-1.5 ${
+                onClick={() => onContratar(plan.id, plan.name, plan.price)}
+                disabled={cobrando === plan.id}
+                className={`w-full font-bold text-sm rounded-xl py-2.5 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 ${
                   plan.popular
                     ? 'bg-brand-orange text-white hover:opacity-90'
                     : 'bg-white/10 text-white border border-white/20 hover:bg-white/20'
                 }`}>
-                Contratar <ArrowRight className="w-4 h-4" />
+                {cobrando === plan.id
+                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Abriendo el pago…</>
+                  : <>Contratar <ArrowRight className="w-4 h-4" /></>}
               </button>
             </div>
           ))}
@@ -852,6 +861,25 @@ const PromocionatePage: React.FC = () => {
   const { addToast } = useUIStore();
   const cart = useCartStore();
   const [qrOpen, setQrOpen] = useState(false);
+  const [cobrandoPlan, setCobrandoPlan] = useState<string | null>(null);
+
+  // Los planes de publicidad abrían el chat con un asunto escrito. Ahora cobran.
+  const contratarPlan = async (idTarjeta: string, nombre: string, precio: number) => {
+    if (!isAuthenticated || !user) {
+      navigate(`/auth?redirect=${encodeURIComponent('/promocionate')}`);
+      return;
+    }
+    setCobrandoPlan(idTarjeta);
+    const r = await contratarPlanNegocio({ idTarjeta, nombre, precio, userId: user.id });
+    if (r.estado === 'redirigiendo') return;  // el navegador ya se va a Stripe
+    setCobrandoPlan(null);
+    if (r.estado === 'sin-pagos') {
+      addToast({ message: 'Los pagos se están activando. Escríbenos y lo gestionamos a mano.', type: 'info' });
+      navigate(`/chat?asunto=${encodeURIComponent(`Quiero el plan de publicidad ${nombre} (€${precio}/mes)`)}`);
+    } else if (r.estado === 'error') {
+      addToast({ message: r.mensaje, type: 'error' });
+    }
+  };
   const [splitOpen, setSplitOpen] = useState(false);
   const [search, setSearch] = useState(params.get('q') || '');
   const [activeTab, setActiveTab] = useState(params.get('cat') || 'all');
@@ -970,7 +998,8 @@ const PromocionatePage: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4">
         {/* ── PLAN DE PUBLICIDAD EN BAILANOW (banner principal) ── */}
-        <AdPlansBanner navigate={navigate} onOpenQR={() => setQrOpen(true)} />
+        <AdPlansBanner navigate={navigate} onOpenQR={() => setQrOpen(true)}
+          onContratar={contratarPlan} cobrando={cobrandoPlan} />
 
         {/* ── Herramientas de negocio (accesos directos a lo que incluyen los planes) ── */}
         <BusinessToolsHub

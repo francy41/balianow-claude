@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, ArrowRight, Calendar, QrCode, ShoppingBag, Wine, BarChart3, Radio, MessageSquare, TrendingUp } from 'lucide-react';
+import { CheckCircle, ArrowRight, Calendar, QrCode, ShoppingBag, Wine, BarChart3, Radio, MessageSquare, TrendingUp, Loader2 } from 'lucide-react';
 import { AD_PLANS, AD_BOOST } from '../data/adPlans';
+import { useAuthStore, useUIStore } from '../store/appStore';
+import { contratarPlanNegocio } from '../lib/businessPlans';
 
 const TOOLS = [
   { icon: <Calendar className="w-5 h-5" />,   title: 'Reservas con seña',  desc: 'Cobra un depósito y el resto en el local' },
@@ -14,13 +16,13 @@ const TOOLS = [
 
 const STEPS = [
   { n: 1, title: 'Elige tu plan', desc: 'Destacado, Patrocinador o Top Premium según lo que necesites.' },
-  { n: 2, title: 'Confirma por chat', desc: 'Nos escribes, confirmas el pago y activamos en menos de 24h.' },
+  { n: 2, title: 'Paga online', desc: 'Pago seguro con tarjeta. Tu plan queda activo al instante.' },
   { n: 3, title: 'Empieza a operar', desc: 'Reservas, QR, ventas y visibilidad funcionando desde el día 1.' },
 ];
 
 const FAQ = [
   { q: '¿Hay permanencia?', a: 'No. La facturación es mensual y cancelas cuando quieras.' },
-  { q: '¿Cómo se paga?', a: 'Confirmas el plan por chat y te pasamos el enlace de pago seguro. Activamos en menos de 24h.' },
+  { q: '¿Cómo se paga?', a: 'Con tarjeta, desde la propia web. El cobro es mensual y automático, y cancelas cuando quieras.' },
   { q: '¿Necesito cuenta de negocio?', a: 'El alta de tu escuela, local o marca es gratis. El plan solo desbloquea las herramientas de pago.' },
   { q: '¿Puedo cambiar de plan?', a: 'Sí, subes o bajas de plan cuando quieras según cómo vaya tu negocio.' },
 ];
@@ -28,14 +30,32 @@ const FAQ = [
 const BusinessPricingPage: React.FC = () => {
   const navigate = useNavigate();
 
-  const contratar = (name: string, price: number, period: string) =>
-    navigate(`/chat?asunto=${encodeURIComponent(`Quiero el plan ${name} (€${price}${period})`)}`);
+  const { user, isAuthenticated } = useAuthStore();
+  const { addToast } = useUIStore();
+  const [cobrando, setCobrando] = useState<string | null>(null);
+
+  // Antes esto solo abría el chat con un asunto escrito. Ahora cobra de verdad.
+  const contratar = async (idTarjeta: string, nombre: string, precio: number) => {
+    if (!isAuthenticated || !user) {
+      navigate(`/auth?redirect=${encodeURIComponent('/precios')}`);
+      return;
+    }
+    setCobrando(idTarjeta);
+    const r = await contratarPlanNegocio({ idTarjeta, nombre, precio, userId: user.id });
+    if (r.estado === 'redirigiendo') return;  // el navegador ya se va a Stripe
+    setCobrando(null);
+    if (r.estado === 'sin-pagos') {
+      addToast({ message: 'Los pagos se están activando. Escríbenos y lo gestionamos a mano.', type: 'info' });
+      navigate(`/chat?asunto=${encodeURIComponent(`Quiero el plan ${nombre} (€${precio}/mes)`)}`);
+    } else if (r.estado === 'error') {
+      addToast({ message: r.mensaje, type: 'error' });
+    }
+  };
 
   const activarGratis = () =>
     navigate(`/chat?asunto=${encodeURIComponent('Quiero activar mi cuenta de negocio (gratis)')}`);
 
-  const destacarAnuncio = () =>
-    navigate(`/chat?asunto=${encodeURIComponent('Quiero destacar mi anuncio (desde €5/mes)')}`);
+  const destacarAnuncio = () => contratar('boost', AD_BOOST.name, AD_BOOST.price);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-20 transition-colors">
@@ -106,13 +126,16 @@ const BusinessPricingPage: React.FC = () => {
                   ))}
                 </ul>
                 <button
-                  onClick={() => contratar(plan.name, plan.price, plan.period)}
-                  className={`w-full font-bold text-sm rounded-xl py-3 transition-all flex items-center justify-center gap-1.5 ${
+                  onClick={() => contratar(plan.id, plan.name, plan.price)}
+                  disabled={cobrando === plan.id}
+                  className={`w-full font-bold text-sm rounded-xl py-3 transition-all flex items-center justify-center gap-1.5 disabled:opacity-60 ${
                     plan.popular
                       ? 'bg-brand-orange text-white hover:opacity-90'
                       : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:opacity-90'
                   }`}>
-                  Contratar <ArrowRight className="w-4 h-4" />
+                  {cobrando === plan.id
+                    ? <><Loader2 className="w-4 h-4 animate-spin" /> Abriendo el pago…</>
+                    : <>Contratar <ArrowRight className="w-4 h-4" /></>}
                 </button>
               </div>
             ))}
