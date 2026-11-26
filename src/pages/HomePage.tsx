@@ -14,6 +14,7 @@ import { supabase } from '../lib/supabase';
 import { fixText } from '../lib/text';
 import NewsletterForm from '../components/NewsletterForm';
 import HomeFabStack from '../components/HomeFabStack';
+import HeroCities from '../components/HeroCities';
 import RadioWidgetModal from '../components/RadioWidgetModal';
 import TvPreviewModal from '../components/TvPreviewModal';
 import HomeBackground from '../components/HomeBackground';
@@ -2254,35 +2255,10 @@ const HomePage: React.FC = () => {
   const heroSliderImages = useSiteConfigStore(s => s.heroSliderImages);
   const heroImage = heroSliderImages?.[0]?.url || '';
 
-  // Métricas del hero — conteos reales del catálogo, no cifras de marketing.
-  // Si una está a 0 no se pinta, para no enseñar un contador vacío.
-  const [catalogCounts, setCatalogCounts] = useState({ venues: 0, events: 0, artists: 0, cities: 0, clases: 0 });
-  useEffect(() => {
-    let cancelled = false;
-    const head = { count: 'exact' as const, head: true };
-    Promise.all([
-      supabase.from('venues').select('*', head).is('deleted_at', null),
-      supabase.from('events').select('*', head).is('deleted_at', null),
-      supabase.from('artists').select('*', head),
-      supabase.from('cities').select('*', head),
-      supabase.from('class_offerings').select('*', head).eq('status', 'active'),
-    ]).then(([v, e, a, c, cl]) => {
-      if (cancelled) return;
-      setCatalogCounts({
-        venues: v.count || 0, events: e.count || 0, artists: a.count || 0,
-        cities: c.count || 0, clases: cl.count || 0,
-      });
-    }).catch(() => {});
-    return () => { cancelled = true; };
-  }, []);
-
-  const heroStats: { label: string; val: number; icon: React.FC<any> }[] = [
-    { label: 'Locales',   val: catalogCounts.venues,  icon: Building2 },
-    { label: 'Eventos',   val: catalogCounts.events,  icon: Calendar },
-    { label: 'Artistas',  val: catalogCounts.artists, icon: Music2 },
-    { label: 'Ciudades',  val: catalogCounts.cities,  icon: MapPin },
-    { label: 'Clases',    val: catalogCounts.clases,  icon: GraduationCap },
-  ];
+  // Aquí había cinco contadores del catálogo (locales, eventos, artistas,
+  // ciudades, clases). Los sustituye <HeroCities />, que cuenta lo mismo sin
+  // números: la razón está escrita en ese fichero. De paso se ahorran cinco
+  // consultas en cada carga del inicio.
   const heroHasVideoFile = heroMedia.type === 'video' && !!heroMedia.url;
   const cmsModules = useCMSStore(s => s.modules);
   const cmsCategories = useCMSStore(s => s.categories);
@@ -2467,22 +2443,7 @@ const HomePage: React.FC = () => {
               </h1>
 
               {/* Métricas reales del catálogo — se ocultan solas si están a 0 */}
-              <div className="flex flex-wrap gap-x-5 gap-y-3 mt-5">
-                {heroStats.filter(m => m.val > 0).map(m => {
-                  const Icon = m.icon;
-                  return (
-                    <div key={m.label} className="flex items-center gap-2">
-                      <span className="w-9 h-9 rounded-xl bg-accent/10 grid place-items-center flex-shrink-0">
-                        <Icon className="w-4 h-4 text-accent" />
-                      </span>
-                      <span>
-                        <span className="block font-display font-black text-base text-ink-primary leading-none">{m.val}</span>
-                        <span className="block text-[10px] text-ink-tertiary leading-tight mt-0.5">{m.label}</span>
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+              <HeroCities />
 
               <div className="flex flex-wrap gap-2 mt-5">
                 {HERO_ACTIONS.map(a => {
