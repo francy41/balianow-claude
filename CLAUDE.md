@@ -23,6 +23,18 @@
 - Dominios personalizados en el Worker: `bailanow.com` + `www.bailanow.com` (DNS + SSL gestionados por Cloudflare). Registros MX/TXT del correo (Amazon SES/Resend) intactos.
 - Sitemap: `scripts/gen-sitemap.mjs` genera `public/sitemap.xml` en build tomando la Edge Function `sitemap` de Supabase (envía `VITE_SUPABASE_ANON_KEY` por si hay verify_jwt). Es no-fatal: si falla, el build continúa.
 - Variables `VITE_*` viven en el panel de Cloudflare (Settings → Environment variables), no en Vercel.
+- **Fusionar a `master` despliega SOLO la web.** Las Edge Functions de Supabase van aparte
+  (MCP `deploy_edge_function` o el panel). Un arreglo en `supabase/functions/` no está vivo
+  por haberlo fusionado.
+- Cabeceras de seguridad y CSP en `public/_headers`, que Cloudflare sirve con los assets.
+  La CSP está **probada en un navegador real**, no escrita a ojo: se sirve `dist/` con ella
+  puesta y se cargan las rutas principales mirando la consola. Una CSP mal ajustada no da
+  error visible — simplemente deja de funcionar el pago o el reproductor.
+  - `'unsafe-inline'` en `style-src` es inevitable: Tailwind y React inyectan estilos en línea.
+  - `img-src`/`media-src`/`connect-src` admiten cualquier `https:` porque las fotos de locales
+    y las emisoras de radio son URLs que mete el administrador.
+  - Si algún día falla un pago o un vídeo: mirar la consola. Si sale un mensaje de CSP, añadir
+    ese dominio o borrar la línea para volver atrás al instante.
 
 ## Reglas de arquitectura (no deducibles leyendo el código)
 - Supabase directo (ENOTFOUND en Postgres): toda migración SQL usa el Management API REST `/v1/projects/{ref}/database/query`
@@ -33,6 +45,50 @@
 - Admin multi-rol: superadmin y admin comparten las mismas políticas RLS
 - PowerShell es el shell principal (Bash pierde grep/cat/node esporádicamente en este entorno Windows)
 - Commits: mensajes simples `-m "..."` — los here-strings PS con `@'...'@` rompen si el mensaje contiene paréntesis o comillas
+
+## Cobros: el precio NUNCA viaja del cliente
+Regla que no se negocia: **el navegador dice QUÉ se compra, el servidor decide CUÁNTO cuesta.**
+
+Hasta noviembre de 2026 tres funciones hacían `Number(body.price)` y cobraban eso. Cualquiera
+con las herramientas del navegador abiertas podía suscribirse al plan de 22 € por un céntimo,
+comprar un módulo por nada, o pagar 0,50 € por un servicio de 500 €. En el carrito, además,
+el **vendedor** venía del cliente: se podía desviar la comisión a otra cuenta.
+
+- `plan_prices` (plan_id, name, price, currency, active) — precios oficiales de TODOS los
+  planes. Los de negocio van con prefijo `negocio_` porque el id `premium` ya existía en los
+  de usuario con otro precio. Cambiar un precio aquí cambia lo que se cobra; los ficheros
+  `src/data/dancePlans.ts`, `mockData.ts` y `adPlans.ts` son solo lo que se enseña.
+- `create-subscription-checkout` y `create-module-checkout` leen el precio de la BD
+  (`plan_prices` / `module_catalog` + `module_overrides`) con la clave de servicio.
+- `create-payment-intent` busca cada `serviceId` en `services`, suma el total él mismo y saca
+  el vendedor de la BD.
+- **Las donaciones sí aceptan el importe del cliente**, y debe ser así: ahí lo elige quien dona.
+- Cobrar un plan de negocio: `src/lib/businessPlans.ts`. Crea la fila en `subscriptions` como
+  `pending`; el webhook de Stripe la pasa a `active` por `client_reference_id`, y también
+  gestiona renovaciones y bajas sin código adicional.
+- Comisiones en `DEFAULT_COMMISSIONS` (15% general, 20% cursos, 10% propinas). No es el margen:
+  Stripe se lleva ~1,5% + 0,25 € de cada cobro.
+
+## El muro (feed social tipo Instagram, `/muro`)
+Se **extendió `posts`**, que ya existía vacía y sin usar, en vez de crear otra tabla. Sus
+columnas heredadas se conservan: `content` es el texto, `city` el lugar, `likes` el contador.
+No confundir con `community_posts`, que es el tablón de anuncios de texto con moderación previa.
+
+Su política `Users can insert posts` tenía `with check (true)`: cualquiera podía publicar a
+nombre de otra persona, incluso sin sesión.
+
+- Contadores guardados en la fila y mantenidos por triggers. Contarlos al vuelo obliga a una
+  consulta por publicación en cada carga del feed.
+- Un negocio publica desde la cuenta de quien lo gestiona, con `venue_id`. La autoría personal
+  no se pierde nunca: si hay que moderar, se sabe qué persona lo subió.
+- El bloqueo corta en todo: publicaciones, comentarios, likes y seguimientos, en los dos sentidos.
+- El dueño de una publicación puede retirar comentarios ajenos en ella.
+- Los comentarios se retiran marcando `deleted_at`, no borrando la fila: el contador se mantiene
+  solo y queda rastro para moderación.
+- Paginación por fecha, no por número de página: en un feed que crece por arriba, saltar de
+  página repite o se salta publicaciones.
+
+Tablas: `posts`, `post_likes`, `post_comments`, `user_follows` · SQL: `supabase/feed-social.sql`
 
 ## Módulo social de locales (presencia, match, chat, reputación)
 Resuelve un caso concreto: bailas con alguien toda la noche y te vas sin saber su nombre.
@@ -80,6 +136,17 @@ SQL en `supabase/`: `quien-estuvo-aqui.sql`, `chat-con-match.sql`,
 Pendiente: avisos push de mensaje nuevo (necesita Firebase); resumen diario de reportes
 en vez de un correo por cada uno.
 
+## Pendiente de producto (no bloquea nada)
+- **Play Store**: contraseña del keystore, logo real (los iconos son un cuadrado naranja con
+  un emoji), 5-8 capturas. Y decidir lo del **Google Play Billing**: vender las suscripciones
+  dentro de la app Android cuesta un 15% de comisión; venderlas en la web y entrar en la app
+  con la cuenta ya activa está permitido y lo evita.
+- **AdMob** con consentimiento GDPR (SDK UMP, obligatorio en España) y exclusión de
+  suscriptores: los tres planes prometen "Sin anuncios". El pre-roll VAST/IMA ya lo respeta.
+- **BailaNow TV fase 1**: activar Cloudflare Stream y sus dos secretos.
+- Antes de vender el primer plan de negocio: compra de prueba con tarjeta de test de Stripe,
+  comprobando que la fila de `subscriptions` pasa de `pending` a `active`.
+
 ## Estructura crítica
 - `src/pages/AdminPage.tsx` — panel superadmin (~3500 líneas), cada sección es un componente separado
 - `src/components/VenueCheckIn.tsx` — presencia en un local, lista, match, bloqueo, reporte
@@ -87,6 +154,12 @@ en vez de un correo por cada uno.
 - `src/components/DirectThread.tsx` — chat uno a uno (solo con match)
 - `src/components/DanceReviews.tsx` — reputación de baile + `ReputacionResumen`
 - `src/components/ReportsAdminSection.tsx` — panel de reportes, suspensión y margen
+- `src/pages/FeedPage.tsx` · `PostCard.tsx` · `PostComposer.tsx` · `ProfilePostsGrid.tsx` — el muro
+- `src/lib/feed.ts` — capa de datos del muro (traduce las columnas heredadas de `posts`)
+- `src/lib/businessPlans.ts` — contratar un plan de negocio (100/200/400 €)
+- `supabase/functions/moderar-cuenta/` — bloquea el acceso en `auth` y cierra sus sesiones.
+  Suspender tiene dos mitades: lo social en la BD y el acceso aquí. Si la segunda falla hay
+  que decirlo, no dar la cuenta por cerrada.
 - `src/store/appStore.ts` — stores Zustand (auth, UI, cart, wallet, siteConfig)
 - `src/lib/supabase.ts` — cliente Supabase singleton
 - `src/data/mockData.ts` — datos mock de fallback (reducir su uso progresivamente)
