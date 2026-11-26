@@ -2533,8 +2533,11 @@ const HomePage: React.FC = () => {
       {/* Las categorías vivían aquí. Se movieron justo debajo del banner:
           repetirlas a media página no ayuda, solo alarga. */}
 
-      {/* ── MÁS PARA TI (justo bajo el escaparate, segun brief) ── */}
-      <MoreForYou navigate={navigate} />
+      {/* Aquí iba <MoreForYou> ("Más para ti"). Sin personalización real no
+          recomienda nada: es una fila genérica que compite por la atención con
+          las que sí tienen criterio. Cuando haya datos de uso para ordenarla de
+          verdad, merece volver — y entonces arriba, no enterrada. El
+          componente sigue definido. */}
 
       {/* ── COMUNIDAD — 102 posts reales que se cargaban y no se pintaban nunca ── */}
       {communityPosts.length > 0 && (
@@ -2720,8 +2723,13 @@ const HomePage: React.FC = () => {
         </section>
       )}
 
-      {/* ── FILA 3 COLUMNAS: Eventos destacados · Artistas recomendados · BailaNow TV ── */}
-      <FeaturedTripleRow navigate={navigate} />
+      {/* Aquí iba <FeaturedTripleRow>: "Eventos destacados · Artistas
+          recomendados · BailaNow TV". Las tres columnas duplicaban una sección
+          entera que ya existe en esta misma página — Próximos Eventos, Artistas
+          y Bailarines, y la tira de TV/Radio del principio— así que enseñaba lo
+          mismo por segunda vez y añadía tres "ver más" a una portada que ya
+          tenía quince. El componente sigue definido: para recuperarlo basta
+          volver a montarlo aquí. */}
 
       {/* ── SECCIONES DE DESCUBRIMIENTO (Clases, Profesores, Trabajos) ── */}
       <DiscoverySections navigate={navigate} />
