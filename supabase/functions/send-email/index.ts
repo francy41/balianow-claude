@@ -143,6 +143,31 @@ function template(type: string, d: Record<string, any>): { subject: string; html
         `<p>Estamos revisando tu solicitud para reclamar <b>${d.targetName || 'el perfil'}</b>, pero necesitamos más información antes de continuar:</p>
          <p style="background:#faf7fb;padding:12px 14px;border-radius:10px"><i>${d.reason || 'Por favor contáctanos con más detalles.'}</i></p>
          <p>Responde a este correo con la información solicitada.</p>`) };
+    // ── Invitación a reclamar un perfil que ya está publicado ──
+    // Va a gente que NO se ha registrado, así que el tono importa: se explica
+    // quién somos, por qué está ahí y cómo salir. Sin pie de baja esto es spam,
+    // y una sola queja puede tumbar la reputación del dominio y dejar sin
+    // correo al resto de la plataforma, avisos de pago incluidos.
+    case 'invitacion_perfil': {
+      const nombre = esc(d.nombre) || 'tu perfil';
+      const url = `${APP}/reclamar/${esc(d.token)}`;
+      return {
+        subject: `${nombre} ya está en BailaNow — reclama tu perfil`,
+        html: shell(`${nombre} ya está en BailaNow`,
+          `<p>Hemos creado una ficha de <b>${nombre}</b>${d.ciudad ? ` en ${esc(d.ciudad)}` : ''} dentro de
+            <b>BailaNow</b>, el directorio de baile latino donde la gente busca dónde salir a bailar,
+            qué eventos hay y a quién contratar.</p>
+           <p>La ficha está publicada y la puedes reclamar cuando quieras. Al hacerlo pasas a controlarla:
+            editas tus datos y fotos, publicas tus eventos y clases, y recibes reservas y mensajes.
+            <b>Reclamarla es gratis.</b></p>
+           ${btn(url, 'Reclamar mi perfil')}
+           <p style="color:#6b7280;font-size:13px;margin-top:18px">
+             Si prefieres que retiremos la ficha, responde a este correo con "BAJA" y la quitamos.
+             No volveremos a escribirte.
+           </p>`),
+      };
+    }
+
     // ── Avisos internos al equipo. El destinatario NO llega en la petición:
     //    se resuelve en el servidor (ver resolveAdmins), así el navegador nunca
     //    ve las direcciones del equipo. El detalle va escapado.
