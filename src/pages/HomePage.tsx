@@ -14,7 +14,7 @@ import { supabase } from '../lib/supabase';
 import { fixText } from '../lib/text';
 import NewsletterForm from '../components/NewsletterForm';
 import HomeFabStack from '../components/HomeFabStack';
-import HeroCities from '../components/HeroCities';
+import PremiumBanner from '../components/PremiumBanner';
 import RadioWidgetModal from '../components/RadioWidgetModal';
 import TvPreviewModal from '../components/TvPreviewModal';
 import HomeBackground from '../components/HomeBackground';
@@ -45,13 +45,6 @@ interface Category {
 // Vídeo del hero. Va en una constante y no incrustado en el JSX para que se
 // vea de un vistazo qué se está cargando y se pueda cambiar en un sitio.
 const HERO_VIDEO = 'https://assets.cdn.filesafe.space/7Q3BuQ8WwUJ79DqqX78C/media/6a8f6b7c14ad347ccb716fdf.mp4';
-
-const HERO_ACTIONS: { label: string; to: string; icon: React.FC<any>; primary?: boolean }[] = [
-  { label: 'Bailar esta noche', to: '/rutas',   icon: RouteIcon, primary: true },
-  { label: 'Eventos',           to: '/eventos', icon: Calendar },
-  { label: 'Pareja de baile',   to: '/parejas', icon: Heart },
-  { label: 'Clases',            to: '/clases',  icon: GraduationCap },
-];
 
 // ── SPONSORS ─────────────────────────────────────────────────────────────
 const SPONSORS = [
@@ -2442,24 +2435,13 @@ const HomePage: React.FC = () => {
                 <span className="text-brand">en un solo lugar</span>
               </h1>
 
-              {/* Métricas reales del catálogo — se ocultan solas si están a 0 */}
-              <HeroCities />
-
-              <div className="flex flex-wrap gap-2 mt-5">
-                {HERO_ACTIONS.map(a => {
-                  const Icon = a.icon;
-                  return (
-                    <button key={a.to} onClick={() => navigate(a.to)}
-                      className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-[13px] font-extrabold transition-all ${
-                        a.primary
-                          ? 'bg-accent text-white hover:bg-brand-pink-dark shadow-elevation-2'
-                          : 'bg-surface-elevated text-ink-primary border border-hairline/15 hover:border-accent/40 shadow-elevation-1'
-                      }`}>
-                      <Icon className="w-4 h-4" /> {a.label}
-                    </button>
-                  );
-                })}
-              </div>
+              {/* Aquí había cuatro botones (Bailar esta noche · Eventos ·
+                  Pareja de baile · Clases). Se quitaron por dos razones:
+                  "Bailar esta noche" repetía la acción del banner que va justo
+                  debajo, y dos botones primarios seguidos se anulan entre sí;
+                  y los otros tres ya están en la barra de categorías, que
+                  ahora también va en la primera pantalla. El hero se queda con
+                  el titular, que es su trabajo. */}
 
               {/* En móvil no hay columna derecha: el vídeo va debajo del texto,
                   como banner apaisado y como pieza aparte. Sin degradado de
@@ -2485,6 +2467,16 @@ const HomePage: React.FC = () => {
       {/* ── TV + RADIO (solo por debajo de xl: en xl ya viven en el raíl) —
              van pegados al hero para igualar la jerarquía del escritorio, donde
              encabezan el raíl. ── */}
+      {/* ── BANNER PRINCIPAL — una promesa y UNA acción. Va antes que nada
+             porque es lo único de la portada que no compite con el resto. ── */}
+      <PremiumBanner navigate={navigate} />
+
+      {/* ── MENÚ DE CATEGORÍAS — sube aquí desde la posición 8, donde quedaba
+             enterrado bajo siete secciones de contenido. Uber Eats, Airbnb y
+             Booking ponen las categorías en la primera pantalla: quien llega
+             sabiendo lo que busca no debería tener que bajar a encontrarlo. ── */}
+      <DynamicCategoriesSection navigate={navigate} />
+
       <TvRadioStrip navigate={navigate} onOpenTv={() => setTvWidgetOpen(true)} onOpenRadio={() => setRadioWidgetOpen(true)} />
 
       {/* ── LOCALES — el inventario con más volumen (139). En un marketplace lo
@@ -2538,8 +2530,8 @@ const HomePage: React.FC = () => {
       {/* ── SPONSORS SLIDER ── */}
       <FeaturedSlider navigate={navigate} />
 
-      {/* ── CATEGORÍAS ── */}
-      <DynamicCategoriesSection navigate={navigate} />
+      {/* Las categorías vivían aquí. Se movieron justo debajo del banner:
+          repetirlas a media página no ayuda, solo alarga. */}
 
       {/* ── MÁS PARA TI (justo bajo el escaparate, segun brief) ── */}
       <MoreForYou navigate={navigate} />
