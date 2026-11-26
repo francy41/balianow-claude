@@ -4,6 +4,7 @@ import Navbar from './components/layout/Navbar';
 import Sidebar from './components/layout/Sidebar';
 import BottomNav from './components/layout/BottomNav';
 import CookieBanner from './components/CookieBanner';
+import Onboarding from './components/Onboarding';
 import ProtectedRoute from './components/ProtectedRoute';
 import GlobalSearch from './components/GlobalSearch';
 import DarkModeToggle from './components/DarkModeToggle';
@@ -262,6 +263,7 @@ const App: React.FC = () => {
           <BottomNav />
           <ToastContainer />
           <CookieBanner />
+          <Onboarding />
           <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} initialQuery={searchInitialQuery} />
           <DarkModeToggle />
           <DonationButton />
