@@ -10,7 +10,6 @@ import EventAdminPanel from '../components/EventAdminPanel';
 import DemoBadge from '../components/DemoBadge';
 import ClaimProfileButton from '../components/ClaimProfileButton';
 import { isClaimed, UNCLAIMED_TOAST } from '../lib/ownership';
-import { ARTISTS, VENUES } from '../data/mockData';
 import type { Artist, Event as EventType } from '../data/mockData';
 import { Badge, StarRating, EmptyState, Button, Avatar } from '../components/ui';
 import { FilterFacet, ActiveFilterBar, FilterPanel } from '../components/SmartFilters';
@@ -223,7 +222,10 @@ const EventCard: React.FC<{
   const day = dateObj.toLocaleDateString('es-ES', { day: '2-digit' });
   const month = dateObj.toLocaleDateString('es-ES', { month: 'short' }).toUpperCase();
   const pct = Math.round((event.attending / event.capacity) * 100);
-  const linkedArtists = ARTISTS.filter(a => event.artists.includes(a.id));
+  // Aquí no se consulta la BD: sería una consulta por tarjeta en cada carga del
+  // listado. Se enseña cuántos artistas hay, que sale del propio evento; los
+  // nombres y las caras están en el detalle, donde una consulta sí compensa.
+  const numArtistas = Array.isArray(event.artists) ? event.artists.length : 0;
 
   return (
     <div onClick={onClick} className="group bg-surface-elevated rounded-3xl overflow-hidden cursor-pointer shadow-elevation-1 hover:shadow-elevation-3 hover:-translate-y-1 transition-all duration-300 border border-hairline/10">
@@ -253,20 +255,10 @@ const EventCard: React.FC<{
           <span className="mx-1">·</span>
           <Clock className="w-3 h-3" /> {event.time}
         </div>
-        {/* Linked artist avatars */}
-        {linkedArtists.length > 0 && (
-          <div className="flex items-center gap-1 mt-2">
-            <div className="flex -space-x-2">
-              {linkedArtists.slice(0, 3).map(a => (
-                <img key={a.id} src={a.avatar} alt={a.name} title={a.name}
-                  className="w-6 h-6 rounded-full border-2 border-white object-cover" />
-              ))}
-            </div>
-            <span className="text-[10px] text-ink-tertiary ml-1">
-              {linkedArtists.length <= 2
-                ? linkedArtists.map(a => a.name).join(', ')
-                : `${linkedArtists[0].name} +${linkedArtists.length - 1}`}
-            </span>
+        {numArtistas > 0 && (
+          <div className="flex items-center gap-1.5 mt-2 text-[11px] text-ink-tertiary">
+            <Music2 className="w-3.5 h-3.5" />
+            {numArtistas === 1 ? '1 artista confirmado' : `${numArtistas} artistas confirmados`}
           </div>
         )}
         <div className="flex gap-1 flex-wrap mt-2">
@@ -342,6 +334,11 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
   const [ticketModalOpen, setTicketModalOpen] = useState(false);
   const [following, setFollowing] = useState(false);
   const [liked, setLiked] = useState(false);
+  // El local y los artistas del evento, de la base de datos. Antes se buscaban
+  // en los arrays de mockData, que para un evento real nunca casaban: el
+  // detalle no enseñaba ni el local ni el cartel.
+  const [venue, setVenue] = useState<any>(null);
+  const [linkedArtists, setLinkedArtists] = useState<any[]>([]);
 
   const loadEvent = () => {
     let done = false;
@@ -362,6 +359,28 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
     loadEvent();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
+
+  useEffect(() => {
+    if (!event) { setVenue(null); setLinkedArtists([]); return; }
+
+    // `events.venue_id` es texto y `venues.id` es uuid: si el valor guardado no
+    // es un uuid válido, Postgres rechaza la consulta. Se trata como "sin local"
+    // en lugar de romper la página.
+    if (event.venueId) {
+      supabase.from('venues').select('id, name, avatar, type, city').eq('id', event.venueId).maybeSingle()
+        .then(({ data }) => setVenue(data ?? null), () => setVenue(null));
+    } else {
+      setVenue(null);
+    }
+
+    const ids = (Array.isArray(event.artists) ? event.artists : []).filter(Boolean);
+    if (ids.length > 0) {
+      supabase.from('artists').select('*').in('id', ids)
+        .then(({ data }) => setLinkedArtists(data ?? []), () => setLinkedArtists([]));
+    } else {
+      setLinkedArtists([]);
+    }
+  }, [event?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Módulos globales (Admin → Categorías): gatean pestañas gallery/reviews
   const profileModules = useSiteConfigStore(s => s.profileModules);
@@ -385,8 +404,6 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
 
   const dateObj = new Date(event.date);
   const pct = event.capacity ? Math.round((event.attending / event.capacity) * 100) : 0;
-  const linkedArtists = ARTISTS.filter(a => event.artists.includes(a.id));
-  const venue = VENUES.find(v => v.id === event.venueId);
   const video = EVENT_VIDEOS[event.id];
 
   const claimed = isClaimed(event.userId);
@@ -864,7 +881,7 @@ const EventDetail: React.FC<{ eventId: string }> = ({ eventId }) => {
                           <span>{artist.city}</span>
                         </div>
                         <div className="flex flex-wrap gap-1.5">
-                          {artist.genre.slice(0, 3).map(g => (
+                          {(artist.genre ?? []).slice(0, 3).map((g: string) => (
                             <span key={g} className="text-[10px] bg-pink-50 text-brand-orange px-2 py-0.5 rounded-full font-medium">{g}</span>
                           ))}
                         </div>
