@@ -8,7 +8,7 @@ import {
   Edit, Trash2, Plus, Search, Filter, RefreshCw,
   ChevronRight, ArrowUpRight, ArrowDownRight, Clock,
   Wifi, Globe, Bell, Database, Server, FileText, Save, Loader2,
-  Share2, Flag, ExternalLink, MessageSquare, Tv, Heart, Trophy, Film, Upload
+  Share2, Flag, ExternalLink, MessageSquare, Tv, Heart, Trophy, Film, Upload, Mail
 } from 'lucide-react';
 import { useAuthStore, useUIStore, useSiteConfigStore, getYouTubeId, useAdminOverridesStore, useSponsorsStore, DEFAULT_HOME_CATEGORIES, DEFAULT_HOME_TV, DEFAULT_COMMISSIONS, type HeroMediaType, type CommissionSource, type CommissionConfig, type HeroSliderImage, type HomeCategory, type HomeTvCard, type Sponsor } from '../store/appStore';
 import { supabase } from '../lib/supabase';
@@ -24,6 +24,7 @@ import DanceChoreoAdmin from '../components/DanceChoreoAdmin';
 import ClaimsAdminSection from '../components/ClaimsAdminSection';
 import SupportAdminSection from '../components/SupportAdminSection';
 import ReportsAdminSection from '../components/ReportsAdminSection';
+import InvitacionesAdminSection from '../components/InvitacionesAdminSection';
 import PartnerAdminSection from '../components/PartnerAdminSection';
 import VideoAdsAdminSection from '../components/VideoAdsAdminSection';
 import DonationsAdminSection from '../components/DonationsAdminSection';
@@ -48,7 +49,7 @@ type AdminSection =
   | 'cursos' | 'finanzas' | 'diseno' | 'configuracion' | 'roles'
   | 'disputas' | 'seguridad' | 'resenas' | 'creators' | 'retiros' | 'comisiones' | 'cms' | 'home-destacados'
   | 'patrocinadores' | 'administradores' | 'importar' | 'integraciones' | 'newsletter' | 'danceavatares' | 'afiliados' | 'promocionate'
-  | 'reclamaciones' | 'planificador' | 'soporte' | 'reportes'
+  | 'reclamaciones' | 'planificador' | 'soporte' | 'reportes' | 'invitaciones'
   | 'tv' | 'rutas' | 'parejas' | 'retos' | 'partner' | 'publicidad' | 'donaciones' | 'membresias' | 'solicitudes-creador' | 'tv-monetizacion' | 'modulos' | 'app-builder' | 'servicios' | 'en-directo';
 
 const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?: string }[] = [
@@ -62,6 +63,7 @@ const SECTIONS: { id: AdminSection; label: string; icon: React.ReactNode; badge?
   { id: 'radio',          label: 'Radio Online',            icon: <Radio className="w-4 h-4" /> },
   { id: 'usuarios',       label: 'Usuarios',                icon: <Users className="w-4 h-4" /> },
   { id: 'reportes',       label: 'Reportes de usuarios',    icon: <Shield className="w-4 h-4" />, badge: 'NEW' },
+  { id: 'invitaciones',   label: 'Invitar a reclamar perfil', icon: <Mail className="w-4 h-4" />, badge: 'NEW' },
   { id: 'importar',       label: 'Importar perfiles',       icon: <FileText className="w-4 h-4" />, badge: 'NEW' },
   { id: 'integraciones',  label: 'Integraciones (GHL)',     icon: <Globe className="w-4 h-4" />, badge: 'GHL' },
   { id: 'planificador',   label: 'Planificador de Redes',   icon: <Radio className="w-4 h-4" />, badge: 'LIVE' },
@@ -339,6 +341,7 @@ const AdminPage: React.FC = () => {
         {active === 'patrocinadores'  && <PatrocinadoresSection addToast={addToast} />}
         {active === 'soporte'         && <SupportAdminSection addToast={addToast} />}
         {active === 'reportes'        && <ReportsAdminSection addToast={addToast} />}
+        {active === 'invitaciones'   && <InvitacionesAdminSection addToast={addToast} />}
         {active === 'administradores' && <AdministradoresSection addToast={addToast} isSuperAdmin={isSuperAdmin} />}
         {active === 'importar'        && <ProfileImporter />}
         {active === 'integraciones'   && <IntegracionesSection addToast={addToast} />}
