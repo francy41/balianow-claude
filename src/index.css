@@ -167,6 +167,21 @@
   }
 }
 
+/* ── Barrido de luz del banner principal ──────────────────────────
+   Una pasada lenta cada 7 s con una pausa larga: un brillo continuo
+   cansa la vista y abarata la pieza. */
+@keyframes banner-brillo {
+  0%        { transform: translateX(0); }
+  45%, 100% { transform: translateX(400%); }
+}
+.banner-brillo {
+  animation: banner-brillo 7s ease-in-out infinite;
+  transform: skewX(-12deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .banner-brillo { animation: none; opacity: 0; }
+}
+
 /* ── MOBILE SAFE AREA & VIEWPORT ── */
 :root {
   --sat: env(safe-area-inset-top, 0px);
